@@ -63,5 +63,14 @@ if [[ -n "${DEVELOPER_ID_APPLICATION:-}" ]]; then
   fi
 fi
 
+if [[ -n "${DEVELOPER_ID_APPLICATION:-}" && -n "${APPLE_ID:-}" && -n "${APPLE_APP_PASSWORD:-}" ]]; then
+  echo "==> Verifying Gatekeeper acceptance"
+  spctl --assess --type execute -vv "$APP"
+  xcrun stapler validate "$APP"
+  xcrun stapler validate "$DMG"
+else
+  echo "warning: build is NOT signed/notarized (signing secrets not configured)"
+fi
+
 (cd "$DIST" && shasum -a 256 ./* > SHA256SUMS.txt)
 echo "==> Artifacts:"; ls -lh "$DIST"
