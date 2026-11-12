@@ -3,7 +3,7 @@ PROJECT     := Dynotch.xcodeproj
 DERIVED     := build/DerivedData
 DESTINATION := platform=macOS
 
-.PHONY: bootstrap generate open build test lint format release clean
+.PHONY: bootstrap generate open build test lint format release install clean
 
 bootstrap: ## Install dev tools
 	brew bundle
@@ -28,8 +28,11 @@ lint: ## Lint Swift sources
 format: ## Autocorrect lint issues
 	swiftlint --fix
 
-release: generate ## Local unsigned Release build + zip into dist/
+release: generate ## Local Release build + zip/dmg into dist/
 	./scripts/build-release.sh
+
+install: ## Install latest GitHub release to /Applications (or: make install TAG=v0.1.0)
+	./scripts/install.sh $(TAG)
 
 clean:
 	rm -rf build dist $(PROJECT)
