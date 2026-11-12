@@ -1,0 +1,14 @@
+name: Funkciókérés
+description: Új ötlet vagy fejlesztés
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Milyen problémát oldana meg?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Javasolt megoldás

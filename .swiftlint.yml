@@ -1,0 +1,19 @@
+included:
+  - Dynotch
+  - DynotchTests
+excluded:
+  - build
+  - DerivedData
+opt_in_rules:
+  - empty_count
+  - first_where
+  - force_unwrapping
+  - sorted_imports
+  - toggle_bool
+line_length:
+  warning: 140
+  error: 200
+identifier_name:
+  excluded: [id, x, y]
+analyzer_rules:
+  - unused_import

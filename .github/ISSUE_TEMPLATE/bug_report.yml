@@ -1,0 +1,22 @@
+name: Hibajelentés
+description: Valami nem úgy működik, ahogy kellene
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Mi történt?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reprodukálás lépései
+  - type: input
+    id: version
+    attributes:
+      label: Dynotch verzió
+  - type: input
+    id: macos
+    attributes:
+      label: macOS verzió és gép (pl. 26.1, MacBook Pro M3)

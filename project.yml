@@ -1,0 +1,84 @@
+name: Dynotch
+options:
+  bundleIdPrefix: com.peterkereki
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""            # set your Apple Team ID for signed builds
+    ENABLE_HARDENED_RUNTIME: YES
+    DEAD_CODE_STRIPPING: YES
+
+targets:
+  Dynotch:
+    type: application
+    platform: macOS
+    sources:
+      - path: Dynotch
+    info:
+      path: Dynotch/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Dynotch
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.utilities
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
+    entitlements:
+      path: Dynotch/Resources/Dynotch.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        COMBINE_HIDPI_IMAGES: YES
+    postCompileScripts:
+      - name: SwiftLint
+        basedOnDependencyAnalysis: false
+        script: |
+          export PATH="$PATH:/opt/homebrew/bin"
+          if which swiftlint >/dev/null; then
+            swiftlint --quiet
+          else
+            echo "warning: SwiftLint not installed (brew install swiftlint)"
+          fi
+
+  DynotchTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: DynotchTests
+    dependencies:
+      - target: Dynotch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.DynotchTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Dynotch.app/Contents/MacOS/Dynotch
+
+schemes:
+  Dynotch:
+    build:
+      targets:
+        Dynotch: all
+        DynotchTests: [test]
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - Dynotch
+      targets:
+        - DynotchTests
+    archive:
+      config: Release
