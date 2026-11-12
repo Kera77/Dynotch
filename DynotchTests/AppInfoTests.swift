@@ -1,5 +1,5 @@
-import Testing
 @testable import Dynotch
+import Testing
 
 struct AppInfoTests {
     @Test func versionIsNotEmpty() {
