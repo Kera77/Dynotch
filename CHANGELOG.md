@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-12
+
+### Changed
+- Release builds are ad-hoc signed for personal use; Apple notarization removed.
+- `make install` installs the latest GitHub release to /Applications.
+
 ## [0.1.0] - 2026-11-12
 
 ### Added
