@@ -27,12 +27,13 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities
+        LSUIElement: true
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
     entitlements:
       path: Dynotch/Resources/Dynotch.entitlements
       properties:
-        com.apple.security.app-sandbox: true
+        com.apple.security.app-sandbox: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch

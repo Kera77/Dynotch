@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.2 tervezet** · Utolsó módosítás: 2026-11-13
+> Állapot: **v0.2 elfogadva** · Utolsó módosítás: 2026-11-13
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -39,7 +39,7 @@
 | M-1 | A kinyitott panel tetején, a notch két oldalán egy **menüsor** található, amely a funkciók ikonjait mutatja. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | v0.2-ben egyetlen helyőrző funkció van (*Home*). A menüsor és a funkcióváltás már ezzel tesztelhető, a valódi funkciók a következő verziókban jönnek. |
+| M-4 | v0.2-ben két helyőrző funkció van: *Home* (óra és dátum) és *Info* (verzió, kijelző és notch adatai). Kettő kell ahhoz, hogy a funkcióváltás és a swipe tesztelhető legyen. A valódi funkciók a következő verziókban jönnek. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -62,7 +62,7 @@
 | ID | Követelmény |
 |---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
-| C-2 | **Bal kattintás:** ❓ *nyitott kérdés, lásd a 4. fejezetet.* |
+| C-2 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. A panelen belüli gombok (például a menüsor ikonjai) kattintásra természetesen működnek. |
 | C-3 | A Beállítások ablak egy normál macOS ablak. Megnyitásakor előtérbe jön, bezárásakor az app tovább fut a háttérben. |
 
 ---
@@ -111,10 +111,7 @@
 
 ## 4. Nyitott kérdések
 
-1. **Bal kattintás a notch-on (C-2):** az eredeti kérés így szólt: „Jobb klikkre ugorjon fel a beállítások, kattintásra pedig a beállítások”. Mit csináljon a sima kattintás?
-   - a) semmit (a nyitás hoverre történik),
-   - b) zárja be vagy nyissa ki a panelt (például ha hover-bezárás után azonnal vissza akarod hozni),
-   - c) valami mást.
+Jelenleg nincs.
 
 ---
 

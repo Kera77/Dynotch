@@ -9,6 +9,12 @@ enum AppInfo {
         string(for: "CFBundleVersion", in: .main) ?? "0"
     }
 
+    static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    static let repositoryURL = URL(string: "https://github.com/Kera77/Dynotch")
+
     static func string(for key: String, in bundle: Bundle) -> String? {
         bundle.object(forInfoDictionaryKey: key) as? String
     }
