@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-13
+
 ### Added
 - Notch panel: opens on hover, stays open while the pointer is inside, closes after a configurable delay (0–3 s).
 - Top menu bar with feature icons; two-finger horizontal swipe switches features (no wrap-around, bounce at the ends).
