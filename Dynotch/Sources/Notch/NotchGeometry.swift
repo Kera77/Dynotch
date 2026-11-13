@@ -66,7 +66,7 @@ struct NotchGeometry: Equatable, Sendable {
 
     private func topCenteredRect(size: CGSize) -> CGRect {
         CGRect(
-            x: (screenFrame.midX - size.width / 2).rounded(),
+            x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height,
             width: size.width,
             height: size.height

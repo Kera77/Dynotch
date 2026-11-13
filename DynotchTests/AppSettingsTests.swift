@@ -1,5 +1,5 @@
-import Foundation
 @testable import Dynotch
+import Foundation
 import Testing
 
 @MainActor

@@ -37,8 +37,8 @@ final class NotchViewModel: ObservableObject {
     func select(_ feature: FeatureID) {
         guard feature != currentFeature else { return }
         let list = settings.activeFeatures
-        if let from = list.firstIndex(of: currentFeature), let to = list.firstIndex(of: feature) {
-            lastDirection = to > from ? .next : .previous
+        if let fromIndex = list.firstIndex(of: currentFeature), let toIndex = list.firstIndex(of: feature) {
+            lastDirection = toIndex > fromIndex ? .next : .previous
         }
         currentFeature = feature
         settings.lastFeature = feature
