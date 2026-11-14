@@ -22,11 +22,9 @@ struct NotchView: View {
     private var cornerRadius: CGFloat { model.isExpanded ? 24 : 10 }
 
     var body: some View {
+        // Content lives inside the black background and is clipped by it, so both grow and
+        // shrink together in one animation instead of the content appearing first.
         ZStack(alignment: .top) {
-            shape
-                .fill(.black)
-                .frame(width: size.width, height: size.height)
-
             if !model.isExpanded, let event = calendar.upcoming {
                 UpcomingEventIndicator(
                     event: event,
@@ -41,14 +39,20 @@ struct NotchView: View {
             if model.isExpanded {
                 expandedContent
                     .frame(width: geometry.expandedSize.width, height: geometry.expandedSize.height)
-                    .clipShape(shape)
-                    .transition(.opacity)
+                    .transition(Self.contentTransition)
             }
         }
+        .frame(width: size.width, height: size.height, alignment: .top)
+        .background(.black)
+        .clipShape(shape)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(NotchController.animation, value: calendar.upcoming?.id)
         .environment(\.colorScheme, .dark)
     }
+
+    /// Content scales up from the notch and fades in with the same spring as the background.
+    private static let contentTransition: AnyTransition =
+        .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
 
     private var shape: UnevenRoundedRectangle {
         UnevenRoundedRectangle(

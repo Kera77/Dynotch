@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-14
+
+### Fixed
+- Opening animation: panel content now grows together with the black background instead of appearing first.
+
 ## [0.3.1] - 2026-11-14
 
 ### Fixed
