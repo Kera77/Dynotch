@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class NotchController {
     private let settings: AppSettings
+    private let calendar: CalendarService
     private let openSettings: () -> Void
     private let model: NotchViewModel
     private let panel: NotchPanel
@@ -18,8 +19,9 @@ final class NotchController {
     private var swipe = SwipeDetector()
     private var isMenuOpen = false
 
-    init(settings: AppSettings, openSettings: @escaping () -> Void) {
+    init(settings: AppSettings, calendar: CalendarService, openSettings: @escaping () -> Void) {
         self.settings = settings
+        self.calendar = calendar
         self.openSettings = openSettings
         let screen = Self.targetScreen()
         let geometry = Self.geometry(for: screen)
@@ -27,7 +29,7 @@ final class NotchController {
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen?.localizedName ?? "–")
         panel = NotchPanel(contentRect: geometry.expandedRect)
 
-        let hosting = FirstMouseHostingView(rootView: NotchView(model: model, settings: settings))
+        let hosting = FirstMouseHostingView(rootView: NotchView(model: model, settings: settings, calendar: calendar))
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: geometry.expandedRect.size)
         hosting.autoresizingMask = [.width, .height]
@@ -109,6 +111,7 @@ final class NotchController {
     private func expand() {
         cancelClose()
         panel.ignoresMouseEvents = false
+        calendar.refreshIfStale()
         withAnimation(Self.animation) { model.setExpanded(true) }
         startHoverTimer()
     }

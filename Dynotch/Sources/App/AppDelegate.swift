@@ -3,14 +3,16 @@ import AppKit
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
-    private lazy var settingsWindow = SettingsWindowController(settings: settings)
+    private lazy var calendar = CalendarService(settings: settings)
+    private lazy var settingsWindow = SettingsWindowController(settings: settings, calendar: calendar)
     private var notchController: NotchController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Unit tests run inside the app host; don't put a panel on screen there.
         guard !AppInfo.isRunningTests else { return }
 
-        let controller = NotchController(settings: settings) { [weak self] in
+        calendar.start()
+        let controller = NotchController(settings: settings, calendar: calendar) { [weak self] in
             self?.settingsWindow.show()
         }
         controller.start()

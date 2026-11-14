@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.2 elfogadva** · Utolsó módosítás: 2026-11-13
+> Állapot: **v0.3 elfogadva** · Utolsó módosítás: 2026-11-14
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -12,6 +12,7 @@
 | G-3 | Minimum: **macOS 14**, Apple Silicon és Intel. | Már így van beállítva. |
 | G-4 | Minden funkció **külön kapcsolható** a Beállításokban. Kikapcsolt funkció nem fut a háttérben. | |
 | G-5 | A beállítások `UserDefaults`-ban tárolódnak, újraindítás után is megmaradnak. | |
+| G-6 | **Stabil aláírás saját (önaláírt) tanúsítvánnyal** („Dynotch Self-Signed”). A CI ezzel ír alá. | A macOS az adatvédelmi engedélyeket (Naptár, Kisegítő hozzáférés) az aláíráshoz köti; stabil tanúsítvánnyal a frissítések után is megmaradnak. |
 
 ---
 
@@ -39,7 +40,8 @@
 | M-1 | A kinyitott panel tetején, a notch két oldalán egy **menüsor** található, amely a funkciók ikonjait mutatja. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | v0.2-ben két helyőrző funkció van: *Home* (óra és dátum) és *Info* (verzió, kijelző és notch adatai). Kettő kell ahhoz, hogy a funkcióváltás és a swipe tesztelhető legyen. A valódi funkciók a következő verziókban jönnek. |
+| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (6. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-5 | A menüsor jobb oldala (a notch-tól jobbra) állapotjelzéseknek van fenntartva, például a hangerő- és fényerő HUD-nak. Itt nincs felirat. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -91,31 +93,61 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.2)
+### 2.3 Hatókör (v0.4)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
 
 ---
 
-## 3. Beállítások ablak (v0.2)
+## 3. Beállítások ablak
 
 | Szakasz | Elemek |
 |---|---|
 | **Általános** | Indítás bejelentkezéskor · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
-| **HUD** | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
+| **HUD** (v0.4) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje |
 
 ---
 
-## 4. Nyitott kérdések
+## 4. Naptár (v0.3)
+
+### 4.1 Adatforrás és engedély
+
+| ID | Követelmény |
+|---|---|
+| K-1 | A Dynotch a **macOS Naptár** összes naptárát olvassa (EventKit): az iCloud és az alapértelmezett Apple-naptárt, valamint a Google-naptárt, ha a fiók a *Rendszerbeállítások › Internetes fiókok* alatt hozzá van adva. Csak olvas, eseményt nem hoz létre. |
+| K-2 | Első indításkor (ha a Naptár funkció be van kapcsolva) a macOS engedélyt kér. Engedély nélkül a Naptár funkció és a Beállítások egy gombot mutat, amely kérést indít, vagy ha korábban elutasítottad, megnyitja a megfelelő Rendszerbeállítások oldalt. |
+| K-3 | A lista frissül, ha a naptár megváltozik (más eszközről szinkronizált változás is), amikor a panel kinyílik, valamint legalább 5 percenként. |
+
+### 4.2 Naptár funkció (lenyitott panel)
+
+| ID | Követelmény |
+|---|---|
+| K-4 | **A következő 7 nap** eseményei napokra bontva: *Ma*, *Holnap*, utána a hét napja és a dátum. Üres napok nem jelennek meg. A már véget ért események nem látszanak. |
+| K-5 | Soronként: a naptár színe, az esemény címe, időtartama (vagy „Egész nap”). A folyamatban lévő esemény ideje zölden látszik, „Most” előtaggal. Napon belül az egész napos események vannak elöl, utána kezdési idő szerint. A több napos események minden érintett napon megjelennek. |
+| K-6 | **Csatlakozás gomb**, ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). Kattintásra megnyílik a meeting. |
+| K-6b | A lista függőlegesen görgethető. A vízszintes swipe továbbra is funkciót vált. |
+
+### 4.3 Közelgő esemény jelzés (becsukott notch)
+
+| ID | Követelmény |
+|---|---|
+| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik, a becsukott notch két oldalra kiszélesedik: **bal oldalon** egy ikon (videó, ha van meeting-link, egyébként naptár) a naptár színében, **jobb oldalon** visszaszámlálás percben („8p”), a kezdéskor „most”. |
+| K-8 | A jelzés a kezdés előtt *N* perccel jelenik meg (beállítás: 1–30 perc, alapból 10), és a kezdés után még 5 percig látszik, hogy csatlakozni lehessen. Ha több esemény is jogosult, a legkorábban kezdődő látszik. |
+| K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
+
+---
+
+## 5. Nyitott kérdések
 
 Jelenleg nincs.
 
 ---
 
-## 5. Technikai megközelítés (tájékoztató)
+## 6. Technikai megközelítés (tájékoztató)
 
 | Terület | Megoldás |
 |---|---|
@@ -126,13 +158,15 @@ Jelenleg nincs.
 | Billentyűk elfogása | `CGEventTap` az `NX_SYSDEFINED` (media key) eseményekre; a fogyasztott eseményt nem engedi tovább, így az Apple HUD nem jelenik meg |
 | Hangerő | CoreAudio: `kAudioHardwareServiceDeviceProperty_VirtualMainVolume` és mute, property listener a külső változásokra |
 | Fényerő | `DisplayServicesGetBrightness` / `SetBrightness` (privát framework, dinamikusan betöltve) |
+| Naptár | EventKit (`EKEventStore`, `requestFullAccessToEvents`), `EKEventStoreChanged` értesítés; meeting-link felismerés `NSDataDetector`-ral |
 
 ---
 
-## 6. Ütemterv
+## 7. Ütemterv
 
 | Verzió | Tartalom |
 |---|---|
 | **v0.2** | Háttér-app, notch-panel (hover, késleltetett bezárás), menüsor helyőrző funkcióval, swipe, utolsó funkció megjegyzése, jobb klikk menü, Beállítások ablak |
-| **v0.3** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.4+** | Valódi funkciók a menüsorba: Most játszott zene, Fájlpolc, Időzítő (külön specifikáljuk) |
+| **v0.3** | Naptár: 7 napos lista, Csatlakozás gomb, közelgő esemény jelzés; stabil aláírás |
+| **v0.4** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.5+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

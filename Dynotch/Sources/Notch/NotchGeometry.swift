@@ -5,7 +5,7 @@ import CoreGraphics
 struct NotchGeometry: Equatable, Sendable {
     static let virtualNotchWidth: CGFloat = 185
     static let minimumVirtualNotchHeight: CGFloat = 24
-    static let expandedHeight: CGFloat = 200
+    static let expandedHeight: CGFloat = 230
     static let expandedSideWidth: CGFloat = 200
     static let minimumExpandedWidth: CGFloat = 560
 

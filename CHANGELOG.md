@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-14
+
+### Added
+- Calendar feature: events of the next 7 days from macOS Calendar (iCloud, Google…), grouped by day.
+- Join button for Zoom, Google Meet, Teams and Webex links (Outlook Safe Links unwrapped).
+- Upcoming event indicator beside the closed notch with a minute countdown (configurable 1–30 min lead time).
+- Calendar settings tab: access status, indicator toggle, lead time.
+- Releases are signed with a stable self-signed certificate, so privacy permissions survive updates.
+
+### Changed
+- Removed the feature title from the right side of the menu bar.
+- Opened panel is 30 pt taller to fit the event list.
+
 ## [0.2.1] - 2026-11-14
 
 ### Fixed

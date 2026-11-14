@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# Builds a Release archive of Dynotch (ad-hoc signed, personal use) and packages
-# it as zip + dmg in dist/.
+# Builds a Release archive of Dynotch and packages it as zip + dmg in dist/.
+#
+# Signing (personal use, no Apple account):
+#   SIGNING_IDENTITY  name of a code signing identity, e.g. "Dynotch Self-Signed".
+#                     A stable identity keeps macOS privacy permissions (Calendar,
+#                     Accessibility) across updates. Without it the build is ad-hoc
+#                     signed and permissions must be granted again after each update.
+#   SIGNING_KEYCHAIN  optional keychain that holds the identity.
 set -euo pipefail
 
 VERSION="${VERSION:-$(grep -E 'MARKETING_VERSION' project.yml | head -1 | sed -E 's/.*"(.*)".*/\1/')}"
@@ -26,7 +32,22 @@ xcodebuild archive \
   DEVELOPMENT_TEAM=
 
 APP="$ARCHIVE/Products/Applications/Dynotch.app"
+
+if [[ -n "${SIGNING_IDENTITY:-}" ]]; then
+  echo "==> Signing with \"$SIGNING_IDENTITY\""
+  codesign --force --deep --options runtime \
+    --entitlements Dynotch/Resources/Dynotch.entitlements \
+    --sign "$SIGNING_IDENTITY" \
+    ${SIGNING_KEYCHAIN:+--keychain "$SIGNING_KEYCHAIN"} \
+    "$APP"
+  codesign -d -r- "$APP" 2>&1 | grep -q 'certificate leaf' \
+    || { echo "error: designated requirement is not bound to the certificate"; exit 1; }
+else
+  echo "warning: SIGNING_IDENTITY not set, build is ad-hoc signed (permissions reset on update)"
+fi
+
 codesign --verify --deep --strict "$APP"
+codesign -d -r- "$APP" 2>&1 | tail -1
 
 ditto -c -k --keepParent "$APP" "$DIST/Dynotch-$VERSION.zip"
 hdiutil create -volname "Dynotch" -srcfolder "$APP" -ov -format UDZO "$DIST/Dynotch-$VERSION.dmg"

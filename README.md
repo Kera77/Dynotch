@@ -9,7 +9,7 @@ Natív macOS alkalmazás (SwiftUI, macOS 14+).
 
 ## Telepítés
 
-Személyes használatra készül, Apple aláírás/notarizáció nélkül (ad-hoc aláírt build).
+Személyes használatra készül, Apple aláírás/notarizáció nélkül. A kiadásokat egy saját (önaláírt) tanúsítvány írja alá, így a macOS-engedélyek (pl. Naptár) frissítés után is megmaradnak.
 A legfrissebb kiadás telepítése `/Applications`-be:
 
 ```bash
@@ -52,6 +52,12 @@ scripts/              build / release / install / GitHub bootstrap scriptek
 2. Változtatás, `make lint test`
 3. PR a `main`-re. A CI (SwiftLint + Build & Test) zöld kell legyen merge előtt.
 4. Squash merge.
+
+## Aláíró tanúsítvány
+
+A Release workflow a `SIGNING_CERT_P12` és `SIGNING_CERT_PASSWORD` repo secretekből importálja a
+„Dynotch Self-Signed” tanúsítványt. Biztonsági másolat: `~/.dynotch-signing/` (nincs a repóban).
+Ha elveszik, új tanúsítványt kell generálni; ilyenkor az engedélyeket egyszer újra meg kell adni.
 
 ## CI/CD
 

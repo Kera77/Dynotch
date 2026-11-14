@@ -26,6 +26,10 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>A Dynotch a következő 7 nap eseményeit mutatja a notchban.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>A Dynotch a következő 7 nap eseményeit mutatja a notchban.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Dynotch</string>
 </dict>

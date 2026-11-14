@@ -3,6 +3,7 @@ import Foundation
 /// A function shown in the notch panel's top menu bar.
 enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case home
+    case calendar
     case info
 
     var id: String { rawValue }
@@ -10,6 +11,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .home: "Home"
+        case .calendar: "Naptár"
         case .info: "Info"
         }
     }
@@ -17,6 +19,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     var symbolName: String {
         switch self {
         case .home: "house.fill"
+        case .calendar: "calendar"
         case .info: "info.circle.fill"
         }
     }

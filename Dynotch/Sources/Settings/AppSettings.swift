@@ -6,12 +6,16 @@ import Foundation
 final class AppSettings: ObservableObject {
     static let closeDelayRange: ClosedRange<Double> = 0...3
     static let defaultCloseDelay = 0.3
+    static let calendarLeadRange: ClosedRange<Int> = 1...30
+    static let defaultCalendarLeadMinutes = 10
 
     private enum Key {
         static let closeDelay = "closeDelay"
         static let featureOrder = "featureOrder"
         static let enabledFeatures = "enabledFeatures"
         static let lastFeature = "lastFeature"
+        static let calendarAlertEnabled = "calendarAlertEnabled"
+        static let calendarLeadMinutes = "calendarLeadMinutes"
     }
 
     private let defaults: UserDefaults
@@ -39,6 +43,20 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(lastFeature?.rawValue, forKey: Key.lastFeature) }
     }
 
+    /// Show the upcoming-event indicator beside the closed notch (spec K-7).
+    @Published var calendarAlertEnabled: Bool {
+        didSet { defaults.set(calendarAlertEnabled, forKey: Key.calendarAlertEnabled) }
+    }
+
+    /// Minutes before an event the indicator appears (spec K-8).
+    @Published var calendarLeadMinutes: Int {
+        didSet {
+            let clamped = min(max(calendarLeadMinutes, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
+            if clamped != calendarLeadMinutes { calendarLeadMinutes = clamped; return }
+            defaults.set(calendarLeadMinutes, forKey: Key.calendarLeadMinutes)
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -50,13 +68,18 @@ final class AppSettings: ObservableObject {
         featureOrder = Self.deduplicated(storedOrder) + missing
 
         if let storedEnabled = defaults.stringArray(forKey: Key.enabledFeatures) {
-            let enabled = Set(storedEnabled.compactMap(FeatureID.init(rawValue:)))
+            // Features added in a newer version (not yet in the stored order) start enabled.
+            let enabled = Set(storedEnabled.compactMap(FeatureID.init(rawValue:))).union(missing)
             enabledFeatures = enabled.isEmpty ? Set(FeatureID.allCases) : enabled
         } else {
             enabledFeatures = Set(FeatureID.allCases)
         }
 
         lastFeature = defaults.string(forKey: Key.lastFeature).flatMap(FeatureID.init(rawValue:))
+
+        calendarAlertEnabled = defaults.object(forKey: Key.calendarAlertEnabled) as? Bool ?? true
+        let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
+        calendarLeadMinutes = min(max(storedLead, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
     }
 
     /// Enabled features in menu-bar order.

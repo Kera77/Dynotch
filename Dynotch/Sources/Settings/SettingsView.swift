@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
+    let calendar: CalendarService
 
     var body: some View {
         TabView {
@@ -10,10 +11,12 @@ struct SettingsView: View {
                 .tabItem { Label("Általános", systemImage: "gearshape") }
             FeatureSettingsView(settings: settings)
                 .tabItem { Label("Funkciók", systemImage: "square.grid.2x2") }
+            CalendarSettingsView(settings: settings, calendar: calendar)
+                .tabItem { Label("Naptár", systemImage: "calendar") }
             AboutSettingsView()
                 .tabItem { Label("Névjegy", systemImage: "info.circle") }
         }
-        .frame(width: 460, height: 300)
+        .frame(width: 480, height: 320)
     }
 }
 
@@ -106,6 +109,52 @@ private struct FeatureSettingsView: View {
             get: { settings.isEnabled(feature) },
             set: { settings.setEnabled(feature, $0) }
         )
+    }
+}
+
+// MARK: - Calendar
+
+private struct CalendarSettingsView: View {
+    @ObservedObject var settings: AppSettings
+    @ObservedObject var calendar: CalendarService
+
+    var body: some View {
+        Form {
+            Section {
+                LabeledContent("Hozzáférés") {
+                    switch calendar.access {
+                    case .granted:
+                        Label("Engedélyezve", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    case .notDetermined:
+                        Button("Engedélyezés") { calendar.requestAccess() }
+                    case .denied:
+                        Button("Rendszerbeállítások megnyitása") { calendar.openPrivacySettings() }
+                    }
+                }
+            } footer: {
+                Text("A macOS Naptár app összes naptára látszik. Google- vagy Outlook-naptárhoz add hozzá "
+                    + "a fiókot itt: Rendszerbeállítások › Internetes fiókok.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Közelgő esemény jelzése a notch mellett", isOn: $settings.calendarAlertEnabled)
+                Stepper(
+                    value: $settings.calendarLeadMinutes,
+                    in: AppSettings.calendarLeadRange
+                ) {
+                    LabeledContent("Ennyivel előtte", value: "\(settings.calendarLeadMinutes) perc")
+                }
+                .disabled(!settings.calendarAlertEnabled)
+            } footer: {
+                Text("Az esemény kezdete után még 5 percig látszik, hogy csatlakozni tudj.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
     }
 }
 

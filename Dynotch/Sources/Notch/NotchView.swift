@@ -3,9 +3,22 @@ import SwiftUI
 struct NotchView: View {
     @ObservedObject var model: NotchViewModel
     @ObservedObject var settings: AppSettings
+    @ObservedObject var calendar: CalendarService
+
+    private static let indicatorSideWidth: CGFloat = 38
 
     private var geometry: NotchGeometry { model.geometry }
-    private var size: CGSize { model.isExpanded ? geometry.expandedSize : geometry.notchSize }
+
+    /// Closed notch, widened on both sides while an upcoming event is shown (spec K-7).
+    private var collapsedSize: CGSize {
+        guard calendar.upcoming != nil else { return geometry.notchSize }
+        return CGSize(
+            width: geometry.notchSize.width + 2 * Self.indicatorSideWidth,
+            height: geometry.notchSize.height
+        )
+    }
+
+    private var size: CGSize { model.isExpanded ? geometry.expandedSize : collapsedSize }
     private var cornerRadius: CGFloat { model.isExpanded ? 24 : 10 }
 
     var body: some View {
@@ -13,6 +26,17 @@ struct NotchView: View {
             shape
                 .fill(.black)
                 .frame(width: size.width, height: size.height)
+
+            if !model.isExpanded, let event = calendar.upcoming {
+                UpcomingEventIndicator(
+                    event: event,
+                    now: calendar.now,
+                    notchWidth: geometry.notchSize.width,
+                    sideWidth: Self.indicatorSideWidth
+                )
+                .frame(height: geometry.notchSize.height)
+                .transition(.opacity)
+            }
 
             if model.isExpanded {
                 expandedContent
@@ -22,6 +46,7 @@ struct NotchView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .animation(NotchController.animation, value: calendar.upcoming?.id)
         .environment(\.colorScheme, .dark)
     }
 
@@ -75,6 +100,8 @@ struct NotchView: View {
             switch model.currentFeature {
             case .home:
                 HomeFeatureView()
+            case .calendar:
+                CalendarFeatureView(service: calendar)
             case .info:
                 InfoFeatureView(geometry: geometry, screenName: model.screenName)
             }
