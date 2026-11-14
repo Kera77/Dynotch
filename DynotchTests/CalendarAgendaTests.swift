@@ -39,7 +39,7 @@ struct CalendarAgendaTests {
             event("Ongoing", startOffsetMinutes: -10),
             event("Later today", startOffsetMinutes: 180),
             event("Tomorrow", startOffsetMinutes: 24 * 60),
-            event("In 8 days", startOffsetMinutes: 8 * 24 * 60),
+            event("In 8 days", startOffsetMinutes: 8 * 24 * 60)
         ]
         let days = CalendarAgenda.days(from: events, now: now, calendar: calendar)
         #expect(days.count == 2)
@@ -74,7 +74,7 @@ struct CalendarAgendaTests {
         let events = [
             event("All day", startOffsetMinutes: 5, allDay: true),
             event("Second", startOffsetMinutes: 9),
-            event("First", startOffsetMinutes: 4),
+            event("First", startOffsetMinutes: 4)
         ]
         #expect(CalendarAgenda.upcoming(in: events, now: now, leadTime: 600)?.title == "First")
     }

@@ -8,7 +8,7 @@ struct MeetingLinkTests {
         "https://meet.google.com/abc-defg-hij",
         "https://teams.microsoft.com/l/meetup-join/19%3ameeting_abc%40thread.v2/0",
         "https://teams.live.com/meet/9876543210",
-        "https://acme.webex.com/meet/jdoe",
+        "https://acme.webex.com/meet/jdoe"
     ])
     func recognizesMeetingLinks(_ link: String) throws {
         let url = try #require(URL(string: link))
@@ -19,7 +19,7 @@ struct MeetingLinkTests {
         "https://zoom.us/pricing",
         "https://meet.google.com/",
         "https://example.com/j/123",
-        "https://teams.microsoft.com/v2/",
+        "https://teams.microsoft.com/v2/"
     ])
     func ignoresOtherLinks(_ link: String) throws {
         let url = try #require(URL(string: link))
