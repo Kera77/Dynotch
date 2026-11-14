@@ -58,10 +58,25 @@ struct NotchGeometry: Equatable, Sendable {
         topCenteredRect(size: expandedSize)
     }
 
-    /// Pointer area that opens the panel (spec N-2): the notch, slightly widened, up to the top edge.
+    /// How far the hover zones reach above the screen's top edge. The pointer can sit exactly on
+    /// `screenFrame.maxY`, which `CGRect.contains` treats as outside a rect ending there.
+    static let topEdgeTolerance: CGFloat = 2
+
+    /// Pointer area that opens the panel (spec N-2): the notch, slightly widened, past the top edge.
     var hoverZone: CGRect {
         let rect = notchRect
-        return CGRect(x: rect.minX - 4, y: rect.minY, width: rect.width + 8, height: rect.height + 2)
+        return CGRect(
+            x: rect.minX - 4,
+            y: rect.minY,
+            width: rect.width + 8,
+            height: rect.height + Self.topEdgeTolerance
+        )
+    }
+
+    /// Pointer area that keeps the opened panel open (spec N-3): the panel, past the top edge.
+    var expandedHoverZone: CGRect {
+        let rect = expandedRect
+        return CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + Self.topEdgeTolerance)
     }
 
     private func topCenteredRect(size: CGSize) -> CGRect {

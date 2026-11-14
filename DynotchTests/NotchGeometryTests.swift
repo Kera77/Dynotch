@@ -48,4 +48,20 @@ struct NotchGeometryTests {
         #expect(geometry.hoverZone.contains(topCenter))
         #expect(!geometry.hoverZone.contains(CGPoint(x: secondary.midX, y: secondary.maxY - 60)))
     }
+
+    /// Regression: pushing the pointer to the very top edge opened the panel and then closed it,
+    /// because the expanded rect excluded y == screen.maxY.
+    @Test func pointerOnTopEdgeKeepsPanelOpen() {
+        let geometry = NotchGeometry.make(
+            screenFrame: screen, safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        let topEdge = CGPoint(x: screen.midX, y: screen.maxY)
+        #expect(geometry.hoverZone.contains(topEdge))
+        #expect(geometry.expandedHoverZone.contains(topEdge))
+
+        let topEdgeNearPanelSide = CGPoint(x: geometry.expandedRect.minX + 1, y: screen.maxY)
+        #expect(geometry.expandedHoverZone.contains(topEdgeNearPanelSide))
+        #expect(!geometry.expandedHoverZone.contains(CGPoint(x: geometry.expandedRect.minX - 1, y: screen.maxY)))
+    }
 }

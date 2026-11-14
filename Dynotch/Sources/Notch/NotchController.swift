@@ -99,7 +99,7 @@ final class NotchController {
 
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded, !isMenuOpen else { return }
-        if model.geometry.expandedRect.contains(NSEvent.mouseLocation) {
+        if model.geometry.expandedHoverZone.contains(NSEvent.mouseLocation) {
             cancelClose()
         } else {
             scheduleClose()
@@ -129,7 +129,7 @@ final class NotchController {
             }
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
-            if !self.isMenuOpen, !self.model.geometry.expandedRect.contains(NSEvent.mouseLocation) {
+            if !self.isMenuOpen, !self.model.geometry.expandedHoverZone.contains(NSEvent.mouseLocation) {
                 self.collapse()
             }
         }

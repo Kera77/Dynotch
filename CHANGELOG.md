@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-14
+
+### Fixed
+- Panel no longer opens and closes repeatedly when the pointer is pushed to the very top edge of the screen.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
