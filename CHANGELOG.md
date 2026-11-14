@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-14
+
+### Fixed
+- Release signing: the self-signed identity is now found in CI (0.3.0 was never published).
+
 ## [0.3.0] - 2026-11-14
 
 ### Added
