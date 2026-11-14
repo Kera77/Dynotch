@@ -62,11 +62,8 @@ struct NotchView: View {
 
             Color.clear.frame(width: geometry.notchSize.width)
 
-            Text(model.currentFeature.title)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.trailing, 18)
-                .frame(width: sideWidth, alignment: .trailing)
+            // Right side of the notch: reserved for status (e.g. the volume/brightness HUD).
+            Color.clear.frame(width: sideWidth)
         }
         .frame(height: max(geometry.notchSize.height, 28))
     }
