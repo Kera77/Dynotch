@@ -19,7 +19,7 @@ struct SettingsView: View {
             AboutSettingsView()
                 .tabItem { Label("Névjegy", systemImage: "info.circle") }
         }
-        .frame(width: 520, height: 440)
+        .frame(width: NotchGeometry.settingsContentSize.width, height: NotchGeometry.settingsContentSize.height)
     }
 }
 
@@ -42,6 +42,13 @@ private struct GeneralSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
+            }
+            Section {
+                Picker("Beállítások megnyitása", selection: $settings.settingsPresentation) {
+                    Text("A notchban").tag(SettingsPresentation.notch)
+                    Text("Külön ablakban").tag(SettingsPresentation.window)
+                }
+                .pickerStyle(.segmented)
             }
             Section {
                 LabeledContent("Bezárási késleltetés") {
@@ -176,6 +183,8 @@ private struct AboutSettingsView: View {
             if let url = AppInfo.repositoryURL {
                 Link("GitHub", destination: url)
             }
+            Button("Kilépés a Dynotch-ból") { NSApp.terminate(nil) }
+                .padding(.top, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

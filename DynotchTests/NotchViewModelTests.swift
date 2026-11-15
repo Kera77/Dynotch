@@ -65,4 +65,37 @@ struct NotchViewModelTests {
         model.setExpanded(true)
         #expect(model.currentFeature == .calendar)
     }
+
+    /// Spec C-2: settings in the notch use their own size and end when a feature is picked
+    /// or the panel closes.
+    @Test func settingsInNotch() {
+        let model = makeModel()
+        model.setShowingSettings(true)
+        #expect(!model.isShowingSettings)
+
+        model.setExpanded(true)
+        model.setShowingSettings(true)
+        #expect(model.isShowingSettings)
+        #expect(model.openSize == model.geometry.settingsSize)
+
+        model.select(model.currentFeature)
+        #expect(!model.isShowingSettings)
+        #expect(model.openSize == model.geometry.expandedSize)
+
+        model.setShowingSettings(true)
+        model.setExpanded(false)
+        model.setExpanded(true)
+        #expect(!model.isShowingSettings)
+    }
+
+    @Test func settingsHideLargeCalendar() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.calendar)
+        model.setCalendarLarge(true)
+        model.setShowingSettings(true)
+        #expect(!model.isLarge)
+        model.setShowingSettings(false)
+        #expect(model.isLarge)
+    }
 }

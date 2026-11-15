@@ -91,4 +91,17 @@ struct NotchGeometryTests {
         #expect(strip.height == NotchGeometry.dayStripHeight)
         #expect(!strip.intersects(geometry.notchRect))
     }
+
+    @Test func windowFitsEveryPanelSize() {
+        let geometry = NotchGeometry.make(
+            screenFrame: screen, safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        let window = geometry.rect(for: geometry.windowSize)
+        for size in [geometry.expandedSize, geometry.largeSize, geometry.settingsSize, geometry.peekSize] {
+            #expect(window.contains(geometry.rect(for: size)))
+        }
+        #expect(geometry.settingsSize.width >= NotchGeometry.settingsContentSize.width)
+        #expect(geometry.settingsSize.height >= geometry.menuBarHeight + NotchGeometry.settingsContentSize.height)
+    }
 }

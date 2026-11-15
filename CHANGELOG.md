@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-15
+
+### Added
+- Gear button on the right of the panel's top row; settings open inside the notch by default,
+  or in a separate window (new setting).
+- Quit button on the About tab of the settings.
+- Preflight check before commits reach main.
+
+### Removed
+- Right-click context menu.
+
 ## [0.5.1] - 2026-11-15
 
 ### Fixed

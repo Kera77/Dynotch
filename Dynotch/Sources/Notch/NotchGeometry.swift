@@ -11,6 +11,8 @@ struct NotchGeometry: Equatable, Sendable {
     static let largeWidth: CGFloat = 960
     static let largeHeight: CGFloat = 340
     static let minimumMenuBarHeight: CGFloat = 32
+    /// Size of the settings content, in its own window and inside the notch alike (spec C-2).
+    static let settingsContentSize = CGSize(width: 520, height: 440)
     /// Height of the calendar's day strip, directly below the menu bar.
     static let dayStripHeight: CGFloat = 54
     /// How far the hover zones reach above the screen's top edge. The pointer can sit exactly on
@@ -76,6 +78,22 @@ struct NotchGeometry: Equatable, Sendable {
     /// The closed notch opened a little for a new notification (spec E-3).
     var peekSize: CGSize {
         CGSize(width: max(notchSize.width + 140, 320), height: notchSize.height + 30)
+    }
+
+    /// Size of the opened panel while it shows the settings: the settings plus the top row.
+    var settingsSize: CGSize {
+        CGSize(
+            width: max(expandedSize.width, Self.settingsContentSize.width + 40),
+            height: menuBarHeight + Self.settingsContentSize.height + 12
+        )
+    }
+
+    /// Size of the (constant) panel window: big enough for every panel size.
+    var windowSize: CGSize {
+        CGSize(
+            width: max(largeSize.width, settingsSize.width),
+            height: max(largeSize.height, settingsSize.height)
+        )
     }
 
     var expandedRect: CGRect {

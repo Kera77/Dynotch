@@ -20,11 +20,11 @@ final class NotchController {
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var sizeObserver: AnyCancellable?
+    private var settingsObserver: AnyCancellable?
     private var hoverTimer: Timer?
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
-    private var isMenuOpen = false
 
     init(
         screen: NSScreen,
@@ -41,10 +41,14 @@ final class NotchController {
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
         // The window always has the large size, so switching views never resizes it; outside
         // the visible panel it ignores the mouse (see evaluatePointerWhileExpanded).
-        let windowRect = geometry.rect(for: geometry.largeSize)
+        let windowRect = geometry.rect(for: geometry.windowSize)
         panel = NotchPanel(contentRect: windowRect)
 
-        let rootView = NotchView(model: model, settings: settings, calendar: calendar, notifications: notifications)
+        let rootView = NotchView(
+            model: model, settings: settings, calendar: calendar, notifications: notifications
+        ) { [weak self] in
+            self?.settingsButtonPressed()
+        }
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
@@ -53,19 +57,43 @@ final class NotchController {
     }
 
     func start() {
-        panel.setFrame(model.geometry.rect(for: model.geometry.largeSize), display: true)
+        panel.setFrame(model.geometry.rect(for: model.geometry.windowSize), display: true)
         panel.orderFrontRegardless()
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.pointerMoved() }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel, .rightMouseDown]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel]) { [weak self] event in
             guard let self else { return event }
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
             return consumed ? nil : event
         }
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
             MainActor.assumeIsolated { self?.sizeChanged(large: large) }
+        }
+        settingsObserver = model.$isShowingSettings.dropFirst().removeDuplicates().sink { [weak self] showing in
+            MainActor.assumeIsolated { self?.settingsVisibilityChanged(showing) }
+        }
+    }
+
+    // MARK: - Settings (spec C-1…C-3)
+
+    private func settingsButtonPressed() {
+        switch settings.settingsPresentation {
+        case .window:
+            collapse()
+            openSettings()
+        case .notch:
+            withAnimation(Self.animation) { model.setShowingSettings(!model.isShowingSettings) }
+        }
+    }
+
+    private func settingsVisibilityChanged(_ showing: Bool) {
+        panel.allowsKey = showing
+        if showing {
+            panel.makeKey()
+        } else {
+            panel.resignKey()
         }
     }
 
@@ -75,6 +103,7 @@ final class NotchController {
         globalMonitor = nil
         localMonitor = nil
         sizeObserver = nil
+        settingsObserver = nil
         closeTask?.cancel()
         stopHoverTimer()
         panel.orderOut(nil)
@@ -119,8 +148,9 @@ final class NotchController {
     }
 
     private func evaluatePointerWhileExpanded() {
-        guard model.isExpanded, !isMenuOpen else { return }
-        let isInside = keepOpenZone.contains(NSEvent.mouseLocation)
+        guard model.isExpanded else { return }
+        // While a mouse button is down (e.g. dragging a slider) the panel stays open.
+        let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
         if isInside {
@@ -162,7 +192,7 @@ final class NotchController {
             }
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
-            if !self.isMenuOpen, !self.keepOpenZone.contains(NSEvent.mouseLocation) {
+            if !self.keepOpenZone.contains(NSEvent.mouseLocation), NSEvent.pressedMouseButtons == 0 {
                 self.collapse()
             }
         }
@@ -199,9 +229,6 @@ final class NotchController {
         switch event.type {
         case .scrollWheel:
             return handleScroll(event)
-        case .rightMouseDown:
-            showContextMenu(for: event)
-            return true
         default:
             pointerMoved()
             return false
@@ -211,7 +238,8 @@ final class NotchController {
     // MARK: - Swipe (spec S-1…S-4)
 
     private func handleScroll(_ event: NSEvent) -> Bool {
-        guard model.isExpanded else { return false }
+        // The settings scroll on their own; no feature switching there.
+        guard model.isExpanded, !model.isShowingSettings else { return false }
         // Over the calendar's day strip a horizontal swipe scrolls the days (spec K-4).
         if model.currentFeature == .calendar, !model.isLarge,
            model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
@@ -241,29 +269,5 @@ final class NotchController {
             withAnimation(Self.animation) { model.step(direction) }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
-    }
-
-    // MARK: - Context menu (spec C-1)
-
-    private func showContextMenu(for event: NSEvent) {
-        let menu = NSMenu()
-        menu.addItem(ClosureMenuItem(title: "Beállítások…", keyEquivalent: ",") { [weak self] in
-            self?.collapse()
-            self?.openSettings()
-        })
-        menu.addItem(ClosureMenuItem(title: "Névjegy") {
-            NSApp.activate()
-            NSApp.orderFrontStandardAboutPanel(nil)
-        })
-        menu.addItem(.separator())
-        menu.addItem(ClosureMenuItem(title: "Kilépés", keyEquivalent: "q") {
-            NSApp.terminate(nil)
-        })
-
-        isMenuOpen = true
-        cancelClose()
-        menu.popUp(positioning: nil, at: event.locationInWindow, in: panel.contentView)
-        isMenuOpen = false
-        evaluatePointerWhileExpanded()
     }
 }

@@ -91,4 +91,12 @@ struct AppSettingsTests {
         #expect(!reloaded.isNotificationAppEnabled("com.example", default: true))
         #expect(reloaded.isNotificationAppEnabled("com.other", default: true))
     }
+
+    @Test func settingsOpenInNotchByDefault() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.settingsPresentation == .notch)
+        settings.settingsPresentation = .window
+        #expect(AppSettings(defaults: defaults).settingsPresentation == .window)
+    }
 }

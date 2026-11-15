@@ -23,7 +23,11 @@ final class NotchPanel: NSPanel {
         ignoresMouseEvents = true
     }
 
-    override var canBecomeKey: Bool { false }
+    /// The panel only takes keyboard focus while it shows the settings, so its controls look
+    /// and behave like in an active window.
+    var allowsKey = false
+
+    override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
 
     // Allow covering the menu bar; the default implementation pushes windows below it.

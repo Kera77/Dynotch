@@ -5,6 +5,8 @@ struct NotchView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var calendar: CalendarService
     @ObservedObject var notifications: NotificationService
+    /// Gear button: opens the settings in the notch or in a window, as configured.
+    let toggleSettings: () -> Void
 
     private static let indicatorSideWidth: CGFloat = 60
     /// Content scales up from the notch and fades in with the same spring as the background.
@@ -75,9 +77,17 @@ struct NotchView: View {
     private var expandedContent: some View {
         VStack(spacing: 0) {
             menuBar
-            featureContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .offset(x: model.bounceOffset)
+            if model.isShowingSettings {
+                SettingsView(settings: settings, calendar: calendar, notifications: notifications)
+                    .scrollContentBackground(.hidden)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .transition(.opacity)
+            } else {
+                featureContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .offset(x: model.bounceOffset)
+                    .transition(.opacity)
+            }
         }
     }
 
@@ -89,7 +99,10 @@ struct NotchView: View {
 
     private var menuBar: some View {
         HStack(spacing: 0) {
-            FeatureSwitcher(features: settings.activeFeatures, selected: model.currentFeature) { feature in
+            FeatureSwitcher(
+                features: settings.activeFeatures,
+                selected: model.isShowingSettings ? nil : model.currentFeature
+            ) { feature in
                 withAnimation(NotchController.animation) { model.select(feature) }
             }
             .padding(.leading, 14)
@@ -97,8 +110,10 @@ struct NotchView: View {
 
             Color.clear.frame(width: geometry.notchSize.width)
 
-            // Right side of the notch: reserved for status (e.g. the volume/brightness HUD).
-            Color.clear.frame(width: sideWidth)
+            // Right side of the notch: settings; later also status (volume/brightness HUD).
+            SettingsButton(isActive: model.isShowingSettings, action: toggleSettings)
+                .padding(.trailing, 14)
+                .frame(width: sideWidth, alignment: .trailing)
         }
         .frame(height: geometry.menuBarHeight)
     }
@@ -142,10 +157,34 @@ struct NotchView: View {
     }
 }
 
+/// Gear in the panel's top row (spec C-1).
+private struct SettingsButton: View {
+    let isActive: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .frame(width: 32, height: 22)
+                .foregroundStyle(isActive ? Color.white : Color.white.opacity(0.7))
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isActive ? Color.white.opacity(0.22) : .clear)
+                )
+                .padding(3)
+                .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Beállítások")
+    }
+}
+
 /// Capsule-shaped icon switcher in the panel's top row (spec M-1).
 private struct FeatureSwitcher: View {
     let features: [FeatureID]
-    let selected: FeatureID
+    let selected: FeatureID?
     let select: (FeatureID) -> Void
 
     var body: some View {

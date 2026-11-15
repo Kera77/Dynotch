@@ -61,10 +61,17 @@
 | L-1 | Bezárás után a panel mindig **a legutóbb aktív funkcióval** nyílik ki újra. |
 | L-2 | Ez az app újraindítása után is megmarad. Ha a legutóbbi funkciót közben kikapcsoltad, az első elérhető funkció nyílik meg. |
 
-### 1.5 Kattintás és jobb klikk
+### 1.5 Beállítások elérése és kattintás
 
 | ID | Követelmény |
 |---|---|
+| C-1 | A menüsor **jobb szélén fogaskerék ikon** nyitja meg a beállításokat. Jobb klikkes menü nincs. |
+| C-2 | Beállítás: **hol nyíljanak meg a beállítások**. *A notchban* (alapértelmezett): a panel a beállítások méretére nő (520 × 440 pt tartalom a menüsor alatt), és minden beállítás a notchban jelenik meg; a fogaskerékre vagy egy funkció ikonjára kattintva, illetve a panel bezárásakor visszatér a funkciókhoz. *Külön ablakban*: a panel becsukódik, és egy normál macOS ablak nyílik meg ugyanazzal a tartalommal. |
+| C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
+| C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
+| C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
+
+---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
 | C-2 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. A panelen belüli gombok (például a menüsor ikonjai) kattintásra természetesen működnek. |
 | C-3 | A Beállítások ablak egy normál macOS ablak. Megnyitásakor előtérbe jön, bezárásakor az app tovább fut a háttérben. |
@@ -106,12 +113,12 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · Beállítások megnyitása (a notchban / külön ablakban) · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
 | **HUD** (v0.6) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
-| **Névjegy** | Verzió, build, GitHub-repó linkje |
+| **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
 

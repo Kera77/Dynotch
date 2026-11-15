@@ -1,6 +1,14 @@
 import Combine
 import Foundation
 
+/// Where the settings open (spec C-2).
+enum SettingsPresentation: String, CaseIterable, Sendable {
+    /// Inside the opened notch panel.
+    case notch
+    /// In a separate window.
+    case window
+}
+
 /// User preferences, persisted in UserDefaults (spec G-5).
 @MainActor
 final class AppSettings: ObservableObject {
@@ -21,6 +29,7 @@ final class AppSettings: ObservableObject {
         static let calendarLarge = "calendarLarge"
         static let notificationDuration = "notificationDuration"
         static let notificationApps = "notificationApps"
+        static let settingsPresentation = "settingsPresentation"
     }
 
     private let defaults: UserDefaults
@@ -82,6 +91,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(notificationApps, forKey: Key.notificationApps) }
     }
 
+    @Published var settingsPresentation: SettingsPresentation {
+        didSet { defaults.set(settingsPresentation.rawValue, forKey: Key.settingsPresentation) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -109,6 +122,8 @@ final class AppSettings: ObservableObject {
         let durationRange = Self.notificationDurationRange
         notificationDuration = min(max(storedDuration, durationRange.lowerBound), durationRange.upperBound)
         notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
+        settingsPresentation = defaults.string(forKey: Key.settingsPresentation)
+            .flatMap(SettingsPresentation.init(rawValue:)) ?? .notch
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
         calendarLeadMinutes = min(max(storedLead, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
     }

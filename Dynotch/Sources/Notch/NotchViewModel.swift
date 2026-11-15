@@ -7,6 +7,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var currentFeature: FeatureID
     /// True while the panel shows the full calendar and uses the large size.
     @Published private(set) var isLarge = false
+    /// True while the panel shows the settings instead of the features (spec C-2).
+    @Published private(set) var isShowingSettings = false
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 
@@ -23,7 +25,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Size of the panel while it is open.
     var openSize: CGSize {
-        isLarge ? geometry.largeSize : geometry.expandedSize
+        if isShowingSettings { return geometry.settingsSize }
+        return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
     /// - Parameter showing: feature to open with instead of the remembered one (e.g. the
@@ -34,6 +37,7 @@ final class NotchViewModel: ObservableObject {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
             currentFeature = override.flatMap { settings.isEnabled($0) ? $0 : nil } ?? settings.initialFeature
         }
+        if !expanded, isShowingSettings { isShowingSettings = false }
         isExpanded = expanded
         updateLarge()
     }
@@ -43,8 +47,19 @@ final class NotchViewModel: ObservableObject {
         updateLarge()
     }
 
+    func setShowingSettings(_ showing: Bool) {
+        guard isExpanded, showing != isShowingSettings else { return }
+        isShowingSettings = showing
+        updateLarge()
+    }
+
     func select(_ feature: FeatureID) {
-        guard feature != currentFeature else { return }
+        // Picking a feature (even the current one) leaves the settings.
+        if isShowingSettings { isShowingSettings = false }
+        guard feature != currentFeature else {
+            updateLarge()
+            return
+        }
         currentFeature = feature
         settings.lastFeature = feature
         updateLarge()
@@ -61,7 +76,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     private func updateLarge() {
-        let large = isExpanded && currentFeature == .calendar && settings.calendarLarge
+        let large = isExpanded && !isShowingSettings && currentFeature == .calendar && settings.calendarLarge
         if large != isLarge { isLarge = large }
     }
 
