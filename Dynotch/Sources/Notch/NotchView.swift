@@ -5,7 +5,7 @@ struct NotchView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var calendar: CalendarService
 
-    private static let indicatorSideWidth: CGFloat = 38
+    private static let indicatorSideWidth: CGFloat = 60
     /// Content scales up from the notch and fades in with the same spring as the background.
     private static let contentTransition: AnyTransition =
         .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
@@ -31,7 +31,7 @@ struct NotchView: View {
             if !model.isExpanded, let event = calendar.upcoming {
                 UpcomingEventIndicator(
                     event: event,
-                    now: calendar.now,
+                    leadTime: calendar.leadTime,
                     notchWidth: geometry.notchSize.width,
                     sideWidth: Self.indicatorSideWidth
                 )

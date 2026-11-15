@@ -16,6 +16,7 @@ final class AppSettings: ObservableObject {
         static let lastFeature = "lastFeature"
         static let calendarAlertEnabled = "calendarAlertEnabled"
         static let calendarLeadMinutes = "calendarLeadMinutes"
+        static let calendarLarge = "calendarLarge"
     }
 
     private let defaults: UserDefaults
@@ -57,6 +58,11 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    /// Whether the calendar was last shown as the full month view (spec K-10).
+    @Published var calendarLarge: Bool {
+        didSet { defaults.set(calendarLarge, forKey: Key.calendarLarge) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -78,6 +84,7 @@ final class AppSettings: ObservableObject {
         lastFeature = defaults.string(forKey: Key.lastFeature).flatMap(FeatureID.init(rawValue:))
 
         calendarAlertEnabled = defaults.object(forKey: Key.calendarAlertEnabled) as? Bool ?? true
+        calendarLarge = defaults.bool(forKey: Key.calendarLarge)
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
         calendarLeadMinutes = min(max(storedLead, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
     }

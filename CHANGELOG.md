@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-15
+
+### Added
+- Meeting countdown beside the notch: yellow until the start (red in the last 3 minutes), light blue
+  for the time left during the meeting; the capsule outline fills proportionally.
+
+### Changed
+- The calendar's expand button moved to the right; the last used calendar view is remembered.
+
+### Fixed
+- Expanding the calendar only flashed and grew on the next interaction. The window no longer resizes.
+
 ## [0.4.0] - 2026-11-15
 
 ### Added

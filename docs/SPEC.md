@@ -135,7 +135,7 @@
 
 | ID | Követelmény |
 |---|---|
-| K-10 | A napi nézet bal oldalán egy kis ikon a panelt **nagy méretre** nyitja (960 × 340 pt, kisebb kijelzőn a kijelzőhöz igazítva). A jobb felső sarokban lévő ikon visszavált. A panel bezárásakor a nézet visszaáll napi nézetre. |
+| K-10 | A napi nézet jobb felső sarkában (a napsáv végén) egy kis ikon a panelt **nagy méretre** nyitja (960 × 340 pt, kisebb kijelzőn a kijelzőhöz igazítva). A jobb felső sarokban lévő ikon visszavált. A panel **megjegyzi a legutóbbi nézetet**, és újranyitáskor (újraindítás után is) ugyanabban nyílik. |
 | K-11 | Bal oldalon **havi rács**: év és hónap, előző/következő hónap gombok, a hét a rendszer szerinti első nappal kezdődik, a mai nap kék körben, a napok alatt legfeljebb három pötty az események száma szerint. Egy napra kattintva az lesz kiválasztva. |
 | K-12 | Jobb oldalon **napirend** a kiválasztott naptól 14 napra előre: a kiválasztott nap mindig látszik (üresen „Nincs esemény”), utána csak azok a napok, amelyeken van esemény. Soronként: kezdési idő és időtartam, a naptár színe, cím, Csatlakozás gomb. Az első nap fejlécében a hét száma is látszik. |
 | K-13 | Esemény létrehozása nincs (K-1: csak olvasás). |
@@ -144,8 +144,10 @@
 
 | ID | Követelmény |
 |---|---|
-| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik, a becsukott notch két oldalra kiszélesedik: **bal oldalon** egy ikon (videó, ha van meeting-link, egyébként naptár) a naptár színében, **jobb oldalon** visszaszámlálás percben („8p”), a kezdéskor „most”. |
-| K-8 | A jelzés a kezdés előtt *N* perccel jelenik meg (beállítás: 1–30 perc, alapból 10), és a kezdés után még 5 percig látszik, hogy csatlakozni lehessen. Ha több esemény is jogosult, a legkorábban kezdődő látszik. |
+| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik vagy éppen tart, a becsukott notch két oldalra kiszélesedik: **bal oldalon** egy ikon (videó, ha van meeting-link, egyébként naptár), **jobb oldalon** egy kapszulában másodpercre pontos **visszaszámláló**, amelynek körvonala az idő múlásával arányosan töltődik. |
+| K-8 | **Kezdés előtt** (*N* perccel, beállítás: 1–30 perc, alapból 10): a kezdésig hátralévő idő **sárgával**, a körvonal az előjelzési idő eltelt részét mutatja. **Az utolsó 3 percben pirossal.** |
+| K-8b | **A meeting alatt**: a meeting végéig hátralévő idő **világoskékkel**, a körvonal a meeting eltelt részét mutatja. A végén a jelzés eltűnik. |
+| K-8c | Ha egy meeting tart és közben egy másik az előjelzési időn belül kezdődik, a hamarosan kezdődő látszik. A 24 óránál hosszabb események nem jelennek meg a jelzésben. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---

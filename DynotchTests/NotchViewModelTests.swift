@@ -31,7 +31,8 @@ struct NotchViewModelTests {
         #expect(model.openSize == model.geometry.expandedSize)
     }
 
-    @Test func closingResetsLargeCalendar() {
+    /// Spec K-10: the calendar reopens in the view it was closed in.
+    @Test func largeCalendarIsRememberedAcrossReopen() {
         let model = makeModel()
         model.setExpanded(true)
         model.select(.calendar)
@@ -41,6 +42,11 @@ struct NotchViewModelTests {
 
         model.setExpanded(true)
         #expect(model.currentFeature == .calendar)
+        #expect(model.isLarge)
+
+        model.setCalendarLarge(false)
+        model.setExpanded(false)
+        model.setExpanded(true)
         #expect(!model.isLarge)
     }
 }

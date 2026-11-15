@@ -87,28 +87,50 @@ struct CalendarAgendaTests {
         #expect(grid.contains(calendar.startOfDay(for: now)))
     }
 
-    @Test func upcomingRespectsLeadTimeAndGracePeriod() {
+    @Test func indicatorPrefersEventStartingSoonOverOngoing() {
         let lead: TimeInterval = 10 * 60
-        #expect(CalendarAgenda.upcoming(in: [event("Far", startOffsetMinutes: 30)], now: now, leadTime: lead) == nil)
-        #expect(CalendarAgenda.upcoming(in: [event("Soon", startOffsetMinutes: 8)], now: now, leadTime: lead)?.title == "Soon")
-        #expect(CalendarAgenda.upcoming(in: [event("Just started", startOffsetMinutes: -3)], now: now, leadTime: lead)?
-            .title == "Just started")
-        #expect(CalendarAgenda.upcoming(in: [event("Started long ago", startOffsetMinutes: -6)], now: now, leadTime: lead) == nil)
+        let ongoing = event("Ongoing", startOffsetMinutes: -20, durationMinutes: 60)
+        #expect(CalendarAgenda.indicatorEvent(in: [event("Far", startOffsetMinutes: 30)], now: now, leadTime: lead) == nil)
+        #expect(CalendarAgenda.indicatorEvent(in: [ongoing], now: now, leadTime: lead)?.title == "Ongoing")
+        let events = [ongoing, event("Second", startOffsetMinutes: 9), event("First", startOffsetMinutes: 4)]
+        #expect(CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: lead)?.title == "First")
     }
 
-    @Test func upcomingIgnoresAllDayAndPicksEarliest() {
+    @Test func indicatorIgnoresAllDayEndedAndVeryLongEvents() {
         let events = [
-            event("All day", startOffsetMinutes: 5, allDay: true),
-            event("Second", startOffsetMinutes: 9),
-            event("First", startOffsetMinutes: 4)
+            event("All day", startOffsetMinutes: -60, durationMinutes: 24 * 60, allDay: true),
+            event("Ended", startOffsetMinutes: -60),
+            event("Multi-day block", startOffsetMinutes: -60, durationMinutes: 3 * 24 * 60)
         ]
-        #expect(CalendarAgenda.upcoming(in: events, now: now, leadTime: 600)?.title == "First")
+        #expect(CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: 600) == nil)
     }
 
-    @Test func minutesUntilRoundsUp() {
-        #expect(CalendarAgenda.minutesUntil(now.addingTimeInterval(61), now: now) == 2)
-        #expect(CalendarAgenda.minutesUntil(now.addingTimeInterval(60), now: now) == 1)
-        #expect(CalendarAgenda.minutesUntil(now.addingTimeInterval(-30), now: now) == 0)
+    @Test func statusBeforeStartFillsOverLeadTime() {
+        let lead: TimeInterval = 10 * 60
+        let upcoming = CalendarAgenda.status(of: event("Soon", startOffsetMinutes: 8), now: now, leadTime: lead)
+        #expect(upcoming.phase == .upcoming)
+        #expect(upcoming.remaining == 8 * 60)
+        #expect(abs(upcoming.progress - 0.2) < 0.0001)
+
+        let imminent = CalendarAgenda.status(of: event("Now-ish", startOffsetMinutes: 3), now: now, leadTime: lead)
+        #expect(imminent.phase == .imminent)
+        #expect(abs(imminent.progress - 0.7) < 0.0001)
+    }
+
+    @Test func statusDuringMeetingCountsDownToEnd() {
+        let status = CalendarAgenda.status(
+            of: event("Running", startOffsetMinutes: -15, durationMinutes: 60), now: now, leadTime: 600
+        )
+        #expect(status.phase == .ongoing)
+        #expect(status.remaining == 45 * 60)
+        #expect(abs(status.progress - 0.25) < 0.0001)
+    }
+
+    @Test func countdownText() {
+        #expect(CalendarAgenda.countdownText(9 * 60 + 5) == "9:05")
+        #expect(CalendarAgenda.countdownText(59.2) == "1:00")
+        #expect(CalendarAgenda.countdownText(0) == "0:00")
+        #expect(CalendarAgenda.countdownText(75 * 60) == "75p")
     }
 
     @Test func durationText() {

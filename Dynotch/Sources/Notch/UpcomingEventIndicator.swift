@@ -1,35 +1,52 @@
 import SwiftUI
 
-/// Shown beside the closed notch shortly before an event (spec K-7…K-9):
-/// calendar icon on the left, countdown on the right.
+/// Shown beside the closed notch before and during an event (spec K-7…K-9): icon on the left,
+/// countdown on the right inside a capsule whose outline fills as time passes.
 struct UpcomingEventIndicator: View {
     let event: CalendarEvent
-    let now: Date
+    let leadTime: TimeInterval
     let notchWidth: CGFloat
     let sideWidth: CGFloat
 
+    private static let lineWidth: CGFloat = 1.5
+
     var body: some View {
-        HStack(spacing: 0) {
-            Image(systemName: event.meetingURL != nil ? "video.fill" : "calendar")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(color)
-                .frame(width: sideWidth)
-            Color.clear.frame(width: notchWidth)
-            Text(countdown)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(color)
-                .frame(width: sideWidth)
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let status = CalendarAgenda.status(of: event, now: context.date, leadTime: leadTime)
+            let color = Self.color(for: status.phase)
+            HStack(spacing: 0) {
+                Image(systemName: event.meetingURL != nil ? "video.fill" : "calendar")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(color)
+                    .frame(width: sideWidth)
+                Color.clear.frame(width: notchWidth)
+                countdown(status: status, color: color)
+                    .frame(width: sideWidth)
+            }
         }
         .help(event.title)
     }
 
-    private var color: Color {
-        event.color.color
+    private func countdown(status: EventStatus, color: Color) -> some View {
+        Text(CalendarAgenda.countdownText(status.remaining))
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(color)
+            .frame(width: 46, height: 18)
+            .background(Capsule(style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: Self.lineWidth))
+            .overlay(
+                Capsule(style: .continuous)
+                    .trim(from: 0, to: status.progress)
+                    .stroke(color.opacity(0.9), style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
+                    .animation(.linear(duration: 1), value: status.progress)
+            )
     }
 
-    private var countdown: String {
-        let minutes = CalendarAgenda.minutesUntil(event.start, now: now)
-        return minutes == 0 ? "most" : "\(minutes)p"
+    static func color(for phase: EventStatus.Phase) -> Color {
+        switch phase {
+        case .upcoming: Color(red: 1, green: 0.8, blue: 0.25)
+        case .imminent: Color(red: 1, green: 0.3, blue: 0.3)
+        case .ongoing: Color(red: 0.45, green: 0.78, blue: 1)
+        }
     }
 }

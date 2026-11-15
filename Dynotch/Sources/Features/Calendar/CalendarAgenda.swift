@@ -1,5 +1,23 @@
 import Foundation
 
+/// What the indicator beside the closed notch shows for an event.
+struct EventStatus: Equatable, Sendable {
+    enum Phase: Equatable, Sendable {
+        /// Starts within the lead time.
+        case upcoming
+        /// Starts within `CalendarAgenda.imminentThreshold`.
+        case imminent
+        /// In progress.
+        case ongoing
+    }
+
+    let phase: Phase
+    /// Seconds until the start (upcoming, imminent) or until the end (ongoing).
+    let remaining: TimeInterval
+    /// 0…1: how much of the lead time, or of the meeting, has passed.
+    let progress: Double
+}
+
 struct AgendaDay: Identifiable, Equatable, Sendable {
     let date: Date
     let events: [CalendarEvent]
@@ -9,8 +27,10 @@ struct AgendaDay: Identifiable, Equatable, Sendable {
 
 /// Pure calendar logic: events per day, month grid and the upcoming event.
 enum CalendarAgenda {
-    /// How long after its start an event still counts as "upcoming" (so you can join late).
-    static let joinGracePeriod: TimeInterval = 5 * 60
+    /// The countdown turns red this long before the start.
+    static let imminentThreshold: TimeInterval = 3 * 60
+    /// Timed events at least this long (e.g. multi-day blocks) are not tracked by the indicator.
+    static let longestTrackedEvent: TimeInterval = 24 * 3600
     /// Days listed in the full calendar's agenda, starting at the selected day.
     static let agendaDayCount = 14
     private static let gridCellCount = 42
@@ -65,20 +85,42 @@ enum CalendarAgenda {
         }
     }
 
-    /// The timed event that starts within `leadTime`, or started less than `joinGracePeriod` ago.
-    static func upcoming(in events: [CalendarEvent], now: Date, leadTime: TimeInterval) -> CalendarEvent? {
-        events
-            .filter { !$0.isAllDay }
-            .filter { event in
-                let untilStart = event.start.timeIntervalSince(now)
-                return untilStart <= leadTime && untilStart > -joinGracePeriod && !event.hasEnded(at: now)
-            }
+    /// The event shown beside the closed notch: the next timed event starting within `leadTime`,
+    /// otherwise the meeting in progress (the most recently started one).
+    static func indicatorEvent(in events: [CalendarEvent], now: Date, leadTime: TimeInterval) -> CalendarEvent? {
+        let timed = events.filter {
+            !$0.isAllDay && !$0.hasEnded(at: now) && $0.end.timeIntervalSince($0.start) < longestTrackedEvent
+        }
+        let soon = timed
+            .filter { $0.start > now && $0.start.timeIntervalSince(now) <= leadTime }
             .min { $0.start < $1.start }
+        return soon ?? timed.filter { $0.isOngoing(at: now) }.max { $0.start < $1.start }
     }
 
-    /// Whole minutes until `start`, rounded up; 0 once it has started.
-    static func minutesUntil(_ start: Date, now: Date) -> Int {
-        max(0, Int((start.timeIntervalSince(now) / 60).rounded(.up)))
+    /// Phase, remaining time and fill of the indicator for an event (spec K-7…K-8).
+    static func status(of event: CalendarEvent, now: Date, leadTime: TimeInterval) -> EventStatus {
+        if now >= event.start {
+            let duration = max(event.end.timeIntervalSince(event.start), 1)
+            let elapsed = now.timeIntervalSince(event.start)
+            return EventStatus(
+                phase: .ongoing,
+                remaining: max(0, event.end.timeIntervalSince(now)),
+                progress: min(max(elapsed / duration, 0), 1)
+            )
+        }
+        let remaining = event.start.timeIntervalSince(now)
+        return EventStatus(
+            phase: remaining <= imminentThreshold ? .imminent : .upcoming,
+            remaining: remaining,
+            progress: min(max(1 - remaining / max(leadTime, 1), 0), 1)
+        )
+    }
+
+    /// "9:05" under an hour, otherwise whole minutes ("75p").
+    static func countdownText(_ remaining: TimeInterval) -> String {
+        let seconds = max(0, Int(remaining.rounded(.up)))
+        if seconds >= 3600 { return "\(Int((Double(seconds) / 60).rounded(.up)))p" }
+        return "\(seconds / 60):" + String(format: "%02d", seconds % 60)
     }
 
     /// Short duration, e.g. "30 p", "1 ó", "1 ó 30 p".

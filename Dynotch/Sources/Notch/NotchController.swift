@@ -21,7 +21,6 @@ final class NotchController {
     private var sizeObserver: AnyCancellable?
     private var hoverTimer: Timer?
     private var closeTask: Task<Void, Never>?
-    private var shrinkTask: Task<Void, Never>?
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
     private var isMenuOpen = false
@@ -32,17 +31,20 @@ final class NotchController {
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
-        panel = NotchPanel(contentRect: geometry.expandedRect)
+        // The window always has the large size, so switching views never resizes it; outside
+        // the visible panel it ignores the mouse (see evaluatePointerWhileExpanded).
+        let windowRect = geometry.rect(for: geometry.largeSize)
+        panel = NotchPanel(contentRect: windowRect)
 
         let hosting = FirstMouseHostingView(rootView: NotchView(model: model, settings: settings, calendar: calendar))
         hosting.sizingOptions = []
-        hosting.frame = NSRect(origin: .zero, size: geometry.expandedRect.size)
+        hosting.frame = NSRect(origin: .zero, size: windowRect.size)
         hosting.autoresizingMask = [.width, .height]
         panel.contentView = hosting
     }
 
     func start() {
-        panel.setFrame(model.geometry.expandedRect, display: true)
+        panel.setFrame(model.geometry.rect(for: model.geometry.largeSize), display: true)
         panel.orderFrontRegardless()
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
@@ -53,9 +55,8 @@ final class NotchController {
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
             return consumed ? nil : event
         }
-        // Emits before the view re-renders, so the window is already big enough when it grows.
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
-            MainActor.assumeIsolated { self?.applyWindowFrame(large: large) }
+            MainActor.assumeIsolated { self?.sizeChanged(large: large) }
         }
     }
 
@@ -66,7 +67,6 @@ final class NotchController {
         localMonitor = nil
         sizeObserver = nil
         closeTask?.cancel()
-        shrinkTask?.cancel()
         stopHoverTimer()
         panel.orderOut(nil)
         panel.close()
@@ -84,23 +84,9 @@ final class NotchController {
         )
     }
 
-    /// The window is only as big as the panel needs, so it never blocks clicks around it.
-    private func applyWindowFrame(large: Bool) {
-        shrinkTask?.cancel()
-        shrinkTask = nil
-        let geometry = model.geometry
-        if large {
-            graceUntil = nil
-            panel.setFrame(geometry.rect(for: geometry.largeSize), display: true)
-            return
-        }
-        graceUntil = Date().addingTimeInterval(Self.shrinkGracePeriod)
-        // Shrink the window only after the shrink animation has finished.
-        shrinkTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(600))
-            guard !Task.isCancelled, let self, !self.model.isLarge else { return }
-            self.panel.setFrame(geometry.expandedRect, display: true)
-        }
+    /// When the open panel shrinks, the pointer may end up outside it; don't close right away.
+    private func sizeChanged(large: Bool) {
+        graceUntil = !large && model.isExpanded ? Date().addingTimeInterval(Self.shrinkGracePeriod) : nil
     }
 
     // MARK: - Hover (spec N-2…N-4)
@@ -119,7 +105,10 @@ final class NotchController {
 
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded, !isMenuOpen else { return }
-        if keepOpenZone.contains(NSEvent.mouseLocation) {
+        let isInside = keepOpenZone.contains(NSEvent.mouseLocation)
+        // The window is larger than the visible panel: let clicks around the panel through.
+        panel.ignoresMouseEvents = !isInside
+        if isInside {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {

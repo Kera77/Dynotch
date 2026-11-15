@@ -15,8 +15,6 @@ final class NotchViewModel: ObservableObject {
     let geometry: NotchGeometry
     let screenName: String
 
-    private var wantsLargeCalendar = false
-
     init(settings: AppSettings, geometry: NotchGeometry, screenName: String) {
         self.settings = settings
         self.geometry = geometry
@@ -34,15 +32,13 @@ final class NotchViewModel: ObservableObject {
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
             currentFeature = settings.initialFeature
-        } else {
-            wantsLargeCalendar = false
         }
         isExpanded = expanded
         updateLarge()
     }
 
     func setCalendarLarge(_ large: Bool) {
-        wantsLargeCalendar = large
+        if settings.calendarLarge != large { settings.calendarLarge = large }
         updateLarge()
     }
 
@@ -69,7 +65,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     private func updateLarge() {
-        let large = isExpanded && currentFeature == .calendar && wantsLargeCalendar
+        let large = isExpanded && currentFeature == .calendar && settings.calendarLarge
         if large != isLarge { isLarge = large }
     }
 

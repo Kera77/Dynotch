@@ -140,7 +140,7 @@ private struct CalendarSettingsView: View {
             }
 
             Section {
-                Toggle("Közelgő esemény jelzése a notch mellett", isOn: $settings.calendarAlertEnabled)
+                Toggle("Meeting-visszaszámláló a notch mellett", isOn: $settings.calendarAlertEnabled)
                 Stepper(
                     value: $settings.calendarLeadMinutes,
                     in: AppSettings.calendarLeadRange
@@ -149,7 +149,7 @@ private struct CalendarSettingsView: View {
                 }
                 .disabled(!settings.calendarAlertEnabled)
             } footer: {
-                Text("Az esemény kezdete után még 5 percig látszik, hogy csatlakozni tudj.")
+                Text("A kezdésig visszaszámol (az utolsó 3 percben pirossal), a meeting alatt a hátralévő időt mutatja.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

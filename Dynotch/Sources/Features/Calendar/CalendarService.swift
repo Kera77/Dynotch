@@ -16,6 +16,7 @@ final class CalendarService: ObservableObject {
     @Published private(set) var events: [CalendarEvent] = []
     /// Events per day (keyed by start of day), for the dots under the dates.
     @Published private(set) var dayCounts: [Date: Int] = [:]
+    /// Event shown beside the closed notch: starting soon, or in progress.
     @Published private(set) var upcoming: CalendarEvent?
     @Published private(set) var now = Date()
     /// Day whose events are shown (start of day).
@@ -37,6 +38,11 @@ final class CalendarService: ObservableObject {
     init(settings: AppSettings) {
         self.settings = settings
         access = Self.currentAccess()
+    }
+
+    /// How long before an event the indicator appears.
+    var leadTime: TimeInterval {
+        TimeInterval(settings.calendarLeadMinutes * 60)
     }
 
     var today: Date {
@@ -197,7 +203,7 @@ final class CalendarService: ObservableObject {
         self.now = now
 
         let newUpcoming = settings.calendarAlertEnabled && settings.isEnabled(.calendar)
-            ? CalendarAgenda.upcoming(in: events, now: now, leadTime: TimeInterval(settings.calendarLeadMinutes * 60))
+            ? CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: leadTime)
             : nil
         if newUpcoming != upcoming { upcoming = newUpcoming }
     }

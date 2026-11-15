@@ -21,19 +21,17 @@ struct CalendarCompactView: View {
                     today: service.today,
                     counts: service.dayCounts
                 )
-            }
-            .frame(height: NotchGeometry.dayStripHeight)
-
-            ZStack(alignment: .topLeading) {
-                dayContent
                 CalendarIconButton(
                     symbol: "arrow.up.left.and.arrow.down.right",
                     help: "Teljes naptár",
                     action: expand
                 )
-                .padding(.top, 6)
+                .padding(.leading, 8)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(height: NotchGeometry.dayStripHeight)
+
+            dayContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
