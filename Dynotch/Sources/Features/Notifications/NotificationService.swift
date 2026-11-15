@@ -137,7 +137,7 @@ final class NotificationService: ObservableObject {
             }
         }
         // Without Full Disk Access the files are not even visible.
-        let anyReadable = NotificationDatabase.candidatePaths.contains(FileManager.default.isReadableFile(atPath:))
+        let anyReadable = NotificationDatabase.candidatePaths.contains(where: FileManager.default.isReadableFile(atPath:))
         let newStatus: Status = anyReadable ? .unsupported(failures.joined(separator: "; ")) : .noAccess
         if newStatus != status {
             status = newStatus
