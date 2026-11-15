@@ -72,4 +72,12 @@ struct NotificationTests {
         #expect(!NotificationApp.isDefaultEnabled(identifier: "com.apple.Safari.WebApp.E390", name: "StickyPrompts"))
         #expect(!NotificationApp.isDefaultEnabled(identifier: "com.apple.mail", name: "Mail"))
     }
+
+    @Test @MainActor func missingFullDiskAccessIsRecognized() {
+        let denied = ["/a/db: open failed: authorization denied", "/b/db: open failed: unable to open database file"]
+        #expect(NotificationService.failureStatus(for: denied) == .noAccess)
+        #expect(NotificationService.failureStatus(for: ["/b/db: open failed: unable to open database file"]) == .noAccess)
+        let broken = ["/a/db: prepare failed: no such table: record"]
+        #expect(NotificationService.failureStatus(for: broken) == .unsupported(broken[0]))
+    }
 }

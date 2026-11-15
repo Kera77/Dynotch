@@ -136,13 +136,19 @@ final class NotificationService: ObservableObject {
                 failures.append("\(path): \(error)")
             }
         }
-        // Without Full Disk Access the files are not even visible.
-        let anyReadable = NotificationDatabase.candidatePaths.contains(where: FileManager.default.isReadableFile(atPath:))
-        let newStatus: Status = anyReadable ? .unsupported(failures.joined(separator: "; ")) : .noAccess
+        let newStatus = Self.failureStatus(for: failures)
         if newStatus != status {
             status = newStatus
-            DiagnosticsLog.write("notifications", "open failed (readable: \(anyReadable))\n" + failures.joined(separator: "\n"))
+            DiagnosticsLog.write("notifications", "open failed -> \(newStatus)\n" + failures.joined(separator: "\n"))
         }
+    }
+
+    /// Without Full Disk Access SQLite reports "authorization denied" (or can't see the file).
+    static func failureStatus(for failures: [String]) -> Status {
+        let text = failures.joined(separator: "; ").lowercased()
+        let denied = text.contains("authorization denied") || text.contains("not permitted")
+        let foundElsewhere = failures.contains { !$0.lowercased().contains("unable to open database file") }
+        return denied || !foundElsewhere ? .noAccess : .unsupported(failures.joined(separator: "; "))
     }
 
     private func handle(_ records: [NotificationRecord]) {

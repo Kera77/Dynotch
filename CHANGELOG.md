@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-15
+
+### Fixed
+- Missing Full Disk Access is now recognized and the app offers to open the settings page.
+
 ## [0.5.0] - 2026-11-15
 
 ### Added
