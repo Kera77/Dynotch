@@ -26,11 +26,13 @@ final class NotchViewModel: ObservableObject {
         isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
-    func setExpanded(_ expanded: Bool) {
+    /// - Parameter showing: feature to open with instead of the remembered one (e.g. the
+    ///   notifications when opened from a notification peek); it does not change what is remembered.
+    func setExpanded(_ expanded: Bool, showing override: FeatureID? = nil) {
         guard expanded != isExpanded else { return }
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
-            currentFeature = settings.initialFeature
+            currentFeature = override.flatMap { settings.isEnabled($0) ? $0 : nil } ?? settings.initialFeature
         }
         isExpanded = expanded
         updateLarge()

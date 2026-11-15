@@ -4,6 +4,7 @@ import Foundation
 enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case home
     case calendar
+    case notifications
     case info
 
     var id: String { rawValue }
@@ -12,6 +13,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .home: "Home"
         case .calendar: "Naptár"
+        case .notifications: "Értesítések"
         case .info: "Info"
         }
     }
@@ -20,6 +22,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .home: "house.fill"
         case .calendar: "calendar"
+        case .notifications: "bell.fill"
         case .info: "info.circle.fill"
         }
     }

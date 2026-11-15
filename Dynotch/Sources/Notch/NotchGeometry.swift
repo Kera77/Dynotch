@@ -73,6 +73,11 @@ struct NotchGeometry: Equatable, Sendable {
         return CGSize(width: width, height: Self.largeHeight)
     }
 
+    /// The closed notch opened a little for a new notification (spec E-3).
+    var peekSize: CGSize {
+        CGSize(width: max(notchSize.width + 140, 320), height: notchSize.height + 30)
+    }
+
     var expandedRect: CGRect {
         rect(for: expandedSize)
     }

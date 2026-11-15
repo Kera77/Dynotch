@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-15
+
+### Added
+- Notifications in the notch: a new notification makes the closed notch peek open showing who wrote;
+  hovering opens the Notifications feature with the content. Needs Full Disk Access.
+- Default apps: Beeper, and the Gmail and Google Chat web apps (Gmail shows sender and subject only).
+- Notification settings: peek duration (2–30 s), per-app toggles, guide for hiding native banners.
+
 ## [0.4.2] - 2026-11-15
 
 ### Fixed

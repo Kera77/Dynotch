@@ -7,11 +7,13 @@ import SwiftUI
 final class SettingsWindowController {
     private let settings: AppSettings
     private let calendar: CalendarService
+    private let notifications: NotificationService
     private var window: NSWindow?
 
-    init(settings: AppSettings, calendar: CalendarService) {
+    init(settings: AppSettings, calendar: CalendarService, notifications: NotificationService) {
         self.settings = settings
         self.calendar = calendar
+        self.notifications = notifications
     }
 
     func show() {
@@ -22,7 +24,8 @@ final class SettingsWindowController {
     }
 
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(settings: settings, calendar: calendar)))
+        let rootView = SettingsView(settings: settings, calendar: calendar, notifications: notifications)
+        let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
         window.title = "Dynotch beállítások"
         window.styleMask = [.titled, .closable, .miniaturizable]
         window.isReleasedWhenClosed = false

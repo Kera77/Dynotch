@@ -12,6 +12,7 @@ final class NotchController {
 
     private let settings: AppSettings
     private let calendar: CalendarService
+    private let notifications: NotificationService
     private let openSettings: () -> Void
     private let model: NotchViewModel
     private let panel: NotchPanel
@@ -25,9 +26,16 @@ final class NotchController {
     private var swipe = SwipeDetector()
     private var isMenuOpen = false
 
-    init(screen: NSScreen, settings: AppSettings, calendar: CalendarService, openSettings: @escaping () -> Void) {
+    init(
+        screen: NSScreen,
+        settings: AppSettings,
+        calendar: CalendarService,
+        notifications: NotificationService,
+        openSettings: @escaping () -> Void
+    ) {
         self.settings = settings
         self.calendar = calendar
+        self.notifications = notifications
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -36,7 +44,8 @@ final class NotchController {
         let windowRect = geometry.rect(for: geometry.largeSize)
         panel = NotchPanel(contentRect: windowRect)
 
-        let hosting = FirstMouseHostingView(rootView: NotchView(model: model, settings: settings, calendar: calendar))
+        let rootView = NotchView(model: model, settings: settings, calendar: calendar, notifications: notifications)
+        let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
         hosting.autoresizingMask = [.width, .height]
@@ -91,6 +100,12 @@ final class NotchController {
 
     // MARK: - Hover (spec N-2…N-4)
 
+    /// Area that opens the panel: the notch, or the whole peek while a notification shows.
+    private var hoverZone: CGRect {
+        let geometry = model.geometry
+        return notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize)
+    }
+
     private var keepOpenZone: CGRect {
         model.geometry.keepOpenZone(for: model.openSize)
     }
@@ -98,7 +113,7 @@ final class NotchController {
     private func pointerMoved() {
         if model.isExpanded {
             evaluatePointerWhileExpanded()
-        } else if model.geometry.hoverZone.contains(NSEvent.mouseLocation) {
+        } else if hoverZone.contains(NSEvent.mouseLocation) {
             expand()
         }
     }
@@ -123,7 +138,10 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
-        withAnimation(Self.animation) { model.setExpanded(true) }
+        // Opened from a notification peek: show the notifications (spec E-4).
+        let fromPeek = notifications.peek != nil
+        withAnimation(Self.animation) { model.setExpanded(true, showing: fromPeek ? .notifications : nil) }
+        notifications.clearPeek()
         startHoverTimer()
     }
 

@@ -4,6 +4,7 @@ struct NotchView: View {
     @ObservedObject var model: NotchViewModel
     @ObservedObject var settings: AppSettings
     @ObservedObject var calendar: CalendarService
+    @ObservedObject var notifications: NotificationService
 
     private static let indicatorSideWidth: CGFloat = 60
     /// Content scales up from the notch and fades in with the same spring as the background.
@@ -14,6 +15,7 @@ struct NotchView: View {
 
     /// Closed notch, widened on both sides while an upcoming event is shown (spec K-7).
     private var collapsedSize: CGSize {
+        if notifications.peek != nil { return geometry.peekSize }
         guard calendar.upcoming != nil else { return geometry.notchSize }
         return CGSize(
             width: geometry.notchSize.width + 2 * Self.indicatorSideWidth,
@@ -22,13 +24,21 @@ struct NotchView: View {
     }
 
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
-    private var cornerRadius: CGFloat { model.isExpanded ? 24 : 10 }
+    private var cornerRadius: CGFloat { model.isExpanded ? 24 : (notifications.peek != nil ? 16 : 10) }
 
     var body: some View {
         // Content lives inside the black background and is clipped by it, so both grow and
         // shrink together in one animation instead of the content appearing first.
         ZStack(alignment: .top) {
-            if !model.isExpanded, let event = calendar.upcoming {
+            if !model.isExpanded, let notification = notifications.peek {
+                NotificationPeekView(
+                    app: notifications.catalog.app(for: notification.appIdentifier),
+                    content: notifications.content(for: notification),
+                    notchHeight: geometry.notchSize.height
+                )
+                .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
+                .transition(.opacity)
+            } else if !model.isExpanded, let event = calendar.upcoming {
                 UpcomingEventIndicator(
                     event: event,
                     leadTime: calendar.leadTime,
@@ -50,6 +60,7 @@ struct NotchView: View {
         .clipShape(shape)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(NotchController.animation, value: calendar.upcoming?.id)
+        .animation(NotchController.animation, value: notifications.peek?.id)
         .environment(\.colorScheme, .dark)
     }
 
@@ -123,6 +134,8 @@ struct NotchView: View {
             HomeFeatureView()
         case .calendar:
             CalendarFeatureView(service: calendar, model: model)
+        case .notifications:
+            NotificationsFeatureView(service: notifications)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }

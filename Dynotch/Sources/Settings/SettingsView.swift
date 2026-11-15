@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     let calendar: CalendarService
+    let notifications: NotificationService
 
     var body: some View {
         TabView {
@@ -13,10 +14,12 @@ struct SettingsView: View {
                 .tabItem { Label("Funkciók", systemImage: "square.grid.2x2") }
             CalendarSettingsView(settings: settings, calendar: calendar)
                 .tabItem { Label("Naptár", systemImage: "calendar") }
+            NotificationSettingsView(settings: settings, service: notifications)
+                .tabItem { Label("Értesítések", systemImage: "bell") }
             AboutSettingsView()
                 .tabItem { Label("Névjegy", systemImage: "info.circle") }
         }
-        .frame(width: 480, height: 320)
+        .frame(width: 520, height: 440)
     }
 }
 

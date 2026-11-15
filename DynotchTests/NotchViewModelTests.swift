@@ -49,4 +49,20 @@ struct NotchViewModelTests {
         model.setExpanded(true)
         #expect(!model.isLarge)
     }
+
+    /// Spec E-4: opening from a notification peek shows the notifications without changing
+    /// which feature is remembered.
+    @Test func openingFromPeekDoesNotChangeRememberedFeature() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.calendar)
+        model.setExpanded(false)
+
+        model.setExpanded(true, showing: .notifications)
+        #expect(model.currentFeature == .notifications)
+        model.setExpanded(false)
+
+        model.setExpanded(true)
+        #expect(model.currentFeature == .calendar)
+    }
 }

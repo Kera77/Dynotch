@@ -8,6 +8,8 @@ final class AppSettings: ObservableObject {
     static let defaultCloseDelay = 0.3
     static let calendarLeadRange: ClosedRange<Int> = 1...30
     static let defaultCalendarLeadMinutes = 10
+    static let notificationDurationRange: ClosedRange<Double> = 2...30
+    static let defaultNotificationDuration: Double = 6
 
     private enum Key {
         static let closeDelay = "closeDelay"
@@ -17,6 +19,8 @@ final class AppSettings: ObservableObject {
         static let calendarAlertEnabled = "calendarAlertEnabled"
         static let calendarLeadMinutes = "calendarLeadMinutes"
         static let calendarLarge = "calendarLarge"
+        static let notificationDuration = "notificationDuration"
+        static let notificationApps = "notificationApps"
     }
 
     private let defaults: UserDefaults
@@ -63,6 +67,21 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(calendarLarge, forKey: Key.calendarLarge) }
     }
 
+    /// Seconds a notification peeks out of the closed notch (spec E-6).
+    @Published var notificationDuration: Double {
+        didSet {
+            let range = Self.notificationDurationRange
+            let clamped = min(max(notificationDuration.rounded(), range.lowerBound), range.upperBound)
+            if clamped != notificationDuration { notificationDuration = clamped; return }
+            defaults.set(notificationDuration, forKey: Key.notificationDuration)
+        }
+    }
+
+    /// Per-app choices that differ from the default (bundle identifier → enabled).
+    @Published private(set) var notificationApps: [String: Bool] {
+        didSet { defaults.set(notificationApps, forKey: Key.notificationApps) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
@@ -85,6 +104,11 @@ final class AppSettings: ObservableObject {
 
         calendarAlertEnabled = defaults.object(forKey: Key.calendarAlertEnabled) as? Bool ?? true
         calendarLarge = defaults.bool(forKey: Key.calendarLarge)
+
+        let storedDuration = defaults.object(forKey: Key.notificationDuration) as? Double ?? Self.defaultNotificationDuration
+        let durationRange = Self.notificationDurationRange
+        notificationDuration = min(max(storedDuration, durationRange.lowerBound), durationRange.upperBound)
+        notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
         calendarLeadMinutes = min(max(storedLead, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
     }
@@ -114,6 +138,14 @@ final class AppSettings: ObservableObject {
         guard enabledFeatures.count > 1 || !enabledFeatures.contains(feature) else { return false }
         enabledFeatures.remove(feature)
         return true
+    }
+
+    func isNotificationAppEnabled(_ identifier: String, default defaultValue: Bool) -> Bool {
+        notificationApps[identifier] ?? defaultValue
+    }
+
+    func setNotificationApp(_ identifier: String, enabled: Bool) {
+        notificationApps[identifier] = enabled
     }
 
     func moveFeatures(from source: IndexSet, to destination: Int) {

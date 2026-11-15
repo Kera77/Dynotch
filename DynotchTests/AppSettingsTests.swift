@@ -45,6 +45,7 @@ struct AppSettingsTests {
         let settings = AppSettings(defaults: makeDefaults())
         #expect(settings.setEnabled(.info, false))
         #expect(settings.setEnabled(.calendar, false))
+        #expect(settings.setEnabled(.notifications, false))
         #expect(!settings.setEnabled(.home, false))
         #expect(settings.activeFeatures == [.home])
     }
@@ -52,9 +53,9 @@ struct AppSettingsTests {
     @Test func reorderIsPersisted() {
         let defaults = makeDefaults()
         let settings = AppSettings(defaults: defaults)
-        settings.moveFeatures(from: IndexSet(integer: 2), to: 0)
-        #expect(settings.featureOrder == [.info, .home, .calendar])
-        #expect(AppSettings(defaults: defaults).featureOrder == [.info, .home, .calendar])
+        settings.moveFeatures(from: IndexSet(integer: 3), to: 0)
+        #expect(settings.featureOrder == [.info, .home, .calendar, .notifications])
+        #expect(AppSettings(defaults: defaults).featureOrder == [.info, .home, .calendar, .notifications])
     }
 
     /// Users upgrading from a version without a feature get it appended and enabled.
@@ -63,8 +64,8 @@ struct AppSettingsTests {
         defaults.set(["info", "home"], forKey: "featureOrder")
         defaults.set(["home"], forKey: "enabledFeatures")
         let settings = AppSettings(defaults: defaults)
-        #expect(settings.featureOrder == [.info, .home, .calendar])
-        #expect(settings.activeFeatures == [.home, .calendar])
+        #expect(settings.featureOrder == [.info, .home, .calendar, .notifications])
+        #expect(settings.activeFeatures == [.home, .calendar, .notifications])
     }
 
     @Test func calendarLeadMinutesIsClamped() {
@@ -74,5 +75,20 @@ struct AppSettingsTests {
         #expect(settings.calendarLeadMinutes == 30)
         settings.calendarLeadMinutes = 0
         #expect(settings.calendarLeadMinutes == 1)
+    }
+
+    @Test func notificationSettingsArePersisted() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.notificationDuration == AppSettings.defaultNotificationDuration)
+        settings.notificationDuration = 99
+        #expect(settings.notificationDuration == 30)
+        #expect(settings.isNotificationAppEnabled("com.example", default: true))
+        settings.setNotificationApp("com.example", enabled: false)
+
+        let reloaded = AppSettings(defaults: defaults)
+        #expect(reloaded.notificationDuration == 30)
+        #expect(!reloaded.isNotificationAppEnabled("com.example", default: true))
+        #expect(reloaded.isNotificationAppEnabled("com.other", default: true))
     }
 }

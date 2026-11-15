@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.4 elfogadva** · Utolsó módosítás: 2026-11-15
+> Állapot: **v0.5 elfogadva** · Utolsó módosítás: 2026-11-15
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -41,7 +41,7 @@
 | M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (6. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Info* (verzió, kijelző és notch adatai). |
 | M-5 | A menüsor jobb oldala (a notch-tól jobbra) állapotjelzéseknek van fenntartva, például a hangerő- és fényerő HUD-nak. Itt nincs felirat. |
 
 ### 1.3 Váltás két ujjas swipe-pal
@@ -95,7 +95,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.5)
+### 2.3 Hatókör (v0.6)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -108,8 +108,9 @@
 |---|---|
 | **Általános** | Indítás bejelentkezéskor · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
+| **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.5) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.6) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje |
 
 ---
@@ -153,6 +154,29 @@
 
 ---
 
+## 4b. Értesítések (v0.5)
+
+### Adatforrás és engedély
+
+| ID | Követelmény |
+|---|---|
+| E-1 | A Dynotch a macOS Értesítési központ helyi adatbázisából olvassa az új értesítéseket (másodpercenként ellenőriz). Ehhez **Teljes lemezelérés** engedély kell; nélküle az Értesítések funkció és a Beállítások egy gombot mutat, amely megnyitja a megfelelő Rendszerbeállítások oldalt. Csak az indítás után érkezett értesítések jelennek meg. |
+| E-2 | Csak a kiválasztott appok értesítései jelennek meg. Alapból: **Beeper**, valamint a **Gmail** és a **Google Chat** Safari-webapp. A Beállításokban bármelyik telepített, értesítést küldő app ki- és bekapcsolható. |
+
+### Megjelenés
+
+| ID | Követelmény |
+|---|---|
+| E-3 | **Új értesítéskor** a becsukott notch finoman, csak egy kicsit lenyílik (30 pt-tal), és megmutatja az app ikonját és azt, **ki írt**. A tartalom itt nem látszik. Minden kijelzőn megjelenik. |
+| E-4 | **Hoverre** (a notch-ra vagy a lenyílt sávra víve az egeret) a panel kinyílik az *Értesítések* funkcióval, benne az értesítés **tartalmával**. Ez nem írja felül, hogy legközelebb melyik funkció nyílik meg (L-1). |
+| E-5 | Az *Értesítések* funkció az indítás óta érkezett értesítéseket listázza (legfeljebb 50, a legújabb elöl): app ikon, feladó, app neve és időpont, szöveg. Egy értesítésre kattintva megnyílik az app. |
+| E-6 | A lenyílt sáv a beállított idő után magától eltűnik (**2–30 mp**, alapból 6). |
+| E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |
+| E-8 | **Natív macOS értesítések:** a macOS nem engedi programból kikapcsolni más appok szalagcímeit. A Beállítások útmutatót és gombot ad: az érintett appoknál a szalagcím stílusát „Nincs”-re kell állítani, az „Értesítési központban” kapcsolót bekapcsolva hagyva. Így a macOS nem mutat szalagcímet, a Dynotch viszont megkapja az értesítést. |
+| E-9 | Hibakereséshez az app naplót ír ide: `~/Library/Logs/Dynotch/notifications.log`. Ebben csak az adatbázis szerkezete és az appazonosítók szerepelnek, értesítések tartalma nem. |
+
+---
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -170,6 +194,7 @@ Jelenleg nincs.
 | Billentyűk elfogása | `CGEventTap` az `NX_SYSDEFINED` (media key) eseményekre; a fogyasztott eseményt nem engedi tovább, így az Apple HUD nem jelenik meg |
 | Hangerő | CoreAudio: `kAudioHardwareServiceDeviceProperty_VirtualMainVolume` és mute, property listener a külső változásokra |
 | Fényerő | `DisplayServicesGetBrightness` / `SetBrightness` (privát framework, dinamikusan betöltve) |
+| Értesítések | Az Értesítési központ SQLite-adatbázisa csak olvasásra megnyitva (`~/Library/Group Containers/group.com.apple.usernoted/db2/db`), a rekordok bináris plist-ek |
 | Naptár | EventKit (`EKEventStore`, `requestFullAccessToEvents`), `EKEventStoreChanged` értesítés; meeting-link felismerés `NSDataDetector`-ral |
 
 ---
@@ -181,5 +206,6 @@ Jelenleg nincs.
 | **v0.2** | Háttér-app, notch-panel (hover, késleltetett bezárás), menüsor helyőrző funkcióval, swipe, utolsó funkció megjegyzése, jobb klikk menü, Beállítások ablak |
 | **v0.3** | Naptár: lista, Csatlakozás gomb, közelgő esemény jelzés; stabil aláírás |
 | **v0.4** | Panel minden kijelzőn, látható virtuális notch; naptár napsávval és teljes havi nézettel; kapszula menü |
-| **v0.5** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.6+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.5** | Értesítések a notchban (Beeper, Gmail, Google Chat) |
+| **v0.6** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.7+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

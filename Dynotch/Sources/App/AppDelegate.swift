@@ -4,7 +4,10 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     private lazy var calendar = CalendarService(settings: settings)
-    private lazy var settingsWindow = SettingsWindowController(settings: settings, calendar: calendar)
+    private lazy var notifications = NotificationService(settings: settings)
+    private lazy var settingsWindow = SettingsWindowController(
+        settings: settings, calendar: calendar, notifications: notifications
+    )
     private var notchManager: NotchManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -12,7 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !AppInfo.isRunningTests else { return }
 
         calendar.start()
-        let manager = NotchManager(settings: settings, calendar: calendar) { [weak self] in
+        notifications.start()
+        let manager = NotchManager(settings: settings, calendar: calendar, notifications: notifications) { [weak self] in
             self?.settingsWindow.show()
         }
         manager.start()
