@@ -77,7 +77,7 @@ enum CalculatorEngine {
             let character = characters[index]
             if isDigit(character) {
                 text.append(character)
-            } else if (character == "." || character == ","), !hasSeparator {
+            } else if !hasSeparator, character == "." || character == "," {
                 hasSeparator = true
                 text.append(".")
             } else if character == " ", !hasSeparator, !text.isEmpty, isThousandsGroup(characters, after: index) {
