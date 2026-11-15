@@ -7,10 +7,6 @@ on:
   push:
     branches: [preflight]
 
-concurrency:
-  group: preflight
-  cancel-in-progress: true
-
 jobs:
   check:
     name: Check

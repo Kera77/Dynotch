@@ -22,8 +22,9 @@ done
 
 gh run watch "$RUN" --interval 15 > /dev/null 2>&1 || true
 
-LOG="$(gh run view "$RUN" --log 2>/dev/null | sed -E 's/^[^\t]*\t[^\t]*\t[^ ]* //')"
-RESULT="$(grep -E "^PREFLIGHT_RESULT sha=$SHA" <<< "$LOG" | tail -1 || true)"
+# Log lines look like "job<TAB>step<TAB>timestamp text"; keep only the text.
+LOG="$(gh run view "$RUN" --log 2>/dev/null | cut -f3- | cut -d' ' -f2-)"
+RESULT="$(grep -oE "PREFLIGHT_RESULT sha=$SHA lint=[a-z]+ tests=[a-z]+" <<< "$LOG" | tail -1 || true)"
 
 if [[ "$RESULT" == *"lint=pass tests=pass" ]]; then
   grep -E "Test run with" <<< "$LOG" | tail -1 || true
