@@ -194,7 +194,9 @@
 | SZ-3 | Műveletek: `+ - * /` (a `×`, `x`, `÷` is), hatvány `^`, zárójelek, előjel, százalék (`200 + 10%` = 220, `200 * 15%` = 30). Tizedesjel pont vagy vessző; a számokban szóköz lehet ezres tagoló (`1 200,5`). |
 | SZ-4 | Ha a sor nem számítás (szöveg, egyetlen szám, befejezetlen kifejezés, nullával osztás), nincs mellette eredmény. Az eredmény legfeljebb 8 tizedesjegy, tizedesvesszővel és szóközös ezres tagolással. |
 | SZ-5 | A tartalom megmarad bezárás és újraindítás után is, és közös a notch (minden kijelző) és a menüsor panelje között. |
-| SZ-6 | **Menüsor-ikon** (**+/−**), amíg a Számológép funkció be van kapcsolva. Kattintásra az ikon alatt egy notch-szerű fekete panel nyílik le ugyanazzal a jegyzettel; újabb kattintásra, vagy máshova kattintva becsukódik. |
+| SZ-6 | **Menüsor-ikon** (**+/−**), amíg a Számológép funkció be van kapcsolva. Kattintásra az ikon alatt egy **nyilas, lekerekített, sötétszürke buborék** nyílik le ugyanazzal a jegyzettel (fejléc nélkül); a nyíl az ikonra mutat. Újabb kattintásra, vagy máshova kattintva becsukódik. |
+| SZ-6b | A buborék alján **állapotsor**: balra rövid állapotszöveg („Készen áll…”, „Kattintásra másol”, „Vágólapra másolva”), jobbra a számítások száma, a **lakat** gomb és a zöld **„Mind másolása”** gomb, amely minden számítást az eredményével együtt a vágólapra tesz (soronként `10*10 = 100`). |
+| SZ-6c | A szövegmezőben működnek a szokásos billentyűparancsok (⌘C, ⌘X, ⌘V, ⌘A, ⌘Z, ⇧⌘Z), a notchban is. A beillesztés mindig sima szöveg. |
 | SZ-7 | A menüsor panelje megkapja a billentyűzetet, de nem aktiválja a Dynotch-ot (az addig használt app ablaka elöl marad). |
 | SZ-9 | **Másolás:** egy eredményre kattintva az a vágólapra kerül (ezres tagolás nélkül, például `1524,5`), és a sorban egy pillanatra „Másolva ✓” jelenik meg. Az eredmények fölött az egérmutató kézre vált. |
 | SZ-8 | **Lakat ikon** a notch menüsorában és a menüsor paneljén: alapból szürke, bekattintva **zöld**. Bekattintva a panel **nyitva marad**, akkor is, ha az egér elhagyja (notch), illetve ha máshova kattintasz (menüsor panel). A két lakat független. A notch lakatja a panel bezárásakor (és újraindításkor) kikapcsol. |

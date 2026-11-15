@@ -17,9 +17,3 @@ final class CalculatorStore: ObservableObject {
         text = defaults.string(forKey: Self.key) ?? ""
     }
 }
-
-/// "Keep open" switch of a panel (spec SZ-8).
-@MainActor
-final class PinState: ObservableObject {
-    @Published var isPinned = false
-}

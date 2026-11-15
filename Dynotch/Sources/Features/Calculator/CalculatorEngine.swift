@@ -17,6 +17,21 @@ enum CalculatorEngine {
         return format(value)
     }
 
+    /// The lines of a text that are calculations, with their results.
+    static func results(in text: String) -> [(line: String, result: String)] {
+        text.split(whereSeparator: \.isNewline).compactMap { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            return result(for: trimmed).map { (trimmed, $0) }
+        }
+    }
+
+    /// Every calculation with its result, one per line: "10*10 = 100".
+    static func summary(of text: String) -> String {
+        results(in: text)
+            .map { "\($0.line) = \($0.result.replacingOccurrences(of: "\u{00A0}", with: " "))" }
+            .joined(separator: "\n")
+    }
+
     static func evaluate(_ line: String) -> Double? {
         guard let tokens = tokenize(line) else { return nil }
         var parser = Parser(tokens: tokens)

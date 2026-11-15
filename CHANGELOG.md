@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-16
+
+### Changed
+- Menu bar calculator redesigned as a popover: arrow pointing at the icon, rounded dark panel,
+  status bar with result count, lock and a "copy all" button.
+
+### Fixed
+- Copy, cut, paste, select all and undo shortcuts now work in the calculator.
+
 ## [0.6.1] - 2026-11-16
 
 ### Added

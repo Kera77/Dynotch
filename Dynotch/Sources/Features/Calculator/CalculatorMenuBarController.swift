@@ -5,11 +5,11 @@ import SwiftUI
 /// Menu bar icon that drops the calculator down below it (spec SZ-6…SZ-8).
 @MainActor
 final class CalculatorMenuBarController: NSObject {
-    private static let panelSize = NSSize(width: 400, height: 290)
+    private static let panelSize = NSSize(width: 440, height: 340)
 
     private let settings: AppSettings
     private let store: CalculatorStore
-    private let pin = PinState()
+    private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
     private var panel: MenuBarPanel?
     private var outsideClickMonitor: Any?
@@ -65,7 +65,11 @@ final class CalculatorMenuBarController: NSObject {
         let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrame
         let size = Self.panelSize
         let originX = min(max(buttonFrame.midX - size.width / 2, screenFrame.minX + 8), screenFrame.maxX - size.width - 8)
-        panel.setFrame(NSRect(x: originX, y: buttonFrame.minY - size.height, width: size.width, height: size.height), display: true)
+        // The arrow on the panel's top edge points at the icon.
+        state.arrowX = buttonFrame.midX - originX
+        state.didCopy = false
+        let originY = buttonFrame.minY - size.height - 2
+        panel.setFrame(NSRect(x: originX, y: originY, width: size.width, height: size.height), display: true)
         panel.makeKeyAndOrderFront(nil)
 
         if outsideClickMonitor == nil {
@@ -77,7 +81,7 @@ final class CalculatorMenuBarController: NSObject {
 
     /// A click in another app closes the panel, unless it is pinned.
     private func clickedOutside() {
-        if !pin.isPinned { closePanel() }
+        if !state.isPinned { closePanel() }
     }
 
     private func closePanel() {
@@ -101,7 +105,7 @@ final class CalculatorMenuBarController: NSObject {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.contentView = FirstMouseHostingView(rootView: CalculatorMenuBarView(store: store, pin: pin))
+        panel.contentView = FirstMouseHostingView(rootView: CalculatorMenuBarView(store: store, state: state))
         return panel
     }
 }
@@ -110,36 +114,4 @@ final class CalculatorMenuBarController: NSObject {
 final class MenuBarPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
-}
-
-/// Content of the menu bar panel: notch-like black sheet with the notepad.
-private struct CalculatorMenuBarView: View {
-    @ObservedObject var store: CalculatorStore
-    @ObservedObject var pin: PinState
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Image(systemName: FeatureID.calculator.symbolName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(PinButton.activeColor)
-                Text(FeatureID.calculator.title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-                Spacer()
-                PinButton(isPinned: pin.isPinned) { pin.isPinned.toggle() }
-                    .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 40)
-
-            CalculatorEditor(text: $store.text)
-                .padding(.horizontal, 10)
-                .padding(.bottom, 10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
-        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 18, bottomTrailingRadius: 18, style: .continuous))
-        .environment(\.colorScheme, .dark)
-    }
 }

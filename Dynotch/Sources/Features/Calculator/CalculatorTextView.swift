@@ -27,7 +27,7 @@ final class CalculatorTextView: NSTextView {
         textView.allowsUndo = true
         textView.font = editorFont
         textView.textColor = .white
-        textView.insertionPointColor = .white
+        textView.insertionPointColor = CalculatorResultsView.resultColor
         textView.drawsBackground = false
         textView.textContainerInset = NSSize(width: 4, height: 6)
         textView.isAutomaticQuoteSubstitutionEnabled = false
@@ -88,6 +88,25 @@ final class CalculatorTextView: NSTextView {
             width: Self.resultColumnWidth, height: newSize.height
         )
         refreshResults()
+    }
+
+    /// Dynotch has no main menu, so the usual Edit shortcuts would not reach the text view.
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        guard event.type == .keyDown, window?.firstResponder === self else {
+            return super.performKeyEquivalent(with: event)
+        }
+        let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
+        switch (modifiers, key) {
+        case (.command, "c"): copy(nil)
+        case (.command, "x"): cut(nil)
+        case (.command, "v"): pasteAsPlainText(nil)
+        case (.command, "a"): selectAll(nil)
+        case (.command, "z"): undoManager?.undo()
+        case ([.command, .shift], "z"): undoManager?.redo()
+        default: return super.performKeyEquivalent(with: event)
+        }
+        return true
     }
 
     override func viewDidMoveToWindow() {

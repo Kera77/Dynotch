@@ -71,4 +71,22 @@ struct CalculatorEngineTests {
         #expect(board.string(forType: .string) == "220")
         #expect(!textView.resultsView.copyResult(at: CGPoint(x: 40, y: rows[0].lineRect.maxY + 8)))
     }
+
+    @Test func resultsAndSummaryOfWholeText() {
+        let text = "10*10\nrezsi\n\n  1200 * 1,27  \n42"
+        #expect(CalculatorEngine.results(in: text).map(\.line) == ["10*10", "1200 * 1,27"])
+        #expect(CalculatorEngine.summary(of: text) == "10*10 = 100\n1200 * 1,27 = 1 524")
+        #expect(CalculatorEngine.summary(of: "csak szöveg").isEmpty)
+    }
+
+    @Test func popoverArrowStaysInsideRoundedCorners() {
+        let rect = CGRect(x: 0, y: 0, width: 400, height: 300)
+        for arrowX in [-50.0, 5, 200, 399, 900] {
+            let bounds = PopoverShape(arrowX: arrowX).path(in: rect).boundingRect
+            #expect(abs(bounds.minX - rect.minX) < 0.5)
+            #expect(abs(bounds.maxX - rect.maxX) < 0.5)
+            #expect(abs(bounds.minY - rect.minY) < 0.5)
+            #expect(abs(bounds.maxY - rect.maxY) < 0.5)
+        }
+    }
 }
