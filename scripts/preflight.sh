@@ -13,7 +13,7 @@ git push -q origin "HEAD:refs/heads/preflight"
 
 RUN=""
 for _ in $(seq 1 30); do
-  RUN="$(gh run list --workflow preflight.yml --limit 5 --json databaseId,headSha \
+  RUN="$(gh run list --branch preflight --limit 5 --json databaseId,headSha \
     -q "[.[] | select(.headSha == \"$SHA\")][0].databaseId")"
   [[ -n "$RUN" ]] && break
   sleep 2
