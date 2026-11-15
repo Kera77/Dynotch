@@ -65,7 +65,19 @@ Ha elveszik, új tanúsítványt kell generálni; ilyenkor az engedélyeket egys
 |---|---|---|
 | [`ci.yml`](.github/workflows/ci.yml) | push a `main`-re, minden PR | SwiftLint, build, unit tesztek |
 | [`release.yml`](.github/workflows/release.yml) | `vX.Y.Z` tag push / kézi indítás | Release build, `.zip` + `.dmg` + `SHA256SUMS.txt`, GitHub Release |
+| [`preflight.yml`](.github/workflows/preflight.yml) | push a `preflight` ágra | Lint, build, teszt a `main` előtt; hibánál sem jelez sikertelen futást (nincs e-mail) |
 | Dependabot | hetente | GitHub Actions verziófrissítő PR-ok |
+
+### Előzetes ellenőrzés Xcode nélkül
+
+Ha a gépen nincs Xcode, a commitot a `main` előtt a GitHubon lehet ellenőrizni:
+
+```bash
+./scripts/preflight.sh && git push origin main
+```
+
+A script a `preflight` ágra tolja a commitot, megvárja a Preflight workflow-t, és kiírja a hibákat.
+Így a `main` ágon nem bukik el a CI, és nem jön róla e-mail.
 
 ## Kiadás új verzióval
 

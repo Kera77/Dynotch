@@ -1,0 +1,44 @@
+name: Preflight
+
+# Checks a commit before it goes to main (see scripts/preflight.sh). The run always
+# concludes successfully, so a broken commit here sends no failure e-mail; the real
+# result is the "PREFLIGHT_RESULT" line in the log.
+on:
+  push:
+    branches: [preflight]
+
+concurrency:
+  group: preflight
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - run: brew install xcodegen swiftlint
+      - name: Lint, build and test
+        run: |
+          lint=pass
+          tests=pass
+          swiftlint --strict > lint.log 2>&1 || lint=fail
+          xcodegen generate > /dev/null
+          set -o pipefail
+          xcodebuild test \
+            -project Dynotch.xcodeproj \
+            -scheme Dynotch \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO > test.log 2>&1 || tests=fail
+
+          echo "::group::Lint findings"
+          grep -E "(warning|error):" lint.log || true
+          echo "::endgroup::"
+          echo "::group::Build and test findings"
+          grep -E "error:|✘|Test run with|\*\* TEST" test.log | sort -u || true
+          echo "::endgroup::"
+          echo "PREFLIGHT_RESULT sha=$GITHUB_SHA lint=$lint tests=$tests"
