@@ -25,7 +25,7 @@ struct UpcomingEventIndicator: View {
     }
 
     private var color: Color {
-        Color(red: event.color.red, green: event.color.green, blue: event.color.blue)
+        event.color.color
     }
 
     private var countdown: String {

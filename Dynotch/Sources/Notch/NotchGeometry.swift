@@ -8,6 +8,14 @@ struct NotchGeometry: Equatable, Sendable {
     static let expandedHeight: CGFloat = 230
     static let expandedSideWidth: CGFloat = 200
     static let minimumExpandedWidth: CGFloat = 560
+    static let largeWidth: CGFloat = 960
+    static let largeHeight: CGFloat = 340
+    static let minimumMenuBarHeight: CGFloat = 32
+    /// Height of the calendar's day strip, directly below the menu bar.
+    static let dayStripHeight: CGFloat = 54
+    /// How far the hover zones reach above the screen's top edge. The pointer can sit exactly on
+    /// `screenFrame.maxY`, which `CGRect.contains` treats as outside a rect ending there.
+    static let topEdgeTolerance: CGFloat = 2
 
     let screenFrame: CGRect
     let notchSize: CGSize
@@ -43,9 +51,15 @@ struct NotchGeometry: Equatable, Sendable {
 
     /// The notch itself.
     var notchRect: CGRect {
-        topCenteredRect(size: notchSize)
+        rect(for: notchSize)
     }
 
+    /// Height of the panel's top row (feature switcher beside the notch).
+    var menuBarHeight: CGFloat {
+        max(notchSize.height, Self.minimumMenuBarHeight)
+    }
+
+    /// Normal size of the opened panel.
     var expandedSize: CGSize {
         CGSize(
             width: max(notchSize.width + 2 * Self.expandedSideWidth, Self.minimumExpandedWidth),
@@ -53,14 +67,15 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
-    /// The opened panel; also the panel window's frame.
-    var expandedRect: CGRect {
-        topCenteredRect(size: expandedSize)
+    /// Size of the opened panel in the full calendar view.
+    var largeSize: CGSize {
+        let width = min(max(Self.largeWidth, expandedSize.width), max(screenFrame.width - 40, expandedSize.width))
+        return CGSize(width: width, height: Self.largeHeight)
     }
 
-    /// How far the hover zones reach above the screen's top edge. The pointer can sit exactly on
-    /// `screenFrame.maxY`, which `CGRect.contains` treats as outside a rect ending there.
-    static let topEdgeTolerance: CGFloat = 2
+    var expandedRect: CGRect {
+        rect(for: expandedSize)
+    }
 
     /// Pointer area that opens the panel (spec N-2): the notch, slightly widened, past the top edge.
     var hoverZone: CGRect {
@@ -73,18 +88,36 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
-    /// Pointer area that keeps the opened panel open (spec N-3): the panel, past the top edge.
+    /// Pointer area that keeps the normal-size panel open (spec N-3).
     var expandedHoverZone: CGRect {
-        let rect = expandedRect
-        return CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + Self.topEdgeTolerance)
+        keepOpenZone(for: expandedSize)
     }
 
-    private func topCenteredRect(size: CGSize) -> CGRect {
+    /// The calendar day strip in the normal-size panel; horizontal scrolling there scrolls the
+    /// days instead of switching features.
+    var dayStripZone: CGRect {
+        let panel = expandedRect
+        return CGRect(
+            x: panel.minX,
+            y: panel.maxY - menuBarHeight - Self.dayStripHeight,
+            width: panel.width,
+            height: Self.dayStripHeight
+        )
+    }
+
+    /// A rect of the given size, centered horizontally and attached to the top of the screen.
+    func rect(for size: CGSize) -> CGRect {
         CGRect(
             x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height,
             width: size.width,
             height: size.height
         )
+    }
+
+    /// Pointer area that keeps a panel of the given size open: the panel, past the top edge.
+    func keepOpenZone(for size: CGSize) -> CGRect {
+        let rect = rect(for: size)
+        return CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + Self.topEdgeTolerance)
     }
 }

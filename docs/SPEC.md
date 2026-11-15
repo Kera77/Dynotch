@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.3 elfogadva** · Utolsó módosítás: 2026-11-14
+> Állapot: **v0.4 elfogadva** · Utolsó módosítás: 2026-11-15
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -29,7 +29,8 @@
 | N-5 | **Beállítás:** *Bezárási késleltetés*, 0–3 s, 0,1 s-os lépéssel, alapértéke 0,3 s. |
 | N-6 | A panel minden Space-en és teljes képernyős appok felett is működik. |
 | N-7 | A panel csak akkor kapja meg a billentyűzetfókuszt, ha szükséges, így nem veszi el a fókuszt az aktív apptól (non-activating panel). |
-| N-8 | **Notch nélküli kijelzőn** (külső monitor vagy notch nélküli Mac) egy virtuális notch jelenik meg a fő kijelző felső közepén, szabványos notch-mérettel. |
+| N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
+| N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -37,7 +38,7 @@
 
 | ID | Követelmény |
 |---|---|
-| M-1 | A kinyitott panel tetején, a notch két oldalán egy **menüsor** található, amely a funkciók ikonjait mutatja. |
+| M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
 | M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (6. fejezet), *Info* (verzió, kijelző és notch adatai). |
@@ -93,7 +94,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.4)
+### 2.3 Hatókör (v0.5)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -107,7 +108,7 @@
 | **Általános** | Indítás bejelentkezéskor · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.4) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.5) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje |
 
 ---
@@ -122,14 +123,22 @@
 | K-2 | Első indításkor (ha a Naptár funkció be van kapcsolva) a macOS engedélyt kér. Engedély nélkül a Naptár funkció és a Beállítások egy gombot mutat, amely kérést indít, vagy ha korábban elutasítottad, megnyitja a megfelelő Rendszerbeállítások oldalt. |
 | K-3 | A lista frissül, ha a naptár megváltozik (más eszközről szinkronizált változás is), amikor a panel kinyílik, valamint legalább 5 percenként. |
 
-### 4.2 Naptár funkció (lenyitott panel)
+### 4.2 Napi nézet (lenyitott panel)
 
 | ID | Követelmény |
 |---|---|
-| K-4 | **A következő 7 nap** eseményei napokra bontva: *Ma*, *Holnap*, utána a hét napja és a dátum. Üres napok nem jelennek meg. A már véget ért események nem látszanak. |
-| K-5 | Soronként: a naptár színe, az esemény címe, időtartama (vagy „Egész nap”). A folyamatban lévő esemény ideje zölden látszik, „Most” előtaggal. Napon belül az egész napos események vannak elöl, utána kezdési idő szerint. A több napos események minden érintett napon megjelennek. |
-| K-6 | **Csatlakozás gomb**, ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). Kattintásra megnyílik a meeting. |
-| K-6b | A lista függőlegesen görgethető. A vízszintes swipe továbbra is funkciót vált. |
+| K-4 | Felül **napsáv**: bal oldalon a hónap rövid neve, mellette a napok vízszintes sora (a nap betűjele, a dátum, alatta pötty, ha van esemény). A mai nap kék és kiemelt, a hétvége pirosas. Egy napra kattintva az lesz kiválasztva; a sáv fölött két ujjal vízszintesen húzva a napok görgethetők (itt a swipe nem vált funkciót). A panel megnyitásakor mindig a mai nap van kiválasztva. |
+| K-5 | A napsáv alatt a **kiválasztott nap eseményei**: cím, alatta pirossal a nap rövid neve és a kezdési idő (egész napos eseménynél „egész nap”). Elöl az egész napos események, utána kezdési idő szerint. A már véget ért események halványítva látszanak. Ha nincs esemény: „Mára nincs esemény”. |
+| K-6 | **Csatlakozás gomb** (zöld kapszula), ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). A meeting **mindig az alapértelmezett böngészőben** nyílik meg, nem közvetlenül a meeting-appban. |
+
+### 4.2b Teljes naptár nézet
+
+| ID | Követelmény |
+|---|---|
+| K-10 | A napi nézet bal oldalán egy kis ikon a panelt **nagy méretre** nyitja (960 × 340 pt, kisebb kijelzőn a kijelzőhöz igazítva). A jobb felső sarokban lévő ikon visszavált. A panel bezárásakor a nézet visszaáll napi nézetre. |
+| K-11 | Bal oldalon **havi rács**: év és hónap, előző/következő hónap gombok, a hét a rendszer szerinti első nappal kezdődik, a mai nap kék körben, a napok alatt legfeljebb három pötty az események száma szerint. Egy napra kattintva az lesz kiválasztva. |
+| K-12 | Jobb oldalon **napirend** a kiválasztott naptól 14 napra előre: a kiválasztott nap mindig látszik (üresen „Nincs esemény”), utána csak azok a napok, amelyeken van esemény. Soronként: kezdési idő és időtartam, a naptár színe, cím, Csatlakozás gomb. Az első nap fejlécében a hét száma is látszik. |
+| K-13 | Esemény létrehozása nincs (K-1: csak olvasás). |
 
 ### 4.3 Közelgő esemény jelzés (becsukott notch)
 
@@ -167,6 +176,7 @@ Jelenleg nincs.
 | Verzió | Tartalom |
 |---|---|
 | **v0.2** | Háttér-app, notch-panel (hover, késleltetett bezárás), menüsor helyőrző funkcióval, swipe, utolsó funkció megjegyzése, jobb klikk menü, Beállítások ablak |
-| **v0.3** | Naptár: 7 napos lista, Csatlakozás gomb, közelgő esemény jelzés; stabil aláírás |
-| **v0.4** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.5+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.3** | Naptár: lista, Csatlakozás gomb, közelgő esemény jelzés; stabil aláírás |
+| **v0.4** | Panel minden kijelzőn, látható virtuális notch; naptár napsávval és teljes havi nézettel; kapszula menü |
+| **v0.5** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.6+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

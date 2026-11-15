@@ -64,4 +64,31 @@ struct NotchGeometryTests {
         #expect(geometry.expandedHoverZone.contains(topEdgeNearPanelSide))
         #expect(!geometry.expandedHoverZone.contains(CGPoint(x: geometry.expandedRect.minX - 1, y: screen.maxY)))
     }
+
+    @Test func largePanelFitsScreenAndStaysOpenOnTopEdge() {
+        let small = CGRect(x: 0, y: 0, width: 800, height: 600)
+        for frame in [screen, small] {
+            let geometry = NotchGeometry.make(
+                screenFrame: frame, safeAreaTop: 0,
+                auxiliaryLeftWidth: nil, auxiliaryRightWidth: nil, menuBarHeight: 24
+            )
+            let large = geometry.rect(for: geometry.largeSize)
+            #expect(frame.contains(large))
+            #expect(large.width >= geometry.expandedSize.width)
+            #expect(large.contains(geometry.expandedRect))
+            #expect(geometry.keepOpenZone(for: geometry.largeSize).contains(CGPoint(x: large.minX + 1, y: frame.maxY)))
+        }
+    }
+
+    @Test func dayStripZoneIsBelowMenuBarInsidePanel() {
+        let geometry = NotchGeometry.make(
+            screenFrame: screen, safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        let strip = geometry.dayStripZone
+        #expect(geometry.expandedRect.contains(strip))
+        #expect(strip.maxY == screen.maxY - geometry.menuBarHeight)
+        #expect(strip.height == NotchGeometry.dayStripHeight)
+        #expect(!strip.intersects(geometry.notchRect))
+    }
 }

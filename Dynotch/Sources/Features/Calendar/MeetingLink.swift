@@ -25,8 +25,8 @@ enum MeetingLink {
     }
 
     static func isMeeting(_ url: URL) -> Bool {
+        // Only web links: Join always opens in the default browser.
         let scheme = url.scheme?.lowercased() ?? ""
-        if scheme == "zoommtg" || scheme == "msteams" { return true }
         guard scheme == "https" || scheme == "http", let host = url.host?.lowercased() else { return false }
         let path = url.path.lowercased()
 

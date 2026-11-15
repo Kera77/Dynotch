@@ -5,13 +5,17 @@ import SwiftUI
 final class NotchViewModel: ObservableObject {
     @Published private(set) var isExpanded = false
     @Published private(set) var currentFeature: FeatureID
-    @Published private(set) var geometry: NotchGeometry
-    @Published private(set) var screenName: String
+    /// True while the panel shows the full calendar and uses the large size.
+    @Published private(set) var isLarge = false
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
     @Published private(set) var lastDirection: NavigationDirection = .next
 
     let settings: AppSettings
+    let geometry: NotchGeometry
+    let screenName: String
+
+    private var wantsLargeCalendar = false
 
     init(settings: AppSettings, geometry: NotchGeometry, screenName: String) {
         self.settings = settings
@@ -20,9 +24,9 @@ final class NotchViewModel: ObservableObject {
         currentFeature = settings.initialFeature
     }
 
-    func update(geometry: NotchGeometry, screenName: String) {
-        self.geometry = geometry
-        self.screenName = screenName
+    /// Size of the panel while it is open.
+    var openSize: CGSize {
+        isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
     func setExpanded(_ expanded: Bool) {
@@ -30,8 +34,16 @@ final class NotchViewModel: ObservableObject {
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
             currentFeature = settings.initialFeature
+        } else {
+            wantsLargeCalendar = false
         }
         isExpanded = expanded
+        updateLarge()
+    }
+
+    func setCalendarLarge(_ large: Bool) {
+        wantsLargeCalendar = large
+        updateLarge()
     }
 
     func select(_ feature: FeatureID) {
@@ -42,6 +54,7 @@ final class NotchViewModel: ObservableObject {
         }
         currentFeature = feature
         settings.lastFeature = feature
+        updateLarge()
     }
 
     func step(_ direction: NavigationDirection) {
@@ -49,9 +62,15 @@ final class NotchViewModel: ObservableObject {
             lastDirection = direction
             currentFeature = target
             settings.lastFeature = target
+            updateLarge()
         } else {
             bounce(direction)
         }
+    }
+
+    private func updateLarge() {
+        let large = isExpanded && currentFeature == .calendar && wantsLargeCalendar
+        if large != isLarge { isLarge = large }
     }
 
     private func bounce(_ direction: NavigationDirection) {

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-15
+
+### Added
+- A notch panel on every connected display; displays without a notch show a visible virtual notch.
+- Calendar day view: scrollable day strip with event dots, the selected day's events below.
+- Full calendar view (large panel): month grid with navigation and a 14-day agenda.
+- Capsule-style feature switcher in the panel's top row.
+
+### Changed
+- Join always opens the meeting in the default browser.
+- Join button restyled (green capsule); event rows show weekday and start time.
+
 ## [0.3.2] - 2026-11-14
 
 ### Fixed

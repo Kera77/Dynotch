@@ -2,8 +2,8 @@ import AppKit
 import Combine
 import EventKit
 
-/// Reads events for the next 7 days from macOS Calendar (iCloud, Google, Exchange… whatever
-/// is configured in System Settings › Internet Accounts) and tracks the upcoming event.
+/// Reads events from macOS Calendar (iCloud, Google, Exchange… whatever is configured in
+/// System Settings › Internet Accounts) and tracks the upcoming event.
 @MainActor
 final class CalendarService: ObservableObject {
     enum Access: Equatable {
@@ -13,13 +13,17 @@ final class CalendarService: ObservableObject {
     }
 
     @Published private(set) var access: Access
-    @Published private(set) var days: [AgendaDay] = []
+    @Published private(set) var events: [CalendarEvent] = []
+    /// Events per day (keyed by start of day), for the dots under the dates.
+    @Published private(set) var dayCounts: [Date: Int] = [:]
     @Published private(set) var upcoming: CalendarEvent?
     @Published private(set) var now = Date()
+    /// Day whose events are shown (start of day).
+    @Published var selectedDay = Calendar.current.startOfDay(for: Date())
 
     private let store = EKEventStore()
     private let settings: AppSettings
-    private var events: [CalendarEvent] = []
+    private var extraRange: DateInterval?
     private var storeObserver: NSObjectProtocol?
     private var tickTimer: Timer?
     private var lastFetch: Date?
@@ -27,10 +31,16 @@ final class CalendarService: ObservableObject {
 
     private static let refetchInterval: TimeInterval = 5 * 60
     private static let tickInterval: TimeInterval = 15
+    private static let daysBack = 45
+    private static let daysAhead = 120
 
     init(settings: AppSettings) {
         self.settings = settings
         access = Self.currentAccess()
+    }
+
+    var today: Date {
+        Calendar.current.startOfDay(for: now)
     }
 
     func start() {
@@ -83,13 +93,34 @@ final class CalendarService: ObservableObject {
         }
     }
 
-    /// Called when the panel opens so the list is fresh.
-    func refreshIfStale() {
+    /// Called when a panel opens: show today and make sure the data is fresh.
+    func panelDidOpen() {
         if let lastFetch, Date().timeIntervalSince(lastFetch) < 60 {
             tick()
         } else {
             fetch()
         }
+        if selectedDay != today { selectedDay = today }
+    }
+
+    /// Makes sure events of the given month are loaded (full calendar navigation).
+    func ensureLoaded(month: Date) {
+        guard let interval = Calendar.current.dateInterval(of: .month, for: month) else { return }
+        let padded = DateInterval(start: interval.start.addingTimeInterval(-7 * 86400), end: interval.end.addingTimeInterval(7 * 86400))
+        let loaded = loadedRange()
+        guard padded.start < loaded.start || padded.end > loaded.end else { return }
+        let start = min(padded.start, extraRange?.start ?? padded.start)
+        let end = max(padded.end, extraRange?.end ?? padded.end)
+        extraRange = DateInterval(start: start, end: end)
+        fetch()
+    }
+
+    func events(on day: Date) -> [CalendarEvent] {
+        CalendarAgenda.events(on: day, from: events)
+    }
+
+    func agenda(startingAt day: Date) -> [AgendaDay] {
+        CalendarAgenda.agenda(from: events, startingAt: day)
     }
 
     func openPrivacySettings() {
@@ -98,9 +129,15 @@ final class CalendarService: ObservableObject {
         }
     }
 
+    /// Opens the meeting in the default browser, never directly in the meeting app (spec K-6).
     func join(_ event: CalendarEvent) {
         guard let url = event.meetingURL else { return }
-        NSWorkspace.shared.open(url)
+        if let probe = URL(string: "https://example.com"),
+           let browser = NSWorkspace.shared.urlForApplication(toOpen: probe) {
+            NSWorkspace.shared.open([url], withApplicationAt: browser, configuration: NSWorkspace.OpenConfiguration())
+        } else {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     // MARK: - Private
@@ -113,22 +150,36 @@ final class CalendarService: ObservableObject {
         }
     }
 
+    private func loadedRange() -> DateInterval {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var start = calendar.date(byAdding: .day, value: -Self.daysBack, to: today) ?? today
+        var end = calendar.date(byAdding: .day, value: Self.daysAhead, to: today) ?? today
+        if let extraRange {
+            start = min(start, extraRange.start)
+            end = max(end, extraRange.end)
+        }
+        return DateInterval(start: start, end: end)
+    }
+
     private func fetch() {
         access = Self.currentAccess()
         guard access == .granted else {
             events = []
+            dayCounts = [:]
             recompute()
             return
         }
 
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: Date())
-        guard let end = calendar.date(byAdding: .day, value: CalendarAgenda.dayCount, to: start) else { return }
-
-        let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
-        events = store.events(matching: predicate)
+        let range = loadedRange()
+        let predicate = store.predicateForEvents(withStart: range.start, end: range.end, calendars: nil)
+        let fetched = store.events(matching: predicate)
             .filter { $0.status != .canceled }
             .map(Self.makeEvent)
+        if fetched != events {
+            events = fetched
+            dayCounts = CalendarAgenda.eventCounts(from: fetched)
+        }
         lastFetch = Date()
         recompute()
     }
@@ -144,8 +195,6 @@ final class CalendarService: ObservableObject {
     private func recompute() {
         let now = Date()
         self.now = now
-        let newDays = CalendarAgenda.days(from: events, now: now)
-        if newDays != days { days = newDays }
 
         let newUpcoming = settings.calendarAlertEnabled && settings.isEnabled(.calendar)
             ? CalendarAgenda.upcoming(in: events, now: now, leadTime: TimeInterval(settings.calendarLeadMinutes * 60))

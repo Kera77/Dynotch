@@ -6,6 +6,9 @@ struct NotchView: View {
     @ObservedObject var calendar: CalendarService
 
     private static let indicatorSideWidth: CGFloat = 38
+    /// Content scales up from the notch and fades in with the same spring as the background.
+    private static let contentTransition: AnyTransition =
+        .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
 
     private var geometry: NotchGeometry { model.geometry }
 
@@ -18,7 +21,7 @@ struct NotchView: View {
         )
     }
 
-    private var size: CGSize { model.isExpanded ? geometry.expandedSize : collapsedSize }
+    private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
     private var cornerRadius: CGFloat { model.isExpanded ? 24 : 10 }
 
     var body: some View {
@@ -38,7 +41,7 @@ struct NotchView: View {
 
             if model.isExpanded {
                 expandedContent
-                    .frame(width: geometry.expandedSize.width, height: geometry.expandedSize.height)
+                    .frame(width: model.openSize.width, height: model.openSize.height)
                     .transition(Self.contentTransition)
             }
         }
@@ -49,10 +52,6 @@ struct NotchView: View {
         .animation(NotchController.animation, value: calendar.upcoming?.id)
         .environment(\.colorScheme, .dark)
     }
-
-    /// Content scales up from the notch and fades in with the same spring as the background.
-    private static let contentTransition: AnyTransition =
-        .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
 
     private var shape: UnevenRoundedRectangle {
         UnevenRoundedRectangle(
@@ -71,22 +70,18 @@ struct NotchView: View {
         }
     }
 
-    // MARK: - Menu bar (spec M-1…M-3)
+    // MARK: - Menu bar (spec M-1…M-5)
 
     private var sideWidth: CGFloat {
-        (geometry.expandedSize.width - geometry.notchSize.width) / 2
+        (model.openSize.width - geometry.notchSize.width) / 2
     }
 
     private var menuBar: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 4) {
-                ForEach(settings.activeFeatures) { feature in
-                    MenuBarButton(feature: feature, isSelected: feature == model.currentFeature) {
-                        withAnimation(NotchController.animation) { model.select(feature) }
-                    }
-                }
+            FeatureSwitcher(features: settings.activeFeatures, selected: model.currentFeature) { feature in
+                withAnimation(NotchController.animation) { model.select(feature) }
             }
-            .padding(.leading, 18)
+            .padding(.leading, 14)
             .frame(width: sideWidth, alignment: .leading)
 
             Color.clear.frame(width: geometry.notchSize.width)
@@ -94,7 +89,7 @@ struct NotchView: View {
             // Right side of the notch: reserved for status (e.g. the volume/brightness HUD).
             Color.clear.frame(width: sideWidth)
         }
-        .frame(height: max(geometry.notchSize.height, 28))
+        .frame(height: geometry.menuBarHeight)
     }
 
     // MARK: - Content
@@ -105,7 +100,7 @@ struct NotchView: View {
             case .home:
                 HomeFeatureView()
             case .calendar:
-                CalendarFeatureView(service: calendar)
+                CalendarFeatureView(service: calendar, model: model)
             case .info:
                 InfoFeatureView(geometry: geometry, screenName: model.screenName)
             }
@@ -125,24 +120,33 @@ struct NotchView: View {
     }
 }
 
-private struct MenuBarButton: View {
-    let feature: FeatureID
-    let isSelected: Bool
-    let action: () -> Void
+/// Capsule-shaped icon switcher in the panel's top row (spec M-1).
+private struct FeatureSwitcher: View {
+    let features: [FeatureID]
+    let selected: FeatureID
+    let select: (FeatureID) -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: feature.symbolName)
-                .font(.system(size: 13, weight: .semibold))
-                .frame(width: 28, height: 22)
-                .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.45))
-                .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isSelected ? Color.white.opacity(0.16) : .clear)
-                )
-                .contentShape(Rectangle())
+        HStack(spacing: 2) {
+            ForEach(features) { feature in
+                Button {
+                    select(feature)
+                } label: {
+                    Image(systemName: feature.symbolName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(width: 32, height: 22)
+                        .foregroundStyle(feature == selected ? Color.white : Color.white.opacity(0.7))
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(feature == selected ? Color.white.opacity(0.22) : .clear)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(feature.title)
+            }
         }
-        .buttonStyle(.plain)
-        .help(feature.title)
+        .padding(3)
+        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
     }
 }
