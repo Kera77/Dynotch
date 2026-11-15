@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.5 elfogadva** · Utolsó módosítás: 2026-11-15
+> Állapot: **v0.6 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -41,8 +41,8 @@
 | M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Info* (verzió, kijelző és notch adatai). |
-| M-5 | A menüsor jobb oldala (a notch-tól jobbra) állapotjelzéseknek van fenntartva, például a hangerő- és fényerő HUD-nak. Itt nincs felirat. |
+| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -66,6 +66,7 @@
 | ID | Követelmény |
 |---|---|
 | C-1 | A menüsor **jobb szélén fogaskerék ikon** nyitja meg a beállításokat. Jobb klikkes menü nincs. |
+| C-1b | A beállítások fülei **ikonok**; a fülsor mellett mindig ki van írva a kiválasztott fül neve, hoverre pedig annak a fülnek a neve, amelyik fölött az egér áll. |
 | C-2 | Beállítás: **hol nyíljanak meg a beállítások**. *A notchban* (alapértelmezett): a panel a beállítások méretére nő (520 × 440 pt tartalom a menüsor alatt), és minden beállítás a notchban jelenik meg; a fogaskerékre vagy egy funkció ikonjára kattintva, illetve a panel bezárásakor visszatér a funkciókhoz. *Külön ablakban*: a panel becsukódik, és egy normál macOS ablak nyílik meg ugyanazzal a tartalommal. |
 | C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
@@ -102,7 +103,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.6)
+### 2.3 Hatókör (v0.7)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -117,7 +118,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.6) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.7) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -184,6 +185,21 @@
 
 ---
 
+## 4c. Számológép (v0.6)
+
+| ID | Követelmény |
+|---|---|
+| SZ-1 | Új funkció a notchban, **+/−** ikonnal: egy jegyzetszerű szövegmező. A funkcióra váltva a panel megkapja a billentyűzetet, így azonnal lehet gépelni. Ha a panel hoverre nyílik meg a számológéppel, nem veszi el a fókuszt az éppen használt apptól; ilyenkor a szövegbe kattintva lehet gépelni. |
+| SZ-2 | **Soronként számol:** bal oldalon a begépelt számítás, a sor jobb szélén **zölden az eredmény**, gépelés közben azonnal frissülve. Minden sor önálló, a sorok nem hatnak egymásra. |
+| SZ-3 | Műveletek: `+ - * /` (a `×`, `x`, `÷` is), hatvány `^`, zárójelek, előjel, százalék (`200 + 10%` = 220, `200 * 15%` = 30). Tizedesjel pont vagy vessző; a számokban szóköz lehet ezres tagoló (`1 200,5`). |
+| SZ-4 | Ha a sor nem számítás (szöveg, egyetlen szám, befejezetlen kifejezés, nullával osztás), nincs mellette eredmény. Az eredmény legfeljebb 8 tizedesjegy, tizedesvesszővel és szóközös ezres tagolással. |
+| SZ-5 | A tartalom megmarad bezárás és újraindítás után is, és közös a notch (minden kijelző) és a menüsor panelje között. |
+| SZ-6 | **Menüsor-ikon** (**+/−**), amíg a Számológép funkció be van kapcsolva. Kattintásra az ikon alatt egy notch-szerű fekete panel nyílik le ugyanazzal a jegyzettel; újabb kattintásra, vagy máshova kattintva becsukódik. |
+| SZ-7 | A menüsor panelje megkapja a billentyűzetet, de nem aktiválja a Dynotch-ot (az addig használt app ablaka elöl marad). |
+| SZ-8 | **Lakat ikon** a notch menüsorában és a menüsor paneljén: alapból szürke, bekattintva **zöld**. Bekattintva a panel **nyitva marad**, akkor is, ha az egér elhagyja (notch), illetve ha máshova kattintasz (menüsor panel). A két lakat független. A notch lakatja a panel bezárásakor (és újraindításkor) kikapcsol. |
+
+---
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -214,5 +230,6 @@ Jelenleg nincs.
 | **v0.3** | Naptár: lista, Csatlakozás gomb, közelgő esemény jelzés; stabil aláírás |
 | **v0.4** | Panel minden kijelzőn, látható virtuális notch; naptár napsávval és teljes havi nézettel; kapszula menü |
 | **v0.5** | Értesítések a notchban (Beeper, Gmail, Google Chat) |
-| **v0.6** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.7+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.6** | Számológép a notchban és a menüsorban, lakat (nyitva tartás), ikonos beállításfülek |
+| **v0.7** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.8+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

@@ -43,9 +43,9 @@ struct AppSettingsTests {
 
     @Test func lastEnabledFeatureCannotBeDisabled() {
         let settings = AppSettings(defaults: makeDefaults())
-        #expect(settings.setEnabled(.info, false))
-        #expect(settings.setEnabled(.calendar, false))
-        #expect(settings.setEnabled(.notifications, false))
+        for feature in FeatureID.allCases where feature != .home {
+            #expect(settings.setEnabled(feature, false))
+        }
         #expect(!settings.setEnabled(.home, false))
         #expect(settings.activeFeatures == [.home])
     }
@@ -53,9 +53,11 @@ struct AppSettingsTests {
     @Test func reorderIsPersisted() {
         let defaults = makeDefaults()
         let settings = AppSettings(defaults: defaults)
-        settings.moveFeatures(from: IndexSet(integer: 3), to: 0)
-        #expect(settings.featureOrder == [.info, .home, .calendar, .notifications])
-        #expect(AppSettings(defaults: defaults).featureOrder == [.info, .home, .calendar, .notifications])
+        let last = FeatureID.allCases.count - 1
+        let expected = [FeatureID.allCases[last]] + FeatureID.allCases.dropLast()
+        settings.moveFeatures(from: IndexSet(integer: last), to: 0)
+        #expect(settings.featureOrder == expected)
+        #expect(AppSettings(defaults: defaults).featureOrder == expected)
     }
 
     /// Users upgrading from a version without a feature get it appended and enabled.
@@ -64,8 +66,9 @@ struct AppSettingsTests {
         defaults.set(["info", "home"], forKey: "featureOrder")
         defaults.set(["home"], forKey: "enabledFeatures")
         let settings = AppSettings(defaults: defaults)
-        #expect(settings.featureOrder == [.info, .home, .calendar, .notifications])
-        #expect(settings.activeFeatures == [.home, .calendar, .notifications])
+        let added = FeatureID.allCases.filter { $0 != .info && $0 != .home }
+        #expect(settings.featureOrder == [.info, .home] + added)
+        #expect(settings.activeFeatures == [.home] + added)
     }
 
     @Test func calendarLeadMinutesIsClamped() {

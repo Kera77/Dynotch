@@ -9,6 +9,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isLarge = false
     /// True while the panel shows the settings instead of the features (spec C-2).
     @Published private(set) var isShowingSettings = false
+    /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
+    @Published var isPinned = false
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 
@@ -21,6 +23,11 @@ final class NotchViewModel: ObservableObject {
         self.geometry = geometry
         self.screenName = screenName
         currentFeature = settings.initialFeature
+    }
+
+    /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
+    var wantsKeyboard: Bool {
+        isExpanded && (isShowingSettings || currentFeature == .calculator)
     }
 
     /// Size of the panel while it is open.
@@ -38,6 +45,7 @@ final class NotchViewModel: ObservableObject {
             currentFeature = override.flatMap { settings.isEnabled($0) ? $0 : nil } ?? settings.initialFeature
         }
         if !expanded, isShowingSettings { isShowingSettings = false }
+        if !expanded, isPinned { isPinned = false }
         isExpanded = expanded
         updateLarge()
     }

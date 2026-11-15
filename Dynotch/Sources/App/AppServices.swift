@@ -1,0 +1,10 @@
+import Foundation
+
+/// The app-wide objects every notch panel needs.
+@MainActor
+struct AppServices {
+    let settings: AppSettings
+    let calendar: CalendarService
+    let notifications: NotificationService
+    let calculator: CalculatorStore
+}

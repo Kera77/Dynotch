@@ -98,4 +98,22 @@ struct NotchViewModelTests {
         model.setShowingSettings(false)
         #expect(model.isLarge)
     }
+
+    /// Spec SZ-1, SZ-8: keyboard focus only for the calculator and the settings; closing unpins.
+    @Test func keyboardAndPin() {
+        let model = makeModel()
+        #expect(!model.wantsKeyboard)
+        model.setExpanded(true)
+        #expect(!model.wantsKeyboard)
+        model.select(.calculator)
+        #expect(model.wantsKeyboard)
+        model.select(.home)
+        model.setShowingSettings(true)
+        #expect(model.wantsKeyboard)
+
+        model.isPinned = true
+        model.setExpanded(false)
+        #expect(!model.isPinned)
+        #expect(!model.wantsKeyboard)
+    }
 }

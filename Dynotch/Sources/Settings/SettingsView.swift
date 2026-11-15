@@ -1,25 +1,108 @@
 import ServiceManagement
 import SwiftUI
 
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case features
+    case calendar
+    case notifications
+    case about
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .general: "Általános"
+        case .features: "Funkciók"
+        case .calendar: "Naptár"
+        case .notifications: "Értesítések"
+        case .about: "Névjegy"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .general: "gearshape"
+        case .features: "square.grid.2x2"
+        case .calendar: "calendar"
+        case .notifications: "bell"
+        case .about: "info.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     let calendar: CalendarService
     let notifications: NotificationService
 
+    @State private var selectedTab = SettingsTab.general
+    @State private var hoveredTab: SettingsTab?
+
     var body: some View {
-        TabView {
-            GeneralSettingsView(settings: settings)
-                .tabItem { Label("Általános", systemImage: "gearshape") }
-            FeatureSettingsView(settings: settings)
-                .tabItem { Label("Funkciók", systemImage: "square.grid.2x2") }
-            CalendarSettingsView(settings: settings, calendar: calendar)
-                .tabItem { Label("Naptár", systemImage: "calendar") }
-            NotificationSettingsView(settings: settings, service: notifications)
-                .tabItem { Label("Értesítések", systemImage: "bell") }
-            AboutSettingsView()
-                .tabItem { Label("Névjegy", systemImage: "info.circle") }
+        VStack(spacing: 0) {
+            tabBar
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: NotchGeometry.settingsContentSize.width, height: NotchGeometry.settingsContentSize.height)
+    }
+
+    /// Icon tabs; the name of the hovered (otherwise the selected) tab is written beside them.
+    private var tabBar: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 2) {
+                ForEach(SettingsTab.allCases) { tab in
+                    Button {
+                        selectedTab = tab
+                    } label: {
+                        Image(systemName: tab.symbolName)
+                            .font(.system(size: 14, weight: .medium))
+                            .frame(width: 38, height: 26)
+                            .foregroundStyle(tab == selectedTab ? Color.white : Color.primary.opacity(0.75))
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(tab == selectedTab ? Color.accentColor : .clear)
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(tab.title)
+                    .onHover { isHovering in
+                        if isHovering {
+                            hoveredTab = tab
+                        } else if hoveredTab == tab {
+                            hoveredTab = nil
+                        }
+                    }
+                }
+            }
+            .padding(3)
+            .background(Capsule(style: .continuous).fill(Color.primary.opacity(0.1)))
+
+            Text((hoveredTab ?? selectedTab).title)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(hoveredTab == nil || hoveredTab == selectedTab ? Color.primary : Color.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 2)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch selectedTab {
+        case .general:
+            GeneralSettingsView(settings: settings)
+        case .features:
+            FeatureSettingsView(settings: settings)
+        case .calendar:
+            CalendarSettingsView(settings: settings, calendar: calendar)
+        case .notifications:
+            NotificationSettingsView(settings: settings, service: notifications)
+        case .about:
+            AboutSettingsView()
+        }
     }
 }
 

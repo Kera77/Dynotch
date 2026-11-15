@@ -5,6 +5,7 @@ struct NotchView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var calendar: CalendarService
     @ObservedObject var notifications: NotificationService
+    let calculator: CalculatorStore
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
@@ -111,8 +112,13 @@ struct NotchView: View {
             Color.clear.frame(width: geometry.notchSize.width)
 
             // Right side of the notch: settings; later also status (volume/brightness HUD).
-            SettingsButton(isActive: model.isShowingSettings, action: toggleSettings)
-                .padding(.trailing, 14)
+            TrailingControls(
+                isPinned: model.isPinned,
+                isShowingSettings: model.isShowingSettings,
+                togglePin: { model.isPinned.toggle() },
+                toggleSettings: toggleSettings
+            )
+            .padding(.trailing, 14)
                 .frame(width: sideWidth, alignment: .trailing)
         }
         .frame(height: geometry.menuBarHeight)
@@ -151,33 +157,40 @@ struct NotchView: View {
             CalendarFeatureView(service: calendar, model: model)
         case .notifications:
             NotificationsFeatureView(service: notifications)
+        case .calculator:
+            CalculatorFeatureView(store: calculator)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }
     }
 }
 
-/// Gear in the panel's top row (spec C-1).
-private struct SettingsButton: View {
-    let isActive: Bool
-    let action: () -> Void
+/// Lock and gear on the right of the panel's top row (spec C-1, SZ-8).
+private struct TrailingControls: View {
+    let isPinned: Bool
+    let isShowingSettings: Bool
+    let togglePin: () -> Void
+    let toggleSettings: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: "gearshape.fill")
-                .font(.system(size: 12, weight: .semibold))
-                .frame(width: 32, height: 22)
-                .foregroundStyle(isActive ? Color.white : Color.white.opacity(0.7))
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isActive ? Color.white.opacity(0.22) : .clear)
-                )
-                .padding(3)
-                .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
-                .contentShape(Rectangle())
+        HStack(spacing: 2) {
+            PinButton(isPinned: isPinned, action: togglePin)
+            Button(action: toggleSettings) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 32, height: 22)
+                    .foregroundStyle(isShowingSettings ? Color.white : Color.white.opacity(0.7))
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(isShowingSettings ? Color.white.opacity(0.22) : .clear)
+                    )
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Beállítások")
         }
-        .buttonStyle(.plain)
-        .help("Beállítások")
+        .padding(3)
+        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
     }
 }
 

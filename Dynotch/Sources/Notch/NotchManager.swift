@@ -3,23 +3,14 @@ import AppKit
 /// Keeps one notch panel on every connected display and rebuilds them when displays change.
 @MainActor
 final class NotchManager {
-    private let settings: AppSettings
-    private let calendar: CalendarService
-    private let notifications: NotificationService
+    private let services: AppServices
     private let openSettings: () -> Void
     private var controllers: [NotchController] = []
     private var screenObserver: NSObjectProtocol?
     private var signature = ""
 
-    init(
-        settings: AppSettings,
-        calendar: CalendarService,
-        notifications: NotificationService,
-        openSettings: @escaping () -> Void
-    ) {
-        self.settings = settings
-        self.calendar = calendar
-        self.notifications = notifications
+    init(services: AppServices, openSettings: @escaping () -> Void) {
+        self.services = services
         self.openSettings = openSettings
     }
 
@@ -44,10 +35,7 @@ final class NotchManager {
 
         controllers.forEach { $0.stop() }
         controllers = screens.map {
-            NotchController(
-                screen: $0, settings: settings, calendar: calendar,
-                notifications: notifications, openSettings: openSettings
-            )
+            NotchController(screen: $0, services: services, openSettings: openSettings)
         }
         controllers.forEach { $0.start() }
     }

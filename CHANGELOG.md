@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
+### Added
+- Calculator notepad feature: type calculations line by line, results appear in green on the right.
+- Menu bar icon that drops the same calculator down below it.
+- Lock button in the notch's top row and on the menu bar panel: keeps the panel open.
+
+### Changed
+- Settings tabs are icons; the tab name is written beside them (and on hover).
+
 ## [0.5.2] - 2026-11-15
 
 ### Added

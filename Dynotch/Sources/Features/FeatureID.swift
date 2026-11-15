@@ -5,6 +5,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case home
     case calendar
     case notifications
+    case calculator
     case info
 
     var id: String { rawValue }
@@ -14,6 +15,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .home: "Home"
         case .calendar: "Naptár"
         case .notifications: "Értesítések"
+        case .calculator: "Számológép"
         case .info: "Info"
         }
     }
@@ -23,6 +25,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .home: "house.fill"
         case .calendar: "calendar"
         case .notifications: "bell.fill"
+        case .calculator: "plus.forwardslash.minus"
         case .info: "info.circle.fill"
         }
     }

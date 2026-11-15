@@ -25,17 +25,12 @@ final class NotchController {
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
+    private var wasExpanded = false
 
-    init(
-        screen: NSScreen,
-        settings: AppSettings,
-        calendar: CalendarService,
-        notifications: NotificationService,
-        openSettings: @escaping () -> Void
-    ) {
-        self.settings = settings
-        self.calendar = calendar
-        self.notifications = notifications
+    init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
+        settings = services.settings
+        calendar = services.calendar
+        notifications = services.notifications
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -45,7 +40,8 @@ final class NotchController {
         panel = NotchPanel(contentRect: windowRect)
 
         let rootView = NotchView(
-            model: model, settings: settings, calendar: calendar, notifications: notifications
+            model: model, settings: settings, calendar: calendar,
+            notifications: notifications, calculator: services.calculator
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -71,8 +67,11 @@ final class NotchController {
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
             MainActor.assumeIsolated { self?.sizeChanged(large: large) }
         }
-        settingsObserver = model.$isShowingSettings.dropFirst().removeDuplicates().sink { [weak self] showing in
-            MainActor.assumeIsolated { self?.settingsVisibilityChanged(showing) }
+        // Fires before the change; look at the new state on the next run loop turn.
+        settingsObserver = model.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.updateKeyboardFocus() }
+            }
         }
     }
 
@@ -88,12 +87,18 @@ final class NotchController {
         }
     }
 
-    private func settingsVisibilityChanged(_ showing: Bool) {
-        panel.allowsKey = showing
-        if showing {
-            panel.makeKey()
-        } else {
+    /// The panel takes keyboard focus only for the settings and the calculator. Opening by
+    /// hover never steals focus from the app being used: then a click into the panel does it.
+    private func updateKeyboardFocus() {
+        let wantsKeyboard = model.wantsKeyboard
+        let openedJustNow = model.isExpanded && !wasExpanded
+        wasExpanded = model.isExpanded
+        guard wantsKeyboard != panel.allowsKey else { return }
+        panel.allowsKey = wantsKeyboard
+        if !wantsKeyboard {
             panel.resignKey()
+        } else if model.isShowingSettings || !openedJustNow {
+            panel.makeKey()
         }
     }
 
@@ -153,7 +158,7 @@ final class NotchController {
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
-        if isInside {
+        if isInside || model.isPinned {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {
@@ -192,7 +197,8 @@ final class NotchController {
             }
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
-            if !self.keepOpenZone.contains(NSEvent.mouseLocation), NSEvent.pressedMouseButtons == 0 {
+            let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
+            if isOutside, !self.model.isPinned {
                 self.collapse()
             }
         }
