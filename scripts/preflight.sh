@@ -9,7 +9,8 @@ set -euo pipefail
 SHA="$(git rev-parse HEAD)"
 git diff --quiet HEAD || { echo "error: commit your changes first"; exit 2; }
 
-git push -q origin "HEAD:refs/heads/preflight"
+# The preflight branch is a scratch branch: overwrite whatever is there.
+git push -q --force origin "HEAD:refs/heads/preflight"
 
 RUN=""
 for _ in $(seq 1 30); do
