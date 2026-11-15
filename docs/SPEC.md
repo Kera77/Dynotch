@@ -196,6 +196,7 @@
 | SZ-5 | A tartalom megmarad bezárás és újraindítás után is, és közös a notch (minden kijelző) és a menüsor panelje között. |
 | SZ-6 | **Menüsor-ikon** (**+/−**), amíg a Számológép funkció be van kapcsolva. Kattintásra az ikon alatt egy notch-szerű fekete panel nyílik le ugyanazzal a jegyzettel; újabb kattintásra, vagy máshova kattintva becsukódik. |
 | SZ-7 | A menüsor panelje megkapja a billentyűzetet, de nem aktiválja a Dynotch-ot (az addig használt app ablaka elöl marad). |
+| SZ-9 | **Másolás:** egy eredményre kattintva az a vágólapra kerül (ezres tagolás nélkül, például `1524,5`), és a sorban egy pillanatra „Másolva ✓” jelenik meg. Az eredmények fölött az egérmutató kézre vált. |
 | SZ-8 | **Lakat ikon** a notch menüsorában és a menüsor paneljén: alapból szürke, bekattintva **zöld**. Bekattintva a panel **nyitva marad**, akkor is, ha az egér elhagyja (notch), illetve ha máshova kattintasz (menüsor panel). A két lakat független. A notch lakatja a panel bezárásakor (és újraindításkor) kikapcsol. |
 
 ---

@@ -9,47 +9,8 @@ struct CalculatorEditor: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSScrollView {
-        // TextKit 1: the results are drawn from the layout manager's line rects.
-        let textView = CalculatorTextView(usingTextLayoutManager: false)
-        textView.delegate = context.coordinator
-        textView.string = text
-        textView.isRichText = false
-        textView.allowsUndo = true
-        textView.font = CalculatorTextView.editorFont
-        textView.textColor = .white
-        textView.insertionPointColor = .white
-        textView.drawsBackground = false
-        textView.textContainerInset = NSSize(width: 4, height: 6)
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
-        textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = false
-        textView.isGrammarCheckingEnabled = false
-
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.lineSpacing = 5
-        textView.defaultParagraphStyle = paragraph
-        textView.typingAttributes = [
-            .font: CalculatorTextView.editorFont,
-            .foregroundColor: NSColor.white,
-            .paragraphStyle: paragraph
-        ]
-
-        textView.minSize = .zero
-        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.autoresizingMask = [.width]
-        textView.textContainer?.widthTracksTextView = false
-
-        let scrollView = NSScrollView()
-        scrollView.documentView = textView
-        scrollView.drawsBackground = false
-        scrollView.borderType = .noBorder
-        scrollView.hasVerticalScroller = true
-        scrollView.autohidesScrollers = true
-        scrollView.scrollerStyle = .overlay
+        let scrollView = CalculatorTextView.makeScrollView(text: text)
+        (scrollView.documentView as? CalculatorTextView)?.delegate = context.coordinator
         return scrollView
     }
 
@@ -58,7 +19,6 @@ struct CalculatorEditor: NSViewRepresentable {
         // Another editor (other display, menu bar panel) changed the shared text.
         guard let textView = scrollView.documentView as? CalculatorTextView, textView.string != text else { return }
         textView.string = text
-        textView.needsDisplay = true
     }
 
     @MainActor
@@ -72,8 +32,6 @@ struct CalculatorEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
             text.wrappedValue = textView.string
-            // Results sit outside the text container, so redraw the whole view.
-            textView.needsDisplay = true
         }
     }
 }
@@ -83,7 +41,7 @@ struct PinButton: View {
     let isPinned: Bool
     let action: () -> Void
 
-    static let activeColor = Color(red: 0.25, green: 0.86, blue: 0.45)
+    static let activeColor = Color(nsColor: CalculatorResultsView.resultColor)
 
     var body: some View {
         Button(action: action) {

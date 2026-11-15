@@ -1,3 +1,4 @@
+import AppKit
 @testable import Dynotch
 import Testing
 
@@ -42,5 +43,32 @@ struct CalculatorEngineTests {
         #expect(CalculatorEngine.format(-1234.5) == "-1\u{00A0}234,5")
         #expect(CalculatorEngine.format(1_000_000) == "1\u{00A0}000\u{00A0}000")
         #expect(CalculatorEngine.format(-0.000000001) == "0")
+    }
+
+    /// Spec SZ-9: the copied number has no thousands separators.
+    @Test func clipboardText() {
+        #expect(CalculatorResultsView.clipboardText(for: CalculatorEngine.format(1524.5)) == "1524,5")
+        #expect(CalculatorResultsView.clipboardText(for: "100") == "100")
+    }
+
+    /// Regression: results were drawn outside the text view's drawing area and never showed.
+    @Test @MainActor func editorExposesResultRowsInsideTheResultColumn() throws {
+        let scrollView = CalculatorTextView.makeScrollView(text: "10*10\nhello\n200 + 10%")
+        scrollView.frame = CGRect(x: 0, y: 0, width: 500, height: 160)
+        scrollView.layoutSubtreeIfNeeded()
+        let textView = try #require(scrollView.documentView as? CalculatorTextView)
+
+        let rows = textView.resultRows()
+        #expect(rows.map(\.text) == ["100", "220"])
+        #expect(textView.resultsView.superview === textView)
+        #expect(textView.resultsView.frame.width == CalculatorTextView.resultColumnWidth)
+        #expect(textView.resultsView.frame.maxX == textView.bounds.maxX)
+        #expect(rows[0].lineRect.minY < rows[1].lineRect.minY)
+
+        let board = NSPasteboard(name: NSPasteboard.Name("dynotch-tests"))
+        textView.resultsView.pasteboard = board
+        #expect(textView.resultsView.copyResult(at: CGPoint(x: 40, y: rows[1].lineRect.midY)))
+        #expect(board.string(forType: .string) == "220")
+        #expect(!textView.resultsView.copyResult(at: CGPoint(x: 40, y: rows[0].lineRect.maxY + 8)))
     }
 }

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-16
+
+### Added
+- Clicking a calculator result copies it to the clipboard.
+
+### Fixed
+- Calculator results were not shown: they were drawn outside the text view's drawing area.
+  They now live in their own column view.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added
