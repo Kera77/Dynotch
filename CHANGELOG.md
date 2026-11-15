@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-15
+
+### Fixed
+- Feature switch animation: the current feature slides out opposite to the swipe and the new one
+  slides in from the side you switch towards (the outgoing view sometimes moved the wrong way).
+
 ## [0.4.1] - 2026-11-15
 
 ### Added

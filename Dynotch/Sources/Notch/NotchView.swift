@@ -94,29 +94,38 @@ struct NotchView: View {
 
     // MARK: - Content
 
+    /// All features sit side by side and the row slides (spec S-5): switching to the next feature
+    /// moves the current one out to the left while the new one comes in from the right, and
+    /// the other way round.
     private var featureContent: some View {
-        ZStack {
-            switch model.currentFeature {
-            case .home:
-                HomeFeatureView()
-            case .calendar:
-                CalendarFeatureView(service: calendar, model: model)
-            case .info:
-                InfoFeatureView(geometry: geometry, screenName: model.screenName)
+        let features = settings.activeFeatures
+        let index = features.firstIndex(of: model.currentFeature) ?? 0
+        let pageWidth = model.openSize.width
+        return HStack(spacing: 0) {
+            ForEach(features) { feature in
+                page(for: feature)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
+                    .frame(width: pageWidth)
+                    .frame(maxHeight: .infinity)
+                    .allowsHitTesting(feature == model.currentFeature)
             }
         }
-        .id(model.currentFeature)
-        .transition(slideTransition)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 12)
+        .frame(width: pageWidth, alignment: .leading)
+        .offset(x: -CGFloat(index) * pageWidth)
+        .clipped()
     }
 
-    private var slideTransition: AnyTransition {
-        let forward = model.lastDirection == .next
-        return .asymmetric(
-            insertion: .move(edge: forward ? .trailing : .leading).combined(with: .opacity),
-            removal: .move(edge: forward ? .leading : .trailing).combined(with: .opacity)
-        )
+    @ViewBuilder
+    private func page(for feature: FeatureID) -> some View {
+        switch feature {
+        case .home:
+            HomeFeatureView()
+        case .calendar:
+            CalendarFeatureView(service: calendar, model: model)
+        case .info:
+            InfoFeatureView(geometry: geometry, screenName: model.screenName)
+        }
     }
 }
 

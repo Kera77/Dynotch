@@ -9,7 +9,6 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isLarge = false
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
-    @Published private(set) var lastDirection: NavigationDirection = .next
 
     let settings: AppSettings
     let geometry: NotchGeometry
@@ -44,10 +43,6 @@ final class NotchViewModel: ObservableObject {
 
     func select(_ feature: FeatureID) {
         guard feature != currentFeature else { return }
-        let list = settings.activeFeatures
-        if let fromIndex = list.firstIndex(of: currentFeature), let toIndex = list.firstIndex(of: feature) {
-            lastDirection = toIndex > fromIndex ? .next : .previous
-        }
         currentFeature = feature
         settings.lastFeature = feature
         updateLarge()
@@ -55,7 +50,6 @@ final class NotchViewModel: ObservableObject {
 
     func step(_ direction: NavigationDirection) {
         if let target = FeatureID.neighbor(of: currentFeature, in: settings.activeFeatures, direction: direction) {
-            lastDirection = direction
             currentFeature = target
             settings.lastFeature = target
             updateLarge()
