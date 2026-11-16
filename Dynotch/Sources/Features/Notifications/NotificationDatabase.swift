@@ -77,6 +77,30 @@ final class NotificationDatabase {
             let newest = try query("SELECT data FROM record ORDER BY rec_id DESC LIMIT 1") { Self.blob($0, 0) }
             lines.append("newest record " + (newest.first.map(NotificationParser.keySummary) ?? "none"))
             lines.append("apps: \(try appIdentifiers().sorted())")
+            // How many of the recent records each app posted (no content).
+            let counts = try query(
+                """
+                SELECT IFNULL(a.identifier, '?'), COUNT(*) FROM
+                (SELECT app_id FROM record ORDER BY rec_id DESC LIMIT 2000) r
+                LEFT JOIN app a ON a.app_id = r.app_id GROUP BY r.app_id ORDER BY COUNT(*) DESC
+                """
+            ) { "\(Self.text($0, 0)): \(sqlite3_column_int64($0, 1))" }
+            lines.append("recent records per app: \(counts)")
+            // Hosts named by the newest records of shared Safari identifiers (no content).
+            let shared = try query(
+                """
+                SELECT r.data FROM record r JOIN app a ON a.app_id = r.app_id
+                WHERE lower(a.identifier) LIKE 'com.apple.safari%' OR lower(a.identifier) LIKE 'com.apple.webkit%'
+                ORDER BY r.rec_id DESC LIMIT 20
+                """
+            ) { Self.blob($0, 0) }
+            let sites = shared.compactMap { data -> String? in
+                guard let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
+                    return nil
+                }
+                return WebNotificationSource.site(in: plist) ?? "-"
+            }
+            lines.append("sites of recent Safari records: \(sites)")
         } catch {
             lines.append("diagnostics failed: \(error)")
         }

@@ -15,15 +15,16 @@ struct IndicatorLayoutTests {
         #expect(withLabel.width >= IndicatorLayout.labelWidth)
     }
 
-    @Test func hoverFindsSlotOnBothSides() {
+    @Test func hoverFindsCountdownsAndTheIcon() {
         let layout = IndicatorLayout(count: 2)
         for index in 0..<2 {
-            let centers = layout.centers(of: index, notchRect: notchRect)
-            #expect(layout.slot(at: CGPoint(x: centers.right, y: notchRect.midY), notchRect: notchRect) == index)
-            #expect(layout.slot(at: CGPoint(x: centers.left, y: notchRect.midY), notchRect: notchRect) == index)
+            let center = layout.center(of: index, notchRect: notchRect)
+            #expect(layout.slot(at: CGPoint(x: center, y: notchRect.midY), notchRect: notchRect) == index)
         }
+        let icon = CGPoint(x: layout.iconCenter(notchRect: notchRect), y: notchRect.midY)
+        #expect(layout.slot(at: icon, notchRect: notchRect) == 0)
         #expect(layout.slot(at: CGPoint(x: notchRect.midX, y: notchRect.midY), notchRect: notchRect) == nil)
-        let right = layout.centers(of: 0, notchRect: notchRect).right
+        let right = layout.center(of: 0, notchRect: notchRect)
         #expect(layout.slot(at: CGPoint(x: right, y: notchRect.minY - 10), notchRect: notchRect) == nil)
         #expect(layout.slot(at: CGPoint(x: right, y: notchRect.maxY), notchRect: notchRect) == 0)
     }
@@ -31,9 +32,9 @@ struct IndicatorLayoutTests {
     @Test func slotsStayInsideTheWidenedNotch() {
         for count in 1...3 {
             let layout = IndicatorLayout(count: count)
-            let last = layout.centers(of: count - 1, notchRect: notchRect)
-            #expect(last.right + IndicatorLayout.slotWidth / 2 <= notchRect.maxX + layout.sideWidth)
-            #expect(last.left - IndicatorLayout.slotWidth / 2 >= notchRect.minX - layout.sideWidth)
+            let half = IndicatorLayout.slotWidth / 2
+            #expect(layout.center(of: count - 1, notchRect: notchRect) + half <= notchRect.maxX + layout.sideWidth)
+            #expect(layout.iconCenter(notchRect: notchRect) - half >= notchRect.minX - layout.sideWidth)
         }
     }
 }

@@ -80,4 +80,42 @@ struct NotificationTests {
         let broken = ["/a/db: prepare failed: no such table: record"]
         #expect(NotificationService.failureStatus(for: broken) == .unsupported(broken[0]))
     }
+
+    private let webApps: [(identifier: String, name: String)] = [
+        ("com.apple.safari.webapp.2c5a3228-3039-4ab2-8e92-f201fea08644", "Gmail"),
+        ("com.apple.safari.webapp.940a8882-8516-4897-88eb-4e574d45e845", "Google Chat"),
+        ("com.automattic.beeper.desktop", "Beeper Desktop")
+    ]
+
+    /// Spec E-2b: web notifications under a shared Safari identifier go to the site's web app.
+    @Test func sharedSafariNotificationsAreAttributedToTheWebApp() throws {
+        let gmail = try record(["titl": "Anna", "subt": "mail.google.com", "body": "Tárgy"])
+        let parsed = try #require(NotificationParser.parse(recordID: 1, appIdentifier: "com.apple.safari.webapp", data: gmail))
+        #expect(parsed.site == "mail.google.com")
+        #expect(WebNotificationSource.resolvedIdentifier(parsed.appIdentifier, site: parsed.site, apps: webApps) == webApps[0].identifier)
+
+        let chat: [String: Any] = [
+            "app": "com.apple.Safari", "srce": "https://chat.google.com/u/0/", "req": ["titl": "Béla", "body": "hello"]
+        ]
+        let site = WebNotificationSource.site(in: chat)
+        #expect(site == "chat.google.com")
+        #expect(WebNotificationSource.resolvedIdentifier("com.apple.Safari", site: site, apps: webApps) == webApps[1].identifier)
+    }
+
+    @Test func siteIgnoresMessageTextAndBundleIdentifiers() {
+        let plist: [String: Any] = [
+            "app": "com.apple.safari.webapp",
+            "req": ["titl": "see mail.google.com", "body": "visit chat.google.com", "thre": "group.com.apple.x"]
+        ]
+        #expect(WebNotificationSource.site(in: plist) == nil)
+    }
+
+    @Test func ownIdentifiersAndUnknownSitesAreKept() {
+        let own = webApps[0].identifier
+        #expect(WebNotificationSource.resolvedIdentifier(own, site: "chat.google.com", apps: webApps) == own)
+        #expect(WebNotificationSource.resolvedIdentifier("com.apple.safari.webapp", site: "example.org", apps: webApps)
+            == "com.apple.safari.webapp")
+        #expect(WebNotificationSource.isShared("com.apple.Safari.WebApp"))
+        #expect(!WebNotificationSource.isShared(own))
+    }
 }

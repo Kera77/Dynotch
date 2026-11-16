@@ -22,8 +22,8 @@ struct ClockwiseCapsule: Shape {
     }
 }
 
-/// Where the countdowns sit beside the closed notch. Slot `i` holds a countdown capsule on the
-/// right and the matching icon, mirrored, on the left. Shared by the view and the hover hit test.
+/// Where the countdowns sit beside the closed notch: one icon on the left, the countdown
+/// capsules on the right. Shared by the view and the hover hit test.
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
     static let capsuleHeight: CGFloat = 18
@@ -53,24 +53,28 @@ struct IndicatorLayout: Equatable {
         return CGSize(width: max(width, Self.labelWidth), height: notch.height + Self.labelHeight)
     }
 
-    /// Horizontal centres of slot `index`: icon on the left, countdown on the right of the notch.
-    func centers(of index: Int, notchRect: CGRect) -> (left: CGFloat, right: CGFloat) {
-        let offset = Self.padding + Self.slotWidth / 2 + CGFloat(index) * (Self.slotWidth + Self.spacing)
-        return (notchRect.minX - offset, notchRect.maxX + offset)
+    /// Horizontal centre of countdown `index`, right of the notch.
+    func center(of index: Int, notchRect: CGRect) -> CGFloat {
+        notchRect.maxX + Self.padding + Self.slotWidth / 2 + CGFloat(index) * (Self.slotWidth + Self.spacing)
     }
 
-    /// The slot under a point (global coordinates), if any.
+    /// Horizontal centre of the single icon left of the notch.
+    func iconCenter(notchRect: CGRect) -> CGFloat {
+        notchRect.minX - Self.padding - Self.slotWidth / 2
+    }
+
+    /// The countdown under a point (global coordinates), if any. The icon stands for the first.
     func slot(at point: CGPoint, notchRect: CGRect) -> Int? {
-        guard point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else { return nil }
-        let reach = (Self.slotWidth + Self.spacing) / 2
-        return (0..<count).first { index in
-            let centers = centers(of: index, notchRect: notchRect)
-            return abs(point.x - centers.left) <= reach || abs(point.x - centers.right) <= reach
+        guard !isEmpty, point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else {
+            return nil
         }
+        let reach = (Self.slotWidth + Self.spacing) / 2
+        if abs(point.x - iconCenter(notchRect: notchRect)) <= reach { return 0 }
+        return (0..<count).first { abs(point.x - center(of: $0, notchRect: notchRect)) <= reach }
     }
 }
 
-/// Shown beside the closed notch before and during events (spec K-7…K-9): icons on the left,
+/// Shown beside the closed notch before and during events (spec K-7…K-9): an icon on the left,
 /// countdowns on the right inside capsules whose outline shows the time left and runs down
 /// clockwise. The hovered one's name is written below the notch.
 struct UpcomingEventIndicator: View {
@@ -100,20 +104,17 @@ struct UpcomingEventIndicator: View {
         }
     }
 
-    /// Icons mirrored on the left: slot 0 is closest to the notch.
+    /// One icon on the left, next to the notch: a camera if any of the events has a meeting
+    /// link, otherwise a calendar, in the colour of the first event's phase.
     private func icons(now: Date) -> some View {
-        HStack(spacing: IndicatorLayout.spacing) {
-            ForEach(Array(events.enumerated().reversed()), id: \.element.id) { index, event in
-                let color = Self.color(for: CalendarAgenda.status(of: event, now: now, leadTime: leadTime).phase)
-                Image(systemName: event.meetingURL != nil ? "video.fill" : "calendar")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(color)
-                    .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
-                    .opacity(hoveredIndex == nil || hoveredIndex == index ? 1 : 0.45)
-            }
-        }
-        .padding(.trailing, IndicatorLayout.padding)
-        .frame(width: layout.sideWidth, alignment: .trailing)
+        let first = events.first
+        let color = first.map { Self.color(for: CalendarAgenda.status(of: $0, now: now, leadTime: leadTime).phase) } ?? .white
+        return Image(systemName: events.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(color)
+            .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
+            .padding(.trailing, IndicatorLayout.padding)
+            .frame(width: layout.sideWidth, alignment: .trailing)
     }
 
     private func countdowns(now: Date) -> some View {

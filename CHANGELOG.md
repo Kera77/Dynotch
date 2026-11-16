@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-11-16
+
+### Fixed
+- Gmail and Google Chat (Safari web apps) notifications: when macOS records them under a shared
+  Safari identifier they are now attributed to the web app by their site.
+- Only one icon on the left of the meeting countdowns.
+
+### Added
+- Notification diagnostics: per-app record counts and a per-notification log without content.
+
 ## [0.7.1] - 2026-11-16
 
 ### Added

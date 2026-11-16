@@ -71,8 +71,18 @@ final class NotificationService: ObservableObject {
         guard let identifiers = try? database?.appIdentifiers() else { return }
         apps = identifiers
             .map(catalog.app(for:))
-            .filter { $0.url != nil }
+            .filter { $0.url != nil && !WebNotificationSource.isShared($0.identifier) }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    /// Notifications posted under a shared Safari identifier are attributed to the web app of
+    /// their site (spec E-2b).
+    func resolve(_ notification: AppNotification) -> AppNotification {
+        let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
+        let identifier = WebNotificationSource.resolvedIdentifier(
+            notification.appIdentifier, site: notification.site, apps: pairs
+        )
+        return identifier == notification.appIdentifier ? notification : notification.with(appIdentifier: identifier)
     }
 
     func openFullDiskAccessSettings() {
@@ -155,10 +165,21 @@ final class NotificationService: ObservableObject {
         var incoming: [AppNotification] = []
         for record in records {
             lastSeenID = max(lastSeenID, record.id)
-            guard let notification = NotificationParser.parse(
+            guard let parsed = NotificationParser.parse(
                 recordID: record.id, appIdentifier: record.appIdentifier, data: record.data
-            ) else { continue }
-            if isEnabled(catalog.app(for: notification.appIdentifier)) {
+            ) else {
+                DiagnosticsLog.append("notification-records", "#\(record.id) app=\(record.appIdentifier) unparsed")
+                continue
+            }
+            let notification = resolve(parsed)
+            let enabled = isEnabled(catalog.app(for: notification.appIdentifier))
+            // Identifiers and site only, never the notification's text.
+            DiagnosticsLog.append(
+                "notification-records",
+                "#\(record.id) app=\(record.appIdentifier) site=\(parsed.site ?? "-") "
+                    + "as=\(notification.appIdentifier) shown=\(enabled)"
+            )
+            if enabled {
                 incoming.append(notification)
             }
         }

@@ -9,6 +9,15 @@ struct AppNotification: Identifiable, Equatable, Sendable {
     let subtitle: String
     let body: String
     let date: Date
+    /// Website the notification came from, if the record names one (web apps, Safari).
+    var site: String?
+
+    func with(appIdentifier: String) -> AppNotification {
+        AppNotification(
+            id: id, appIdentifier: appIdentifier, title: title,
+            subtitle: subtitle, body: body, date: date, site: site
+        )
+    }
 }
 
 /// What the notch shows for a notification.
@@ -74,7 +83,8 @@ enum NotificationParser {
         let identifier = appIdentifier.isEmpty ? text(plist["app"]) : appIdentifier
         return AppNotification(
             id: recordID, appIdentifier: identifier,
-            title: title, subtitle: subtitle, body: body, date: date
+            title: title, subtitle: subtitle, body: body, date: date,
+            site: WebNotificationSource.site(in: plist)
         )
     }
 
