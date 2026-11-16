@@ -31,6 +31,7 @@ final class NativeBannerDismisser {
         let id: Int64
         let keys: [String]
         let expires: Date
+        var snapshotTaken = false
     }
 
     /// How long a banner is waited for after the notification was recorded.
@@ -78,7 +79,12 @@ final class NativeBannerDismisser {
         guard !pending.isEmpty else { return }
 
         var remaining: [Pending] = []
-        for item in pending {
+        for var item in pending {
+            // About a second in, the banner is surely on screen: note who draws what (no text).
+            if !item.snapshotTaken, Self.waitTime - item.expires.timeIntervalSince(now) >= 1 {
+                item.snapshotTaken = true
+                DiagnosticsLog.append("banner-dismiss", "#\(item.id) at 1 s: \(environmentSummary()) top windows=\(Self.topWindows())")
+            }
             let result = closeBanner(matching: item.keys)
             if result.closed {
                 // Counts and action names only, never the banner's text.
@@ -181,6 +187,20 @@ final class NativeBannerDismisser {
             .filter { ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier }
             .map { "layer \($0[kCGWindowLayer as String] as? Int ?? -1)" }
         return "ax windows=\(windows.count) children=\(roles) screen windows=\(onScreen)"
+    }
+
+    /// On-screen windows above the normal level: owner process, layer and size. No titles.
+    private static func topWindows() -> [String] {
+        let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        return info.compactMap { window -> String? in
+            guard let layer = window[kCGWindowLayer as String] as? Int, layer > 3, layer < 1000,
+                  let owner = window[kCGWindowOwnerName as String] as? String,
+                  let bounds = window[kCGWindowBounds as String] as? NSDictionary,
+                  let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary),
+                  rect.width > 150, rect.width < 600, rect.height > 40, rect.height < 400
+            else { return nil }
+            return "\(owner)@\(layer) \(Int(rect.width))x\(Int(rect.height))"
+        }
     }
 
     private static func children(of element: AXUIElement, attribute: String) -> [AXUIElement] {

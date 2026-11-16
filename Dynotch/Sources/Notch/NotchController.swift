@@ -10,17 +10,17 @@ final class NotchController {
     /// panel; keep it open this long so it doesn't close under the user's hand.
     private static let shrinkGracePeriod: TimeInterval = 2.5
 
-    private let settings: AppSettings
-    private let calendar: CalendarService
-    private let notifications: NotificationService
-    private let claudeUsage: ClaudeUsageService
+    let settings: AppSettings
+    let calendar: CalendarService
+    let notifications: NotificationService
+    let claudeUsage: ClaudeUsageService
     private let openSettings: () -> Void
-    private let model: NotchViewModel
-    private let panel: NotchPanel
+    let model: NotchViewModel
+    let panel: NotchPanel
 
     private var globalMonitor: Any?
     private var scrollMonitor: Any?
-    private var announcementSwipe = VerticalSwipe()
+    var announcementSwipe = VerticalSwipe()
     private var localMonitor: Any?
     private var sizeObserver: AnyCancellable?
     private var settingsObserver: AnyCancellable?
@@ -28,9 +28,9 @@ final class NotchController {
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
-    private var dayStepper = DayStepper()
+    var dayStepper = DayStepper()
     /// The current trackpad gesture already switched features: it must not step days too.
-    private var gestureSwitchedFeature = false
+    var gestureSwitchedFeature = false
     private var wasExpanded = false
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
@@ -202,7 +202,7 @@ final class NotchController {
         startHoverTimer()
     }
 
-    private func collapse() {
+    func collapse() {
         cancelClose()
         stopHoverTimer()
         graceUntil = nil
@@ -234,7 +234,7 @@ final class NotchController {
 
     /// While open, poll the pointer: mouse-moved events aren't reliably delivered to a
     /// non-key panel, and polling only runs while the panel is open.
-    private func startHoverTimer() {
+    func startHoverTimer() {
         guard hoverTimer == nil else { return }
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.pointerMoved() }
@@ -243,7 +243,7 @@ final class NotchController {
         hoverTimer = timer
     }
 
-    private func stopHoverTimer() {
+    func stopHoverTimer() {
         hoverTimer?.invalidate()
         hoverTimer = nil
     }
@@ -308,108 +308,5 @@ final class NotchController {
             }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
-    }
-}
-
-// MARK: - Countdown hover (spec K-8d, K-8e)
-
-extension NotchController {
-    /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
-    /// ignores the mouse while closed, so this is computed from the pointer position.
-    fileprivate func updateHoveredIndicator() {
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
-        guard !items.isEmpty, notifications.peek == nil else {
-            setHoveredIndicator(nil)
-            return
-        }
-        let geometry = model.geometry
-        let layout = IndicatorLayout(items: items)
-        let point = NSEvent.mouseLocation
-        if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
-            setHoveredIndicator(slot)
-        } else if let hovered = model.hoveredIndicator, items.indices.contains(hovered),
-                  layout.rect(notchRect: geometry.notchRect, labelHeight: items[hovered].labelHeight)
-                    .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
-            // Moving down onto the details keeps them visible.
-            return
-        } else {
-            setHoveredIndicator(nil)
-        }
-    }
-
-    /// While a countdown is hovered the closed panel takes the mouse (for the X button) and the
-    /// pointer is polled, since the panel then hides the mouse-moved events from the monitor.
-    fileprivate func setHoveredIndicator(_ index: Int?) {
-        guard model.hoveredIndicator != index else { return }
-        withAnimation(Self.animation) { model.hoveredIndicator = index }
-        guard !model.isExpanded else { return }
-        panel.ignoresMouseEvents = index == nil
-        if index == nil {
-            stopHoverTimer()
-        } else {
-            startHoverTimer()
-        }
-    }
-}
-
-// MARK: - Day strip swipe (spec K-4)
-
-extension NotchController {
-    /// Moves the selected day while swiping over the day strip; the strip scrolls with it.
-    fileprivate func stepDays(phase: SwipeDetector.Phase, isMomentum: Bool, fingerDeltaX: CGFloat, deltaY: CGFloat) -> Bool {
-        let steps = dayStepper.handle(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: deltaY)
-        guard steps != 0 else { return dayStepper.isHorizontal }
-        let calendarService = calendar
-        if let day = Calendar.current.date(byAdding: .day, value: steps, to: calendarService.selectedDay) {
-            calendarService.selectedDay = Calendar.current.startOfDay(for: day)
-            Haptics.perform(.dayStep, settings: settings)
-        }
-        return true
-    }
-}
-
-// MARK: - Meeting announcement (spec K-8f)
-
-extension NotchController {
-    /// A two-finger swipe up over the announced meeting's name closes it.
-    fileprivate func handleCollapsedScroll(_ event: NSEvent) -> Bool {
-        guard let announcement = calendar.announcement, notifications.peek == nil else { return false }
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
-        guard let index = items.firstIndex(where: { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } })
-        else { return false }
-        let area = IndicatorLayout(items: items)
-            .rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
-            .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
-        guard area.contains(NSEvent.mouseLocation) else { return false }
-
-        let phase: SwipeDetector.Phase
-        if event.phase.contains(.began) {
-            phase = .began
-        } else if event.phase.contains(.changed) {
-            phase = .changed
-        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            phase = .ended
-        } else {
-            phase = .none
-        }
-        // Positive = fingers moved up, regardless of "natural scrolling".
-        let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
-        if announcementSwipe.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX) {
-            withAnimation(NotchView.quickAnimation) { calendar.dismissAnnouncement() }
-        }
-        return true
-    }
-}
-
-// MARK: - Notification card buttons (spec E-12)
-
-extension NotchController {
-    fileprivate func closeNotificationCard() {
-        collapse()
-    }
-
-    fileprivate func clearAllNotifications() {
-        notifications.clearAll()
-        collapse()
     }
 }
