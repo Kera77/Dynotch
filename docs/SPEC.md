@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.19 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.20 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -282,11 +282,25 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | CL-4 | Frissítés 5 percenként (amíg a funkció be van kapcsolva), megnyitáskor ha 1 percnél régebbi, és gombbal. |
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
 | CL-5b | **A munkamenet visszaállásakor** értesítés a notchban („AI session reset”). Visszaállásnak számít, ha az előző visszaállási idő elmúlt, vagy a fogyás legalább 20 százalékponttal visszaesett. A visszaállási idő puszta elmozdulása (gördülő ablak) nem számít új időszaknak, ezért a 70%/…/100% figyelmeztetés lépcsőnként csak egyszer jön. |
-| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló), **csak a munkamenet-keretre (Session) és csak 70% felett**: bal oldalon a Claude-ikon, jobb oldalon egy kör szöveg nélkül, amely a session fogyásával telik (70%-tól narancs, 90%-tól piros). Más keret nem jelenik meg a notch mellett. **Hoverre** a session használt %-a, hátralévő %-a és visszaállása; **jobb oldalt X**: a jelző eltűnik, amíg a session el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. A teljes nézet (notch funkció, menüsor) továbbra is minden keretet mutat. |
+| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló), **csak a munkamenet-keretre (Session) és csak 70% felett** (vagy kitűzve): bal oldalon a **fehér** Claude-ikon, jobb oldalon egy kör, amely a session fogyásával telik. **Színek szint szerint** (mint az AI Usage nézetben): 0–70% kék, 70–90% narancs, 90–100% piros. Más keret nem jelenik meg a notch mellett. **Hoverre** a session használt %-a, hátralévő %-a és visszaállása; **jobb oldalt X**: a jelző eltűnik, amíg a session el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. A teljes nézet (notch funkció, menüsor) továbbra is minden keretet mutat. |
 | CL-6b | Az AI Usage nézet fejlécében **„Show at notch”** gomb: bekapcsolva a session-kör 70% alatt is a notch mellett marad. Az X kikapcsolja. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
 ---
+
+## 4h. App-jelvények – olvasatlan értesítések száma (v0.20)
+
+A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítéseinek száma a notch mellett.
+
+| # | Követelmény |
+|---|-------------|
+| B-1 | **Beállítások › App badges** fül: a gépen lévő összes alkalmazás (Applications mappák) kereshető listából hozzáadható; a hozzáadott appok egyenként **ki- és bekapcsolhatók**, eltávolíthatók. |
+| B-2 | **Adatforrás:** az app Dock-ikonján lévő jelvény (szám), a Dock Accessibility-felületéről, 2 másodpercenként. Kisegítő lehetőségek (Accessibility) engedély kell hozzá; ha nincs, a fül jelzi. |
+| B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
+| B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
+| B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Az app indulásakor már meglévő jelvény nem számít újnak. |
+| B-6 | **Kattintás** az ikonra megnyitja a hozzá tartozó alkalmazást. |
+| B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 
 ## 5. Nyitott kérdések
 
@@ -333,4 +347,5 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.20** | App-jelvények (olvasatlan értesítések száma a notch mellett); fehér Claude-ikon, szint szerinti színek |
 | **v0.20+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

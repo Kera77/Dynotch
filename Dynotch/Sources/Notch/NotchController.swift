@@ -14,6 +14,7 @@ final class NotchController {
     let calendar: CalendarService
     let notifications: NotificationService
     let claudeUsage: ClaudeUsageService
+    let badges: BadgeService
     private let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
@@ -41,6 +42,7 @@ final class NotchController {
         calendar = services.calendar
         notifications = services.notifications
         claudeUsage = services.claudeUsage
+        badges = services.badges
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -52,7 +54,7 @@ final class NotchController {
         var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
-            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud
+            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -169,6 +171,7 @@ final class NotchController {
             evaluatePointerWhileExpanded()
         } else if hoverZone.contains(NSEvent.mouseLocation) {
             setHoveredIndicator(nil)
+            setHoveredBadge(nil)
             expand()
         } else {
             updateHoveredIndicator()

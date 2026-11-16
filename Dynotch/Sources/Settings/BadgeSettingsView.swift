@@ -1,0 +1,119 @@
+import AppKit
+import SwiftUI
+import UniformTypeIdentifiers
+
+/// Which apps show their unread count beside the notch, their icons and order (spec B-1, B-3).
+struct BadgeSettingsView: View {
+    @ObservedObject var service: BadgeService
+
+    @State private var installed: [InstalledApp] = []
+    @State private var search = ""
+
+    private var candidates: [InstalledApp] {
+        let chosen = Set(service.apps.map(\.bundleID))
+        return installed.filter {
+            !chosen.contains($0.bundleID) && (search.isEmpty || $0.name.localizedCaseInsensitiveContains(search))
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !service.isTrusted {
+                Label("Dynotch needs Accessibility access to read the badges of the Dock.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            List {
+                Section("Next to the notch") {
+                    if service.apps.isEmpty {
+                        Text("No apps yet. Add one from the list below.")
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(service.apps) { app in
+                        BadgeAppRow(app: app, service: service)
+                    }
+                    .onMove { service.move(from: $0, to: $1) }
+                }
+                Section("Add an app") {
+                    TextField("Search apps", text: $search)
+                        .textFieldStyle(.roundedBorder)
+                    ForEach(candidates) { app in
+                        HStack(spacing: 8) {
+                            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
+                                .resizable()
+                                .frame(width: 18, height: 18)
+                            Text(app.name)
+                            Spacer()
+                            Button("Add") { service.add(app) }
+                                .controlSize(.small)
+                        }
+                    }
+                }
+            }
+            .listStyle(.inset(alternatesRowBackgrounds: true))
+
+            Text("An app appears left of the notch while its Dock icon has a badge; the icon pulses for 5 minutes "
+                + "after a new notification. Click it to open the app. Drag to reorder, here or at the notch.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding()
+        .task {
+            installed = await Task.detached { InstalledApps.scan() }.value
+        }
+    }
+}
+
+private struct BadgeAppRow: View {
+    let app: BadgeApp
+    let service: BadgeService
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Toggle(isOn: Binding(get: { app.isEnabled }, set: { service.setEnabled(app.bundleID, $0) })) {
+                HStack(spacing: 6) {
+                    BadgeIconView(icon: .app, bundleID: app.bundleID, size: 18, tint: .primary)
+                    Text(app.name)
+                }
+            }
+            Spacer()
+            Menu {
+                Button("App icon") { service.setIcon(app.bundleID, .app) }
+                Divider()
+                ForEach(BadgePreset.all) { preset in
+                    Button {
+                        service.setIcon(app.bundleID, .symbol(preset.symbol))
+                    } label: {
+                        Label(preset.title, systemImage: preset.menuSymbol)
+                    }
+                }
+                Divider()
+                Button("Choose image…", action: chooseImage)
+            } label: {
+                BadgeIconView(icon: app.icon, bundleID: app.bundleID, size: 16, tint: .primary)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("Icon shown next to the notch")
+            Button {
+                service.remove(app.bundleID)
+            } label: {
+                Image(systemName: "minus.circle")
+            }
+            .buttonStyle(.borderless)
+            .help("Remove")
+        }
+    }
+
+    private func chooseImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.message = "Choose an icon for \(app.name)"
+        NSApp.activate()
+        if panel.runModal() == .OK, let url = panel.url {
+            service.importIcon(for: app.bundleID, from: url)
+        }
+    }
+}

@@ -11,4 +11,5 @@ struct AppServices {
     let reminders: RemindersStore
     let claudeUsage: ClaudeUsageService
     let hud: HUDService
+    let badges: BadgeService
 }

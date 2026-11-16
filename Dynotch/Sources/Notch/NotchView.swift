@@ -10,6 +10,7 @@ struct NotchView: View {
     let reminders: RemindersStore
     @ObservedObject var claudeUsage: ClaudeUsageService
     @ObservedObject var hud: HUDService
+    @ObservedObject var badges: BadgeService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -42,7 +43,7 @@ struct NotchView: View {
     }
 
     private var indicatorLayout: IndicatorLayout {
-        IndicatorLayout(items: indicatorItems)
+        IndicatorLayout(items: indicatorItems, badges: badges.visible)
     }
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
@@ -89,12 +90,18 @@ struct NotchView: View {
                 )
                 .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                 .transition(.opacity)
-            } else if !model.isExpanded, !indicatorItems.isEmpty {
+            } else if !model.isExpanded, !indicatorLayout.isEmpty {
                 NotchIndicatorView(
                     items: indicatorItems,
                     leadTime: calendar.leadTime,
                     notchSize: geometry.notchSize,
-                    hoveredIndex: labelIndex
+                    hoveredIndex: labelIndex,
+                    badges: badges.visible,
+                    hoveredBadge: model.hoveredBadge,
+                    openBadge: { badges.open($0.app) },
+                    moveBadge: { id, index in
+                        withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
+                    }
                 ) { item in
                     withAnimation(Self.quickAnimation) {
                         model.hoveredIndicator = nil
@@ -131,6 +138,7 @@ struct NotchView: View {
         .offset(x: collapsedOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
+        .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .animation(Self.quickAnimation, value: hud.display != nil)
@@ -149,7 +157,7 @@ struct NotchView: View {
         VStack(spacing: 0) {
             menuBar
             if model.isShowingSettings {
-                SettingsView(settings: settings, calendar: calendar, notifications: notifications)
+                SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges)
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)

@@ -82,11 +82,17 @@ struct IndicatorLayout: Equatable {
     /// Height of a meeting's hover label (spec K-8d).
     static let labelHeight: CGFloat = 26
     static let labelWidth: CGFloat = 440
+    /// Between two app badges (spec B-4).
+    static let badgeSpacing: CGFloat = 8
+    /// Room of the thin line between the app badges and the icons.
+    static let separatorWidth: CGFloat = 13
 
     /// Width of each place on the right.
     let slotWidths: [CGFloat]
     /// For each icon on the left (from the notch outwards), the place it stands for.
     let iconSlots: [Int]
+    /// Width of each app badge at the far left, from left to right (spec B-4).
+    let badgeWidths: [CGFloat]
 
     /// Number of places on the right.
     var count: Int { slotWidths.count }
@@ -95,27 +101,45 @@ struct IndicatorLayout: Equatable {
         self.init(slotWidths: Array(repeating: Self.slotWidth, count: max(count, 0)), iconSlots: iconSlots)
     }
 
-    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil) {
+    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil, badgeWidths: [CGFloat] = []) {
         self.slotWidths = slotWidths
-        self.iconSlots = iconSlots ?? (slotWidths.isEmpty ? [] : [0])
+        self.iconSlots = slotWidths.isEmpty ? [] : (iconSlots ?? [0])
+        self.badgeWidths = badgeWidths
     }
 
-    init(items: [IndicatorItem]) {
-        self.init(slotWidths: items.map(\.slotWidth), iconSlots: IndicatorItem.iconSlots(for: items))
+    init(items: [IndicatorItem], badges: [BadgeItem] = []) {
+        self.init(
+            slotWidths: items.map(\.slotWidth), iconSlots: IndicatorItem.iconSlots(for: items),
+            badgeWidths: badges.map(\.width)
+        )
     }
 
-    var isEmpty: Bool { count < 1 }
+    var isEmpty: Bool { count < 1 && badgeWidths.isEmpty }
 
-    /// Left of the notch: the icons.
-    var leftWidth: CGFloat {
-        guard !isEmpty, !iconSlots.isEmpty else { return 0 }
+    /// The icons next to the notch, without margins.
+    var iconsWidth: CGFloat {
+        guard !iconSlots.isEmpty else { return 0 }
         let icons = CGFloat(iconSlots.count)
-        return icons * Self.iconWidth + (icons - 1) * Self.spacing + 2 * Self.padding
+        return icons * Self.iconWidth + (icons - 1) * Self.spacing
+    }
+
+    /// The app badges, without margins.
+    var badgesWidth: CGFloat {
+        guard !badgeWidths.isEmpty else { return 0 }
+        return badgeWidths.reduce(0, +) + CGFloat(badgeWidths.count - 1) * Self.badgeSpacing
+    }
+
+    private var hasSeparator: Bool { !iconSlots.isEmpty && !badgeWidths.isEmpty }
+
+    /// Left of the notch: the app badges, a thin line, then the icons.
+    var leftWidth: CGFloat {
+        let content = iconsWidth + badgesWidth + (hasSeparator ? Self.separatorWidth : 0)
+        return content > 0 ? content + 2 * Self.padding : 0
     }
 
     /// Right of the notch: the capsules.
     var rightWidth: CGFloat {
-        guard !isEmpty else { return 0 }
+        guard count >= 1 else { return 0 }
         return slotWidths.reduce(0, +) + CGFloat(count - 1) * Self.spacing + 2 * Self.padding
     }
 
@@ -156,10 +180,12 @@ struct IndicatorLayout: Equatable {
 
     /// The indicator under a point (global coordinates), if any.
     func slot(at point: CGPoint, notchRect: CGRect) -> Int? {
-        guard !isEmpty, point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else {
+        guard count >= 1, point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else {
             return nil
         }
-        if point.x < notchRect.minX, point.x >= notchRect.minX - leftWidth {
+        if point.x < notchRect.minX {
+            let iconZone = iconsWidth + Self.padding + (hasSeparator ? Self.separatorWidth / 2 : Self.padding)
+            guard point.x >= notchRect.minX - iconZone else { return nil }
             let nearest = iconSlots.indices.min {
                 abs(point.x - iconCenter($0, notchRect: notchRect)) < abs(point.x - iconCenter($1, notchRect: notchRect))
             }
@@ -167,6 +193,23 @@ struct IndicatorLayout: Equatable {
         }
         return (0..<count).first {
             abs(point.x - center(of: $0, notchRect: notchRect)) <= (slotWidths[$0] + Self.spacing) / 2
+        }
+    }
+
+    /// Horizontal extent of app badge `index` (0 = leftmost).
+    func badgeRange(_ index: Int, notchRect: CGRect) -> ClosedRange<CGFloat> {
+        let before = badgeWidths.prefix(index).reduce(0, +) + CGFloat(index) * Self.badgeSpacing
+        let start = notchRect.minX - leftWidth + Self.padding + before
+        return start...(start + badgeWidths[index])
+    }
+
+    /// The app badge under a point (global coordinates), if any.
+    func badge(at point: CGPoint, notchRect: CGRect) -> Int? {
+        guard point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else { return nil }
+        let margin = Self.badgeSpacing / 2
+        return badgeWidths.indices.first {
+            let range = badgeRange($0, notchRect: notchRect)
+            return point.x >= range.lowerBound - margin && point.x <= range.upperBound + margin
         }
     }
 }

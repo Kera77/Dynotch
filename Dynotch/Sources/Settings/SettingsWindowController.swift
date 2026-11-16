@@ -8,12 +8,14 @@ final class SettingsWindowController {
     private let settings: AppSettings
     private let calendar: CalendarService
     private let notifications: NotificationService
+    private let badges: BadgeService
     private var window: NSWindow?
 
-    init(settings: AppSettings, calendar: CalendarService, notifications: NotificationService) {
+    init(settings: AppSettings, calendar: CalendarService, notifications: NotificationService, badges: BadgeService) {
         self.settings = settings
         self.calendar = calendar
         self.notifications = notifications
+        self.badges = badges
     }
 
     func show() {
@@ -24,7 +26,7 @@ final class SettingsWindowController {
     }
 
     private func makeWindow() -> NSWindow {
-        let rootView = SettingsView(settings: settings, calendar: calendar, notifications: notifications)
+        let rootView = SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges)
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
         window.title = "Dynotch Settings"
         window.styleMask = [.titled, .closable, .miniaturizable]

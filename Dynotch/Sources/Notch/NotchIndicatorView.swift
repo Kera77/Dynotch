@@ -8,13 +8,17 @@ struct NotchIndicatorView: View {
     let leadTime: TimeInterval
     let notchSize: CGSize
     let hoveredIndex: Int?
+    /// Apps with unread notifications, at the far left (spec B-4).
+    var badges: [BadgeItem] = []
+    var hoveredBadge: String?
+    var openBadge: (BadgeItem) -> Void = { _ in }
+    var moveBadge: (String, Int) -> Void = { _, _ in }
     /// Hides an indicator (spec K-8e, CL-6).
     let dismiss: (IndicatorItem) -> Void
 
     private static let lineWidth: CGFloat = 1.5
-    static let claudeColor = Color(red: 0.85, green: 0.47, blue: 0.34)
 
-    private var layout: IndicatorLayout { IndicatorLayout(items: items) }
+    private var layout: IndicatorLayout { IndicatorLayout(items: items, badges: badges) }
 
     private var meetings: [CalendarEvent] {
         items.compactMap { if case .meeting(let event) = $0 { event } else { nil } }
@@ -24,9 +28,9 @@ struct NotchIndicatorView: View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             VStack(spacing: 0) {
                 HStack(spacing: 0) {
-                    icons(now: context.date)
+                    leftSide(now: context.date)
                     Color.clear.frame(width: notchSize.width)
-                    capsules(now: context.date)
+                    if !items.isEmpty { capsules(now: context.date) }
                 }
                 .frame(height: notchSize.height)
 
@@ -39,6 +43,26 @@ struct NotchIndicatorView: View {
 
     // MARK: - Row
 
+    /// From the left: the app badges, a thin line, then the icons (spec B-4).
+    @ViewBuilder
+    private func leftSide(now: Date) -> some View {
+        if layout.leftWidth > 0 {
+            HStack(spacing: 0) {
+                if !badges.isEmpty {
+                    NotchBadgesView(badges: badges, hoveredID: hoveredBadge, now: now, open: openBadge, move: moveBadge)
+                }
+                if !badges.isEmpty, !layout.iconSlots.isEmpty {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.22))
+                        .frame(width: 1, height: 12)
+                        .frame(width: IndicatorLayout.separatorWidth)
+                }
+                if !layout.iconSlots.isEmpty { icons(now: now) }
+            }
+            .frame(width: layout.leftWidth)
+        }
+    }
+
     /// Icons from the notch outwards: the meeting icon (camera if any meeting has a link), then
     /// the Claude icon.
     private func icons(now: Date) -> some View {
@@ -49,7 +73,6 @@ struct NotchIndicatorView: View {
                     .opacity(hoveredIndex == nil || hoveredIndex == slot ? 1 : 0.45)
             }
         }
-        .frame(width: layout.leftWidth)
     }
 
     @ViewBuilder
@@ -61,7 +84,8 @@ struct NotchIndicatorView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(color)
         case .usage:
-            ClaudeIcon()
+            // Always white (spec CL-6); the ring carries the level's colour.
+            ClaudeGlyphView(size: 16)
         }
     }
 
@@ -211,29 +235,9 @@ struct NotchIndicatorView: View {
 
     static func color(for level: UsageLevel) -> Color {
         switch level {
-        case .normal: claudeColor
+        case .normal: ClaudeUsageView.blue
         case .high: Color(red: 1, green: 0.62, blue: 0.1)
         case .critical: Color(red: 1, green: 0.3, blue: 0.3)
-        }
-    }
-}
-
-/// The Claude app's icon if it is installed, otherwise a sparkle in Claude's colour.
-private struct ClaudeIcon: View {
-    @MainActor private static let appIcon: NSImage? = NSWorkspace.shared
-        .urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop")
-        .map { NSWorkspace.shared.icon(forFile: $0.path) }
-
-    var body: some View {
-        if let icon = Self.appIcon {
-            Image(nsImage: icon)
-                .resizable()
-                .interpolation(.high)
-                .frame(width: 22, height: 22)
-        } else {
-            Image(systemName: "sparkle")
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(NotchIndicatorView.claudeColor)
         }
     }
 }

@@ -8,13 +8,23 @@ extension NotchController {
     /// ignores the mouse while closed, so this is computed from the pointer position.
     func updateHoveredIndicator() {
         let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
-        guard !items.isEmpty, notifications.peek == nil else {
+        let shownBadges = badges.visible
+        let layout = IndicatorLayout(items: items, badges: shownBadges)
+        guard !layout.isEmpty, notifications.peek == nil else {
             setHoveredIndicator(nil)
+            setHoveredBadge(nil)
             return
         }
         let geometry = model.geometry
-        let layout = IndicatorLayout(items: items)
         let point = NSEvent.mouseLocation
+        // A badge being clicked or dragged stays the hovered one.
+        if model.hoveredBadge != nil, NSEvent.pressedMouseButtons != 0 { return }
+        let badge = layout.badge(at: point, notchRect: geometry.notchRect).map { shownBadges[$0].id }
+        setHoveredBadge(badge)
+        guard badge == nil, !items.isEmpty else {
+            setHoveredIndicator(nil)
+            return
+        }
         if suppressIndicatorHover {
             let area = layout.rect(notchRect: geometry.notchRect, labelHeight: IndicatorLayout.labelHeight)
                 .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
@@ -41,12 +51,24 @@ extension NotchController {
     func setHoveredIndicator(_ index: Int?) {
         guard model.hoveredIndicator != index else { return }
         withAnimation(Self.animation) { model.hoveredIndicator = index }
+        updateCollapsedInteraction()
+    }
+
+    /// The app badge under the pointer can be clicked and dragged (spec B-6, B-7).
+    func setHoveredBadge(_ id: String?) {
+        guard model.hoveredBadge != id else { return }
+        withAnimation(NotchView.quickAnimation) { model.hoveredBadge = id }
+        updateCollapsedInteraction()
+    }
+
+    private func updateCollapsedInteraction() {
         guard !model.isExpanded else { return }
-        panel.ignoresMouseEvents = index == nil
-        if index == nil {
-            stopHoverTimer()
-        } else {
+        let isActive = model.hoveredIndicator != nil || model.hoveredBadge != nil
+        panel.ignoresMouseEvents = !isActive
+        if isActive {
             startHoverTimer()
+        } else {
+            stopHoverTimer()
         }
     }
 }
@@ -76,7 +98,7 @@ extension NotchController {
         let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
         guard let index = items.firstIndex(where: { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } })
         else { return false }
-        let area = IndicatorLayout(items: items)
+        let area = IndicatorLayout(items: items, badges: badges.visible)
             .rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
             .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
         guard area.contains(NSEvent.mouseLocation) else { return false }

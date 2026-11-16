@@ -19,6 +19,8 @@ final class NotchViewModel: ObservableObject {
     @Published var isPinned = false
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
+    /// App badge beside the closed notch under the pointer (spec B-6).
+    @Published var hoveredBadge: String?
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 

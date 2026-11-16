@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-16
+
+### Added
+- App badges: the unread count of chosen apps (from their Dock badges) left of the notch, after a
+  thin separator. Hidden without unread notifications; pulses for 5 minutes after a new one;
+  click opens the app; drag to reorder at the notch or in Settings.
+- Settings › App badges: add any installed app, turn it on or off, pick a built-in icon or your own image.
+
+### Changed
+- The Claude icon beside the notch is white.
+- The AI usage ring beside the notch is blue up to 70 %, orange up to 90 %, red above.
+
 ## [0.19.1] - 2026-11-16
 
 ### Changed

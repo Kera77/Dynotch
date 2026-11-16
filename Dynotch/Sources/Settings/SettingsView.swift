@@ -6,6 +6,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case features
     case calendar
     case notifications
+    case badges
     case focus
     case about
 
@@ -17,6 +18,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "Features"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
+        case .badges: "App badges"
         case .focus: "Focus"
         case .about: "About"
         }
@@ -28,6 +30,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "square.grid.2x2"
         case .calendar: "calendar"
         case .notifications: "bell"
+        case .badges: "app.badge"
         case .focus: "cursorarrow.rays"
         case .about: "info.circle"
         }
@@ -38,6 +41,7 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     let calendar: CalendarService
     let notifications: NotificationService
+    let badges: BadgeService
 
     @State private var selectedTab = SettingsTab.general
     @State private var hoveredTab: SettingsTab?
@@ -103,6 +107,8 @@ struct SettingsView: View {
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
             NotificationSettingsView(settings: settings, service: notifications)
+        case .badges:
+            BadgeSettingsView(service: badges)
         case .focus:
             FocusSettingsView(settings: settings)
         case .about:

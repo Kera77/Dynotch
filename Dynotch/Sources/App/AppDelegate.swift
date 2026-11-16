@@ -15,10 +15,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         claudeUsage: ClaudeUsageService(settings: settings) { [notifications] title, body in
             notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
         },
-        hud: HUDService(settings: settings)
+        hud: HUDService(settings: settings),
+        badges: BadgeService()
     )
     private lazy var settingsWindow = SettingsWindowController(
-        settings: settings, calendar: services.calendar, notifications: services.notifications
+        settings: settings, calendar: services.calendar, notifications: services.notifications, badges: services.badges
     )
     private var notchManager: NotchManager?
     private var menuBarPanels: [MenuBarPopoverController] = []
@@ -35,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         focusFollowsMouse.start()
         services.claudeUsage.start()
         services.hud.start()
+        services.badges.start()
         NSApp.mainMenu = EditMenu.make()
 
         let manager = NotchManager(services: services) { [weak self] in

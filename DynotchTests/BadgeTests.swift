@@ -1,0 +1,165 @@
+import CoreGraphics
+@testable import Dynotch
+import Foundation
+import Testing
+
+@MainActor
+struct BadgeTests {
+    private let notchRect = CGRect(x: 663.5, y: 950, width: 185, height: 32)
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+    private func makeDefaults() -> UserDefaults {
+        let name = "BadgeTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private func app(_ id: String) -> InstalledApp {
+        InstalledApp(bundleID: id, name: id, path: "/Applications/\(id).app")
+    }
+
+    // MARK: - New notifications (spec B-5)
+
+    @Test func aBadgeIsNewWhenItAppearsOrGrows() {
+        #expect(BadgeTracker.isNew(previous: nil, current: "1"))
+        #expect(BadgeTracker.isNew(previous: "", current: "3"))
+        #expect(BadgeTracker.isNew(previous: "2", current: "3"))
+        #expect(!BadgeTracker.isNew(previous: "3", current: "3"))
+        #expect(!BadgeTracker.isNew(previous: "3", current: "2"))
+        #expect(!BadgeTracker.isNew(previous: "3", current: ""))
+        #expect(BadgeTracker.isNew(previous: "•", current: "!"))
+    }
+
+    @Test func pulsingLastsFiveMinutesAndRestarts() {
+        var pulses = BadgeTracker.pulses([:], previous: [:], current: ["a": "1"], now: now)
+        #expect(pulses["a"] == now)
+        #expect(BadgeTracker.isPulsing(since: pulses["a"], now: now.addingTimeInterval(299)))
+        #expect(!BadgeTracker.isPulsing(since: pulses["a"], now: now.addingTimeInterval(300)))
+
+        // Unchanged: keeps the start; a further notification restarts it.
+        let later = now.addingTimeInterval(120)
+        pulses = BadgeTracker.pulses(pulses, previous: ["a": "1"], current: ["a": "1"], now: later)
+        #expect(pulses["a"] == now)
+        pulses = BadgeTracker.pulses(pulses, previous: ["a": "1"], current: ["a": "2"], now: later)
+        #expect(pulses["a"] == later)
+
+        // Read: the badge is gone, so is the pulse.
+        pulses = BadgeTracker.pulses(pulses, previous: ["a": "2"], current: [:], now: later)
+        #expect(pulses.isEmpty)
+    }
+
+    @Test func textIsShort() {
+        #expect(BadgeTracker.displayText("7") == "7")
+        #expect(BadgeTracker.displayText(" 42 ") == "42")
+        #expect(BadgeTracker.displayText("1234") == "99+")
+        #expect(BadgeTracker.displayText("hello") == "hel")
+        #expect(BadgeItem.width(text: "12") > BadgeItem.width(text: "1"))
+    }
+
+    // MARK: - Service
+
+    @Test func onlyEnabledAppsWithABadgeAreVisible() {
+        let service = BadgeService(defaults: makeDefaults())
+        service.add(app("a"))
+        service.add(app("b"))
+        service.add(app("c"))
+        service.setEnabled("b", false)
+        service.apply(["a": "2", "b": "5"], now: now)
+        #expect(service.visible.map(\.id) == ["a"])
+        // What was there at the first look is not new.
+        #expect(service.visible.first?.pulseStart == nil)
+
+        service.apply(["a": "3", "c": "1"], now: now)
+        #expect(service.visible.map(\.id) == ["a", "c"])
+        #expect(service.visible.allSatisfy { $0.pulseStart == now })
+
+        service.apply([:], now: now)
+        #expect(service.visible.isEmpty)
+    }
+
+    @Test func choicesArePersisted() {
+        let defaults = makeDefaults()
+        let service = BadgeService(defaults: defaults)
+        service.add(app("com.apple.mail"))
+        service.add(app("x"))
+        service.add(app("x"))
+        service.setIcon("x", .symbol("bell.fill"))
+        service.move(from: IndexSet(integer: 1), to: 0)
+
+        let reloaded = BadgeService(defaults: defaults)
+        #expect(reloaded.apps.map(\.bundleID) == ["x", "com.apple.mail"])
+        #expect(reloaded.apps.first?.icon == .symbol("bell.fill"))
+        #expect(reloaded.apps.last?.icon == .symbol("envelope.fill"))
+
+        reloaded.remove("x")
+        #expect(BadgeService(defaults: defaults).apps.map(\.bundleID) == ["com.apple.mail"])
+    }
+
+    @Test func movingAVisibleBadgeKeepsHiddenAppsInPlace() {
+        let service = BadgeService(defaults: makeDefaults())
+        ["a", "b", "c", "d"].forEach { service.add(app($0)) }
+        service.apply(["a": "1", "c": "1", "d": "1"], now: now)
+        service.moveVisible("d", toVisibleIndex: 0)
+        #expect(service.apps.map(\.bundleID) == ["d", "b", "a", "c"])
+        #expect(service.visible.map(\.id) == ["d", "a", "c"])
+    }
+
+    @Test func suggestedIcons() {
+        #expect(BadgePreset.suggestedIcon(bundleID: "com.apple.mail", name: "Mail") == .symbol("envelope.fill"))
+        let beeper = BadgePreset.suggestedIcon(bundleID: "com.automattic.beeper.desktop", name: "Beeper")
+        #expect(beeper == .symbol("bubble.left.fill"))
+        let claude = BadgePreset.suggestedIcon(bundleID: "com.anthropic.claudefordesktop", name: "Claude")
+        #expect(claude == .symbol(BadgePreset.claudeSymbol))
+        #expect(BadgePreset.suggestedIcon(bundleID: "com.apple.finder", name: "Finder") == .app)
+    }
+
+    // MARK: - Reordering (spec B-7)
+
+    @Test func draggingFindsTheNewPlace() {
+        let widths: [CGFloat] = [26, 40, 26]
+        #expect(BadgeReorder.targetIndex(widths: widths, from: 0, offset: 0, spacing: 8) == 0)
+        #expect(BadgeReorder.targetIndex(widths: widths, from: 0, offset: 45, spacing: 8) == 1)
+        #expect(BadgeReorder.targetIndex(widths: widths, from: 0, offset: 200, spacing: 8) == 2)
+        #expect(BadgeReorder.targetIndex(widths: widths, from: 2, offset: -200, spacing: 8) == 0)
+        #expect(BadgeReorder.shift(of: 1, from: 0, target: 2, draggedWidth: 26, spacing: 8) == -34)
+        #expect(BadgeReorder.shift(of: 0, from: 2, target: 0, draggedWidth: 26, spacing: 8) == 34)
+        #expect(BadgeReorder.shift(of: 2, from: 0, target: 1, draggedWidth: 26, spacing: 8) == 0)
+        #expect(BadgeReorder.moved(["a", "b", "c"], id: "c", to: 0) == ["c", "a", "b"])
+    }
+
+    // MARK: - Layout (spec B-4)
+
+    @Test func badgesWidenOnlyTheLeftSide() {
+        let plain = IndicatorLayout(count: 1)
+        let layout = IndicatorLayout(slotWidths: [IndicatorLayout.slotWidth], badgeWidths: [26, 33])
+        #expect(layout.rightWidth == plain.rightWidth)
+        let extra = IndicatorLayout.separatorWidth + 26 + 33 + IndicatorLayout.badgeSpacing
+        #expect(abs(layout.leftWidth - plain.leftWidth - extra) < 0.001)
+
+        // Badges alone: no icons, no line, nothing on the right.
+        let alone = IndicatorLayout(slotWidths: [], badgeWidths: [26])
+        #expect(!alone.isEmpty)
+        #expect(alone.rightWidth == 0)
+        #expect(alone.leftWidth == 26 + 2 * IndicatorLayout.padding)
+        let rect = alone.rect(notchRect: notchRect, labelHeight: nil)
+        #expect(abs(rect.maxX - notchRect.maxX) < 0.001)
+        #expect(abs(notchRect.minX - rect.minX - alone.leftWidth) < 0.001)
+    }
+
+    @Test func hoverTellsBadgesFromIcons() {
+        let layout = IndicatorLayout(slotWidths: [IndicatorLayout.slotWidth], badgeWidths: [26, 33])
+        let y = notchRect.midY
+        for index in 0..<2 {
+            let range = layout.badgeRange(index, notchRect: notchRect)
+            let point = CGPoint(x: (range.lowerBound + range.upperBound) / 2, y: y)
+            #expect(layout.badge(at: point, notchRect: notchRect) == index)
+            #expect(layout.slot(at: point, notchRect: notchRect) == nil)
+        }
+        let icon = CGPoint(x: layout.iconCenter(notchRect: notchRect), y: y)
+        #expect(layout.slot(at: icon, notchRect: notchRect) == 0)
+        #expect(layout.badge(at: icon, notchRect: notchRect) == nil)
+        #expect(layout.badge(at: CGPoint(x: notchRect.midX, y: y), notchRect: notchRect) == nil)
+        #expect(layout.badge(at: CGPoint(x: icon.x, y: notchRect.minY - 20), notchRect: notchRect) == nil)
+    }
+}
