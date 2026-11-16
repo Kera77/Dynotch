@@ -21,6 +21,12 @@ for _ in $(seq 1 30); do
 done
 [[ -n "$RUN" ]] || { echo "error: preflight run for $SHA not found"; exit 2; }
 
+# Same commit pushed again (no new run), or the run was cancelled/failed to start: rerun it.
+if [[ "$(gh run view "$RUN" --json status -q .status)" == "completed" ]]; then
+  gh run rerun "$RUN" > /dev/null
+  sleep 5
+fi
+
 gh run watch "$RUN" --interval 15 > /dev/null 2>&1 || true
 
 # Log lines look like "job<TAB>step<TAB>timestamp text"; keep only the text.
