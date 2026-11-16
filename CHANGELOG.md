@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-16
+
+### Added
+- Notes feature in the notch and in the menu bar: sidebar with Apple Notes folders and notes,
+  plain text editor with autosave to Notes, local draft with "Save to Notes", conflict detection.
+  Notes with lists, tables, images, links or attachments open read-only.
+
 ## [0.6.3] - 2026-11-16
 
 ### Changed

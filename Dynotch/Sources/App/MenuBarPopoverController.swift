@@ -2,22 +2,30 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// Menu bar icon that drops the calculator down below it (spec SZ-6…SZ-8).
+/// Menu bar icon of a feature that drops a popover panel down below it
+/// (calculator: spec SZ-6…SZ-8, notes: spec J-8).
 @MainActor
-final class CalculatorMenuBarController: NSObject {
-    private static let panelSize = NSSize(width: 440, height: 340)
-
+final class MenuBarPopoverController: NSObject {
+    private let feature: FeatureID
+    private let panelSize: NSSize
     private let settings: AppSettings
-    private let store: CalculatorStore
+    private let makeContent: (MenuBarPanelState) -> AnyView
     private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
     private var panel: MenuBarPanel?
     private var outsideClickMonitor: Any?
     private var settingsObserver: AnyCancellable?
 
-    init(settings: AppSettings, store: CalculatorStore) {
+    init(
+        feature: FeatureID,
+        panelSize: NSSize,
+        settings: AppSettings,
+        makeContent: @escaping (MenuBarPanelState) -> AnyView
+    ) {
+        self.feature = feature
+        self.panelSize = panelSize
         self.settings = settings
-        self.store = store
+        self.makeContent = makeContent
     }
 
     func start() {
@@ -29,15 +37,13 @@ final class CalculatorMenuBarController: NSObject {
         updateStatusItem()
     }
 
-    /// The icon is shown only while the calculator feature is enabled.
+    /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
-        let enabled = settings.isEnabled(.calculator)
+        let enabled = settings.isEnabled(feature)
         if enabled, statusItem == nil {
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            item.button?.image = NSImage(
-                systemSymbolName: FeatureID.calculator.symbolName,
-                accessibilityDescription: FeatureID.calculator.title
-            )
+            item.button?.image = NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
+            item.button?.toolTip = feature.title
             item.button?.target = self
             item.button?.action = #selector(togglePanel)
             statusItem = item
@@ -63,7 +69,7 @@ final class CalculatorMenuBarController: NSObject {
 
         let buttonFrame = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
         let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrame
-        let size = Self.panelSize
+        let size = panelSize
         let originX = min(max(buttonFrame.midX - size.width / 2, screenFrame.minX + 8), screenFrame.maxX - size.width - 8)
         // The arrow on the panel's top edge points at the icon.
         state.arrowX = buttonFrame.midX - originX
@@ -92,7 +98,7 @@ final class CalculatorMenuBarController: NSObject {
 
     private func makePanel() -> MenuBarPanel {
         let panel = MenuBarPanel(
-            contentRect: NSRect(origin: .zero, size: Self.panelSize),
+            contentRect: NSRect(origin: .zero, size: panelSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -105,7 +111,7 @@ final class CalculatorMenuBarController: NSObject {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.contentView = FirstMouseHostingView(rootView: CalculatorMenuBarView(store: store, state: state))
+        panel.contentView = FirstMouseHostingView(rootView: makeContent(state))
         return panel
     }
 }

@@ -41,7 +41,7 @@ final class NotchController {
 
         let rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
-            notifications: notifications, calculator: services.calculator
+            notifications: notifications, calculator: services.calculator, notes: services.notes
         ) { [weak self] in
             self?.settingsButtonPressed()
         }

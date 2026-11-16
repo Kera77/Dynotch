@@ -42,12 +42,24 @@ struct PopoverShape: Shape {
     }
 }
 
+extension View {
+    /// Dark rounded popover with an arrow on top, as used by the menu bar panels.
+    func popoverChrome(arrowX: CGFloat) -> some View {
+        self
+            .padding(.top, PopoverShape.arrowHeight)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(PopoverShape(arrowX: arrowX).fill(Color(red: 0.145, green: 0.145, blue: 0.15)))
+            .overlay(PopoverShape(arrowX: arrowX).stroke(Color.white.opacity(0.14), lineWidth: 1))
+            .padding(1)
+            .environment(\.colorScheme, .dark)
+    }
+}
+
 /// Content of the menu bar panel: the notepad with a status bar below it (spec SZ-6).
 struct CalculatorMenuBarView: View {
     @ObservedObject var store: CalculatorStore
     @ObservedObject var state: MenuBarPanelState
 
-    private static let surface = Color(red: 0.145, green: 0.145, blue: 0.15)
     private static let accent = Color(nsColor: CalculatorResultsView.resultColor)
 
     private var resultCount: Int {
@@ -67,12 +79,7 @@ struct CalculatorMenuBarView: View {
                 .padding(.top, 10)
             statusBar
         }
-        .padding(.top, PopoverShape.arrowHeight)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(PopoverShape(arrowX: state.arrowX).fill(Self.surface))
-        .overlay(PopoverShape(arrowX: state.arrowX).stroke(Color.white.opacity(0.14), lineWidth: 1))
-        .padding(1)
-        .environment(\.colorScheme, .dark)
+        .popoverChrome(arrowX: state.arrowX)
     }
 
     private var statusBar: some View {

@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.6.3"
+    MARKETING_VERSION: "0.7.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -29,6 +29,7 @@ targets:
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
         NSCalendarsFullAccessUsageDescription: "A Dynotch a következő 7 nap eseményeit mutatja a notchban."
+        NSAppleEventsUsageDescription: "A Dynotch a Jegyzetek appból olvassa és oda menti a jegyzeteidet."
         NSCalendarsUsageDescription: "A Dynotch a következő 7 nap eseményeit mutatja a notchban."
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
@@ -37,6 +38,7 @@ targets:
       properties:
         com.apple.security.app-sandbox: false
         com.apple.security.personal-information.calendars: true
+        com.apple.security.automation.apple-events: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch

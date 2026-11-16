@@ -6,6 +6,7 @@ struct NotchView: View {
     @ObservedObject var calendar: CalendarService
     @ObservedObject var notifications: NotificationService
     let calculator: CalculatorStore
+    let notes: NotesStore
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
@@ -169,6 +170,8 @@ struct NotchView: View {
             NotificationsFeatureView(service: notifications)
         case .calculator:
             CalculatorFeatureView(store: calculator)
+        case .notes:
+            NotesFeatureView(store: notes, isActive: model.isExpanded && model.currentFeature == .notes)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }

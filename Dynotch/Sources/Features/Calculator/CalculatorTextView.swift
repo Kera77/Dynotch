@@ -9,9 +9,8 @@ struct CalculatorResultRow {
 
 /// Plain text editor of the calculator notepad. The results live in `resultsView`, a column
 /// on its right edge that scrolls with the text (spec SZ-2).
-final class CalculatorTextView: NSTextView {
+final class CalculatorTextView: EditingTextView {
     static let resultColumnWidth: CGFloat = 130
-    private static let placeholder = "Írj be egy számítást, pl. 1200 * 1,27"
 
     static var editorFont: NSFont {
         NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -23,48 +22,15 @@ final class CalculatorTextView: NSTextView {
     static func makeScrollView(text: String) -> NSScrollView {
         // TextKit 1: the result rows come from the layout manager's line rects.
         let textView = CalculatorTextView(usingTextLayoutManager: false)
-        textView.isRichText = false
-        textView.allowsUndo = true
-        textView.font = editorFont
-        textView.textColor = .white
-        textView.insertionPointColor = CalculatorResultsView.resultColor
-        textView.drawsBackground = false
+        textView.configurePlainText(font: editorFont, caretColor: CalculatorResultsView.resultColor, lineSpacing: 5)
         textView.textContainerInset = NSSize(width: 4, height: 6)
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
-        textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = false
-        textView.isGrammarCheckingEnabled = false
-
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.lineSpacing = 5
-        textView.defaultParagraphStyle = paragraph
-        textView.typingAttributes = [
-            .font: editorFont,
-            .foregroundColor: NSColor.white,
-            .paragraphStyle: paragraph
-        ]
-
-        textView.minSize = .zero
-        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.autoresizingMask = [.width]
         textView.textContainer?.widthTracksTextView = false
+        textView.placeholder = "Írj be egy számítást, pl. 1200 * 1,27"
         textView.string = text
 
         textView.resultsView.textView = textView
         textView.addSubview(textView.resultsView)
-
-        let scrollView = NSScrollView()
-        scrollView.documentView = textView
-        scrollView.drawsBackground = false
-        scrollView.borderType = .noBorder
-        scrollView.hasVerticalScroller = true
-        scrollView.autohidesScrollers = true
-        scrollView.scrollerStyle = .overlay
-        return scrollView
+        return textView.embedInScrollView()
     }
 
     override var string: String {
@@ -88,46 +54,6 @@ final class CalculatorTextView: NSTextView {
             width: Self.resultColumnWidth, height: newSize.height
         )
         refreshResults()
-    }
-
-    /// Dynotch has no main menu, so the usual Edit shortcuts would not reach the text view.
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        guard event.type == .keyDown, window?.firstResponder === self else {
-            return super.performKeyEquivalent(with: event)
-        }
-        let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control])
-        let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
-        switch (modifiers, key) {
-        case (.command, "c"): copy(nil)
-        case (.command, "x"): cut(nil)
-        case (.command, "v"): pasteAsPlainText(nil)
-        case (.command, "a"): selectAll(nil)
-        case (.command, "z"): undoManager?.undo()
-        case ([.command, .shift], "z"): undoManager?.redo()
-        default: return super.performKeyEquivalent(with: event)
-        }
-        return true
-    }
-
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        // Ready for typing as soon as its window has keyboard focus.
-        DispatchQueue.main.async { [weak self] in
-            guard let self, let window = self.window else { return }
-            window.makeFirstResponder(self)
-        }
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-        guard string.isEmpty else { return }
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: Self.editorFont,
-            .foregroundColor: NSColor.white.withAlphaComponent(0.3)
-        ]
-        let origin = textContainerOrigin
-        let padding = textContainer?.lineFragmentPadding ?? 0
-        (Self.placeholder as NSString).draw(at: NSPoint(x: origin.x + padding, y: origin.y), withAttributes: attributes)
     }
 
     /// The lines that are calculations, with their results.

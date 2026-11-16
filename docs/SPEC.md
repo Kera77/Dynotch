@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.6 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.7 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -41,7 +41,7 @@
 | M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Info* (verzió, kijelző és notch adatai). |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 
 ### 1.3 Váltás két ujjas swipe-pal
@@ -103,7 +103,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.7)
+### 2.3 Hatókör (v0.8)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -118,7 +118,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.7) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.8) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -203,6 +203,22 @@
 
 ---
 
+## 4d. Jegyzetek (v0.7)
+
+| ID | Követelmény |
+|---|---|
+| J-1 | Új funkció a notchban (**jegyzet** ikon). A panel nagy méretben nyílik (mint a teljes naptár), és megkapja a billentyűzetet (hoverre nyitva nem veszi el a fókuszt, ld. SZ-1). |
+| J-2 | **Adatforrás az Apple Jegyzetek**, szkriptelésen (JavaScript for Automation) keresztül. Az első használatkor a macOS engedélyt kér („A Dynotch szeretné vezérelni a Jegyzetek appot”). Engedély nélkül a funkció útmutatót és egy gombot mutat a *Rendszerbeállítások › Adatvédelem › Automatizálás* oldalhoz. A Dynotch csak akkor szól a Jegyzeteknek, amikor a Jegyzetek funkció látszik. |
+| J-3 | **Oldalsáv:** felül mappaválasztó (fiókonként csoportosítva, a *Nemrég törölt* mappa nélkül), alatta az *Új jegyzet* piszkozat, majd a kiválasztott mappa jegyzetei a legutóbb módosítottal kezdve (cím és relatív idő). A kiválasztott mappa és jegyzet megmarad újraindítás után is. |
+| J-4 | **Piszkozat:** helyi jegyzet, amely csak a Dynotch-ban van meg (újraindítás után is). A **„Mentés a Jegyzetekbe”** gomb új jegyzetként menti a kiválasztott mappába; az első sor lesz a címe. Mentés után a piszkozat kiürül, és az új jegyzet nyílik meg. |
+| J-5 | **Meglévő jegyzet szerkesztése:** a szöveg sima szövegként látszik. Gépelés után 1,5 mp szünettel **automatikusan mentődik a Jegyzetekbe**; másik jegyzetre vagy mappára váltáskor azonnal. Az állapotsor mutatja: „Módosítva…”, „Mentés…”, „Mentve a Jegyzetekbe · 10:42”. |
+| J-6 | **Formázott jegyzetek védelme:** a mentés a jegyzet teljes tartalmát sima szövegre cseréli. Ezért csak olvasható az a jegyzet, amelyben lista vagy jelölőnégyzetes lista, táblázat, kép, link vagy melléklet van, és a jelszóval védett jegyzet is. A cím és a sima szöveg formázása (félkövér, dőlt, betűméret) mentéskor elveszik. |
+| J-7 | **Ütközés:** ha a jegyzet a betöltése óta megváltozott a Jegyzetekben (például iPhone-on), a mentés nem írja felül; az állapotsor jelzi, és két gombot ad: *Újratöltés* (a helyi módosítás elvetése) és *Felülírás*. |
+| J-8 | **Menüsor-ikon** (jegyzet ikon), amíg a funkció be van kapcsolva: a számológéphez hasonló nyilas buborék (680 × 440 pt) ugyanazzal az oldalsávval és szerkesztővel, alul **lakattal**. Másolás funkció itt nincs. A notch és a menüsor ugyanazt a jegyzetet mutatja. |
+| J-9 | *Megnyitás a Jegyzetekben* gomb: a kiválasztott jegyzetet megnyitja a Jegyzetek appban. |
+
+---
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -221,6 +237,7 @@ Jelenleg nincs.
 | Hangerő | CoreAudio: `kAudioHardwareServiceDeviceProperty_VirtualMainVolume` és mute, property listener a külső változásokra |
 | Fényerő | `DisplayServicesGetBrightness` / `SetBrightness` (privát framework, dinamikusan betöltve) |
 | Értesítések | Az Értesítési központ SQLite-adatbázisa csak olvasásra megnyitva (`~/Library/Group Containers/group.com.apple.usernoted/db2/db`), a rekordok bináris plist-ek |
+| Jegyzetek | `osascript -l JavaScript` soros háttérsoron; a jegyzet törzse HTML, a szerkesztő a `plaintext` tulajdonságot mutatja, mentéskor soronként `<div>` |
 | Naptár | EventKit (`EKEventStore`, `requestFullAccessToEvents`), `EKEventStoreChanged` értesítés; meeting-link felismerés `NSDataDetector`-ral |
 
 ---
@@ -234,5 +251,6 @@ Jelenleg nincs.
 | **v0.4** | Panel minden kijelzőn, látható virtuális notch; naptár napsávval és teljes havi nézettel; kapszula menü |
 | **v0.5** | Értesítések a notchban (Beeper, Gmail, Google Chat) |
 | **v0.6** | Számológép a notchban és a menüsorban, lakat (nyitva tartás), ikonos beállításfülek |
-| **v0.7** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.8+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.7** | Jegyzetek: Apple Jegyzetek szerkesztése a notchban és a menüsorban |
+| **v0.8** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.9+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

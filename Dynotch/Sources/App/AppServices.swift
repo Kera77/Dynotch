@@ -7,4 +7,5 @@ struct AppServices {
     let calendar: CalendarService
     let notifications: NotificationService
     let calculator: CalculatorStore
+    let notes: NotesStore
 }

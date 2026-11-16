@@ -122,4 +122,16 @@ struct NotchViewModelTests {
         #expect(!model.isPinned)
         #expect(!model.wantsKeyboard)
     }
+
+    /// Spec J-1: the notes use the large panel and take the keyboard.
+    @Test func notesUseLargePanelAndKeyboard() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.notes)
+        #expect(model.isLarge)
+        #expect(model.wantsKeyboard)
+        #expect(model.openSize == model.geometry.largeSize)
+        model.select(.home)
+        #expect(!model.isLarge)
+    }
 }
