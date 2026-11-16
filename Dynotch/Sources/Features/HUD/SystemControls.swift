@@ -18,13 +18,13 @@ enum VolumeControl {
         return device
     }
 
-    static var volumeAddress = AudioObjectPropertyAddress(
+    static let volumeAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
         mScope: kAudioDevicePropertyScopeOutput,
         mElement: kAudioObjectPropertyElementMain
     )
 
-    static var muteAddress = AudioObjectPropertyAddress(
+    static let muteAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyMute,
         mScope: kAudioDevicePropertyScopeOutput,
         mElement: kAudioObjectPropertyElementMain
@@ -116,9 +116,9 @@ enum MediaKey: Int {
 
 /// Pure level stepping (spec A-3): macOS steps by 1/16, Option+Shift by 1/64, on a grid.
 enum HUDLogic {
-    static func stepped(_ level: Double, up: Bool, fine: Bool) -> Double {
+    static func stepped(_ level: Double, increase: Bool, fine: Bool) -> Double {
         let steps = fine ? 64.0 : 16.0
-        let next = (level * steps).rounded() + (up ? 1 : -1)
+        let next = (level * steps).rounded() + (increase ? 1 : -1)
         return min(max(next / steps, 0), 1)
     }
 

@@ -99,7 +99,7 @@ final class HUDService: ObservableObject {
             return true
         }
         guard BrightnessControl.isAvailable else { return false }
-        if isDown { changeBrightness(up: key == .brightnessUp, fine: fine) }
+        if isDown { changeBrightness(increase: key == .brightnessUp, fine: fine) }
         return true
     }
 
@@ -110,7 +110,7 @@ final class HUDService: ObservableObject {
         case .mute:
             VolumeControl.setMuted(!VolumeControl.isMuted(device), on: device)
         default:
-            let level = HUDLogic.stepped(current, up: key == .soundUp, fine: fine)
+            let level = HUDLogic.stepped(current, increase: key == .soundUp, fine: fine)
             VolumeControl.setVolume(level, on: device)
             // Changing the level unmutes, as in macOS.
             VolumeControl.setMuted(level <= 0, on: device)
@@ -118,9 +118,9 @@ final class HUDService: ObservableObject {
         show(.volume, level: VolumeControl.volume(device) ?? current, muted: VolumeControl.isMuted(device))
     }
 
-    private func changeBrightness(up: Bool, fine: Bool) {
+    private func changeBrightness(increase: Bool, fine: Bool) {
         let current = BrightnessControl.brightness() ?? 0.5
-        let level = HUDLogic.stepped(current, up: up, fine: fine)
+        let level = HUDLogic.stepped(current, increase: increase, fine: fine)
         BrightnessControl.setBrightness(level)
         show(.brightness, level: level, muted: false)
     }

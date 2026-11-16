@@ -4,12 +4,12 @@ import Testing
 struct HUDTests {
     /// Spec A-3: 1/16 steps on a grid, 1/64 with Option-Shift, clamped to 0…1.
     @Test func stepping() {
-        #expect(HUDLogic.stepped(0.5, up: true, fine: false) == 0.5625)
-        #expect(HUDLogic.stepped(0.5, up: false, fine: false) == 0.4375)
-        #expect(HUDLogic.stepped(0.51, up: true, fine: false) == 0.5625)
-        #expect(HUDLogic.stepped(0.5, up: true, fine: true) == 0.515625)
-        #expect(HUDLogic.stepped(1, up: true, fine: false) == 1)
-        #expect(HUDLogic.stepped(0.03, up: false, fine: false) == 0)
+        #expect(HUDLogic.stepped(0.5, increase: true, fine: false) == 0.5625)
+        #expect(HUDLogic.stepped(0.5, increase: false, fine: false) == 0.4375)
+        #expect(HUDLogic.stepped(0.51, increase: true, fine: false) == 0.5625)
+        #expect(HUDLogic.stepped(0.5, increase: true, fine: true) == 0.515625)
+        #expect(HUDLogic.stepped(1, increase: true, fine: false) == 1)
+        #expect(HUDLogic.stepped(0.03, increase: false, fine: false) == 0)
     }
 
     @Test func volumeSymbols() {
