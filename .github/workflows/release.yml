@@ -11,9 +11,38 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
+  # Runs on Linux: waits until CI has passed for this commit, so CI and the release never ask
+  # for macOS runners at the same time, and nothing untested is released.
+  wait-for-ci:
+    name: Wait for CI
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for the CI run of this commit
+        run: |
+          for _ in $(seq 1 240); do
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&per_page=1" \
+              --jq '.workflow_runs[0] | "\(.status) \(.conclusion)"')
+            echo "CI: ${run:-not started}"
+            case "$run" in
+              "completed success") exit 0 ;;
+              "completed "*) echo "::error::CI did not pass for $GITHUB_SHA"; exit 1 ;;
+            esac
+            sleep 30
+          done
+          echo "::error::Timed out waiting for CI"
+          exit 1
+
   release:
+    needs: wait-for-ci
+    # Manual test builds (workflow_dispatch) skip the wait.
+    if: ${{ always() && (needs.wait-for-ci.result == 'success' || needs.wait-for-ci.result == 'skipped') }}
     runs-on: macos-26
     env:
       VERSION: ${{ github.event.inputs.version || github.ref_name }}
@@ -46,6 +75,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
           rm "$RUNNER_TEMP/signing.p12"
           # codesign looks identities up through the keychain search list.
+          # shellcheck disable=SC2046 # one argument per keychain path
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           security find-identity -p codesigning "$KEYCHAIN"
           IDENTITY_HASH="$(security find-identity -p codesigning "$KEYCHAIN" \
