@@ -34,17 +34,20 @@ struct IndicatorLayout: Equatable {
     static let labelHeight: CGFloat = 26
     static let labelWidth: CGFloat = 360
 
+    /// Number of countdowns.
     let count: Int
 
     var sideWidth: CGFloat {
-        guard count > 0 else { return 0 }
+        guard !isEmpty else { return 0 }
         let slots = CGFloat(count) * Self.slotWidth + CGFloat(count - 1) * Self.spacing
         return max(Self.minimumSideWidth, 2 * Self.padding + slots)
     }
 
+    var isEmpty: Bool { count < 1 }
+
     /// Size of the closed notch with the countdowns, and with the hover label.
     func size(notch: CGSize, showsLabel: Bool) -> CGSize {
-        guard count > 0 else { return notch }
+        guard !isEmpty else { return notch }
         let width = notch.width + 2 * sideWidth
         guard showsLabel else { return CGSize(width: width, height: notch.height) }
         return CGSize(width: max(width, Self.labelWidth), height: notch.height + Self.labelHeight)

@@ -159,7 +159,7 @@ final class NotchController {
     /// ignores the mouse while closed, so this is computed from the pointer position.
     private func updateHoveredIndicator() {
         let count = calendar.indicatorEvents.count
-        guard count > 0, notifications.peek == nil else {
+        guard !calendar.indicatorEvents.isEmpty, notifications.peek == nil else {
             setHoveredIndicator(nil)
             return
         }
