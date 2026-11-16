@@ -58,6 +58,7 @@ extension NotchController {
     func setHoveredBadge(_ id: String?) {
         guard model.hoveredBadge != id else { return }
         withAnimation(NotchView.quickAnimation) { model.hoveredBadge = id }
+        if let id { badges.acknowledge(id) }
         updateCollapsedInteraction()
     }
 

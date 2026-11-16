@@ -108,10 +108,37 @@ struct BadgeTests {
     @Test func suggestedIcons() {
         #expect(BadgePreset.suggestedIcon(bundleID: "com.apple.mail", name: "Mail") == .symbol("envelope.fill"))
         let beeper = BadgePreset.suggestedIcon(bundleID: "com.automattic.beeper.desktop", name: "Beeper")
-        #expect(beeper == .symbol("bubble.left.fill"))
+        #expect(beeper == .symbol(BrandGlyph.beeper.rawValue))
         let claude = BadgePreset.suggestedIcon(bundleID: "com.anthropic.claudefordesktop", name: "Claude")
         #expect(claude == .symbol(BadgePreset.claudeSymbol))
         #expect(BadgePreset.suggestedIcon(bundleID: "com.apple.finder", name: "Finder") == .app)
+    }
+
+    @Test func brandMarksReplaceGenericGlyphsOnce() {
+        let chat = BadgeApp(bundleID: "com.google.Chrome.app.x", name: "Google Chat", isEnabled: true, icon: .symbol("bubble.left.fill"))
+        #expect(BadgeTracker.upgradedIcon(for: chat) == .symbol(BrandGlyph.googleChat.rawValue))
+        let gmail = BadgeApp(bundleID: "x", name: "Gmail", isEnabled: true, icon: .symbol("envelope.fill"))
+        #expect(BadgeTracker.upgradedIcon(for: gmail) == .symbol(BrandGlyph.gmail.rawValue))
+        // A choice the user made, or an app without its own mark, stays.
+        let custom = BadgeApp(bundleID: "x", name: "Gmail", isEnabled: true, icon: .symbol("star.fill"))
+        #expect(BadgeTracker.upgradedIcon(for: custom) == .symbol("star.fill"))
+        let mail = BadgeApp(bundleID: "com.apple.mail", name: "Mail", isEnabled: true, icon: .symbol("envelope.fill"))
+        #expect(BadgeTracker.upgradedIcon(for: mail) == .symbol("envelope.fill"))
+        #expect(BadgePreset.all.contains { $0.symbol == BrandGlyph.beeper.rawValue })
+        #expect(BrandGlyph.allCases.allSatisfy { !BrandGlyphShape(glyph: $0).path(in: CGRect(x: 0, y: 0, width: 16, height: 16)).isEmpty })
+    }
+
+    @Test func hoveringStopsThePulse() {
+        let service = BadgeService(defaults: makeDefaults())
+        service.add(app("a"))
+        service.apply([:], now: now)
+        service.apply(["a": "1"], now: now)
+        #expect(service.visible.first?.pulseStart == now)
+        service.acknowledge("a")
+        #expect(service.visible.first?.pulseStart == nil)
+        // The next notification starts it again.
+        service.apply(["a": "2"], now: now)
+        #expect(service.visible.first?.pulseStart == now)
     }
 
     // MARK: - Reordering (spec B-7)

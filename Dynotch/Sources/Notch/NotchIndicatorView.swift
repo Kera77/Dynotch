@@ -85,7 +85,7 @@ struct NotchIndicatorView: View {
                 .foregroundStyle(color)
         case .usage:
             // Always white (spec CL-6); the ring carries the level's colour.
-            ClaudeGlyphView(size: 16)
+            BrandGlyphView(glyph: .claude, size: 16)
         }
     }
 

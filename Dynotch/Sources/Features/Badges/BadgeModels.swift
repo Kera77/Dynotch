@@ -28,11 +28,11 @@ struct BadgePreset: Identifiable, Equatable, Sendable {
 
     var id: String { symbol }
 
-    /// Drawn by `ClaudeGlyph`; not an SF Symbol.
-    static let claudeSymbol = "dynotch.claude"
+    /// Drawn by `BrandGlyphShape`; not an SF Symbol.
+    static let claudeSymbol = BrandGlyph.claude.rawValue
 
     /// The symbol shown in menus, where only SF Symbols can be used.
-    var menuSymbol: String { symbol == Self.claudeSymbol ? "sparkle" : symbol }
+    var menuSymbol: String { BrandGlyph(rawValue: symbol)?.menuSymbol ?? symbol }
 
     static let all: [BadgePreset] = [
         BadgePreset(symbol: "bubble.left.fill", title: "Chat"),
@@ -47,7 +47,10 @@ struct BadgePreset: Identifiable, Equatable, Sendable {
         BadgePreset(symbol: "chevron.left.forwardslash.chevron.right", title: "Code"),
         BadgePreset(symbol: "music.note", title: "Music"),
         BadgePreset(symbol: "star.fill", title: "Star"),
-        BadgePreset(symbol: claudeSymbol, title: "Claude")
+        BadgePreset(symbol: claudeSymbol, title: "Claude"),
+        BadgePreset(symbol: BrandGlyph.beeper.rawValue, title: "Beeper"),
+        BadgePreset(symbol: BrandGlyph.googleChat.rawValue, title: "Google Chat"),
+        BadgePreset(symbol: BrandGlyph.gmail.rawValue, title: "Gmail")
     ]
 
     private static let chatWords = [
@@ -59,6 +62,9 @@ struct BadgePreset: Identifiable, Equatable, Sendable {
     static func suggestedIcon(bundleID: String, name: String) -> BadgeIcon {
         let words = (bundleID + " " + name).lowercased()
         if words.contains("claude") || words.contains("anthropic") { return .symbol(claudeSymbol) }
+        if words.contains("beeper") { return .symbol(BrandGlyph.beeper.rawValue) }
+        if words.contains("google chat") { return .symbol(BrandGlyph.googleChat.rawValue) }
+        if words.contains("gmail") { return .symbol(BrandGlyph.gmail.rawValue) }
         if mailWords.contains(where: words.contains) { return .symbol("envelope.fill") }
         if chatWords.contains(where: words.contains) { return .symbol("bubble.left.fill") }
         return .app
@@ -127,6 +133,16 @@ enum BadgeTracker {
             }
         }
         return result
+    }
+
+    /// Apps added before the brand marks existed got a generic glyph; they get their own mark.
+    static func upgradedIcon(for app: BadgeApp) -> BadgeIcon {
+        let generic: [BadgeIcon] = [.symbol("bubble.left.fill"), .symbol("envelope.fill")]
+        guard generic.contains(app.icon),
+              case .symbol(let name) = BadgePreset.suggestedIcon(bundleID: app.bundleID, name: app.name),
+              BrandGlyph(rawValue: name) != nil
+        else { return app.icon }
+        return .symbol(name)
     }
 
     static func isPulsing(since start: Date?, now: Date) -> Bool {

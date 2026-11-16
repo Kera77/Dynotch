@@ -15,6 +15,9 @@ final class NotchController {
     let notifications: NotificationService
     let claudeUsage: ClaudeUsageService
     let badges: BadgeService
+    let calls: CallService
+    private var callObserver: AnyCancellable?
+    var callIsShown = false
     private let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
@@ -28,7 +31,7 @@ final class NotchController {
     private var hoverTimer: Timer?
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
-    private var swipe = SwipeDetector()
+    var swipe = SwipeDetector()
     var dayStepper = DayStepper()
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
@@ -43,6 +46,7 @@ final class NotchController {
         notifications = services.notifications
         claudeUsage = services.claudeUsage
         badges = services.badges
+        calls = services.calls
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -54,7 +58,8 @@ final class NotchController {
         var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
-            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges
+            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
+            calls: services.calls, keyboardLock: services.keyboardLock
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -87,6 +92,11 @@ final class NotchController {
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
             MainActor.assumeIsolated { self?.sizeChanged(large: large) }
         }
+        callObserver = calls.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.callChanged() }
+            }
+        }
         // Fires before the change; look at the new state on the next run loop turn.
         settingsObserver = model.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
@@ -110,6 +120,7 @@ final class NotchController {
     /// The panel takes keyboard focus only for the settings and the calculator. Opening by
     /// hover never steals focus from the app being used: then a click into the panel does it.
     private func updateKeyboardFocus() {
+        guard !callIsShown else { return }
         let wantsKeyboard = model.wantsKeyboard
         let openedJustNow = model.isExpanded && !wasExpanded
         wasExpanded = model.isExpanded
@@ -130,6 +141,7 @@ final class NotchController {
         globalMonitor = nil
         localMonitor = nil
         sizeObserver = nil
+        callObserver = nil
         settingsObserver = nil
         closeTask?.cancel()
         stopHoverTimer()
@@ -157,7 +169,9 @@ final class NotchController {
     }
 
     private func pointerMoved() {
-        if model.isExpanded {
+        if callIsShown {
+            updateCallInteraction()
+        } else if model.isExpanded {
             evaluatePointerWhileExpanded()
         } else if hoverZone.contains(NSEvent.mouseLocation) {
             setHoveredIndicator(nil)
@@ -258,51 +272,5 @@ final class NotchController {
             pointerMoved()
             return false
         }
-    }
-
-    // MARK: - Swipe (spec S-1…S-4)
-
-    private func handleScroll(_ event: NSEvent) -> Bool {
-        if !model.isExpanded { return handleCollapsedScroll(event) }
-        // The settings scroll on their own; no feature switching there.
-        guard !model.isShowingSettings, !model.isShowingNotifications else { return false }
-
-        let phase: SwipeDetector.Phase
-        if event.phase.contains(.began) {
-            phase = .began
-        } else if event.phase.contains(.changed) {
-            phase = .changed
-        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            phase = .ended
-        } else {
-            phase = .none
-        }
-        // Normalize so positive = fingers moved right, regardless of "natural scrolling".
-        let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
-        let isMomentum = !event.momentumPhase.isEmpty
-        if phase == .began { gestureSwitchedFeature = false }
-
-        // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4) —
-        // but not the rest of a swipe that just switched to the calendar: that needs a new one.
-        if model.currentFeature == .calendar, !model.isLarge,
-           model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
-            if gestureSwitchedFeature { return true }
-            return stepDays(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY)
-        }
-
-        if let direction = swipe.handle(
-            phase: phase,
-            isMomentum: isMomentum,
-            fingerDeltaX: fingerDeltaX,
-            deltaY: event.scrollingDeltaY
-        ) {
-            let before = model.currentFeature
-            withAnimation(Self.animation) { model.step(direction) }
-            if model.currentFeature != before {
-                gestureSwitchedFeature = true
-                Haptics.perform(.featureSwitch, settings: settings)
-            }
-        }
-        return swipe.isHorizontalGesture && (phase != .none || isMomentum)
     }
 }

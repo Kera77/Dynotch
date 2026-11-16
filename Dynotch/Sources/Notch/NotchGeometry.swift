@@ -80,6 +80,14 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: max(notchSize.width + 140, 320), height: notchSize.height + 30)
     }
 
+    /// The closed notch opened for an incoming call (spec P-1), taller with the message field.
+    func callSize(composing: Bool) -> CGSize {
+        CGSize(
+            width: max(notchSize.width + 200, 400),
+            height: notchSize.height + CallView.rowHeight + (composing ? CallView.composeHeight : 0)
+        )
+    }
+
     /// Size of the opened panel while it shows the settings: the settings plus the top row.
     var settingsSize: CGSize {
         CGSize(

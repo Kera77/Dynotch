@@ -16,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
         },
         hud: HUDService(settings: settings),
-        badges: BadgeService()
+        badges: BadgeService(),
+        calls: CallService(settings: settings),
+        keyboardLock: KeyboardLock()
     )
     private lazy var settingsWindow = SettingsWindowController(
         settings: settings, calendar: services.calendar, notifications: services.notifications, badges: services.badges
@@ -37,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.claudeUsage.start()
         services.hud.start()
         services.badges.start()
+        services.calls.start()
         NSApp.mainMenu = EditMenu.make()
 
         let manager = NotchManager(services: services) { [weak self] in

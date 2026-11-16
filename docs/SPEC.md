@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.20 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.21 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -296,11 +296,28 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | B-1 | **Beállítások › App badges** fül: a gépen lévő összes alkalmazás (Applications mappák) kereshető listából hozzáadható; a hozzáadott appok egyenként **ki- és bekapcsolhatók**, eltávolíthatók. |
 | B-2 | **Adatforrás:** az app Dock-ikonján lévő jelvény (szám), a Dock Accessibility-felületéről, 2 másodpercenként. Kisegítő lehetőségek (Accessibility) engedély kell hozzá; ha nincs, a fül jelzi. |
-| B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
+| B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude, valamint fehér **Beeper, Google Chat és Gmail** jel), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
 | B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
-| B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Az app indulásakor már meglévő jelvény nem számít újnak. |
+| B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
 | B-6 | **Kattintás** az ikonra megnyitja a hozzá tartozó alkalmazást. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
+
+## 4i. Billentyűzetzár (v0.21)
+
+| # | Követelmény |
+|---|-------------|
+| KL-1 | A lenyitott notch jobb felső sorában, a beállítások (fogaskerék) mellett **billentyűzet ikonú gomb**: kikapcsolva szürke, bekapcsolva kék. |
+| KL-2 | Bekapcsolva **minden billentyűleütést letilt** (betűk, módosítók, médiabillentyűk), hogy a billentyűzet bekapcsolt gép mellett is takarítható legyen. Kisegítő lehetőségek engedély kell hozzá. |
+| KL-3 | Kikapcsolni csak egérrel/trackpaddel lehet, ugyanazzal a gombbal. Az app újraindítása után mindig kikapcsolt. |
+
+## 4j. Bejövő hívások (v0.21)
+
+| # | Követelmény |
+|---|-------------|
+| P-1 | A bejövő (iPhone-ról átirányított vagy FaceTime) hívás **a notchban jelenik meg**: kör alakú monogram, a hívás eredete („from iPhone”) és a hívó neve vagy száma. A hívást az app a macOS saját hívásbanneréből ismeri fel (Accessibility), mert macOS-en nincs hívás-API. Kikapcsolható (Beállítások › General). |
+| P-2 | **Felvétel** (zöld) és **elutasítás** (piros) gomb: a macOS-banner megfelelő gombját nyomja meg. A hívás végén (felvétel, elutasítás, a hívó leteszi) a kártya eltűnik. |
+| P-3 | Harmadik gomb: **üzenet**. Kattintásra beviteli mező jelenik meg; **Enterre** SMS-t (ha nincs SMS-továbbítás, iMessage-et) küld a hívónak a Messages appon keresztül, majd elutasítja a hívást. A számot a banner szövegéből, név esetén a Névjegyekből veszi (engedély kell). |
+| P-4 | Hívás közben a kártya elsőbbséget élvez a notch többi jelzésével szemben; a notch hoverre nem nyílik le. |
 
 ## 5. Nyitott kérdések
 
@@ -347,5 +364,6 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.21** | Bejövő hívások a notchban (felvétel, elutasítás, SMS); billentyűzetzár; Beeper/Google Chat/Gmail jelvényikonok; hoverre megálló pulzálás |
 | **v0.20** | App-jelvények (olvasatlan értesítések száma a notch mellett); fehér Claude-ikon, szint szerinti színek |
 | **v0.20+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

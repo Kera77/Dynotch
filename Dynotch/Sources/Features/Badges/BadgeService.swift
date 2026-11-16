@@ -6,6 +6,7 @@ import Combine
 @MainActor
 final class BadgeService: ObservableObject {
     private static let appsKey = "badgeApps"
+    private static let brandIconsKey = "badgeBrandIcons"
     private static let interval: TimeInterval = 2
 
     /// The chosen apps in the order they stand beside the notch.
@@ -30,7 +31,18 @@ final class BadgeService: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = defaults.data(forKey: Self.appsKey).flatMap { try? JSONDecoder().decode([BadgeApp].self, from: $0) }
-        apps = stored ?? []
+        var loaded = stored ?? []
+        if !defaults.bool(forKey: Self.brandIconsKey) {
+            // Once: the generic glyphs of Beeper, Google Chat and Gmail become their own marks.
+            loaded = loaded.map { app in
+                var app = app
+                app.icon = BadgeTracker.upgradedIcon(for: app)
+                return app
+            }
+            defaults.set(true, forKey: Self.brandIconsKey)
+        }
+        apps = loaded
+        save()
     }
 
     /// Enabled apps that have a badge now.
@@ -103,6 +115,11 @@ final class BadgeService: ObservableObject {
         hasBaseline = true
         if updated != pulses { pulses = updated }
         if current != labels { labels = current }
+    }
+
+    /// The pointer was on the badge: it was noticed, so it stops pulsing (spec B-5).
+    func acknowledge(_ bundleID: String) {
+        if pulses[bundleID] != nil { pulses[bundleID] = nil }
     }
 
     // MARK: - Choosing apps (spec B-1, B-3)

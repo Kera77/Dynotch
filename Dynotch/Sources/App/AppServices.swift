@@ -12,4 +12,6 @@ struct AppServices {
     let claudeUsage: ClaudeUsageService
     let hud: HUDService
     let badges: BadgeService
+    let calls: CallService
+    let keyboardLock: KeyboardLock
 }

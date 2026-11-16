@@ -39,6 +39,7 @@ final class AppSettings: ObservableObject {
         static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
+        static let calls = "calls"
     }
 
     private let defaults: UserDefaults
@@ -105,6 +106,11 @@ final class AppSettings: ObservableObject {
     /// Volume and brightness beside the notch instead of the macOS overlay (spec A-1).
     @Published var hudEnabled: Bool {
         didSet { defaults.set(hudEnabled, forKey: Key.hud) }
+    }
+
+    /// Incoming calls in the notch (spec P-1).
+    @Published var callsEnabled: Bool {
+        didSet { defaults.set(callsEnabled, forKey: Key.calls) }
     }
 
     /// Keep the session usage beside the notch even below 70 % (spec CL-6b).
@@ -202,6 +208,7 @@ final class AppSettings: ObservableObject {
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
+        callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true

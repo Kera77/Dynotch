@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-11-16
+
+### Added
+- Incoming calls in the notch: caller, Answer, Decline, and a message button whose text field
+  sends a text to the caller on Enter (then declines the call).
+- Keyboard lock button next to the settings gear: blocks all keys while on, for cleaning the keyboard.
+- App badges: white Beeper, Google Chat and Gmail icons.
+
+### Changed
+- An app badge stops pulsing once the pointer is on it.
+
 ## [0.20.0] - 2026-11-16
 
 ### Added

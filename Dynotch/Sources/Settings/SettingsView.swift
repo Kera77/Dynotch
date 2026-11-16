@@ -152,6 +152,14 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Incoming calls in the notch", isOn: $settings.callsEnabled)
+            } footer: {
+                Text("Answer, decline or reply with a text. Uses the macOS call banner (needs Accessibility); "
+                    + "texting uses Messages and Contacts.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
                 Text("A light tap when the notch opens, when you swipe between features and between days.")
