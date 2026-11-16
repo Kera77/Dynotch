@@ -44,8 +44,8 @@ enum ClaudeUsageParser {
 
     /// One entry of "limits": {kind, group, percent, resets_at, is_active, severity}.
     static func limit(fromListEntry entry: [String: Any]) -> UsageLimit? {
+        // "is_active" only marks the limit that currently binds; every limit is shown.
         guard let percent = (entry["percent"] as? NSNumber)?.doubleValue else { return nil }
-        if let active = entry["is_active"] as? Bool, !active { return nil }
         let kind = entry["kind"] as? String ?? ""
         let group = entry["group"] as? String ?? ""
         let id = [kind, group].filter { !$0.isEmpty }.joined(separator: ":")
@@ -98,7 +98,15 @@ enum ClaudeUsageParser {
             "kind=\($0["kind"] as? String ?? "-") group=\($0["group"] as? String ?? "-") "
                 + "active=\($0["is_active"] as? Bool ?? false) severity=\($0["severity"] as? String ?? "-")"
         }
+        let breakdown = ((json["seven_day_breakdown"] as? [String: Any])?["rows"] as? [[String: Any]] ?? []).map {
+            "\($0["key"] as? String ?? "-")=\($0["display_name"] as? String ?? "-")"
+        }
+        let shares = (json["weekly_scoped_shares"] as? [[String: Any]] ?? []).map {
+            "limit_index=\(($0["limit_index"] as? NSNumber)?.intValue ?? -1)"
+        }
         return "limits: " + limits.joined(separator: "; ")
+            + "\nbreakdown rows: " + breakdown.joined(separator: ", ")
+            + "\nscoped shares: " + shares.joined(separator: ", ")
     }
 
     /// Shape of the response for the diagnostics log: keys and value types, no values.

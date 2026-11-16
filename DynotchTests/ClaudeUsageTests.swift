@@ -41,8 +41,8 @@ struct ClaudeUsageTests {
         }
         """
         let limits = try ClaudeUsageParser.limits(from: Data(json.utf8))
-        #expect(limits.map(\.title) == ["Session (5 hr)", "Weekly (7 day)", "Fable limit"])
-        #expect(limits.map(\.utilization) == [69, 51, 79])
+        #expect(limits.map(\.title) == ["Session (5 hr)", "Weekly (7 day)", "Fable limit", "Old limit"])
+        #expect(limits.map(\.utilization) == [69, 51, 79, 5])
         #expect(limits[2].resetsAt == ClaudeUsageParser.date(from: "2026-11-17T09:00:00Z"))
     }
 

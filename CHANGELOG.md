@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.11.3] - 2026-11-16
+
+### Fixed
+- Claude usage shows every limit, not only the one currently binding.
+
 ## [0.11.2] - 2026-11-16
 
 ### Changed
