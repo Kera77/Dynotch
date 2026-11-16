@@ -57,12 +57,9 @@ final class CallService: ObservableObject {
         guard !pids.isEmpty, !isScanning else { return }
         isScanning = true
         let current = call?.pid
+        let candidates = Array(pids)
         Task { [weak self] in
-            let found = await Task.detached { () -> IncomingCall? in
-                // The process already known to show the call first.
-                let order = pids.sorted { ($0 == current ? 0 : 1) < ($1 == current ? 0 : 1) }
-                return order.lazy.compactMap(CallBannerScanner.call(in:)).first
-            }.value
+            let found = await Task.detached { CallBannerScanner.firstCall(in: candidates, preferring: current) }.value
             self?.isScanning = false
             self?.update(found)
         }
@@ -130,16 +127,7 @@ final class CallService: ObservableObject {
         isSending = true
         sendError = nil
         Task { [weak self] in
-            let failure = await Task.detached { () -> CallMessenger.Failure? in
-                do {
-                    try CallMessenger.send(text, toCaller: caller)
-                    return nil
-                } catch let failure as CallMessenger.Failure {
-                    return failure
-                } catch {
-                    return .failed(error.localizedDescription)
-                }
-            }.value
+            let failure = await Task.detached { CallMessenger.failure(sending: text, toCaller: caller) }.value
             guard let self else { return }
             self.isSending = false
             if let failure {

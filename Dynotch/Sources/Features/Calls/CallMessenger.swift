@@ -48,6 +48,18 @@ enum CallMessenger {
         return (mobile ?? numbers.first)?.value.stringValue
     }
 
+    /// Sends the text; nil when it went out.
+    static func failure(sending text: String, toCaller caller: String) -> Failure? {
+        do {
+            try send(text, toCaller: caller)
+            return nil
+        } catch let failure as Failure {
+            return failure
+        } catch {
+            return .failed(error.localizedDescription)
+        }
+    }
+
     static func send(_ text: String, toCaller caller: String) throws {
         guard let number = number(for: caller) else { throw Failure.noNumber }
         let process = Process()

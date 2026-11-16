@@ -47,6 +47,12 @@ enum CallBannerScanner {
         return IncomingCall(pid: pid, caller: description.caller, detail: description.detail)
     }
 
+    /// The first call among the processes; the one already known to show it is looked at first.
+    static func firstCall(in pids: [pid_t], preferring preferred: pid_t?) -> IncomingCall? {
+        let order = pids.sorted { ($0 == preferred ? 0 : 1) < ($1 == preferred ? 0 : 1) }
+        return order.lazy.compactMap { call(in: $0) }.first
+    }
+
     /// Button labels and action names a process shows, for the log; no other text.
     static func labels(in pid: pid_t) -> [String] {
         banner(in: pid).labels
