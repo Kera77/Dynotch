@@ -155,7 +155,20 @@ enum ClaudeTranscript {
         let size = (try? handle.seekToEnd()) ?? 0
         try? handle.seek(toOffset: size > UInt64(tailLength) ? size - UInt64(tailLength) : 0)
         let data = (try? handle.readToEnd()) ?? Data()
-        return pendingTasks(in: String(decoding: data, as: UTF8.self))
+        return pendingTasks(in: wholeLines(in: data, cutAtStart: size > UInt64(tailLength), cutAtEnd: false))
+    }
+
+    /// The text of a piece of a file, without the lines the piece cuts in half (a cut may also
+    /// fall inside a character, which would make the whole piece unreadable).
+    static func wholeLines(in data: Data, cutAtStart: Bool, cutAtEnd: Bool) -> String {
+        var piece = data
+        if cutAtStart, let newline = piece.firstIndex(of: 0x0A) {
+            piece = piece.suffix(from: piece.index(after: newline))
+        }
+        if cutAtEnd, let newline = piece.lastIndex(of: 0x0A) {
+            piece = piece.prefix(upTo: newline)
+        }
+        return String(bytes: piece, encoding: .utf8) ?? ""
     }
 
     /// Background tasks that were started and have neither reported back nor been stopped.

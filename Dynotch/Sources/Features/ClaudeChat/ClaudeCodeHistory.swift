@@ -45,12 +45,11 @@ enum ClaudeCodeHistory {
     private static func read(_ file: URL, fromEnd: Bool, length: UInt64 = 200_000) -> String {
         guard let handle = try? FileHandle(forReadingFrom: file) else { return "" }
         defer { try? handle.close() }
-        if fromEnd {
-            let size = (try? handle.seekToEnd()) ?? 0
-            try? handle.seek(toOffset: size > length ? size - length : 0)
-        }
+        let size = (try? handle.seekToEnd()) ?? 0
+        try? handle.seek(toOffset: fromEnd && size > length ? size - length : 0)
         let data = (try? handle.read(upToCount: Int(length))) ?? Data()
-        return String(decoding: data, as: UTF8.self)
+        let isCut = size > length
+        return ClaudeTranscript.wholeLines(in: data, cutAtStart: fromEnd && isCut, cutAtEnd: !fromEnd && isCut)
     }
 
     /// The title Claude Code gave the session, otherwise its first question.

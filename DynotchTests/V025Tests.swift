@@ -28,6 +28,12 @@ struct V025Tests {
         let two = running + "\n" + #"{"content":"Command running in background with ID: zz9"}"# + "\n<task-id>abc123</task-id>"
         #expect(ClaudeTranscript.pendingTasks(in: two) == ["zz9"])
         #expect(ClaudeTranscript.pendingTasks(in: "nothing here").isEmpty)
+
+        // A piece cut out of a file: the halves of lines (and of characters) at its ends are dropped.
+        let bytes = Data("ő-first\nsecond\nthird-ő".utf8)
+        let piece = bytes.dropFirst(1).dropLast(1)
+        #expect(ClaudeTranscript.wholeLines(in: Data(piece), cutAtStart: true, cutAtEnd: true) == "second")
+        #expect(ClaudeTranscript.wholeLines(in: bytes, cutAtStart: false, cutAtEnd: false) == "ő-first\nsecond\nthird-ő")
     }
 
     @Test func theHookNamesTheTranscriptThroughAFile() throws {
