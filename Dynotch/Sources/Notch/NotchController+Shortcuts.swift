@@ -7,8 +7,15 @@ extension NotchController {
     /// Opens the feature, or closes the panel if it already shows it.
     func toggle(_ feature: FeatureID, pinned: Bool) {
         guard settings.isEnabled(feature), !callIsShown else { return }
-        if model.isExpanded, model.currentFeature == feature, !model.isShowingSettings, !model.isShowingNotifications {
-            collapse()
+        let showsIt = model.isExpanded && model.currentFeature == feature && !model.isPreview
+            && !model.isShowingSettings && !model.isShowingNotifications
+        if showsIt {
+            // Already open by hover: the shortcut pins it instead of closing it (spec SC-2).
+            if pinned, !model.isPinned {
+                model.isPinned = true
+            } else {
+                collapse()
+            }
             return
         }
         if model.isExpanded, model.isShowingNotifications { collapse() }
@@ -18,6 +25,7 @@ extension NotchController {
             setHoveredBadge(nil)
             expand()
         }
+        openFully()
         withAnimation(Self.animation) { model.select(feature) }
         if pinned {
             model.isPinned = true
@@ -47,6 +55,7 @@ extension NotchController {
         setHoveredBadge(nil)
         expand()
         model.isPinned = true
+        isHeldOpen = false
     }
 }
 

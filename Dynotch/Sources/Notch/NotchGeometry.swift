@@ -3,7 +3,8 @@ import CoreGraphics
 /// Where the (physical or virtual) notch sits on a screen, in global screen coordinates
 /// (AppKit: origin bottom-left).
 struct NotchGeometry: Equatable, Sendable {
-    static let virtualNotchWidth: CGFloat = 185
+    /// Even, so the notch is centred on whole pixels and nothing beside it is blurred.
+    static let virtualNotchWidth: CGFloat = 186
     static let minimumVirtualNotchHeight: CGFloat = 24
     static let expandedHeight: CGFloat = 230
     static let expandedSideWidth: CGFloat = 200

@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-11-16
+
+### Added
+- Batteries: a feature listing the battery level of the Mac and of every connected device. A
+  device below 20 % is shown beside the notch (its icon on the left, the level in red on the
+  right) until its warning is closed.
+- A button beside the keyboard lock turns "focus follows mouse" on and off.
+
+### Changed
+- All macOS system notices are shown, under one "System Settings" switch.
+- "Claude finished" names the project that was actually worked on, not the folder the session started in.
+- Rings and countdowns beside the notch are larger and sit on whole pixels, so they are sharp on
+  non-Retina displays.
+- The reminder count in the menu bar is closer to its icon and centred.
+
+### Fixed
+- A shortcut pressed while the notch was already open by hover closed it instead of pinning it.
+
 ## [0.25.0] - 2026-11-16
 
 ### Added

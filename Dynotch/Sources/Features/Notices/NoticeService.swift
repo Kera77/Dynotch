@@ -31,9 +31,12 @@ final class NoticeService: ObservableObject {
         }
         // Claude also stops while background work is still running; that is not "finished".
         Task { [weak self] in
-            let pending = await Task.detached { ClaudeTranscript.pendingTasks(inFileAt: transcript) }.value
+            let summary = await Task.detached { ClaudeTranscript.summary(ofFileAt: transcript) }.value
+            let pending = summary.pending
             if pending.isEmpty {
-                self?.show(notice)
+                // The session may have worked in another folder than the one it was started in.
+                let project = summary.project ?? notice.detail
+                self?.show(StickyNotice(title: notice.title, detail: project, date: notice.date))
             } else {
                 DiagnosticsLog.append("claude-hook", "stopped with \(pending.count) background task(s) running: no notice")
             }
@@ -149,13 +152,58 @@ enum ClaudeTranscript {
     /// Only the end of the file is read: old, forgotten tasks do not count.
     static let tailLength = 3_000_000
 
-    static func pendingTasks(inFileAt path: String) -> Set<String> {
-        guard let handle = FileHandle(forReadingAtPath: path) else { return [] }
+    struct Summary: Sendable {
+        let pending: Set<String>
+        /// The project most of the recent work was done in.
+        let project: String?
+    }
+
+    static func summary(ofFileAt path: String) -> Summary {
+        guard let handle = FileHandle(forReadingAtPath: path) else { return Summary(pending: [], project: nil) }
         defer { try? handle.close() }
         let size = (try? handle.seekToEnd()) ?? 0
         try? handle.seek(toOffset: size > UInt64(tailLength) ? size - UInt64(tailLength) : 0)
         let data = (try? handle.readToEnd()) ?? Data()
-        return pendingTasks(in: wholeLines(in: data, cutAtStart: size > UInt64(tailLength), cutAtEnd: false))
+        let text = wholeLines(in: data, cutAtStart: size > UInt64(tailLength), cutAtEnd: false)
+        let project = project(amongPaths: workedPaths(in: String(text.suffix(400_000)))) { path in
+            FileManager.default.fileExists(atPath: path + "/.git")
+        }
+        return Summary(pending: pendingTasks(in: text), project: project)
+    }
+
+    /// The folders the session touched: files it edited or read, and folders it changed into.
+    static func workedPaths(in text: String) -> [String] {
+        let files = matches(#"file_path\\?"\s*:\s*\\?"(/[^"\\]+)"#, in: text)
+        let folders = matches(#"cd (/[A-Za-z0-9_./-]+)"#, in: text)
+        return files.map { ($0 as NSString).deletingLastPathComponent } + folders
+    }
+
+    /// The name of the repository most of the paths lie in.
+    /// - Parameter isRepository: whether a folder is the root of a repository.
+    static func project(amongPaths paths: [String], isRepository: (String) -> Bool) -> String? {
+        var roots: [String: String?] = [:]
+        var counts: [String: Int] = [:]
+        for path in paths {
+            let root: String?
+            if let known = roots[path] {
+                root = known
+            } else {
+                var folder = path
+                var found: String?
+                while folder.count > 1 {
+                    if isRepository(folder) {
+                        found = folder
+                        break
+                    }
+                    folder = (folder as NSString).deletingLastPathComponent
+                }
+                root = found
+                roots[path] = found
+            }
+            if let root { counts[root, default: 0] += 1 }
+        }
+        let best = counts.max { ($0.value, $1.key) < ($1.value, $0.key) }
+        return best.map { ($0.key as NSString).lastPathComponent }
     }
 
     /// The text of a piece of a file, without the lines the piece cuts in half (a cut may also
@@ -180,10 +228,14 @@ enum ClaudeTranscript {
     }
 
     private static func ids(matching pattern: String, in text: String) -> Set<String> {
+        Set(matches(pattern, in: text))
+    }
+
+    private static func matches(_ pattern: String, in text: String) -> [String] {
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         let range = NSRange(text.startIndex..., in: text)
-        return Set(regex.matches(in: text, range: range).compactMap { match in
+        return regex.matches(in: text, range: range).compactMap { match in
             Range(match.range(at: 1), in: text).map { String(text[$0]) }
-        })
+        }
     }
 }

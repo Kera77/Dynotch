@@ -21,7 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         keyboardLock: KeyboardLock(),
         shortcuts: ShortcutStore(),
         notices: NoticeService(),
-        chat: ClaudeChatService()
+        chat: ClaudeChatService(),
+        battery: BatteryService(settings: settings)
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -45,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.badges.start()
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
+        services.battery.start()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
             notices.show(StickyNotice(title: "Claude answered", detail: chat.title, date: Date(), opensChat: true))

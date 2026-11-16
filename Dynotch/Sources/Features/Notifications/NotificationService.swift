@@ -62,7 +62,9 @@ final class NotificationService: ObservableObject {
     }
 
     func isEnabled(_ app: NotificationApp) -> Bool {
-        settings.isNotificationAppEnabled(app.identifier, default: app.isDefaultEnabled)
+        // Every system notice follows the one "System Settings" switch (spec E-2c).
+        let key = app.isSystem ? NotificationApp.systemGroupID : app.identifier
+        return settings.isNotificationAppEnabled(key, default: app.isDefaultEnabled)
     }
 
     /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
@@ -119,7 +121,7 @@ final class NotificationService: ObservableObject {
     /// Whether the card gets a reply field (spec E-11): chats, not mail or system notices.
     func canReply(to notification: AppNotification) -> Bool {
         let app = catalog.app(for: notification.appIdentifier)
-        return app.kind == .message && NotificationApp.systemName(for: notification.appIdentifier) == nil
+        return app.kind == .message && !app.isSystem
     }
 
     /// Sends a reply: Beeper through its API, other chats by typing into the conversation.
@@ -148,11 +150,13 @@ final class NotificationService: ObservableObject {
 
     func refreshApps() {
         guard let identifiers = try? database?.appIdentifiers() else { return }
-        apps = identifiers
+        let found = identifiers
             .map(catalog.app(for:))
             // The shared Web App host is not an app of its own; its notifications are attributed.
-            .filter { $0.url != nil && $0.identifier.lowercased() != "com.apple.safari.webapp" }
+            // System notices are listed once, as "System Settings".
+            .filter { $0.url != nil && !$0.isSystem && $0.identifier.lowercased() != "com.apple.safari.webapp" }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        apps = [catalog.app(for: NotificationApp.systemGroupID)] + found
     }
 
     /// Notifications posted under a shared Safari identifier are attributed to the web app of
@@ -163,14 +167,6 @@ final class NotificationService: ObservableObject {
             notification.appIdentifier, site: notification.site, apps: pairs
         )
         return identifier == notification.appIdentifier ? notification : notification.with(appIdentifier: identifier)
-    }
-
-    func openFullDiskAccessSettings() {
-        Self.openSettings("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
-    }
-
-    func openNotificationSettings() {
-        Self.openSettings("x-apple.systempreferences:com.apple.Notifications-Settings.extension")
     }
 
     // MARK: - Polling
@@ -305,6 +301,16 @@ final class NotificationService: ObservableObject {
             self.peekTask = nil
             if self.peek?.id == notification.id { self.peek = nil }
         }
+    }
+}
+
+extension NotificationService {
+    func openFullDiskAccessSettings() {
+        Self.openSettings("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+    }
+
+    func openNotificationSettings() {
+        Self.openSettings("x-apple.systempreferences:com.apple.Notifications-Settings.extension")
     }
 
     private static func openSettings(_ link: String) {

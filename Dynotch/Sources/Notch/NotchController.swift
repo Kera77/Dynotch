@@ -20,6 +20,7 @@ final class NotchController {
     var callIsShown = false
     let notices: NoticeService
     let chat: ClaudeChatService
+    let battery: BatteryService
     private var chatObserver: AnyCancellable?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
@@ -55,6 +56,7 @@ final class NotchController {
         calls = services.calls
         notices = services.notices
         chat = services.chat
+        battery = services.battery
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -68,7 +70,7 @@ final class NotchController {
             notifications: notifications, calculator: services.calculator, notes: services.notes,
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
-            notices: services.notices, chat: services.chat, shortcuts: services.shortcuts
+            notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts
         ) { [weak self] in
             self?.settingsButtonPressed()
         }

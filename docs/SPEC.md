@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.25 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.26 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -215,6 +215,7 @@
 
 | # | Követelmény |
 |---|-------------|
+| E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 
@@ -283,6 +284,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-7 | *Settings › Focus* fül: be/ki, várakozás, és rövid leírás arról, mit csinál a funkció. |
 | F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
 | F-8 | (v0.25) **Az aktív alkalmazáson belül a fókusz nem vált ablakot** (az app maga dönti el, melyik ablaka aktív), csak másik alkalmazásra. Így a párbeszédablakok és felugró ablakok nem villódznak. Ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. |
+| F-9 | (v0.26) A lenyitott notch jobb felső sorában, a billentyűzetzár mellett **felfelé nyíl ikonú kapcsoló**: be- és kikapcsolja a funkciót (bekapcsolva kék). |
 
 ---
 
@@ -356,6 +358,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | CN-1 | Amikor a Claude Code befejez egy feladatot, a becsukott notch alatt megjelenik egy sor: fehér Claude-ikon, „Claude finished”, a projekt neve és az időpont. **Csak kétujjas felfelé swipe-ra tűnik el.** Ha egy jelző részletei (hover, meeting-bejelentés) nyitva vannak, azok látszanak helyette. |
 | CN-3 | A jelzés **csak akkor jelenik meg, ha a Claude Code mindennel végzett**: ha a leállás pillanatában még fut háttérfeladata (a munkamenet naplója szerint elindult, de nem jelentett vissza és nem lett leállítva), nincs jelzés; az a végső leálláskor jön. A Dynotch saját chatjének futásai nem váltják ki. |
+| CN-4 | (v0.26) A jelzés azt a projektet nevezi meg, amelyben a munkamenet **ténylegesen dolgozott** (a napló utolsó szakaszában legtöbbet érintett git-repó), nem azt a mappát, ahonnan a munkamenet indult. |
 | CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
 
 ## 4n. Claude a notchban (v0.24)
@@ -379,6 +382,14 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-2 | Beállítás: **hány másodperc hover után nyíljon ki teljesen** (0–5 s, fél másodperces lépésekben; 0 = magától soha). |
 | PV-3 | Beállítás: **kattintásra nyíljon ki teljesen**. A gyorsbillentyűk, a jelvények és a „Claude answered” sor mindig a teljes panelt nyitják. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
+
+## 4p. Akkumulátorok (v0.26)
+
+| # | Követelmény |
+|---|-------------|
+| BT-1 | Új modul **Batteries**: a Mac és minden csatlakoztatott eszköz (billentyűzet, egér, trackpad, fülhallgató és tokja…) egy-egy sor: ikon, név, százalék, akkujel (zöld, 20% alatt piros, töltés közben villám). |
+| BT-2 | Adatforrás: a Mac saját akkuja a rendszer áramforrás-adataiból; a Magic-eszközök az I/O Registryből (`ioreg`); az AirPods és más Bluetooth-eszközök a rendszerprofilból (`system_profiler`). Frissítés 2 percenként és a modul megnyitásakor. |
+| BT-3 | Ha egy eszköz **20% alá** esik (és nem tölt), a becsukott notch mellett megjelenik: **bal oldalt az eszköz ikonja, jobb oldalt pirossal a töltöttség**. Hoverre a neve és egy **X**; **amíg nem X-elem ki, ott marad**. Kiikszelve csak akkor jön újra, ha az eszközt közben 30% fölé töltötték, majd megint lemerül. |
 
 ## 5. Nyitott kérdések
 
@@ -425,6 +436,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.26** | Akkumulátor-modul és merülésjelzés; minden rendszerértesítés; a „Claude finished” a valódi projektet írja; élesebb körök; fókusz-kapcsoló a menüsorban |
 | **v0.25** | Előnézet hoverre; Claude Code-előzmények, becsukható oldalsáv és menüsor-ikon a Claude-modulban; „Claude finished” csak a háttérmunka végén; kereső a beállítások applistáiban; appon belül nincs fókuszváltás |
 | **v0.24** | Claude-chat a notchban; rögzítés-gyorsbillentyű; jelvény bal/jobb klikk; appban elintézett értesítések eltűnnek; hívó csak névvel, iMessage-tartalék; Beeper-kulcs fájlban; fókusz-villódzás javítása |
 | **v0.23** | Teendőlista a jegyzetekben; modulonkénti gyorsbillentyűk; „Claude befejezte” jelzés; hívó neve és képe |

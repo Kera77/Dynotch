@@ -6,10 +6,24 @@ struct NotificationApp: Identifiable {
     let name: String
     let url: URL?
     let icon: NSImage?
+    /// A notice of macOS itself: all of them are switched together as "System Settings".
+    var isSystem = false
 
     var id: String { identifier }
     var kind: NotificationKind { NotificationKind.detect(appName: name) }
-    var isDefaultEnabled: Bool { Self.isDefaultEnabled(identifier: identifier, name: name) }
+    var isDefaultEnabled: Bool { isSystem || Self.isDefaultEnabled(identifier: identifier, name: name) }
+
+    /// The one switch for every system notice (spec E-2c).
+    static let systemGroupID = "dynotch.system-settings"
+    static let systemGroupName = "System Settings"
+
+    /// A notice of macOS itself: a known system source, or an Apple service that is not an app
+    /// (it has no application to open).
+    static func isSystem(identifier: String, hasApplication: Bool) -> Bool {
+        if identifier == systemGroupID || systemName(for: identifier) != nil { return true }
+        let lowered = identifier.lowercased()
+        return !hasApplication && (lowered.hasPrefix("com.apple.") || lowered.hasPrefix("_system_center_"))
+    }
 
     /// System Settings notices (spec E-2c): identifier part → name shown.
     static let systemSources: [(match: String, name: String)] = [
@@ -42,17 +56,20 @@ final class NotificationAppCatalog {
     func app(for identifier: String) -> NotificationApp {
         if let cached = cache[identifier] { return cached }
         // System notices have no app of their own: show them as System Settings.
-        let systemName = NotificationApp.systemName(for: identifier)
-        let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier)
-            ?? (systemName != nil ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences") : nil)
+        let ownURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier)
+        let isSystem = NotificationApp.isSystem(identifier: identifier, hasApplication: ownURL != nil)
+        // System notices have no app of their own: show them as System Settings.
+        let url = isSystem ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences") : ownURL
+        let systemName = isSystem ? (NotificationApp.systemName(for: identifier) ?? NotificationApp.systemGroupName) : nil
         let name = systemName
             ?? url.map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") }
-        let app = NotificationApp(
+        var app = NotificationApp(
             identifier: identifier,
             name: name ?? identifier,
             url: url,
             icon: url.map { NSWorkspace.shared.icon(forFile: $0.path) }
         )
+        app.isSystem = isSystem
         cache[identifier] = app
         return app
     }

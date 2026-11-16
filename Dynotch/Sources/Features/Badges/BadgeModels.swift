@@ -74,8 +74,9 @@ struct BadgePreset: Identifiable, Equatable, Sendable {
 /// An app with unread notifications, as drawn beside the notch (spec B-4).
 struct BadgeItem: Identifiable, Equatable, Sendable {
     static let iconSize: CGFloat = 16
-    static let gap: CGFloat = 3
-    static let characterWidth: CGFloat = 7
+    /// Even numbers: the row then sits on whole pixels on non-Retina displays too.
+    static let gap: CGFloat = 4
+    static let characterWidth: CGFloat = 8
 
     let app: BadgeApp
     /// The Dock badge's text, usually a number.

@@ -85,6 +85,9 @@ extension NotchView {
         case .claudeChat:
             let lastMessage = chat.selected?.messages.last?.text ?? ""
             detail = chat.isWorking ? "Working…" : FeaturePreview.line(of: lastMessage, fallback: "Ask Claude anything")
+        case .battery:
+            let lowest = battery.devices.min { $0.level < $1.level }
+            detail = lowest.map { "\(battery.devices.count) devices · lowest: \($0.name) \($0.level)%" } ?? "No device found"
         case .home, .info:
             detail = "Hover longer or click to open"
         }

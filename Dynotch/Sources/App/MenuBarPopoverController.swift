@@ -83,8 +83,13 @@ final class MenuBarPopoverController: NSObject {
 
     private func updateBadge() {
         guard let button = statusItem?.button, let badge else { return }
-        let title = badge.value().map { " \($0)" } ?? ""
-        if button.title != title { button.title = title }
+        // Close to the icon and centred on its height (spec R-7).
+        let title = badge.value().map { "\($0)" } ?? ""
+        guard button.title != title else { return }
+        button.attributedTitle = NSAttributedString(string: title, attributes: [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
+            .baselineOffset: 1
+        ])
     }
 
     /// The icon is shown only while the feature is enabled.
@@ -96,6 +101,7 @@ final class MenuBarPopoverController: NSObject {
             let item = NSStatusBar.system.statusItem(withLength: length)
             item.button?.image = NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
             item.button?.imagePosition = .imageLeading
+            item.button?.imageHugsTitle = true
             item.button?.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .medium)
             item.button?.toolTip = feature.title
             item.button?.target = self

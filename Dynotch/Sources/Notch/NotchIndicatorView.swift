@@ -19,7 +19,7 @@ struct NotchIndicatorView: View {
     /// Hides an indicator (spec K-8e, CL-6).
     let dismiss: (IndicatorItem) -> Void
 
-    private static let lineWidth: CGFloat = 1.5
+    static let lineWidth: CGFloat = 2
 
     private var layout: IndicatorLayout { IndicatorLayout(items: items, badges: badges) }
 
@@ -91,6 +91,8 @@ struct NotchIndicatorView: View {
             Image(systemName: meetings.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(color)
+        case .battery(let device):
+            BatteryDeviceIcon(kind: device.kind, size: 14)
         case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
             BrandGlyphView(glyph: .claude, size: 16)
@@ -122,6 +124,12 @@ struct NotchIndicatorView: View {
         case .working:
             WorkingDots()
                 .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
+        case .battery(let device):
+            Text("\(device.level)%")
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(BatteryFeatureView.red)
+                .frame(width: IndicatorLayout.batterySlotWidth, height: IndicatorLayout.capsuleHeight)
         }
     }
 
@@ -146,7 +154,9 @@ struct NotchIndicatorView: View {
                     .stroke(color.opacity(0.9), style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
             )
     }
+}
 
+extension NotchIndicatorView {
     // MARK: - Hover label
 
     @ViewBuilder
@@ -156,6 +166,20 @@ struct NotchIndicatorView: View {
             meetingLabel(for: event, now: now)
         case .usage(let limits):
             usageLabel(for: limits, now: now)
+        case .battery(let device):
+            HStack(spacing: 7) {
+                Text(device.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Text("battery at \(device.level)%")
+                    .font(.system(size: 11))
+                    .foregroundStyle(BatteryFeatureView.red)
+                Spacer(minLength: 8)
+                dismissButton(for: item, help: "Hide until it has been recharged")
+            }
+            .padding(.horizontal, 12)
+            .frame(height: IndicatorLayout.labelHeight - 4)
         case .working:
             HStack(spacing: 7) {
                 Text("Claude is working on your question…")

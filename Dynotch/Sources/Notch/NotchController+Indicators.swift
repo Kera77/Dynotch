@@ -7,7 +7,10 @@ extension NotchController {
     /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
     /// ignores the mouse while closed, so this is computed from the pointer position.
     func updateHoveredIndicator() {
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
+        let items = IndicatorItem.items(
+            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            lowBatteries: battery.warnings
+        )
         let shownBadges = badges.visible
         let layout = IndicatorLayout(items: items, badges: shownBadges)
         let point = NSEvent.mouseLocation
@@ -98,7 +101,10 @@ extension NotchController {
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
+        let items = IndicatorItem.items(
+            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            lowBatteries: battery.warnings
+        )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
         let announced = calendar.announcement.flatMap { announcement in
             items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }

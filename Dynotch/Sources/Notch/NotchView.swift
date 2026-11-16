@@ -15,6 +15,7 @@ struct NotchView: View {
     @ObservedObject var keyboardLock: KeyboardLock
     @ObservedObject var notices: NoticeService
     @ObservedObject var chat: ClaudeChatService
+    @ObservedObject var battery: BatteryService
     let shortcuts: ShortcutStore
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
@@ -54,7 +55,10 @@ struct NotchView: View {
 
     /// Meeting countdowns and the Claude usage beside the closed notch.
     private var indicatorItems: [IndicatorItem] {
-        IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
+        IndicatorItem.items(
+            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            lowBatteries: battery.warnings
+        )
     }
 
     private var indicatorLayout: IndicatorLayout {
@@ -134,6 +138,7 @@ struct NotchView: View {
                             case .meeting(let event): calendar.dismissIndicator(event)
                             case .usage: claudeUsage.dismissIndicator()
                             case .working: break
+                            case .battery(let device): battery.dismissWarning(for: device)
                             }
                         }
                     }
@@ -231,6 +236,8 @@ struct NotchView: View {
 
             // Right side of the notch: settings; later also status (volume/brightness HUD).
             TrailingControls(
+                followsMouse: settings.focusFollowsMouse,
+                toggleFollowsMouse: { settings.focusFollowsMouse.toggle() },
                 isKeyboardLocked: keyboardLock.isLocked,
                 toggleKeyboardLock: { keyboardLock.toggle() },
                 isPinned: model.isPinned,
@@ -287,6 +294,8 @@ struct NotchView: View {
             ClaudeUsageFeatureView(service: claudeUsage, isActive: model.isExpanded && model.currentFeature == .claudeUsage)
         case .claudeChat:
             ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
+        case .battery:
+            BatteryFeatureView(service: battery, isActive: model.isExpanded && model.currentFeature == .battery)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }
@@ -295,6 +304,8 @@ struct NotchView: View {
 
 /// Lock and gear on the right of the panel's top row (spec C-1, SZ-8).
 private struct TrailingControls: View {
+    let followsMouse: Bool
+    let toggleFollowsMouse: () -> Void
     let isKeyboardLocked: Bool
     let toggleKeyboardLock: () -> Void
     let isPinned: Bool
@@ -304,6 +315,16 @@ private struct TrailingControls: View {
 
     var body: some View {
         HStack(spacing: 2) {
+            // Focus follows mouse on and off (spec F-9): blue while on.
+            Button(action: toggleFollowsMouse) {
+                Image(systemName: "arrow.up.square.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 32, height: 22)
+                    .foregroundStyle(followsMouse ? ClaudeUsageView.blue : Color.white.opacity(0.45))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(followsMouse ? "Focus follows the mouse: click to turn off" : "Focus follows the mouse is off: click to turn on")
             // Blocks the keyboard for cleaning (spec KL-1): grey when off, blue when on.
             Button(action: toggleKeyboardLock) {
                 Image(systemName: "keyboard.fill")

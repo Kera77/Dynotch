@@ -30,17 +30,27 @@ enum IndicatorItem: Identifiable, Equatable {
     case usage([UsageLimit])
     /// Claude is writing an answer in the chat (spec CC-4).
     case working
+    /// A device whose battery is low (spec BT-3).
+    case battery(BatteryDevice)
 
     var id: String {
         switch self {
         case .meeting(let event): "meeting-\(event.id)"
         case .usage: "claude-usage"
         case .working: "claude-working"
+        case .battery(let device): "battery-\(device.id)"
         }
     }
 
     var isClaude: Bool {
-        if case .meeting = self { false } else { true }
+        switch self {
+        case .usage, .working: true
+        case .meeting, .battery: false
+        }
+    }
+
+    var isBattery: Bool {
+        if case .battery = self { true } else { false }
     }
 
     /// Width of the item's place right of the notch: a countdown capsule, or the usage ring.
@@ -48,20 +58,24 @@ enum IndicatorItem: Identifiable, Equatable {
         switch self {
         case .meeting: IndicatorLayout.slotWidth
         case .usage, .working: IndicatorLayout.ringSlotWidth
+        case .battery: IndicatorLayout.batterySlotWidth
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery: IndicatorLayout.labelHeight
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
 
     /// Meetings first, the usage last (rightmost).
-    static func items(meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false) -> [IndicatorItem] {
+    static func items(
+        meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = []
+    ) -> [IndicatorItem] {
         meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? []) + (working ? [.working] : [])
+            + lowBatteries.map(IndicatorItem.battery)
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
@@ -70,6 +84,8 @@ enum IndicatorItem: Identifiable, Equatable {
         var slots: [Int] = []
         if let meeting = items.firstIndex(where: { if case .meeting = $0 { true } else { false } }) { slots.append(meeting) }
         if let claude = items.firstIndex(where: \.isClaude) { slots.append(claude) }
+        // Every low device has its own icon.
+        slots += items.indices.filter { items[$0].isBattery }
         return slots
     }
 }
@@ -80,10 +96,12 @@ enum IndicatorItem: Identifiable, Equatable {
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
     /// The AI usage is a ring without text (spec CL-6).
-    static let ringSlotWidth: CGFloat = 26
+    static let ringSlotWidth: CGFloat = 28
+    /// "18%" in red (spec BT-3).
+    static let batterySlotWidth: CGFloat = 34
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
-    static let capsuleHeight: CGFloat = 18
+    static let capsuleHeight: CGFloat = 20
     static let spacing: CGFloat = 6
     static let padding: CGFloat = 8
     /// Height of a meeting's hover label (spec K-8d).
@@ -92,7 +110,7 @@ struct IndicatorLayout: Equatable {
     /// Between two app badges (spec B-4).
     static let badgeSpacing: CGFloat = 8
     /// Room of the thin line between the app badges and the icons.
-    static let separatorWidth: CGFloat = 13
+    static let separatorWidth: CGFloat = 14
 
     /// Width of each place on the right.
     let slotWidths: [CGFloat]

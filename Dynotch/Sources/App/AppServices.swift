@@ -17,4 +17,5 @@ struct AppServices {
     let shortcuts: ShortcutStore
     let notices: NoticeService
     let chat: ClaudeChatService
+    let battery: BatteryService
 }
