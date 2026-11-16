@@ -16,8 +16,8 @@ final class CalendarService: ObservableObject {
     @Published private(set) var events: [CalendarEvent] = []
     /// Events per day (keyed by start of day), for the dots under the dates.
     @Published private(set) var dayCounts: [Date: Int] = [:]
-    /// Event shown beside the closed notch: starting soon, or in progress.
-    @Published private(set) var upcoming: CalendarEvent?
+    /// Events shown beside the closed notch: in progress, or starting soon.
+    @Published private(set) var indicatorEvents: [CalendarEvent] = []
     @Published private(set) var now = Date()
     /// Day whose events are shown (start of day).
     @Published var selectedDay = Calendar.current.startOfDay(for: Date())
@@ -202,10 +202,10 @@ final class CalendarService: ObservableObject {
         let now = Date()
         self.now = now
 
-        let newUpcoming = settings.calendarAlertEnabled && settings.isEnabled(.calendar)
-            ? CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: leadTime)
-            : nil
-        if newUpcoming != upcoming { upcoming = newUpcoming }
+        let newIndicatorEvents = settings.calendarAlertEnabled && settings.isEnabled(.calendar)
+            ? CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: leadTime)
+            : []
+        if newIndicatorEvents != indicatorEvents { indicatorEvents = newIndicatorEvents }
     }
 
     private static func makeEvent(_ event: EKEvent) -> CalendarEvent {

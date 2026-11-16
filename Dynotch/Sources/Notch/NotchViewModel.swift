@@ -13,6 +13,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var notification: AppNotification?
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     @Published var isPinned = false
+    /// Countdown beside the closed notch under the pointer (spec K-8d).
+    @Published var hoveredIndicator: Int?
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 

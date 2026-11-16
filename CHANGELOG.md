@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-16
+
+### Added
+- Reorder the features by dragging their icons in the notch's top row with Command held.
+- Meeting countdowns side by side: every running meeting and every one starting soon (up to 3).
+- Hovering a countdown writes the meeting's name and time below the notch.
+
 ## [0.7.0] - 2026-11-16
 
 ### Added

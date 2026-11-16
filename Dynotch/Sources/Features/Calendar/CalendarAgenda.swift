@@ -85,16 +85,20 @@ enum CalendarAgenda {
         }
     }
 
-    /// The event shown beside the closed notch: the next timed event starting within `leadTime`,
-    /// otherwise the meeting in progress (the most recently started one).
-    static func indicatorEvent(in events: [CalendarEvent], now: Date, leadTime: TimeInterval) -> CalendarEvent? {
+    /// At most this many countdowns sit beside the closed notch.
+    static let maxIndicatorEvents = 3
+
+    /// The events shown beside the closed notch (spec K-7, K-8c): meetings in progress first,
+    /// then timed events starting within `leadTime`, each group by start time.
+    static func indicatorEvents(in events: [CalendarEvent], now: Date, leadTime: TimeInterval) -> [CalendarEvent] {
         let timed = events.filter {
             !$0.isAllDay && !$0.hasEnded(at: now) && $0.end.timeIntervalSince($0.start) < longestTrackedEvent
         }
+        let ongoing = timed.filter { $0.isOngoing(at: now) }.sorted { $0.start < $1.start }
         let soon = timed
             .filter { $0.start > now && $0.start.timeIntervalSince(now) <= leadTime }
-            .min { $0.start < $1.start }
-        return soon ?? timed.filter { $0.isOngoing(at: now) }.max { $0.start < $1.start }
+            .sorted { $0.start < $1.start }
+        return Array((ongoing + soon).prefix(maxIndicatorEvents))
     }
 
     /// Phase, remaining time and fill of the indicator for an event (spec K-7…K-8).

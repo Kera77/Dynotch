@@ -148,8 +148,38 @@ final class NotchController {
         if model.isExpanded {
             evaluatePointerWhileExpanded()
         } else if hoverZone.contains(NSEvent.mouseLocation) {
+            setHoveredIndicator(nil)
             expand()
+        } else {
+            updateHoveredIndicator()
         }
+    }
+
+    /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
+    /// ignores the mouse while closed, so this is computed from the pointer position.
+    private func updateHoveredIndicator() {
+        let count = calendar.indicatorEvents.count
+        guard count > 0, notifications.peek == nil else {
+            setHoveredIndicator(nil)
+            return
+        }
+        let geometry = model.geometry
+        let layout = IndicatorLayout(count: count)
+        let point = NSEvent.mouseLocation
+        if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
+            setHoveredIndicator(slot)
+        } else if model.hoveredIndicator != nil,
+                  geometry.keepOpenZone(for: layout.size(notch: geometry.notchSize, showsLabel: true)).contains(point) {
+            // Moving down onto the name keeps it visible.
+            return
+        } else {
+            setHoveredIndicator(nil)
+        }
+    }
+
+    private func setHoveredIndicator(_ index: Int?) {
+        guard model.hoveredIndicator != index else { return }
+        withAnimation(Self.animation) { model.hoveredIndicator = index }
     }
 
     private func evaluatePointerWhileExpanded() {

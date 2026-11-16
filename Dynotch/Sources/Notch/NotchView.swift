@@ -10,25 +10,29 @@ struct NotchView: View {
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
-    private static let indicatorSideWidth: CGFloat = 60
     /// Content scales up from the notch and fades in with the same spring as the background.
     private static let contentTransition: AnyTransition =
         .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
 
     private var geometry: NotchGeometry { model.geometry }
 
-    /// Closed notch, widened on both sides while an upcoming event is shown (spec K-7).
+    /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
+    /// taller while one of them is hovered (spec K-8d).
     private var collapsedSize: CGSize {
         if notifications.peek != nil { return geometry.peekSize }
-        guard calendar.upcoming != nil else { return geometry.notchSize }
-        return CGSize(
-            width: geometry.notchSize.width + 2 * Self.indicatorSideWidth,
-            height: geometry.notchSize.height
-        )
+        return IndicatorLayout(count: calendar.indicatorEvents.count)
+            .size(notch: geometry.notchSize, showsLabel: hoveredIndicator != nil)
+    }
+
+    private var hoveredIndicator: Int? {
+        model.hoveredIndicator.flatMap { calendar.indicatorEvents.indices.contains($0) ? $0 : nil }
     }
 
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
-    private var cornerRadius: CGFloat { model.isExpanded ? 24 : (notifications.peek != nil ? 16 : 10) }
+    private var cornerRadius: CGFloat {
+        if model.isExpanded { return 24 }
+        return notifications.peek != nil || hoveredIndicator != nil ? 16 : 10
+    }
 
     var body: some View {
         // Content lives inside the black background and is clipped by it, so both grow and
@@ -42,14 +46,14 @@ struct NotchView: View {
                 )
                 .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                 .transition(.opacity)
-            } else if !model.isExpanded, let event = calendar.upcoming {
+            } else if !model.isExpanded, !calendar.indicatorEvents.isEmpty {
                 UpcomingEventIndicator(
-                    event: event,
+                    events: calendar.indicatorEvents,
                     leadTime: calendar.leadTime,
-                    notchWidth: geometry.notchSize.width,
-                    sideWidth: Self.indicatorSideWidth
+                    notchSize: geometry.notchSize,
+                    hoveredIndex: hoveredIndicator
                 )
-                .frame(height: geometry.notchSize.height)
+                .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                 .transition(.opacity)
             }
 
@@ -73,7 +77,8 @@ struct NotchView: View {
         .background(.black)
         .clipShape(shape)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(NotchController.animation, value: calendar.upcoming?.id)
+        .animation(NotchController.animation, value: calendar.indicatorEvents.map(\.id))
+        .animation(NotchController.animation, value: hoveredIndicator)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .environment(\.colorScheme, .dark)
     }
@@ -116,6 +121,8 @@ struct NotchView: View {
                 selected: model.isShowingSettings ? nil : model.currentFeature
             ) { feature in
                 withAnimation(NotchController.animation) { model.select(feature) }
+            } move: { feature, index in
+                withAnimation(NotchController.animation) { settings.moveActiveFeature(feature, toActiveIndex: index) }
             }
             .padding(.leading, 14)
             .frame(width: sideWidth, alignment: .leading)
@@ -207,33 +214,89 @@ private struct TrailingControls: View {
     }
 }
 
-/// Capsule-shaped icon switcher in the panel's top row (spec M-1).
-private struct FeatureSwitcher: View {
+/// Capsule-shaped icon switcher in the panel's top row (spec M-1). Holding Command while
+/// dragging an icon reorders the features (spec M-6).
+struct FeatureSwitcher: View {
     let features: [FeatureID]
     let selected: FeatureID?
     let select: (FeatureID) -> Void
+    let move: (FeatureID, Int) -> Void
+
+    static let itemWidth: CGFloat = 32
+    static let spacing: CGFloat = 2
+    private static var step: CGFloat { itemWidth + spacing }
+
+    @State private var dragged: FeatureID?
+    @State private var dragOffset: CGFloat = 0
+
+    /// Order while dragging: the dragged icon already at its drop position.
+    private var displayed: [FeatureID] {
+        guard let dragged, let from = features.firstIndex(of: dragged) else { return features }
+        var order = features
+        order.remove(at: from)
+        order.insert(dragged, at: Self.targetIndex(from: from, offset: dragOffset, count: features.count))
+        return order
+    }
+
+    static func targetIndex(from: Int, offset: CGFloat, count: Int) -> Int {
+        min(max(from + Int((offset / step).rounded()), 0), max(count - 1, 0))
+    }
 
     var body: some View {
-        HStack(spacing: 2) {
-            ForEach(features) { feature in
-                Button {
-                    select(feature)
-                } label: {
-                    Image(systemName: feature.symbolName)
-                        .font(.system(size: 12, weight: .semibold))
-                        .frame(width: 32, height: 22)
-                        .foregroundStyle(feature == selected ? Color.white : Color.white.opacity(0.7))
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(feature == selected ? Color.white.opacity(0.22) : .clear)
-                        )
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help(feature.title)
+        HStack(spacing: Self.spacing) {
+            ForEach(displayed) { feature in
+                icon(feature)
+                    .offset(x: feature == dragged ? draggedVisualOffset : 0)
+                    .zIndex(feature == dragged ? 1 : 0)
+                    .onTapGesture { select(feature) }
+                    .gesture(reorderGesture(for: feature))
+                    .help("\(feature.title) (⌘ + húzás: átrendezés)")
             }
         }
         .padding(3)
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
+        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: displayed)
+    }
+
+    /// The dragged icon follows the pointer, relative to its (already moved) slot.
+    private var draggedVisualOffset: CGFloat {
+        guard let dragged, let from = features.firstIndex(of: dragged) else { return 0 }
+        let target = Self.targetIndex(from: from, offset: dragOffset, count: features.count)
+        return dragOffset - CGFloat(target - from) * Self.step
+    }
+
+    private func icon(_ feature: FeatureID) -> some View {
+        let isSelected = feature == selected
+        let isDragged = feature == dragged
+        return Image(systemName: feature.symbolName)
+            .font(.system(size: 12, weight: .semibold))
+            .frame(width: Self.itemWidth, height: 22)
+            .foregroundStyle(isSelected || isDragged ? Color.white : Color.white.opacity(0.7))
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(isDragged ? Color.white.opacity(0.32) : (isSelected ? Color.white.opacity(0.22) : .clear))
+            )
+            .scaleEffect(isDragged ? 1.12 : 1)
+            .contentShape(Rectangle())
+    }
+
+    private func reorderGesture(for feature: FeatureID) -> some Gesture {
+        DragGesture(minimumDistance: 3)
+            .onChanged { value in
+                if dragged == nil {
+                    // Only a drag started with Command held reorders.
+                    guard NSEvent.modifierFlags.contains(.command) else { return }
+                    dragged = feature
+                }
+                guard dragged == feature else { return }
+                dragOffset = value.translation.width
+            }
+            .onEnded { _ in
+                guard dragged == feature, let from = features.firstIndex(of: feature) else { return }
+                let target = Self.targetIndex(from: from, offset: dragOffset, count: features.count)
+                dragged = nil
+                dragOffset = 0
+                if target != from { move(feature, target) }
+            }
     }
 }

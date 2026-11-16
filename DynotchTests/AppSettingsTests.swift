@@ -102,4 +102,28 @@ struct AppSettingsTests {
         settings.settingsPresentation = .window
         #expect(AppSettings(defaults: defaults).settingsPresentation == .window)
     }
+
+    /// Spec M-6: reordering in the menu bar keeps disabled features in place.
+    @Test func moveActiveFeatureKeepsDisabledInPlace() {
+        let settings = AppSettings(defaults: makeDefaults())
+        settings.featureOrder = [.home, .info, .calendar, .notes]
+        settings.setEnabled(.info, false)
+        #expect(settings.activeFeatures.prefix(3) == [.home, .calendar, .notes])
+
+        settings.moveActiveFeature(.notes, toActiveIndex: 0)
+        #expect(Array(settings.featureOrder.prefix(4)) == [.notes, .info, .home, .calendar])
+        #expect(settings.activeFeatures.prefix(3) == [.notes, .home, .calendar])
+
+        settings.moveActiveFeature(.notes, toActiveIndex: 99)
+        #expect(settings.activeFeatures.last == .notes)
+        #expect(settings.featureOrder[1] == .info)
+    }
+
+    @Test func dragTargetIndex() {
+        #expect(FeatureSwitcher.targetIndex(from: 2, offset: 0, count: 5) == 2)
+        #expect(FeatureSwitcher.targetIndex(from: 2, offset: 34, count: 5) == 3)
+        #expect(FeatureSwitcher.targetIndex(from: 2, offset: -50, count: 5) == 1)
+        #expect(FeatureSwitcher.targetIndex(from: 2, offset: -500, count: 5) == 0)
+        #expect(FeatureSwitcher.targetIndex(from: 2, offset: 500, count: 5) == 4)
+    }
 }

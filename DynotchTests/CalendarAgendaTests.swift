@@ -87,13 +87,28 @@ struct CalendarAgendaTests {
         #expect(grid.contains(calendar.startOfDay(for: now)))
     }
 
-    @Test func indicatorPrefersEventStartingSoonOverOngoing() {
+    @Test func indicatorShowsOngoingAndUpcomingSideBySide() {
         let lead: TimeInterval = 10 * 60
-        let ongoing = event("Ongoing", startOffsetMinutes: -20, durationMinutes: 60)
-        #expect(CalendarAgenda.indicatorEvent(in: [event("Far", startOffsetMinutes: 30)], now: now, leadTime: lead) == nil)
-        #expect(CalendarAgenda.indicatorEvent(in: [ongoing], now: now, leadTime: lead)?.title == "Ongoing")
-        let events = [ongoing, event("Second", startOffsetMinutes: 9), event("First", startOffsetMinutes: 4)]
-        #expect(CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: lead)?.title == "First")
+        #expect(CalendarAgenda.indicatorEvents(in: [event("Far", startOffsetMinutes: 30)], now: now, leadTime: lead).isEmpty)
+
+        let events = [
+            event("Second soon", startOffsetMinutes: 9),
+            event("Ongoing", startOffsetMinutes: -20, durationMinutes: 60),
+            event("First soon", startOffsetMinutes: 4),
+            event("Far", startOffsetMinutes: 30)
+        ]
+        let titles = CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: lead).map(\.title)
+        #expect(titles == ["Ongoing", "First soon", "Second soon"])
+    }
+
+    @Test func twoMeetingsAtTheSameTimeAreBothShown() {
+        let events = [event("A", startOffsetMinutes: -5), event("B", startOffsetMinutes: -5, durationMinutes: 60)]
+        #expect(CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: 600).count == 2)
+    }
+
+    @Test func indicatorIsLimited() {
+        let events = (1...5).map { event("M\($0)", startOffsetMinutes: Double($0)) }
+        #expect(CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: 600).count == CalendarAgenda.maxIndicatorEvents)
     }
 
     @Test func indicatorIgnoresAllDayEndedAndVeryLongEvents() {
@@ -102,7 +117,7 @@ struct CalendarAgendaTests {
             event("Ended", startOffsetMinutes: -60),
             event("Multi-day block", startOffsetMinutes: -60, durationMinutes: 3 * 24 * 60)
         ]
-        #expect(CalendarAgenda.indicatorEvent(in: events, now: now, leadTime: 600) == nil)
+        #expect(CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: 600).isEmpty)
     }
 
     @Test func statusBeforeStartFillsOverLeadTime() {

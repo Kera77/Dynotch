@@ -163,6 +163,18 @@ final class AppSettings: ObservableObject {
         notificationApps[identifier] = enabled
     }
 
+    /// Moves an enabled feature to a position among the enabled ones (menu bar drag, spec M-6).
+    /// Disabled features keep their places in `featureOrder`.
+    func moveActiveFeature(_ feature: FeatureID, toActiveIndex index: Int) {
+        var active = activeFeatures
+        guard let from = active.firstIndex(of: feature) else { return }
+        active.remove(at: from)
+        active.insert(feature, at: min(max(index, 0), active.count))
+        guard active != activeFeatures else { return }
+        var remaining = active.makeIterator()
+        featureOrder = featureOrder.map { enabledFeatures.contains($0) ? (remaining.next() ?? $0) : $0 }
+    }
+
     func moveFeatures(from source: IndexSet, to destination: Int) {
         var order = featureOrder
         let moving = source.sorted().map { order[$0] }
