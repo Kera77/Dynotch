@@ -136,4 +136,15 @@ struct AppSettingsTests {
         #expect((0..<5).map { FeatureSwitcher.shift(of: $0, draggedFrom: 3, to: 0) } == [step, step, step, 0, 0])
         #expect((0..<5).map { FeatureSwitcher.shift(of: $0, draggedFrom: 2, to: 2) } == [0, 0, 0, 0, 0])
     }
+
+    @Test func focusFollowsMouseSettings() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.focusFollowsMouse)
+        #expect(settings.focusDelay == 0.1)
+        settings.focusDelay = 2
+        #expect(settings.focusDelay == AppSettings.focusDelayRange.upperBound)
+        settings.focusFollowsMouse = false
+        #expect(!AppSettings(defaults: defaults).focusFollowsMouse)
+    }
 }

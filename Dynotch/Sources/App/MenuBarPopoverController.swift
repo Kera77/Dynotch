@@ -17,6 +17,7 @@ final class MenuBarPopoverController: NSObject {
     private let settings: AppSettings
     private let makeContent: (MenuBarPanelState) -> AnyView
     private let badge: Badge?
+    private let onOpen: (() -> Void)?
     private var badgeObserver: AnyCancellable?
     private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
@@ -29,8 +30,10 @@ final class MenuBarPopoverController: NSObject {
         panelSize: NSSize,
         settings: AppSettings,
         badge: Badge? = nil,
+        onOpen: (() -> Void)? = nil,
         makeContent: @escaping (MenuBarPanelState) -> AnyView
     ) {
+        self.onOpen = onOpen
         self.feature = feature
         self.panelSize = panelSize
         self.settings = settings
@@ -103,6 +106,7 @@ final class MenuBarPopoverController: NSObject {
         let originY = buttonFrame.minY - size.height - 2
         panel.setFrame(NSRect(x: originX, y: originY, width: size.width, height: size.height), display: true)
         panel.makeKeyAndOrderFront(nil)
+        onOpen?()
 
         if outsideClickMonitor == nil {
             outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in

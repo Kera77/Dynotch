@@ -40,6 +40,10 @@ struct RemindersView: View {
         .onChange(of: isActive) { _, active in
             if active { store.activate() }
         }
+        // Notices a permission granted in System Settings while the view is open.
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            if isActive, store.access != .granted { store.refreshAccess() }
+        }
     }
 
     @ViewBuilder private var content: some View {

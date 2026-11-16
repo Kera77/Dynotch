@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-16
+
+### Added
+- Focus follows the mouse without raising windows (like AutoRaise with raising off): the app under
+  the pointer gets the keyboard, window order stays as it is. Setting on the General tab.
+
+### Fixed
+- Reminders stayed on "asking for access" after access was granted: the permission is checked
+  again on every open and while waiting, and the store reloads when access arrives.
+
 ## [0.8.0] - 2026-11-16
 
 ### Added

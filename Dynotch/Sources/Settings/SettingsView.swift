@@ -134,6 +134,24 @@ private struct GeneralSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section {
+                Toggle("Fókusz követi az egeret (ablak előrehozása nélkül)", isOn: $settings.focusFollowsMouse)
+                LabeledContent("Várakozás váltás előtt") {
+                    HStack {
+                        Slider(value: $settings.focusDelay, in: AppSettings.focusDelayRange, step: 0.05)
+                            .frame(width: 160)
+                        Text("\(Int(settings.focusDelay * 1000)) ms")
+                            .monospacedDigit()
+                            .frame(width: 52, alignment: .trailing)
+                    }
+                }
+                .disabled(!settings.focusFollowsMouse)
+            } footer: {
+                Text("Az egér alatti app kapja a billentyűzetet, de az ablak a helyén marad. "
+                    + "Ugyanazon appon belüli ablakváltáshoz Kisegítő hozzáférés kell.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Bezárási késleltetés") {
                     HStack {
                         Slider(

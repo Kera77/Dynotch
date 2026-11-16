@@ -110,29 +110,55 @@ final class RemindersStore: ObservableObject {
         if access == .granted { reload() }
     }
 
+    /// Called whenever a reminders view is shown (notch page, menu bar panel).
     func activate() {
         start()
         switch Self.currentAccess() {
         case .granted:
-            access = .granted
             reload()
         case .notDetermined:
-            requestAccess()
+            access = .notDetermined
+            if !hasRequested { requestAccess() }
         case .denied:
             access = .denied
         }
     }
 
+    /// Re-reads the permission, e.g. after it was changed in System Settings.
+    func refreshAccess() {
+        let current = Self.currentAccess()
+        if current == .granted, access != .granted {
+            reload()
+        } else if current != access {
+            access = current
+        }
+    }
+
+    private var hasRequested = false
+
     func requestAccess() {
+        if Self.currentAccess() == .granted {
+            reload()
+            return
+        }
+        hasRequested = true
         NSApp.activate()
-        store.requestFullAccessToReminders { [weak self] _, _ in
+        store.requestFullAccessToReminders { [weak self] granted, error in
+            let message = "request finished: granted=\(granted) error=\(error.map { "\($0)" } ?? "-")"
             Task { @MainActor in
                 guard let self else { return }
-                self.access = Self.currentAccess()
-                self.store.reset()
-                self.reload()
+                self.log(message)
+                if Self.currentAccess() == .granted {
+                    self.reload()
+                } else {
+                    self.access = Self.currentAccess()
+                }
             }
         }
+    }
+
+    private func log(_ message: String) {
+        DiagnosticsLog.append("reminders", "\(message) status=\(EKEventStore.authorizationStatus(for: .reminder).rawValue)")
     }
 
     func openPrivacySettings() {
@@ -149,8 +175,16 @@ final class RemindersStore: ObservableObject {
 
     private func reload() {
         now = Date()
-        guard Self.currentAccess() == .granted else { return }
-        access = .granted
+        guard Self.currentAccess() == .granted else {
+            log("reload skipped: no access")
+            return
+        }
+        if access != .granted {
+            // Access arrived after the store was created: it must re-read everything.
+            store.reset()
+            access = .granted
+            log("access granted")
+        }
         lists = store.calendars(for: .reminder).map { calendar in
             ReminderList(id: calendar.calendarIdentifier, title: calendar.title, color: Self.color(of: calendar))
         }

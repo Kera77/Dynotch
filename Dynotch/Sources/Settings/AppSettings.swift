@@ -31,6 +31,8 @@ final class AppSettings: ObservableObject {
         static let notificationApps = "notificationApps"
         static let settingsPresentation = "settingsPresentation"
         static let hideNativeBanners = "hideNativeBanners"
+        static let focusFollowsMouse = "focusFollowsMouse"
+        static let focusDelay = "focusDelay"
     }
 
     private let defaults: UserDefaults
@@ -92,6 +94,22 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(notificationApps, forKey: Key.notificationApps) }
     }
 
+    static let focusDelayRange: ClosedRange<Double> = 0...0.5
+
+    /// The app under the pointer gets the focus, its window is never raised (spec F-1).
+    @Published var focusFollowsMouse: Bool {
+        didSet { defaults.set(focusFollowsMouse, forKey: Key.focusFollowsMouse) }
+    }
+
+    /// How long the pointer rests before the focus moves (spec F-3).
+    @Published var focusDelay: Double {
+        didSet {
+            let clamped = (min(max(focusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound) * 20).rounded() / 20
+            if clamped != focusDelay { focusDelay = clamped; return }
+            defaults.set(focusDelay, forKey: Key.focusDelay)
+        }
+    }
+
     /// Close the macOS banner of notifications the notch shows (spec E-8).
     @Published var hideNativeBanners: Bool {
         didSet { defaults.set(hideNativeBanners, forKey: Key.hideNativeBanners) }
@@ -129,6 +147,9 @@ final class AppSettings: ObservableObject {
         notificationDuration = min(max(storedDuration, durationRange.lowerBound), durationRange.upperBound)
         notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
         hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
+        focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
+        let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1
+        focusDelay = min(max(storedFocusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound)
         settingsPresentation = defaults.string(forKey: Key.settingsPresentation)
             .flatMap(SettingsPresentation.init(rawValue:)) ?? .notch
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes

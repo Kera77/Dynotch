@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.8 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.9 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -104,7 +104,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.9)
+### 2.3 Hatókör (v0.10)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -115,11 +115,11 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · Beállítások megnyitása (a notchban / külön ablakban) · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.9) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.10) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -227,7 +227,7 @@
 
 | ID | Követelmény |
 |---|---|
-| R-1 | **Adatforrás az Apple Emlékeztetők** (EventKit). Az engedélyt az app akkor kéri, amikor az Emlékeztetők először látszanak. Engedély nélkül gomb a megfelelő Rendszerbeállítások oldalhoz. Más eszközről érkező változásoknál a lista frissül. |
+| R-1 | **Adatforrás az Apple Emlékeztetők** (EventKit). Az engedélyt az app akkor kéri, amikor az Emlékeztetők először látszanak. A nézet minden megnyitáskor, és amíg nincs engedély, 2 mp-enként újraellenőrzi az engedélyt, így a Rendszerbeállításokban utólag megadott engedély is azonnal érvényes. Engedély nélkül gomb a megfelelő Rendszerbeállítások oldalhoz. Más eszközről érkező változásoknál a lista frissül. |
 | R-2 | **Notch:** új funkció (*checklist* ikon), nagy panelen, két oszlopban: bal oldalon a gyors bevitel és a közelgő emlékeztetők, jobb oldalon a kiválasztott lista feladatai. A panel megkapja a billentyűzetet. **Menüsor:** külön ikon és nyilas buborék (400 × 520 pt), egy oszlopban, alul lakattal. |
 | R-3 | **Gyors bevitel:** „Írj be egy emlékeztetőt, majd Enter”. A szövegből felismeri a dátumot és időt (pl. „holnap 14:00”, „Friday”, „2026-11-20 14:30”), és a „@Lista” szót (név eleje, kis-/nagybetű mindegy), ami a listát választja. A felismert dátum a beállítástól függően kikerül a címből; a cím sosem lesz üres, a végén maradt kötőszó („on”, „at”…) is lekerül. |
 | R-4 | **Kék lista-gomb** a mező mellett: a listák (pipa a kiválasztotton) és két beállítás: *Ha nincs dátum: határidő ma*, *Felismert dátum törlése a címből*. A kiválasztott lista megmarad. |
@@ -235,6 +235,21 @@
 | R-6 | **Feladatok** (a lista színével): a kiválasztott lista nyitott feladatai. A **kör alakú jelölőnégyzetre** kattintva a feladat kipipálódik (kitöltött kör, áthúzott cím), és 0,7 mp múlva **késznek** mentődik az Emlékeztetőkbe, majd eltűnik; addig újra kattintva visszavonható. A szűrő gombbal az elmúlt 7 nap kész feladatai is látszanak, és visszaállíthatók. |
 | R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). |
 | R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
+
+---
+
+## 4f. Fókusz követi az egeret (v0.9)
+
+Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” működése, csak ez az egy funkció.
+
+| ID | Követelmény |
+|---|---|
+| F-1 | Ha az egér egy másik app ablaka fölött áll, **az az app kapja a fókuszt** (billentyűzetet), és a mutatott ablaka lesz a kulcsablak. **Az ablak soha, semmilyen körülmények között nem kerül előre**: ha a böngészőt részben eltakarja a Jegyzetek, a böngészőre víve az egeret a böngésző kap fókuszt, a Jegyzetek ablaka elöl marad. |
+| F-2 | Csak normál ablakra vált. Ha az egér alatt legfelül menü, a Dock, a menüsor, lebegő ablak vagy semmi (asztal) van, nem történik semmi. A Dynotch saját, többnyire átlátszó ablakain „átnéz”. |
+| F-3 | A váltás akkor történik, amikor az egér *N* ideig nyugalomban van (beállítás: 0–500 ms, alapból 100 ms). |
+| F-4 | Nem vált, amíg egérgomb le van nyomva (húzás, kijelölés), és amíg egy Dynotch-panel fogadja a billentyűzetet (számológép, jegyzet, emlékeztető bevitel, beállítások), hogy a gépelés ne szakadjon meg. |
+| F-5 | Ugyanazon appon belüli ablakváltáshoz **Kisegítő hozzáférés** kell (a jelenleg fókuszban lévő ablak azonosítása). Appok között enélkül is működik. |
+| F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
 
 ---
 
@@ -272,5 +287,6 @@ Jelenleg nincs.
 | **v0.6** | Számológép a notchban és a menüsorban, lakat (nyitva tartás), ikonos beállításfülek |
 | **v0.7** | Jegyzetek: Apple Jegyzetek szerkesztése a notchban és a menüsorban |
 | **v0.8** | Emlékeztetők a notchban és a menüsorban; natív szalagcímek bezárása eseményre; napok léptetése a napsávon |
-| **v0.9** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.10+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.9** | Fókusz követi az egeret (előrehozás nélkül); Emlékeztetők engedélyének javítása |
+| **v0.10** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.11+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

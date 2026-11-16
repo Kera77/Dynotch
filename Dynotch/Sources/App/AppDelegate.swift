@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private var notchManager: NotchManager?
     private var menuBarPanels: [MenuBarPopoverController] = []
+    private lazy var focusFollowsMouse = FocusFollowsMouse(settings: settings)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Unit tests run inside the app host; don't put a panel on screen there.
@@ -26,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.notifications.start()
         // Loads the open count for the menu bar icon if access was granted before; never prompts.
         services.reminders.start()
+        focusFollowsMouse.start()
 
         let manager = NotchManager(services: services) { [weak self] in
             self?.settingsWindow.show()
@@ -40,14 +42,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
             },
-            MenuBarPopoverController(feature: .notes, panelSize: NSSize(width: 680, height: 440), settings: settings) {
+            MenuBarPopoverController(
+                feature: .notes, panelSize: NSSize(width: 680, height: 440), settings: settings,
+                onOpen: { notes.activate() }
+            ) {
                 AnyView(NotesMenuBarView(store: notes, state: $0))
             },
             MenuBarPopoverController(
                 feature: .reminders,
                 panelSize: NSSize(width: 400, height: 520),
                 settings: settings,
-                badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil }
+                badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil },
+                onOpen: { reminders.activate() }
             ) {
                 AnyView(RemindersMenuBarView(store: reminders, state: $0))
             }
