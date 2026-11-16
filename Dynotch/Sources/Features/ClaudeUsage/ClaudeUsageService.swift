@@ -109,42 +109,46 @@ final class ClaudeUsageService: ObservableObject {
         if limits.isEmpty { state = .loading }
         Task {
             defer { isRefreshing = false }
-            // Read only when there is no token yet or it expired or was refused.
-            let credential: ClaudeCredential
-            if let cached = cachedToken, cached.expires.map({ $0 > Date() }) ?? true {
-                credential = .token(cached.token, expires: cached.expires)
-            } else {
-                credential = await Task.detached { ClaudeCredential.read() }.value
-                if case .token(let token, let expires) = credential {
-                    cachedToken = (token, expires)
-                }
-            }
-            switch credential {
+            switch await credential() {
             case .missing:
                 state = .noCredentials
-                return
             case .expired:
                 state = .signedOut
-                return
             case .token(let token, _):
                 do {
                     let (data, status) = try await Self.fetch(endpoint, token: token)
-                    let shape = ClaudeUsageParser.labels(of: data) + "\n" + ClaudeUsageParser.structure(of: data)
-                    DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + shape)
-                    switch status {
-                    case 200:
-                        apply(try ClaudeUsageParser.limits(from: data))
-                    case 401, 403:
-                        // Claude Code may have renewed the token meanwhile: read it again next time.
-                        cachedToken = nil
-                        state = .signedOut
-                    default:
-                        state = .failed("HTTP \(status)")
-                    }
+                    try handle(data: data, status: status)
                 } catch {
                     state = .failed(error.localizedDescription)
                 }
             }
+        }
+    }
+
+    /// The cached token; read from the keychain only when there is none, or it expired or was refused.
+    private func credential() async -> ClaudeCredential {
+        if let cached = cachedToken, cached.expires.map({ $0 > Date() }) ?? true {
+            return .token(cached.token, expires: cached.expires)
+        }
+        let credential = await Task.detached { ClaudeCredential.read() }.value
+        if case .token(let token, let expires) = credential {
+            cachedToken = (token, expires)
+        }
+        return credential
+    }
+
+    private func handle(data: Data, status: Int) throws {
+        let shape = ClaudeUsageParser.labels(of: data) + "\n" + ClaudeUsageParser.structure(of: data)
+        DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + shape)
+        switch status {
+        case 200:
+            apply(try ClaudeUsageParser.limits(from: data))
+        case 401, 403:
+            // Claude Code may have renewed the token meanwhile: read it again next time.
+            cachedToken = nil
+            state = .signedOut
+        default:
+            state = .failed("HTTP \(status)")
         }
     }
 
