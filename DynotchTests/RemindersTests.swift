@@ -47,9 +47,9 @@ struct RemindersTests {
         let todayDateOnly = item("t", dueInDays: 0)
         #expect(!todayDateOnly.isOverdue(at: now, calendar: calendar))
         #expect(item("y", dueInDays: -1).isOverdue(at: now, calendar: calendar))
-        #expect(ReminderLogic.dueText(for: todayDateOnly, now: now, calendar: calendar) == "ma")
-        #expect(ReminderLogic.dueText(for: item("h", dueInDays: 1), now: now, calendar: calendar) == "holnap")
-        #expect(ReminderLogic.dueText(for: item("y", dueInDays: -1), now: now, calendar: calendar) == "Lejárt · tegnap")
+        #expect(ReminderLogic.dueText(for: todayDateOnly, now: now, calendar: calendar) == "today")
+        #expect(ReminderLogic.dueText(for: item("h", dueInDays: 1), now: now, calendar: calendar) == "tomorrow")
+        #expect(ReminderLogic.dueText(for: item("y", dueInDays: -1), now: now, calendar: calendar) == "Overdue · yesterday")
         #expect(ReminderLogic.dueText(for: item("n"), now: now, calendar: calendar) == nil)
     }
 

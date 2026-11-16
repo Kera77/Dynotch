@@ -44,7 +44,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let notes = services.notes
         let reminders = services.reminders
         let usage = services.claudeUsage
-        let settings = settings
         menuBarPanels = [
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
@@ -68,10 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 settings: settings,
                 icon: StatusIcon(
                     changes: usage.objectWillChange,
-                    image: {
-                        guard settings.claudeRingVisible, let primary = usage.primary else { return nil }
-                        return UsageRing.image(utilization: primary.utilization)
-                    },
+                    image: { nil },
                     toolTip: { usage.limits.isEmpty ? nil : "Claude · " + usage.summary }
                 ),
                 onOpen: { usage.refreshIfStale() },

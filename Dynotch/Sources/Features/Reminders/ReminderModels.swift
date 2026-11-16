@@ -31,9 +31,9 @@ enum ReminderSort: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .due: "Határidő"
-        case .priority: "Prioritás"
-        case .title: "Cím"
+        case .due: "Due Date"
+        case .priority: "Priority"
+        case .title: "Title"
         }
     }
 }
@@ -72,7 +72,7 @@ enum ReminderLogic {
         }
     }
 
-    /// "Lejárt · tegnap", "ma 14:00", "holnap", "csütörtök", "nov. 30."
+    /// "Overdue · yesterday", "today 14:00", "tomorrow", "Thursday", "Nov 30"
     static func dueText(for item: ReminderItem, now: Date, calendar: Calendar = .current) -> String? {
         guard let due = item.due else { return nil }
         let time = item.dueHasTime ? " " + due.formatted(date: .omitted, time: .shortened) : ""
@@ -81,14 +81,14 @@ enum ReminderLogic {
         let days = calendar.dateComponents([.day], from: today, to: dueDay).day ?? 0
         let day: String
         switch days {
-        case 0: day = "ma"
-        case 1: day = "holnap"
-        case -1: day = "tegnap"
+        case 0: day = "today"
+        case 1: day = "tomorrow"
+        case -1: day = "yesterday"
         case 2...6: day = due.formatted(.dateTime.weekday(.wide))
         default: day = due.formatted(.dateTime.month(.abbreviated).day())
         }
         let text = day + time
-        return item.isOverdue(at: now, calendar: calendar) ? "Lejárt · " + text : text
+        return item.isOverdue(at: now, calendar: calendar) ? "Overdue · " + text : text
     }
 }
 

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-16
+
+### Changed
+- The whole app is in English.
+- Claude usage moved from the menu bar ring to the notch: Claude icon on the left, a usage capsule
+  on the right next to the meeting countdowns; hovering shows used, left and reset time per limit,
+  and an X hides it until usage reaches the next 10 %.
+
 ## [0.10.0] - 2026-11-16
 
 ### Added

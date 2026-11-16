@@ -22,16 +22,16 @@ struct NotesWorkspaceView: View {
             case .ready:
                 workspace
             case .unknown, .loading:
-                message(text: "Jegyzetek betöltése…", showsProgress: true)
+                message(text: "Loading notes…", showsProgress: true)
             case .denied:
                 accessPrompt(
-                    text: "A Dynotch-nak engedély kell a Jegyzetek vezérléséhez.\n"
-                        + "Rendszerbeállítások › Adatvédelem › Automatizálás › Dynotch › Jegyzetek",
-                    button: "Rendszerbeállítások megnyitása",
+                    text: "Dynotch needs permission to control Notes.\n"
+                        + "System Settings › Privacy & Security › Automation › Dynotch › Notes",
+                    button: "Open System Settings",
                     action: store.openAutomationSettings
                 )
             case .failed(let error):
-                accessPrompt(text: "A Jegyzetek nem érhetők el.\n\(error)", button: "Újra", action: store.retry)
+                accessPrompt(text: "Notes is not available.\n\(error)", button: "Retry", action: store.retry)
             }
         }
         .onAppear { if isActive { store.activate() } }
@@ -58,7 +58,7 @@ struct NotesWorkspaceView: View {
         PlainTextEditor(
             text: Binding(get: { store.text }, set: { store.edit($0) }),
             isEditable: store.isEditable,
-            placeholder: store.selection == .draft ? "Új jegyzet. Az első sor lesz a címe." : nil,
+            placeholder: store.selection == .draft ? "New note. The first line becomes its title." : nil,
             caretColor: NSColor(Self.accent)
         )
         .overlay {
@@ -81,10 +81,10 @@ struct NotesWorkspaceView: View {
             Spacer(minLength: 8)
 
             if store.saveState == .conflict {
-                Button("Újratöltés", action: store.reloadFromNotes)
+                Button("Reload", action: store.reloadFromNotes)
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                Button("Felülírás", action: store.overwriteNotes)
+                Button("Overwrite", action: store.overwriteNotes)
                     .buttonStyle(.bordered)
                     .controlSize(.small)
             }
@@ -101,7 +101,7 @@ struct NotesWorkspaceView: View {
             switch store.selection {
             case .draft:
                 Button(action: store.saveDraftToNotes) {
-                    Text("Mentés a Jegyzetekbe")
+                    Text("Save to Notes")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(Color.black.opacity(0.85))
                         .padding(.horizontal, 14)
@@ -112,10 +112,10 @@ struct NotesWorkspaceView: View {
                 .buttonStyle(.plain)
                 .disabled(store.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.selectedFolder == nil)
                 .opacity(store.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1)
-                .help("Új jegyzet a(z) „\(store.selectedFolder?.name ?? "")” mappában")
+                .help("New note in \"\(store.selectedFolder?.name ?? "")\"")
             case .note:
                 Button(action: store.openInNotes) {
-                    Label("Megnyitás a Jegyzetekben", systemImage: "arrow.up.forward.app")
+                    Label("Open in Notes", systemImage: "arrow.up.forward.app")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -133,17 +133,17 @@ struct NotesWorkspaceView: View {
         if let reason = store.readOnlyReason { return reason }
         switch store.saveState {
         case .idle:
-            return store.selection == .draft ? "Piszkozat, csak itt van meg" : "Szerkesztés közben automatikusan ment"
+            return store.selection == .draft ? "Draft, only stored here" : "Changes are saved to Notes automatically"
         case .pending:
-            return "Módosítva…"
+            return "Edited…"
         case .saving:
-            return "Mentés…"
+            return "Saving…"
         case .saved(let date):
-            return "Mentve a Jegyzetekbe · \(date.formatted(date: .omitted, time: .shortened))"
+            return "Saved to Notes · \(date.formatted(date: .omitted, time: .shortened))"
         case .conflict:
-            return "A jegyzet közben megváltozott a Jegyzetekben"
+            return "The note was changed in Notes meanwhile"
         case .failed(let error):
-            return "Hiba: \(error)"
+            return "Error: \(error)"
         }
     }
 
@@ -189,15 +189,15 @@ private struct NotesSidebar: View {
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 2) {
                     row(
-                        title: "Új jegyzet",
-                        subtitle: "piszkozat",
+                        title: "New Note",
+                        subtitle: "draft",
                         symbol: "square.and.pencil",
                         isSelected: store.selection == .draft,
                         action: store.selectDraft
                     )
                     ForEach(store.notes) { note in
                         row(
-                            title: note.name.isEmpty ? "Névtelen jegyzet" : note.name,
+                            title: note.name.isEmpty ? "Untitled note" : note.name,
                             subtitle: note.modifiedDate.formatted(.relative(presentation: .named)),
                             symbol: nil,
                             isSelected: store.selection == .note(note.id)
@@ -233,7 +233,7 @@ private struct NotesSidebar: View {
             HStack(spacing: 6) {
                 Image(systemName: "folder.fill")
                     .foregroundStyle(NotesWorkspaceView.accent)
-                Text(store.selectedFolder?.name ?? "Mappa")
+                Text(store.selectedFolder?.name ?? "Folder")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -250,7 +250,7 @@ private struct NotesSidebar: View {
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
-        .help(store.selectedFolder.map { "\($0.account) › \($0.name)" } ?? "Mappa kiválasztása")
+        .help(store.selectedFolder.map { "\($0.account) › \($0.name)" } ?? "Choose a folder")
     }
 
     private func row(title: String, subtitle: String, symbol: String?, isSelected: Bool, action: @escaping () -> Void) -> some View {

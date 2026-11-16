@@ -28,6 +28,6 @@ enum NoteHTML {
     static func title(of text: String) -> String {
         text.split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespaces) }
-            .first { !$0.isEmpty } ?? "Új jegyzet"
+            .first { !$0.isEmpty } ?? "New Note"
     }
 }

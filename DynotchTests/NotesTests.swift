@@ -32,7 +32,7 @@ struct NoteHTMLTests {
 
     @Test func title() {
         #expect(NoteHTML.title(of: "\n  Bevásárlás \ntej") == "Bevásárlás")
-        #expect(NoteHTML.title(of: "") == "Új jegyzet")
+        #expect(NoteHTML.title(of: "") == "New Note")
     }
 
     @Test func bridgeErrorClassification() {
@@ -40,7 +40,7 @@ struct NoteHTMLTests {
         #expect(NotesBridgeError.from(stderr: denied) == .notAuthorized)
         let missing = "execution error: Can't get object. (-1728)"
         #expect(NotesBridgeError.from(stderr: missing) == .failed(missing))
-        #expect(NotesBridgeError.from(stderr: "  ") == .failed("Ismeretlen hiba"))
+        #expect(NotesBridgeError.from(stderr: "  ") == .failed("Unknown error"))
     }
 
     @Test func scriptsAreJavaScriptRunFunctions() {

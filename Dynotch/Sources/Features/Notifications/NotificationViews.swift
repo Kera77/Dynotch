@@ -86,7 +86,7 @@ struct NotificationCardView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .contentShape(Rectangle())
-        .help("Megnyitás: \(app.name)")
+        .help("Open \(app.name)")
     }
 }
 
@@ -98,20 +98,20 @@ struct NotificationsFeatureView: View {
         switch service.status {
         case .running:
             if service.recent.isEmpty {
-                message(symbol: "bell", text: "Nincs új értesítés")
+                message(symbol: "bell", text: "No new notifications")
             } else {
                 list
             }
         case .noAccess:
             prompt(
-                text: "Az értesítések olvasásához Teljes lemezelérés kell.\nAdd hozzá a Dynotch-ot, majd indítsd újra.",
-                button: "Rendszerbeállítások megnyitása",
+                text: "Reading notifications needs Full Disk Access.\nAdd Dynotch, then restart it.",
+                button: "Open System Settings",
                 action: service.openFullDiskAccessSettings
             )
         case .unsupported:
-            message(symbol: "exclamationmark.triangle", text: "Az értesítések nem olvashatók ezen a rendszeren.")
+            message(symbol: "exclamationmark.triangle", text: "Notifications can't be read on this system.")
         case .disabled:
-            message(symbol: "bell.slash", text: "Az értesítések ki vannak kapcsolva")
+            message(symbol: "bell.slash", text: "Notifications are turned off")
         }
     }
 
@@ -188,6 +188,6 @@ private struct NotificationRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.07)))
         .contentShape(Rectangle())
-        .help("Megnyitás: \(app.name)")
+        .help("Open \(app.name)")
     }
 }

@@ -17,7 +17,7 @@ struct ClaudeUsageTests {
     @Test func parsesLimitsInDisplayOrder() throws {
         let limits = try ClaudeUsageParser.limits(from: Data(response.utf8))
         #expect(limits.map(\.id) == ["five_hour", "seven_day", "seven_day_fable", "seven_day_opus"])
-        #expect(limits.map(\.title) == ["Munkamenet (5 óra)", "Heti (7 nap)", "Fable limit", "Opus limit"])
+        #expect(limits.map(\.title) == ["Session (5 hr)", "Weekly (7 day)", "Fable limit", "Opus limit"])
         #expect(limits[0].utilization == 69)
         #expect(limits[0].resetsAt != nil)
         #expect(limits[1].resetsAt == ClaudeUsageParser.date(from: "2026-11-17T09:00:00Z"))
@@ -38,7 +38,7 @@ struct ClaudeUsageTests {
     @Test func alertsAtEveryTenPercentFromSeventy() {
         let reset = Date(timeIntervalSince1970: 1_000_000)
         func limit(_ value: Double, reset: Date? = reset) -> UsageLimit {
-            UsageLimit(id: "five_hour", title: "Munkamenet", utilization: value, resetsAt: reset)
+            UsageLimit(id: "five_hour", title: "Session", utilization: value, resetsAt: reset)
         }
         var notified: [String: Int] = [:]
         for (value, expected) in [(65.0, 0), (71.0, 1), (78.0, 0), (80.0, 1), (95.0, 1), (99.0, 0), (100.0, 1), (100.0, 0)] {
@@ -74,9 +74,28 @@ struct ClaudeUsageTests {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .current
         let now = Date()
-        #expect(UsageAlerts.resetText(now.addingTimeInterval(60), now: now, calendar: calendar).hasPrefix("ma ")
-            || UsageAlerts.resetText(now.addingTimeInterval(60), now: now, calendar: calendar).hasPrefix("holnap "))
+        #expect(UsageAlerts.resetText(now.addingTimeInterval(60), now: now, calendar: calendar).hasPrefix("today ")
+            || UsageAlerts.resetText(now.addingTimeInterval(60), now: now, calendar: calendar).hasPrefix("tomorrow "))
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: now) ?? now
-        #expect(UsageAlerts.resetText(tomorrow, now: now, calendar: calendar).hasPrefix("holnap "))
+        #expect(UsageAlerts.resetText(tomorrow, now: now, calendar: calendar).hasPrefix("tomorrow "))
+    }
+
+    /// Spec CL-6: hidden with the X until the fullest limit reaches its next 10 % or resets.
+    @Test func dismissLastsUntilTheNextTenPercent() {
+        let reset = Date(timeIntervalSince1970: 1_000_000)
+        func limit(_ value: Double, reset: Date = reset) -> UsageLimit {
+            UsageLimit(id: "five_hour", title: "Session", utilization: value, resetsAt: reset)
+        }
+        let marker = UsageAlerts.dismissMarker(for: limit(72))
+        #expect(UsageAlerts.isDismissed(limit(72), marker: marker))
+        #expect(UsageAlerts.isDismissed(limit(79.9), marker: marker))
+        #expect(!UsageAlerts.isDismissed(limit(80), marker: marker))
+        #expect(!UsageAlerts.isDismissed(limit(73, reset: Date(timeIntervalSince1970: 2_000_000)), marker: marker))
+        #expect(!UsageAlerts.isDismissed(limit(72), marker: nil))
+    }
+
+    @Test func hoverText() {
+        let limit = UsageLimit(id: "five_hour", title: "Session", utilization: 72.4, resetsAt: nil)
+        #expect(NotchIndicatorView.usageText(for: limit, now: Date()) == "72% used · 28% left")
     }
 }

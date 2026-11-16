@@ -145,13 +145,13 @@ struct CalendarAgendaTests {
         #expect(CalendarAgenda.countdownText(9 * 60 + 5) == "9:05")
         #expect(CalendarAgenda.countdownText(59.2) == "1:00")
         #expect(CalendarAgenda.countdownText(0) == "0:00")
-        #expect(CalendarAgenda.countdownText(75 * 60) == "75p")
+        #expect(CalendarAgenda.countdownText(75 * 60) == "75m")
     }
 
     @Test func durationText() {
-        #expect(CalendarAgenda.durationText(30 * 60) == "30 p")
-        #expect(CalendarAgenda.durationText(60 * 60) == "1 ó")
-        #expect(CalendarAgenda.durationText(90 * 60) == "1 ó 30 p")
+        #expect(CalendarAgenda.durationText(30 * 60) == "30m")
+        #expect(CalendarAgenda.durationText(60 * 60) == "1h")
+        #expect(CalendarAgenda.durationText(90 * 60) == "1h 30m")
     }
 
     /// Spec K-5b: the day list starts at the meeting in progress or the next one.

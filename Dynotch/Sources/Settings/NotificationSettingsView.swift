@@ -8,21 +8,21 @@ struct NotificationSettingsView: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Állapot") { statusView }
-                LabeledContent("Eltűnés ennyi idő után") {
+                LabeledContent("Status") { statusView }
+                LabeledContent("Hide after") {
                     HStack {
                         Slider(value: $settings.notificationDuration, in: AppSettings.notificationDurationRange, step: 1)
                             .frame(width: 160)
-                        Text("\(Int(settings.notificationDuration)) mp")
+                        Text("\(Int(settings.notificationDuration)) s")
                             .monospacedDigit()
                             .frame(width: 44, alignment: .trailing)
                     }
                 }
             }
 
-            Section("Appok") {
+            Section("Apps") {
                 if service.apps.isEmpty {
-                    Text("Az applista akkor jelenik meg, ha az értesítések olvashatók.")
+                    Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(service.apps) { app in
@@ -37,12 +37,12 @@ struct NotificationSettingsView: View {
             }
 
             Section {
-                Toggle("Natív macOS szalagcímek elrejtése", isOn: $settings.hideNativeBanners)
-                LabeledContent("Kisegítő hozzáférés") {
+                Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
+                LabeledContent("Accessibility") {
                     if accessibilityTrusted {
-                        Label("Engedélyezve", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                        Label("Allowed", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                     } else {
-                        Button("Engedély megadása…") {
+                        Button("Grant Access…") {
                             NativeBannerDismisser.requestTrust()
                             NativeBannerDismisser.openAccessibilitySettings()
                         }
@@ -50,14 +50,14 @@ struct NotificationSettingsView: View {
                 }
                 .disabled(!settings.hideNativeBanners)
             } header: {
-                Text("Natív értesítések")
+                Text("Native notifications")
             } footer: {
-                Text("A notchban megjelenő értesítések macOS-szalagcímét a Dynotch azonnal bezárja; egy pillanatra "
-                    + "még felvillanhat. Ha egyáltalán nem szeretnéd látni, az appnál állítsd a szalagcím stílusát "
-                    + "„Nincs”-re (az Értesítési központ maradjon bekapcsolva).")
+                Text("Dynotch closes the macOS banner of every notification shown in the notch; it may flash "
+                    + "for a moment. To never see it, set the app's banner style to \"None\" in System Settings "
+                    + "(keep \"Show in Notification Center\" on).")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Button("macOS értesítési beállítások megnyitása", action: service.openNotificationSettings)
+                Button("Open macOS Notification Settings", action: service.openNotificationSettings)
                     .buttonStyle(.link)
                     .font(.caption)
             }
@@ -75,15 +75,15 @@ struct NotificationSettingsView: View {
     @ViewBuilder private var statusView: some View {
         switch service.status {
         case .running:
-            Label("Működik", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+            Label("Working", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
         case .noAccess:
-            Button("Teljes lemezelérés megadása…", action: service.openFullDiskAccessSettings)
+            Button("Grant Full Disk Access…", action: service.openFullDiskAccessSettings)
         case .unsupported(let message):
-            Label("Nem olvasható", systemImage: "exclamationmark.triangle.fill")
+            Label("Can't be read", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
                 .help(message)
         case .disabled:
-            Text("Kikapcsolva (Funkciók fül)").foregroundStyle(.secondary)
+            Text("Off (Features tab)").foregroundStyle(.secondary)
         }
     }
 

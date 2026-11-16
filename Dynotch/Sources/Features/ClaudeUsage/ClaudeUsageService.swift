@@ -19,6 +19,10 @@ final class ClaudeUsageService: ObservableObject {
     @Published private(set) var state: State = .idle
     @Published private(set) var limits: [UsageLimit] = []
     @Published private(set) var lastUpdated: Date?
+    /// "limit key|10 % step" of the fullest limit when its notch indicator was hidden (spec CL-6).
+    @Published private var dismissedIndicator: String? {
+        didSet { UserDefaults.standard.set(dismissedIndicator, forKey: Self.dismissedKey) }
+    }
 
     private let settings: AppSettings
     private let notify: (String, String) -> Void
@@ -29,11 +33,32 @@ final class ClaudeUsageService: ObservableObject {
     private static let refreshInterval: TimeInterval = 5 * 60
     private static let minimumInterval: TimeInterval = 60
     private static let notifiedKey = "claudeUsageNotified"
+    private static let dismissedKey = "claudeIndicatorDismissed"
     private static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")
 
     init(settings: AppSettings, notify: @escaping (String, String) -> Void) {
         self.settings = settings
         self.notify = notify
+        dismissedIndicator = UserDefaults.standard.string(forKey: Self.dismissedKey)
+    }
+
+    /// The fullest limit.
+    var peak: UsageLimit? {
+        limits.max { $0.utilization < $1.utilization }
+    }
+
+    /// Limits to show beside the notch, or nil when the indicator is off or hidden (spec CL-6).
+    var notchLimits: [UsageLimit]? {
+        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded,
+              !limits.isEmpty, let peak, !UsageAlerts.isDismissed(peak, marker: dismissedIndicator)
+        else { return nil }
+        return limits
+    }
+
+    /// Hides the notch indicator until the fullest limit reaches its next 10 % (or resets).
+    func dismissIndicator() {
+        guard let peak else { return }
+        dismissedIndicator = UsageAlerts.dismissMarker(for: peak)
     }
 
     /// The limit shown by the menu bar ring: the session, otherwise the fullest one.
@@ -121,8 +146,8 @@ final class ClaudeUsageService: ObservableObject {
         let result = UsageAlerts.alerts(for: limits, notified: notified)
         UserDefaults.standard.set(result.notified, forKey: Self.notifiedKey)
         for limit in result.due {
-            let reset = limit.resetsAt.map { "Visszaáll: " + UsageAlerts.resetText($0, now: Date()) } ?? ""
-            notify("Claude: \(limit.title) \(Int(limit.utilization.rounded()))%", "Hamarosan elfogy a keret. \(reset)")
+            let reset = limit.resetsAt.map { "Resets " + UsageAlerts.resetText($0, now: Date()) } ?? ""
+            notify("Claude: \(limit.title) \(Int(limit.utilization.rounded()))%", "You are close to the limit. \(reset)")
         }
     }
 

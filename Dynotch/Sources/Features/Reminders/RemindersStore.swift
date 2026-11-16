@@ -241,7 +241,7 @@ final class RemindersStore: ObservableObject {
             reload()
             return true
         } catch {
-            errorMessage = "Nem sikerült menteni: \(error.localizedDescription)"
+            errorMessage = "Couldn't save: \(error.localizedDescription)"
             return false
         }
     }
@@ -253,7 +253,7 @@ final class RemindersStore: ObservableObject {
             try store.save(reminder, commit: true)
             errorMessage = nil
         } catch {
-            errorMessage = "Nem sikerült menteni: \(error.localizedDescription)"
+            errorMessage = "Couldn't save: \(error.localizedDescription)"
         }
         reload()
     }
@@ -291,7 +291,7 @@ extension RemindersStore {
         let due = components.flatMap { Calendar.current.date(from: $0) }
         return ReminderItem(
             id: reminder.calendarItemIdentifier,
-            title: reminder.title?.isEmpty == false ? reminder.title : "(Névtelen)",
+            title: reminder.title?.isEmpty == false ? reminder.title : "(No title)",
             listID: reminder.calendar?.calendarIdentifier ?? "",
             due: due,
             dueHasTime: components?.hour != nil,

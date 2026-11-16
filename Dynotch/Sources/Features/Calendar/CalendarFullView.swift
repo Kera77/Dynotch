@@ -63,8 +63,8 @@ private struct MonthGridView: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(.white)
                 Spacer()
-                CalendarIconButton(symbol: "chevron.left", help: "Előző hónap") { changeMonth(-1) }
-                CalendarIconButton(symbol: "chevron.right", help: "Következő hónap") { changeMonth(1) }
+                CalendarIconButton(symbol: "chevron.left", help: "Previous month") { changeMonth(-1) }
+                CalendarIconButton(symbol: "chevron.right", help: "Next month") { changeMonth(1) }
             }
             LazyVGrid(columns: Self.columns, spacing: 0) {
                 ForEach(days.prefix(7), id: \.self) { day in

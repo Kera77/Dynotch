@@ -67,9 +67,9 @@ struct CalculatorMenuBarView: View {
     }
 
     private var statusText: String {
-        if state.didCopy { return "Vágólapra másolva" }
-        if store.text.isEmpty { return "Készen áll…" }
-        return resultCount == 0 ? "Nincs számítás" : "Kattintásra másol"
+        if state.didCopy { return "Copied to clipboard" }
+        if store.text.isEmpty { return "Ready…" }
+        return resultCount == 0 ? "No calculations" : "Click a result to copy"
     }
 
     var body: some View {
@@ -89,7 +89,7 @@ struct CalculatorMenuBarView: View {
                 .foregroundStyle(Color.white.opacity(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
-            Text("\(resultCount) számítás")
+            Text(resultCount == 1 ? "1 calculation" : "\(resultCount) calculations")
                 .font(.system(size: 11, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(Color.white.opacity(0.6))
@@ -100,7 +100,7 @@ struct CalculatorMenuBarView: View {
                 .frame(width: 30, height: 28)
                 .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.14)))
             Button(action: copyAll) {
-                Text("Mind másolása")
+                Text("Copy All")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.black.opacity(0.85))
                     .padding(.horizontal, 14)
@@ -111,7 +111,7 @@ struct CalculatorMenuBarView: View {
             .buttonStyle(.plain)
             .opacity(resultCount == 0 ? 0.4 : 1)
             .disabled(resultCount == 0)
-            .help("Minden számítás és eredménye a vágólapra kerül")
+            .help("Copies every calculation with its result")
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)

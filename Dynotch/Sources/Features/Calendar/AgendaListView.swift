@@ -21,7 +21,7 @@ struct AgendaListView: View {
 
             CalendarIconButton(
                 symbol: "arrow.down.right.and.arrow.up.left",
-                help: "Kis nézet",
+                help: "Compact view",
                 action: collapse
             )
         }
@@ -38,7 +38,7 @@ struct AgendaListView: View {
                     .foregroundStyle(Color.white.opacity(0.5))
                 Spacer()
                 if !day.events.isEmpty {
-                    Text("\(day.events.count) esemény")
+                    Text(day.events.count == 1 ? "1 event" : "\(day.events.count) events")
                         .font(.system(size: 11))
                         .foregroundStyle(Color.white.opacity(0.5))
                         // Keep clear of the collapse button in the top-right corner.
@@ -46,7 +46,7 @@ struct AgendaListView: View {
                 }
             }
             if day.events.isEmpty {
-                Text("Nincs esemény")
+                Text("No events")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.white.opacity(0.75))
             } else {
@@ -60,7 +60,7 @@ struct AgendaListView: View {
     private func dateText(_ date: Date, withWeek: Bool) -> String {
         let text = date.formatted(.dateTime.month(.abbreviated).day())
         guard withWeek else { return text }
-        return "\(text)  ·  \(Calendar.current.component(.weekOfYear, from: date)). hét"
+        return "\(text)  ·  Week \(Calendar.current.component(.weekOfYear, from: date))"
     }
 }
 
@@ -73,7 +73,7 @@ private struct AgendaEventRow: View {
         HStack(spacing: 8) {
             VStack(alignment: .trailing, spacing: 0) {
                 if event.isAllDay {
-                    Text("egész nap")
+                    Text("all day")
                         .font(.system(size: 10, weight: .medium))
                 } else {
                     Text(event.start.formatted(date: .omitted, time: .shortened))

@@ -51,8 +51,8 @@ enum ClaudeUsageParser {
 
     static func title(for key: String) -> String {
         switch key {
-        case "five_hour": return "Munkamenet (5 óra)"
-        case "seven_day": return "Heti (7 nap)"
+        case "five_hour": return "Session (5 hr)"
+        case "seven_day": return "Weekly (7 day)"
         default:
             let model = key.replacingOccurrences(of: "seven_day_", with: "")
                 .split(separator: "_")
@@ -88,6 +88,19 @@ enum UsageAlerts {
         return min(100, Int(utilization / 10) * 10)
     }
 
+    /// Remembers the limit, its reset period and its current 10 % step.
+    static func dismissMarker(for limit: UsageLimit) -> String {
+        "\(key(for: limit))|\(Int(limit.utilization / 10))"
+    }
+
+    /// Hidden while the same limit stays in the same period and has not reached a higher 10 % step.
+    static func isDismissed(_ limit: UsageLimit, marker: String?) -> Bool {
+        guard let marker, let separator = marker.lastIndex(of: "|"),
+              let step = Int(marker[marker.index(after: separator)...])
+        else { return false }
+        return String(marker[..<separator]) == key(for: limit) && Int(limit.utilization / 10) <= step
+    }
+
     static func key(for limit: UsageLimit) -> String {
         "\(limit.id)|\(Int(limit.resetsAt?.timeIntervalSince1970 ?? 0))"
     }
@@ -109,12 +122,12 @@ enum UsageAlerts {
         return (due, updated)
     }
 
-    /// "ma 14:30", "holnap 9:00", "kedd, nov. 17. 9:00"
+    /// "today 14:30", "tomorrow 9:00", "Tuesday, Nov 17 9:00"
     static func resetText(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
         let time = date.formatted(date: .omitted, time: .shortened)
-        if calendar.isDate(date, inSameDayAs: now) { return "ma \(time)" }
+        if calendar.isDate(date, inSameDayAs: now) { return "today \(time)" }
         if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now), calendar.isDate(date, inSameDayAs: tomorrow) {
-            return "holnap \(time)"
+            return "tomorrow \(time)"
         }
         return "\(date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())) \(time)"
     }

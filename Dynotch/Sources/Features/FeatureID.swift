@@ -16,11 +16,11 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .home: "Home"
-        case .calendar: "Naptár"
-        case .notifications: "Értesítések"
-        case .calculator: "Számológép"
-        case .notes: "Jegyzetek"
-        case .reminders: "Emlékeztetők"
+        case .calendar: "Calendar"
+        case .notifications: "Notifications"
+        case .calculator: "Calculator"
+        case .notes: "Notes"
+        case .reminders: "Reminders"
         case .claudeUsage: "Claude"
         case .info: "Info"
         }

@@ -8,9 +8,9 @@ struct InfoFeatureView: View {
     var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
             row("Dynotch", "\(AppInfo.version) (\(AppInfo.build))")
-            row("Kijelző", screenName)
-            row("Notch", geometry.hasPhysicalNotch ? "fizikai" : "virtuális")
-            row("Notch mérete", "\(Int(geometry.notchSize.width)) × \(Int(geometry.notchSize.height)) pt")
+            row("Display", screenName)
+            row("Notch", geometry.hasPhysicalNotch ? "physical" : "virtual")
+            row("Notch size", "\(Int(geometry.notchSize.width)) × \(Int(geometry.notchSize.height)) pt")
         }
         .font(.system(size: 13))
         .foregroundStyle(.white)

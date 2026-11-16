@@ -38,7 +38,7 @@ enum NotesBridgeError: Error, Equatable, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .notAuthorized: "Nincs engedély a Jegyzetek vezérlésére"
+        case .notAuthorized: "Not allowed to control Notes"
         case .failed(let message): message
         }
     }
@@ -50,7 +50,7 @@ enum NotesBridgeError: Error, Equatable, CustomStringConvertible {
             return .notAuthorized
         }
         let message = stderr.trimmingCharacters(in: .whitespacesAndNewlines)
-        return .failed(message.isEmpty ? "Ismeretlen hiba" : String(message.prefix(300)))
+        return .failed(message.isEmpty ? "Unknown error" : String(message.prefix(300)))
     }
 }
 
@@ -100,7 +100,7 @@ struct NotesBridge: Sendable {
                 } catch let error as NotesBridgeError {
                     continuation.resume(throwing: error)
                 } catch {
-                    continuation.resume(throwing: NotesBridgeError.failed("Érvénytelen válasz: \(error)"))
+                    continuation.resume(throwing: NotesBridgeError.failed("Invalid response: \(error)"))
                 }
             }
         }

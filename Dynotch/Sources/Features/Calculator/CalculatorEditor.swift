@@ -52,7 +52,7 @@ struct PinButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help(isPinned ? "Rögzítve: nyitva marad" : "Rögzítés: maradjon nyitva")
+        .help(isPinned ? "Pinned: stays open" : "Pin: keep open")
     }
 }
 

@@ -23,7 +23,7 @@ struct CalendarCompactView: View {
                 )
                 CalendarIconButton(
                     symbol: "arrow.up.left.and.arrow.down.right",
-                    help: "Teljes naptár",
+                    help: "Full calendar",
                     action: expand
                 )
                 .padding(.leading, 8)
@@ -41,7 +41,7 @@ struct CalendarCompactView: View {
             VStack(spacing: 6) {
                 Image(systemName: "calendar.badge.checkmark")
                     .font(.system(size: 16))
-                Text(service.selectedDay == service.today ? "Mára nincs esemény" : "Erre a napra nincs esemény")
+                Text(service.selectedDay == service.today ? "Nothing for today" : "Nothing on this day")
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundStyle(Color.white.opacity(0.55))
@@ -112,7 +112,7 @@ private struct CompactEventRow: View {
 
     private var timeText: String {
         let weekday = event.start.formatted(.dateTime.weekday(.abbreviated)).capitalized
-        if event.isAllDay { return "\(weekday) · egész nap" }
+        if event.isAllDay { return "\(weekday) · all day" }
         return "\(weekday) \(event.start.formatted(date: .omitted, time: .shortened))"
     }
 }

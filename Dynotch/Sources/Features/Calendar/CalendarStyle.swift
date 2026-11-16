@@ -7,12 +7,12 @@ enum CalendarStyle {
     static let eventTime = Color(red: 1, green: 0.27, blue: 0.35)
     static let joinGreen = Color(red: 0.19, green: 0.74, blue: 0.33)
 
-    /// "Ma", "Holnap", otherwise the weekday name.
+    /// "Today", "Tomorrow", otherwise the weekday name.
     static func dayTitle(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
-        if calendar.isDate(date, inSameDayAs: now) { return "Ma" }
+        if calendar.isDate(date, inSameDayAs: now) { return "Today" }
         if let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)),
            calendar.isDate(date, inSameDayAs: tomorrow) {
-            return "Holnap"
+            return "Tomorrow"
         }
         return date.formatted(.dateTime.weekday(.wide)).capitalized
     }
@@ -24,7 +24,7 @@ extension CalendarColor {
     }
 }
 
-/// "Csatlakozás" button; opens the meeting in the default browser.
+/// "Join" button; opens the meeting in the default browser.
 struct JoinButton: View {
     enum Style {
         /// Green capsule (compact day view).
@@ -41,7 +41,7 @@ struct JoinButton: View {
             HStack(spacing: 4) {
                 Image(systemName: "video")
                     .font(.system(size: 10, weight: .semibold))
-                Text("Csatlakozás")
+                Text("Join")
                     .font(.system(size: 11, weight: .semibold))
             }
             .padding(.horizontal, 10)

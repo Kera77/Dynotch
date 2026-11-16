@@ -8,7 +8,7 @@ struct NotchView: View {
     let calculator: CalculatorStore
     let notes: NotesStore
     let reminders: RemindersStore
-    let claudeUsage: ClaudeUsageService
+    @ObservedObject var claudeUsage: ClaudeUsageService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
@@ -25,12 +25,16 @@ struct NotchView: View {
     /// taller while one of them is hovered (spec K-8d).
     private var collapsedSize: CGSize {
         if notifications.peek != nil { return geometry.peekSize }
-        return IndicatorLayout(count: calendar.indicatorEvents.count)
-            .size(notch: geometry.notchSize, showsLabel: hoveredIndicator != nil)
+        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: hoveredIndicator.map { indicatorItems[$0].labelHeight })
+    }
+
+    /// Meeting countdowns and the Claude usage beside the closed notch.
+    private var indicatorItems: [IndicatorItem] {
+        IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
     }
 
     private var indicatorLayout: IndicatorLayout {
-        IndicatorLayout(count: calendar.indicatorEvents.count)
+        IndicatorLayout(items: indicatorItems)
     }
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
@@ -40,7 +44,7 @@ struct NotchView: View {
     }
 
     private var hoveredIndicator: Int? {
-        model.hoveredIndicator.flatMap { calendar.indicatorEvents.indices.contains($0) ? $0 : nil }
+        model.hoveredIndicator.flatMap { indicatorItems.indices.contains($0) ? $0 : nil }
     }
 
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
@@ -61,16 +65,19 @@ struct NotchView: View {
                 )
                 .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                 .transition(.opacity)
-            } else if !model.isExpanded, !calendar.indicatorEvents.isEmpty {
-                UpcomingEventIndicator(
-                    events: calendar.indicatorEvents,
+            } else if !model.isExpanded, !indicatorItems.isEmpty {
+                NotchIndicatorView(
+                    items: indicatorItems,
                     leadTime: calendar.leadTime,
                     notchSize: geometry.notchSize,
                     hoveredIndex: hoveredIndicator
-                ) { event in
+                ) { item in
                     withAnimation(Self.quickAnimation) {
                         model.hoveredIndicator = nil
-                        calendar.dismissIndicator(event)
+                        switch item {
+                        case .meeting(let event): calendar.dismissIndicator(event)
+                        case .usage: claudeUsage.dismissIndicator()
+                        }
                     }
                 }
                 .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
@@ -98,7 +105,7 @@ struct NotchView: View {
         .clipShape(shape)
         .offset(x: collapsedOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(Self.quickAnimation, value: calendar.indicatorEvents.map(\.id))
+        .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(NotchController.animation, value: hoveredIndicator)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .environment(\.colorScheme, .dark)
@@ -232,7 +239,7 @@ private struct TrailingControls: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Beállítások")
+            .help("Settings")
         }
         .padding(3)
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
@@ -281,7 +288,7 @@ struct FeatureSwitcher: View {
                     .zIndex(feature == dragged ? 1 : 0)
                     .onTapGesture { select(feature) }
                     .gesture(reorderGesture(for: feature))
-                    .help("\(feature.title) (⌘ + húzás: átrendezés)")
+                    .help("\(feature.title) (⌘-drag to reorder)")
             }
         }
         .coordinateSpace(name: Self.coordinateSpace)

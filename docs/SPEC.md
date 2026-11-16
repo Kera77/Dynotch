@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.10 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.11 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -12,6 +12,7 @@
 | G-3 | Minimum: **macOS 14**, Apple Silicon és Intel. | Már így van beállítva. |
 | G-4 | Minden funkció **külön kapcsolható** a Beállításokban. Kikapcsolt funkció nem fut a háttérben. | |
 | G-5 | A beállítások `UserDefaults`-ban tárolódnak, újraindítás után is megmaradnak. | |
+| G-7 | **Az app felülete angol.** A dátumok és időpontok a rendszer nyelvi és régióbeállítását követik. |
 | G-6 | **Stabil aláírás saját (önaláírt) tanúsítvánnyal** („Dynotch Self-Signed”). A CI ezzel ír alá. | A macOS az adatvédelmi engedélyeket (Naptár, Kisegítő hozzáférés) az aláíráshoz köti; stabil tanúsítvánnyal a frissítések után is megmaradnak. |
 
 ---
@@ -104,7 +105,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.11)
+### 2.3 Hatókör (v0.12)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -119,7 +120,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.11) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.12) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -263,7 +264,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | CL-3 | **Nézet** (notch funkció és menüsor-buborék, a mellékelt kép szerint): „HASZNÁLAT” fejléc, frissítés ideje és gombja; keretenként cím, százalék, sáv (kék; 70%-tól narancs, 90%-tól piros), alatta **„Visszaáll: ma 14:30” / „holnap 9:00” / „kedd, nov. 17. 9:00”**. |
 | CL-4 | Frissítés 5 percenként (amíg a funkció be van kapcsolva), megnyitáskor ha 1 percnél régebbi, és gombbal. |
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
-| CL-6 | **Menüsor-ikon kis karikával**, amely a munkamenet-keret fogyását mutatja (70%-tól narancs, 90%-tól piros). **Hoverre** kiírja az összes keret százalékát. A karika kikapcsolható (*Beállítások › Általános*), ilyenkor sima ikon látszik. |
+| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló): **bal oldalon a Claude-ikon**, jobb oldalon egy kapszula a legjobban fogyó keret százalékával; a körvonala a fogyással arányosan telik (70%-tól narancs, 90%-tól piros). Meeting-visszaszámlálók mellett azok után áll. **Hoverre** a notch alatt keretenként kiírja: használt %, hátralévő %, mikor áll vissza; **jobb oldalt X**: a jelző eltűnik, amíg a legjobban fogyó keret el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható (*Settings › General › Usage indicator next to the notch*). A menüsor-ikon sima ikon, hoverre a százalékokkal. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
 ---
@@ -304,5 +305,6 @@ Jelenleg nincs.
 | **v0.8** | Emlékeztetők a notchban és a menüsorban; natív szalagcímek bezárása eseményre; napok léptetése a napsávon |
 | **v0.9** | Fókusz követi az egeret (előrehozás nélkül); Emlékeztetők engedélyének javítása |
 | **v0.10** | Claude-fogyasztás (notch, menüsor-karika, értesítés 70% felett); naptár: kevésbé érzékeny napsáv, lista a következő meetingnél |
-| **v0.11** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.12+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.11** | Claude-jelző a notch mellett; a teljes felület angolul |
+| **v0.12** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.13+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

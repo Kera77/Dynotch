@@ -13,15 +13,15 @@ struct ClaudeUsageView: View {
             case .loaded:
                 list
             case .idle, .loading:
-                message("Fogyasztás betöltése…", showsProgress: true)
+                message("Loading usage…", showsProgress: true)
             case .noCredentials:
-                message("Nem található Claude Code-bejelentkezés, vagy a kulcskarika-hozzáférést elutasítottad.\n"
-                    + "Jelentkezz be a Claude Code-ba, majd frissíts.", showsRetry: true)
+                message("No Claude Code login found, or keychain access was denied.\n"
+                    + "Sign in to Claude Code, then refresh.", showsRetry: true)
             case .signedOut:
-                message("A Claude Code tokenje lejárt. Használd egyszer a Claude Code-ot (frissíti), majd frissíts.",
+                message("The Claude Code token expired. Use Claude Code once (it renews it), then refresh.",
                         showsRetry: true)
             case .failed(let error):
-                message("A fogyasztás nem kérhető le: \(error)", showsRetry: true)
+                message("Couldn't load usage: \(error)", showsRetry: true)
             }
         }
         .onAppear { if isActive { service.refreshIfStale() } }
@@ -33,12 +33,12 @@ struct ClaudeUsageView: View {
     private var list: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("HASZNÁLAT")
+                Text("USAGE")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.45))
                 Spacer()
                 if let updated = service.lastUpdated {
-                    Text("Frissítve \(updated.formatted(date: .omitted, time: .shortened))")
+                    Text("Updated \(updated.formatted(date: .omitted, time: .shortened))")
                         .font(.system(size: 10))
                         .foregroundStyle(Color.white.opacity(0.35))
                 }
@@ -48,7 +48,7 @@ struct ClaudeUsageView: View {
                         .foregroundStyle(Color.white.opacity(0.6))
                 }
                 .buttonStyle(.plain)
-                .help("Frissítés")
+                .help("Refresh")
             }
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 12) {
@@ -67,7 +67,7 @@ struct ClaudeUsageView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             if showsRetry {
-                Button("Frissítés", action: service.refresh)
+                Button("Refresh", action: service.refresh)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
             }
@@ -109,7 +109,7 @@ private struct UsageRow: View {
             }
             .frame(height: 6)
             if let reset = limit.resetsAt {
-                Text("Visszaáll: \(UsageAlerts.resetText(reset, now: Date()))")
+                Text("Resets \(UsageAlerts.resetText(reset, now: Date()))")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.white.opacity(0.45))
             }
@@ -139,36 +139,5 @@ struct ClaudeUsageMenuBarView: View {
             .padding(.top, 12)
             .padding(.bottom, 14)
             .popoverChrome(arrowX: state.arrowX)
-    }
-}
-
-/// Small ring for the menu bar icon (spec CL-6).
-enum UsageRing {
-    static func image(utilization: Double) -> NSImage {
-        let fraction = min(max(utilization / 100, 0), 1)
-        let level = UsageLevel(utilization: utilization)
-        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
-            let ring = rect.insetBy(dx: 2.5, dy: 2.5)
-            let track = NSBezierPath(ovalIn: ring)
-            track.lineWidth = 2.5
-            NSColor.labelColor.withAlphaComponent(0.25).setStroke()
-            track.stroke()
-
-            let progressColor: NSColor = switch level {
-            case .normal: .labelColor
-            case .high: .systemOrange
-            case .critical: .systemRed
-            }
-            let arc = NSBezierPath()
-            let center = NSPoint(x: ring.midX, y: ring.midY)
-            arc.appendArc(withCenter: center, radius: ring.width / 2, startAngle: 90, endAngle: 90 - 360 * fraction, clockwise: true)
-            arc.lineWidth = 2.5
-            arc.lineCapStyle = .round
-            progressColor.setStroke()
-            arc.stroke()
-            return true
-        }
-        image.isTemplate = false
-        return image
     }
 }

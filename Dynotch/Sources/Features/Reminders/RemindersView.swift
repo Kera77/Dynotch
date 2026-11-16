@@ -24,14 +24,14 @@ struct RemindersView: View {
                 content
             case .notDetermined:
                 prompt(
-                    "A Dynotch hozzáférést kér az emlékeztetőidhez.",
-                    button: "Hozzáférés engedélyezése",
+                    "Dynotch needs access to your reminders.",
+                    button: "Allow Access",
                     action: store.requestAccess
                 )
             case .denied:
                 prompt(
-                    "Nincs hozzáférés az emlékeztetőkhöz.\nAdatvédelem › Emlékeztetők › Dynotch",
-                    button: "Rendszerbeállítások megnyitása",
+                    "No access to reminders.\nPrivacy & Security › Reminders › Dynotch",
+                    button: "Open System Settings",
                     action: store.openPrivacySettings
                 )
             }
@@ -88,10 +88,10 @@ struct RemindersView: View {
                     .foregroundStyle(store.showCompleted ? Self.blue : Color.white.opacity(0.6))
             }
             .buttonStyle(.plain)
-            .help(store.showCompleted ? "Kész feladatok elrejtése" : "Az elmúlt 7 nap kész feladatai is látszódjanak")
+            .help(store.showCompleted ? "Hide completed" : "Show tasks completed in the last 7 days")
 
             Spacer()
-            Text(store.errorMessage ?? "\(store.openCount) nyitott feladat")
+            Text(store.errorMessage ?? "\(store.openCount) open")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(store.errorMessage == nil ? Color.white.opacity(0.5) : Self.red)
                 .lineLimit(1)
@@ -108,7 +108,7 @@ struct RemindersView: View {
                     .foregroundStyle(Color.white.opacity(0.6))
             }
             .buttonStyle(.plain)
-            .help("Megnyitás az Emlékeztetők appban")
+            .help("Open in Reminders")
         }
     }
 
@@ -137,7 +137,7 @@ private struct QuickAddField: View {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.white.opacity(0.4))
-                TextField("Írj be egy emlékeztetőt, majd Enter", text: $text)
+                TextField("Type a reminder and hit enter", text: $text)
                     .textFieldStyle(.plain)
                     .font(.system(size: 13))
                     .onSubmit {
@@ -161,8 +161,8 @@ private struct QuickAddField: View {
                     }
                 }
                 Divider()
-                Toggle("Ha nincs dátum: határidő ma", isOn: $store.autoToday)
-                Toggle("Felismert dátum törlése a címből", isOn: $store.removeParsedDate)
+                Toggle("Auto suggest today as date", isOn: $store.autoToday)
+                Toggle("Remove parsed date from title", isOn: $store.removeParsedDate)
             } label: {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 11, weight: .bold))
@@ -175,7 +175,7 @@ private struct QuickAddField: View {
             .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .fixedSize()
-            .help("Lista és beállítások. A szövegben „@Lista” is választ listát, a dátumot (pl. „holnap 14:00”) felismeri.")
+            .help("Lists and options. Type \"@List\" to pick a list; dates like \"tomorrow 2pm\" are recognised.")
         }
     }
 }
@@ -186,12 +186,12 @@ private struct UpcomingSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Közelgő emlékeztetők")
+                Text("Upcoming reminders")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(RemindersView.red)
                 Spacer()
                 Menu {
-                    Picker("Rendezés", selection: $store.sort) {
+                    Picker("Sort", selection: $store.sort) {
                         ForEach(ReminderSort.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.inline)
@@ -212,7 +212,7 @@ private struct UpcomingSection: View {
             }
             let upcoming = store.upcoming
             if upcoming.isEmpty {
-                Label("Nincs közelgő emlékeztető", systemImage: "tray")
+                Label("No upcoming reminders", systemImage: "tray")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.75))
                     .padding(.vertical, 4)
@@ -231,7 +231,7 @@ private struct TasksSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(store.selectedList?.title ?? "Feladatok")
+                Text(store.selectedList?.title ?? "Tasks")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(store.selectedList?.color.color ?? RemindersView.blue)
                 Spacer()
@@ -241,7 +241,7 @@ private struct TasksSection: View {
             }
             let tasks = store.tasks
             if tasks.isEmpty {
-                Text("Nincs nyitott feladat")
+                Text("No open tasks")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.6))
                     .padding(.vertical, 4)
@@ -250,7 +250,7 @@ private struct TasksSection: View {
                 ReminderRow(store: store, item: item, showsList: false)
             }
             if store.showCompleted, !store.recentlyCompleted.isEmpty {
-                Text("Kész (7 nap)")
+                Text("Completed (7 days)")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color.white.opacity(0.45))
                     .padding(.top, 6)
@@ -293,7 +293,7 @@ private struct ReminderRow: View {
                 .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .help(isChecked ? "Visszaállítás" : "Kész")
+            .help(isChecked ? "Mark as not done" : "Mark as done")
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)

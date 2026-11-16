@@ -143,7 +143,7 @@ final class NotesStore: ObservableObject {
             text = draftText
             readOnlyReason = nil
             defaults.removeObject(forKey: Key.note)
-            saveState = .failed("A jegyzet nem nyitható meg: \(error)")
+            saveState = .failed("Can't open the note: \(error)")
         }
     }
 
@@ -343,10 +343,10 @@ extension NotesStore {
 
     nonisolated static func readOnlyReason(for detail: NoteDetail) -> String? {
         if detail.locked {
-            return "Jelszóval védett, csak a Jegyzetekben nyitható meg"
+            return "Locked note: open it in Notes"
         }
         if detail.attachments > 0 || NoteHTML.isRich(html: detail.body) {
-            return "Csak olvasható: lista, kép vagy link van benne"
+            return "Read-only: contains a list, image or link"
         }
         return nil
     }

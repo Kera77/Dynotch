@@ -13,6 +13,7 @@ final class NotchController {
     private let settings: AppSettings
     private let calendar: CalendarService
     private let notifications: NotificationService
+    private let claudeUsage: ClaudeUsageService
     private let openSettings: () -> Void
     private let model: NotchViewModel
     private let panel: NotchPanel
@@ -32,6 +33,7 @@ final class NotchController {
         settings = services.settings
         calendar = services.calendar
         notifications = services.notifications
+        claudeUsage = services.claudeUsage
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -290,20 +292,20 @@ extension NotchController {
     /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
     /// ignores the mouse while closed, so this is computed from the pointer position.
     fileprivate func updateHoveredIndicator() {
-        let count = calendar.indicatorEvents.count
-        guard !calendar.indicatorEvents.isEmpty, notifications.peek == nil else {
+        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
+        guard !items.isEmpty, notifications.peek == nil else {
             setHoveredIndicator(nil)
             return
         }
         let geometry = model.geometry
-        let layout = IndicatorLayout(count: count)
+        let layout = IndicatorLayout(items: items)
         let point = NSEvent.mouseLocation
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             setHoveredIndicator(slot)
-        } else if model.hoveredIndicator != nil,
-                  layout.rect(notchRect: geometry.notchRect, showsLabel: true)
+        } else if let hovered = model.hoveredIndicator, items.indices.contains(hovered),
+                  layout.rect(notchRect: geometry.notchRect, labelHeight: items[hovered].labelHeight)
                     .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
-            // Moving down onto the name keeps it visible.
+            // Moving down onto the details keeps them visible.
             return
         } else {
             setHoveredIndicator(nil)

@@ -26,7 +26,7 @@ final class SettingsWindowController {
     private func makeWindow() -> NSWindow {
         let rootView = SettingsView(settings: settings, calendar: calendar, notifications: notifications)
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
-        window.title = "Dynotch beállítások"
+        window.title = "Dynotch Settings"
         window.styleMask = [.titled, .closable, .miniaturizable]
         window.isReleasedWhenClosed = false
         window.center()

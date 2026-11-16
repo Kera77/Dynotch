@@ -126,20 +126,20 @@ enum CalendarAgenda {
         )
     }
 
-    /// "9:05" under an hour, otherwise whole minutes ("75p").
+    /// "9:05" under an hour, otherwise whole minutes ("75m").
     static func countdownText(_ remaining: TimeInterval) -> String {
         let seconds = max(0, Int(remaining.rounded(.up)))
-        if seconds >= 3600 { return "\(Int((Double(seconds) / 60).rounded(.up)))p" }
+        if seconds >= 3600 { return "\(Int((Double(seconds) / 60).rounded(.up)))m" }
         return "\(seconds / 60):" + String(format: "%02d", seconds % 60)
     }
 
-    /// Short duration, e.g. "30 p", "1 ó", "1 ó 30 p".
+    /// Short duration, e.g. "30m", "1h", "1h 30m".
     static func durationText(_ duration: TimeInterval) -> String {
         let totalMinutes = max(0, Int((duration / 60).rounded()))
         let hours = totalMinutes / 60
         let minutes = totalMinutes % 60
-        if hours == 0 { return "\(minutes) p" }
-        return minutes == 0 ? "\(hours) ó" : "\(hours) ó \(minutes) p"
+        if hours == 0 { return "\(minutes)m" }
+        return minutes == 0 ? "\(hours)h" : "\(hours)h \(minutes)m"
     }
 
     private static func sortOrder(_ lhs: CalendarEvent, _ rhs: CalendarEvent) -> Bool {

@@ -25,7 +25,7 @@ final class CalculatorTextView: EditingTextView {
         textView.configurePlainText(font: editorFont, caretColor: CalculatorResultsView.resultColor, lineSpacing: 5)
         textView.textContainerInset = NSSize(width: 4, height: 6)
         textView.textContainer?.widthTracksTextView = false
-        textView.placeholder = "Írj be egy számítást, pl. 1200 * 1,27"
+        textView.placeholder = "Type a calculation, e.g. 1200 * 1.27"
         textView.string = text
 
         textView.resultsView.textView = textView
@@ -86,7 +86,7 @@ final class CalculatorTextView: EditingTextView {
 /// it to the clipboard (spec SZ-9).
 final class CalculatorResultsView: NSView {
     static let resultColor = NSColor(srgbRed: 0.25, green: 0.86, blue: 0.45, alpha: 1)
-    private static let copiedText = "Másolva ✓"
+    private static let copiedText = "Copied ✓"
     private static let trailingPadding: CGFloat = 8
 
     weak var textView: CalculatorTextView?

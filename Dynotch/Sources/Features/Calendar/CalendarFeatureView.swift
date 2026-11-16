@@ -16,11 +16,11 @@ struct CalendarFeatureView: View {
                     .transition(.opacity)
             }
         case .notDetermined:
-            accessPrompt(text: "A Dynotch hozzáférést kér a naptáraidhoz.", button: "Hozzáférés engedélyezése")
+            accessPrompt(text: "Dynotch needs access to your calendars.", button: "Allow Access")
         case .denied:
             accessPrompt(
-                text: "Nincs naptár-hozzáférés. Engedélyezd: Adatvédelem › Naptárak › Dynotch.",
-                button: "Rendszerbeállítások megnyitása"
+                text: "No calendar access. Allow it in Privacy & Security › Calendars › Dynotch.",
+                button: "Open System Settings"
             )
         }
     }

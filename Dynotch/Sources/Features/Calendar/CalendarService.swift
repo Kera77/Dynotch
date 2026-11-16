@@ -226,7 +226,7 @@ final class CalendarService: ObservableObject {
     private static func makeEvent(_ event: EKEvent) -> CalendarEvent {
         CalendarEvent(
             id: "\(event.calendarItemIdentifier)-\(event.startDate.timeIntervalSince1970)",
-            title: event.title?.isEmpty == false ? event.title : "(Névtelen esemény)",
+            title: event.title?.isEmpty == false ? event.title : "(No title)",
             start: event.startDate,
             end: event.endDate,
             isAllDay: event.isAllDay,

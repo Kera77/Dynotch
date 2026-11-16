@@ -12,11 +12,11 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: "Általános"
-        case .features: "Funkciók"
-        case .calendar: "Naptár"
-        case .notifications: "Értesítések"
-        case .about: "Névjegy"
+        case .general: "General"
+        case .features: "Features"
+        case .calendar: "Calendar"
+        case .notifications: "Notifications"
+        case .about: "About"
         }
     }
 
@@ -116,7 +116,7 @@ private struct GeneralSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Indítás bejelentkezéskor", isOn: $launchAtLogin)
+                Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         setLaunchAtLogin(enabled)
                     }
@@ -127,15 +127,15 @@ private struct GeneralSettingsView: View {
                 }
             }
             Section {
-                Picker("Beállítások megnyitása", selection: $settings.settingsPresentation) {
-                    Text("A notchban").tag(SettingsPresentation.notch)
-                    Text("Külön ablakban").tag(SettingsPresentation.window)
+                Picker("Open settings", selection: $settings.settingsPresentation) {
+                    Text("In the notch").tag(SettingsPresentation.notch)
+                    Text("In a window").tag(SettingsPresentation.window)
                 }
                 .pickerStyle(.segmented)
             }
             Section {
-                Toggle("Fókusz követi az egeret (ablak előrehozása nélkül)", isOn: $settings.focusFollowsMouse)
-                LabeledContent("Várakozás váltás előtt") {
+                Toggle("Focus follows mouse (without raising windows)", isOn: $settings.focusFollowsMouse)
+                LabeledContent("Delay before switching") {
                     HStack {
                         Slider(value: $settings.focusDelay, in: AppSettings.focusDelayRange, step: 0.05)
                             .frame(width: 160)
@@ -146,23 +146,23 @@ private struct GeneralSettingsView: View {
                 }
                 .disabled(!settings.focusFollowsMouse)
             } footer: {
-                Text("Az egér alatti app kapja a billentyűzetet, de az ablak a helyén marad. "
-                    + "Ugyanazon appon belüli ablakváltáshoz Kisegítő hozzáférés kell.")
+                Text("The app under the pointer gets the keyboard; its window stays where it is. "
+                    + "Switching windows within one app needs Accessibility access.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Section {
-                Toggle("Fogyasztás-karika a menüsorban", isOn: $settings.claudeRingVisible)
-                Toggle("Értesítés 70% felett (10%-onként újra)", isOn: $settings.claudeUsageAlerts)
+                Toggle("Usage indicator next to the notch", isOn: $settings.claudeRingVisible)
+                Toggle("Notify above 70% (again every 10%)", isOn: $settings.claudeUsageAlerts)
             } header: {
-                Text("Claude-fogyasztás")
+                Text("Claude usage")
             } footer: {
-                Text("A Claude Code bejelentkezését használja a kulcskarikából; az első lekéréskor a macOS engedélyt kér.")
+                Text("Uses the Claude Code login from the keychain; macOS asks for permission the first time.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Section {
-                LabeledContent("Bezárási késleltetés") {
+                LabeledContent("Close delay") {
                     HStack {
                         Slider(
                             value: $settings.closeDelay,
@@ -173,12 +173,12 @@ private struct GeneralSettingsView: View {
                         Text(settings.closeDelay, format: .number.precision(.fractionLength(1)))
                             .monospacedDigit()
                             .frame(width: 28, alignment: .trailing)
-                        Text("mp")
+                        Text("s")
                             .foregroundStyle(.secondary)
                     }
                 }
             } footer: {
-                Text("Ennyi idő után csukódik be a notch, miután az egér elhagyta.")
+                Text("How long the notch stays open after the pointer leaves it.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -218,7 +218,7 @@ private struct FeatureSettingsView: View {
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
 
-            Text("A sorrend húzással állítható. Legalább egy funkciónak bekapcsolva kell maradnia.")
+            Text("Drag to reorder. At least one feature must stay on.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -242,35 +242,35 @@ private struct CalendarSettingsView: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Hozzáférés") {
+                LabeledContent("Access") {
                     switch calendar.access {
                     case .granted:
-                        Label("Engedélyezve", systemImage: "checkmark.circle.fill")
+                        Label("Allowed", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
                     case .notDetermined:
-                        Button("Engedélyezés") { calendar.requestAccess() }
+                        Button("Allow") { calendar.requestAccess() }
                     case .denied:
-                        Button("Rendszerbeállítások megnyitása") { calendar.openPrivacySettings() }
+                        Button("Open System Settings") { calendar.openPrivacySettings() }
                     }
                 }
             } footer: {
-                Text("A macOS Naptár app összes naptára látszik. Google- vagy Outlook-naptárhoz add hozzá "
-                    + "a fiókot itt: Rendszerbeállítások › Internetes fiókok.")
+                Text("Every calendar of the macOS Calendar app is shown. For Google or Outlook calendars, add "
+                    + "the account in System Settings › Internet Accounts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Section {
-                Toggle("Meeting-visszaszámláló a notch mellett", isOn: $settings.calendarAlertEnabled)
+                Toggle("Meeting countdown next to the notch", isOn: $settings.calendarAlertEnabled)
                 Stepper(
                     value: $settings.calendarLeadMinutes,
                     in: AppSettings.calendarLeadRange
                 ) {
-                    LabeledContent("Ennyivel előtte", value: "\(settings.calendarLeadMinutes) perc")
+                    LabeledContent("Show before start", value: "\(settings.calendarLeadMinutes) min")
                 }
                 .disabled(!settings.calendarAlertEnabled)
             } footer: {
-                Text("A kezdésig visszaszámol (az utolsó 3 percben pirossal), a meeting alatt a hátralévő időt mutatja.")
+                Text("Counts down to the start (red in the last 3 minutes), then shows the time left in the meeting.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -289,12 +289,12 @@ private struct AboutSettingsView: View {
                 .foregroundStyle(.tint)
             Text("Dynotch")
                 .font(.title2.bold())
-            Text("Verzió \(AppInfo.version) (\(AppInfo.build))")
+            Text("Version \(AppInfo.version) (\(AppInfo.build))")
                 .foregroundStyle(.secondary)
             if let url = AppInfo.repositoryURL {
                 Link("GitHub", destination: url)
             }
-            Button("Kilépés a Dynotch-ból") { NSApp.terminate(nil) }
+            Button("Quit Dynotch") { NSApp.terminate(nil) }
                 .padding(.top, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
