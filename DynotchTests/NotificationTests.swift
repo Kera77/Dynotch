@@ -118,4 +118,13 @@ struct NotificationTests {
         #expect(WebNotificationSource.isShared("com.apple.Safari.WebApp"))
         #expect(!WebNotificationSource.isShared(own))
     }
+
+    @Test func browserNotificationsAreAttributedBySite() {
+        #expect(WebNotificationSource.isShared("app.zen-browser.zen"))
+        #expect(WebNotificationSource.isShared("com.google.Chrome"))
+        #expect(!WebNotificationSource.isShared("com.automattic.beeper.desktop"))
+        #expect(WebNotificationSource.resolvedIdentifier("app.zen-browser.zen", site: "mail.google.com", apps: webApps)
+            == webApps[0].identifier)
+        #expect(WebNotificationSource.resolvedIdentifier("app.zen-browser.zen", site: nil, apps: webApps) == "app.zen-browser.zen")
+    }
 }

@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-16
+
+### Changed
+- Browser notifications (Zen, Chrome, Firefox…) are attributed to web apps by site as well.
+- Diagnostics log the site and field names of recent browser notifications.
+
 ## [0.7.2] - 2026-11-16
 
 ### Fixed
-- Gmail and Google Chat (Safari web apps) notifications: when macOS records them under a shared
-  Safari identifier they are now attributed to the web app by their site.
+- Gmail and Google Chat notifications coming from a browser (Zen, Chrome, Safari…) or under the
+  shared Safari Web App identifier are attributed to the installed web app by their site.
 - Only one icon on the left of the meeting countdowns.
 
 ### Added

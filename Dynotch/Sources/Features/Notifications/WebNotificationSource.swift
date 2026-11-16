@@ -1,8 +1,8 @@
 import Foundation
 
-/// Safari web apps (Gmail, Google Chat…) may post their notifications under a shared Safari or
-/// "Web App" identifier instead of their own. This finds the site a notification came from and
-/// the installed web app for that site (spec E-2b).
+/// Web notifications (Gmail, Google Chat…) may arrive from a browser (Zen, Chrome, Safari…) or
+/// under a shared Safari "Web App" identifier instead of the web app's own. This finds the site a
+/// notification came from and the installed web app for that site (spec E-2b).
 enum WebNotificationSource {
     /// Site → words its web app's name contains.
     static let knownSites: [String: [String]] = [
@@ -11,10 +11,18 @@ enum WebNotificationSource {
         "calendar.google.com": ["calendar", "naptár"]
     ]
 
-    /// True for identifiers shared by many web apps (Safari itself, the generic Web App host).
+    /// Browsers whose notifications come from many sites.
+    static let browserIdentifiers: Set<String> = [
+        "com.apple.safari", "com.apple.safari.webapp",
+        "app.zen-browser.zen", "org.mozilla.firefox", "com.google.chrome", "com.google.chrome.beta",
+        "company.thebrowser.browser", "company.thebrowser.dia", "com.brave.browser",
+        "com.microsoft.edgemac", "com.operasoftware.opera", "com.vivaldi.vivaldi"
+    ]
+
+    /// True for identifiers shared by many sites (browsers, the generic Web App host).
     static func isShared(_ identifier: String) -> Bool {
         let lowered = identifier.lowercased()
-        if lowered == "com.apple.safari" || lowered == "com.apple.safari.webapp" { return true }
+        if browserIdentifiers.contains(lowered) { return true }
         return lowered.hasPrefix("com.apple.webkit") || lowered.hasPrefix("com.apple.safari.webpush")
     }
 

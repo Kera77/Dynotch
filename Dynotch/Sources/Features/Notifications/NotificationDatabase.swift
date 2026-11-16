@@ -86,21 +86,23 @@ final class NotificationDatabase {
                 """
             ) { "\(Self.text($0, 0)): \(sqlite3_column_int64($0, 1))" }
             lines.append("recent records per app: \(counts)")
-            // Hosts named by the newest records of shared Safari identifiers (no content).
+            // Site and field names of the newest records of browsers and web apps (no content).
             let shared = try query(
                 """
-                SELECT r.data FROM record r JOIN app a ON a.app_id = r.app_id
-                WHERE lower(a.identifier) LIKE 'com.apple.safari%' OR lower(a.identifier) LIKE 'com.apple.webkit%'
-                ORDER BY r.rec_id DESC LIMIT 20
+                SELECT a.identifier, r.data FROM record r JOIN app a ON a.app_id = r.app_id
+                ORDER BY r.rec_id DESC LIMIT 400
                 """
-            ) { Self.blob($0, 0) }
-            let sites = shared.compactMap { data -> String? in
-                guard let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
-                    return nil
-                }
-                return WebNotificationSource.site(in: plist) ?? "-"
+            ) { (Self.text($0, 0), Self.blob($0, 1)) }
+            .filter { WebNotificationSource.isShared($0.0) || $0.0.lowercased().hasPrefix("com.apple.safari") }
+            .prefix(25)
+            for (identifier, data) in shared {
+                let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any] ?? [:]
+                let request = (plist["req"] as? [String: Any]) ?? [:]
+                lines.append(
+                    "browser record \(identifier): site=\(WebNotificationSource.site(in: plist) ?? "-") "
+                        + "keys=\(plist.keys.sorted()) req=\(request.keys.sorted())"
+                )
             }
-            lines.append("sites of recent Safari records: \(sites)")
         } catch {
             lines.append("diagnostics failed: \(error)")
         }

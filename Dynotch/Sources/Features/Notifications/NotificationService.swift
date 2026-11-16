@@ -71,7 +71,8 @@ final class NotificationService: ObservableObject {
         guard let identifiers = try? database?.appIdentifiers() else { return }
         apps = identifiers
             .map(catalog.app(for:))
-            .filter { $0.url != nil && !WebNotificationSource.isShared($0.identifier) }
+            // The shared Web App host is not an app of its own; its notifications are attributed.
+            .filter { $0.url != nil && $0.identifier.lowercased() != "com.apple.safari.webapp" }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
