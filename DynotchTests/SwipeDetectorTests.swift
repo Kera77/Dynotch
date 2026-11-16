@@ -39,19 +39,26 @@ struct SwipeDetectorTests {
 struct VerticalSwipeTests {
     @Test func swipeUpFiresOnce() {
         var swipe = VerticalSwipe()
-        #expect(!swipe.handle(phase: .began, fingerUp: 10, deltaX: 0))
-        #expect(swipe.handle(phase: .changed, fingerUp: 25, deltaX: 2))
-        #expect(!swipe.handle(phase: .changed, fingerUp: 40, deltaX: 0))
-        #expect(!swipe.handle(phase: .ended, fingerUp: 0, deltaX: 0))
+        let result1 = swipe.handle(phase: .began, fingerUp: 10, deltaX: 0)
+        #expect(!result1)
+        let result2 = swipe.handle(phase: .changed, fingerUp: 25, deltaX: 2)
+        #expect(result2)
+        let result3 = swipe.handle(phase: .changed, fingerUp: 40, deltaX: 0)
+        #expect(!result3)
+        let result4 = swipe.handle(phase: .ended, fingerUp: 0, deltaX: 0)
+        #expect(!result4)
     }
 
     @Test func downOrSidewaysDoesNothing() {
         var swipe = VerticalSwipe()
         _ = swipe.handle(phase: .began, fingerUp: -10, deltaX: 0)
-        #expect(!swipe.handle(phase: .changed, fingerUp: -40, deltaX: 0))
+        let result5 = swipe.handle(phase: .changed, fingerUp: -40, deltaX: 0)
+        #expect(!result5)
         var sideways = VerticalSwipe()
         _ = sideways.handle(phase: .began, fingerUp: 5, deltaX: 30)
-        #expect(!sideways.handle(phase: .changed, fingerUp: 30, deltaX: 40))
-        #expect(!sideways.handle(phase: .none, fingerUp: 100, deltaX: 0))
+        let result6 = sideways.handle(phase: .changed, fingerUp: 30, deltaX: 40)
+        #expect(!result6)
+        let result7 = sideways.handle(phase: .none, fingerUp: 100, deltaX: 0)
+        #expect(!result7)
     }
 }
