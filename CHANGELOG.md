@@ -9,6 +9,7 @@
   device below 20 % is shown beside the notch (its icon on the left, the level in red on the
   right) until its warning is closed.
 - A button beside the keyboard lock turns "focus follows mouse" on and off.
+- Shortcuts: pinning the notch open is chosen per feature (a "Pin" checkbox in Settings › Features).
 
 ### Changed
 - All macOS system notices are shown, under one "System Settings" switch.
@@ -16,6 +17,7 @@
 - Rings and countdowns beside the notch are larger and sit on whole pixels, so they are sharp on
   non-Retina displays.
 - The reminder count in the menu bar is closer to its icon and centred.
+- Claude: the button that hides the chat list sits beside "New chat".
 
 ### Fixed
 - A shortcut pressed while the notch was already open by hover closed it instead of pinning it.

@@ -59,11 +59,10 @@ struct ClaudeChatView: View {
         Button {
             withAnimation(.easeOut(duration: 0.18)) { service.showsSidebar.toggle() }
         } label: {
-            Image(systemName: "sidebar.left")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(service.showsSidebar ? 0.9 : 0.6))
-                .frame(width: 30, height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+            SidebarGlyph()
+                .foregroundStyle(Color.white.opacity(service.showsSidebar ? 0.9 : 0.65))
+                .frame(width: 28, height: 26)
+                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.1)))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -74,22 +73,10 @@ struct ClaudeChatView: View {
 
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button {
-                service.newChat()
-            } label: {
-                Label("New chat", systemImage: "square.and.pencil")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 8)
-                    .frame(height: 26)
-                    .background(
-                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            .fill(Color.white.opacity(service.selectedID == nil ? 0.2 : 0.1))
-                    )
-                    .contentShape(Rectangle())
+            HStack(spacing: 4) {
+                newChatButton
+                sidebarToggle
             }
-            .buttonStyle(.plain)
             ScrollView(.vertical) {
                 VStack(spacing: 2) {
                     ForEach(service.chats) { chat in
@@ -115,6 +102,26 @@ struct ClaudeChatView: View {
             .scrollIndicators(.never)
         }
         .padding(.trailing, 10)
+    }
+
+    private var newChatButton: some View {
+        Button {
+            service.newChat()
+        } label: {
+            Label("New chat", systemImage: "square.and.pencil")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8)
+                .frame(height: 26)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.white.opacity(service.selectedID == nil ? 0.2 : 0.1))
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Conversation
@@ -157,7 +164,8 @@ struct ClaudeChatView: View {
 
     private var inputRow: some View {
         HStack(spacing: 8) {
-            sidebarToggle
+            // With the list hidden its button moves here.
+            if !service.showsSidebar { sidebarToggle }
             TextField(service.selected == nil ? "New chat — Enter sends" : "Reply — Enter sends", text: $service.draft)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
@@ -283,5 +291,19 @@ struct WorkingDots: View {
                 }
             }
         }
+    }
+}
+
+/// The sidebar button's mark: a rounded frame with a short bar at its left edge.
+struct SidebarGlyph: View {
+    var body: some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 3.5, style: .continuous)
+                .stroke(lineWidth: 1.5)
+            Capsule()
+                .frame(width: 2, height: 6)
+                .padding(.leading, 3.5)
+        }
+        .frame(width: 16, height: 12)
     }
 }

@@ -46,14 +46,27 @@ final class ShortcutStore: ObservableObject {
     private static let shortcutsKey = "featureShortcuts"
     private static let pinKey = "shortcutPins"
     private static let pinShortcutKey = "pinShortcut"
+    private static let pinnedKey = "shortcutPinnedFeatures"
 
     @Published private(set) var shortcuts: [FeatureID: KeyShortcut] {
         didSet { save() }
     }
 
-    /// Opening with a shortcut also pins the panel, so it stays open (spec SC-2).
-    @Published var pinsOnOpen: Bool {
-        didSet { defaults.set(pinsOnOpen, forKey: Self.pinKey) }
+    /// The features whose shortcut also pins the panel, so it stays open (spec SC-2).
+    @Published private(set) var pinnedFeatures: Set<FeatureID> {
+        didSet { defaults.set(pinnedFeatures.map(\.rawValue).sorted(), forKey: Self.pinnedKey) }
+    }
+
+    func pins(_ feature: FeatureID) -> Bool {
+        pinnedFeatures.contains(feature)
+    }
+
+    func setPins(_ feature: FeatureID, _ pins: Bool) {
+        if pins {
+            pinnedFeatures.insert(feature)
+        } else {
+            pinnedFeatures.remove(feature)
+        }
     }
 
     /// Pins the notch open, or releases it (spec SC-3).
@@ -72,7 +85,12 @@ final class ShortcutStore: ObservableObject {
             if let feature = FeatureID(rawValue: name) { loaded[feature] = shortcut }
         }
         shortcuts = loaded
-        pinsOnOpen = defaults.bool(forKey: Self.pinKey)
+        if let stored = defaults.stringArray(forKey: Self.pinnedKey) {
+            pinnedFeatures = Set(stored.compactMap(FeatureID.init(rawValue:)))
+        } else {
+            // Before 0.26 one switch pinned every feature.
+            pinnedFeatures = defaults.bool(forKey: Self.pinKey) ? Set(FeatureID.allCases) : []
+        }
         pinShortcut = defaults.data(forKey: Self.pinShortcutKey).flatMap { try? JSONDecoder().decode(KeyShortcut.self, from: $0) }
     }
 

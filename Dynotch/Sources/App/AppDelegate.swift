@@ -62,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let shortcuts = services.shortcuts
         let center = HotkeyCenter(
             store: shortcuts,
-            onFire: { [weak manager] in manager?.open($0, pinned: shortcuts.pinsOnOpen) },
+            onFire: { [weak manager] in manager?.open($0, pinned: shortcuts.pins($0)) },
             onPin: { [weak manager] in manager?.togglePin() }
         )
         center.start()

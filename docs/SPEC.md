@@ -350,7 +350,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | SC-1 | **Beállítások › Features:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
 | SC-3 | Külön gyorsbillentyű a **notch rögzítésére**: nyitott panelnél ki-be kapcsolja a rögzítést, csukottnál rögzítve megnyitja. A lakat ikon rögzítéskor **kék**, mint a billentyűzetzár. |
-| SC-2 | Kapcsoló: **gyorsbillentyűs megnyitáskor a notch rögzítése** automatikusan bekapcsol (nem záródik be). |
+| SC-2 | **Modulonként** jelölőnégyzet („Pin”) a Features listában: ha be van jelölve, az adott modul gyorsbillentyűs megnyitásakor a notch rögzítése automatikusan bekapcsol (nem záródik be). (v0.26; korábban egy közös kapcsoló volt, annak bekapcsolt állapota minden modulra átöröklődik.) |
 
 ## 4m. „Claude befejezte” jelzés (v0.23)
 
@@ -370,7 +370,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CC-3 | Új chatnél a panel kicsi; **Enterre** elküldi a kérdést, és a panel **lefelé megnő**, a válasz folyamatosan íródik ki. Folyamatosan lehet tovább chatelni; a futó válasz leállítható. |
 | CC-4 | Ha a notchot elhagyom, bezárul, de amíg Claude dolgozik, a becsukott notch **bal oldalán a Claude jele, jobb oldalán mozgó pontok** jelzik a munkát. |
 | CC-6 | **Előzmények:** a chatlista alján „From Claude Code” címmel megjelennek a Claude Code saját munkamenetei (`~/.claude/projects`, a legfrissebb 40). Kattintásra a beszélgetés szövege betöltődik (eszközhívások és belső jegyzetek nélkül), és folytatható: a következő kérdés a munkamenet **másolatát** viszi tovább, az eredeti érintetlen marad. A claude.ai és a Claude appok beszélgetései az Anthropic szerverein vannak, helyben nem olvashatók, ezért nem húzhatók be. |
-| CC-7 | A chatlista (oldalsáv) a beviteli mező melletti gombbal **becsukható és kinyitható**; az állapot megmarad. |
+| CC-7 | A chatlista (oldalsáv) **becsukható és kinyitható** a „New chat” gomb jobb oldalán lévő gombbal (ikon: lekerekített keret, bal szélén rövid függőleges vonal); becsukva a gomb a beviteli mező elé kerül. Az állapot megmarad. |
 | CC-8 | **Menüsor-ikon** (Claude jele) ugyanazzal a chattel, a többi menüsor-panel mintájára; a Features fülön kapcsolható. |
 | CC-5 | Amikor megjön a válasz (és a chat nincs a képernyőn), a jelzés eltűnik, és a notch alatt **kis sor lóg le: „Claude answered” + a chat címe**. Ott marad, amíg rá nem viszem az egeret; **hoverre a notch megnő** és a chatet mutatja. |
 

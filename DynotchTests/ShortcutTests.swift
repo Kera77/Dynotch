@@ -30,12 +30,16 @@ struct ShortcutTests {
         let shortcut = try #require(KeyShortcut.make(keyCode: UInt16(kVK_ANSI_1), flags: [.option], characters: "1"))
         store.set(shortcut, for: .notes)
         store.set(shortcut, for: .calculator)
-        store.pinsOnOpen = true
+        store.setPins(.calculator, true)
+        store.setPins(.notes, true)
+        store.setPins(.notes, false)
         #expect(store.shortcuts == [.calculator: shortcut])
 
         let reloaded = ShortcutStore(defaults: defaults)
         #expect(reloaded.shortcuts == [.calculator: shortcut])
-        #expect(reloaded.pinsOnOpen)
+        // Spec SC-2: pinning is chosen per feature.
+        #expect(reloaded.pins(.calculator))
+        #expect(!reloaded.pins(.notes))
         reloaded.set(nil, for: .calculator)
         #expect(ShortcutStore(defaults: defaults).shortcuts.isEmpty)
     }

@@ -30,6 +30,10 @@ struct FeatureSettingsView: View {
                         }
                         ShortcutRecorder(shortcut: shortcuts.shortcuts[feature]) { shortcuts.set($0, for: feature) }
                             .disabled(!settings.isEnabled(feature))
+                        Toggle("Pin", isOn: Binding(get: { shortcuts.pins(feature) }, set: { shortcuts.setPins(feature, $0) }))
+                            .toggleStyle(.checkbox)
+                            .disabled(!settings.isEnabled(feature) || shortcuts.shortcuts[feature] == nil)
+                            .help("Opening \(feature.title) with its shortcut also pins the notch, so it stays open")
                     }
                 }
                 .onMove { settings.moveFeatures(from: $0, to: $1) }
@@ -41,9 +45,8 @@ struct FeatureSettingsView: View {
                 Spacer()
                 ShortcutRecorder(shortcut: shortcuts.pinShortcut) { shortcuts.setPinShortcut($0) }
             }
-            Toggle("Keep the notch open (pinned) when opened with a shortcut", isOn: $shortcuts.pinsOnOpen)
             Text("Drag to reorder. At least one feature must stay on. \"Menu bar\" also adds an icon to the menu bar. "
-                + "A shortcut opens the feature in the notch; pressing it again closes it.")
+                + "A shortcut opens the feature in the notch; pressing it again closes it. \"Pin\" keeps it open when opened that way.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
