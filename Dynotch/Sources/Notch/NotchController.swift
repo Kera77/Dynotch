@@ -155,43 +155,6 @@ final class NotchController {
         }
     }
 
-    /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
-    /// ignores the mouse while closed, so this is computed from the pointer position.
-    private func updateHoveredIndicator() {
-        let count = calendar.indicatorEvents.count
-        guard !calendar.indicatorEvents.isEmpty, notifications.peek == nil else {
-            setHoveredIndicator(nil)
-            return
-        }
-        let geometry = model.geometry
-        let layout = IndicatorLayout(count: count)
-        let point = NSEvent.mouseLocation
-        if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
-            setHoveredIndicator(slot)
-        } else if model.hoveredIndicator != nil,
-                  layout.rect(notchRect: geometry.notchRect, showsLabel: true)
-                    .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
-            // Moving down onto the name keeps it visible.
-            return
-        } else {
-            setHoveredIndicator(nil)
-        }
-    }
-
-    /// While a countdown is hovered the closed panel takes the mouse (for the X button) and the
-    /// pointer is polled, since the panel then hides the mouse-moved events from the monitor.
-    private func setHoveredIndicator(_ index: Int?) {
-        guard model.hoveredIndicator != index else { return }
-        withAnimation(Self.animation) { model.hoveredIndicator = index }
-        guard !model.isExpanded else { return }
-        panel.ignoresMouseEvents = index == nil
-        if index == nil {
-            stopHoverTimer()
-        } else {
-            startHoverTimer()
-        }
-    }
-
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded else { return }
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
@@ -315,5 +278,46 @@ final class NotchController {
             withAnimation(Self.animation) { model.step(direction) }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
+    }
+}
+
+// MARK: - Countdown hover (spec K-8d, K-8e)
+
+extension NotchController {
+    /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
+    /// ignores the mouse while closed, so this is computed from the pointer position.
+    fileprivate func updateHoveredIndicator() {
+        let count = calendar.indicatorEvents.count
+        guard !calendar.indicatorEvents.isEmpty, notifications.peek == nil else {
+            setHoveredIndicator(nil)
+            return
+        }
+        let geometry = model.geometry
+        let layout = IndicatorLayout(count: count)
+        let point = NSEvent.mouseLocation
+        if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
+            setHoveredIndicator(slot)
+        } else if model.hoveredIndicator != nil,
+                  layout.rect(notchRect: geometry.notchRect, showsLabel: true)
+                    .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
+            // Moving down onto the name keeps it visible.
+            return
+        } else {
+            setHoveredIndicator(nil)
+        }
+    }
+
+    /// While a countdown is hovered the closed panel takes the mouse (for the X button) and the
+    /// pointer is polled, since the panel then hides the mouse-moved events from the monitor.
+    fileprivate func setHoveredIndicator(_ index: Int?) {
+        guard model.hoveredIndicator != index else { return }
+        withAnimation(Self.animation) { model.hoveredIndicator = index }
+        guard !model.isExpanded else { return }
+        panel.ignoresMouseEvents = index == nil
+        if index == nil {
+            stopHoverTimer()
+        } else {
+            startHoverTimer()
+        }
     }
 }
