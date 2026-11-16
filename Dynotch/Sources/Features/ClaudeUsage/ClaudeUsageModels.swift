@@ -51,14 +51,23 @@ enum ClaudeUsageParser {
         let id = [kind, group].filter { !$0.isEmpty }.joined(separator: ":")
         return UsageLimit(
             id: id.isEmpty ? UUID().uuidString : id,
-            title: title(kind: kind, group: group),
+            title: title(kind: kind, group: group, scope: entry["scope"] as? String),
             utilization: min(max(percent, 0), 100),
             resetsAt: (entry["resets_at"] as? String).flatMap(date(from:))
         )
     }
 
-    /// "Session (5 hr)", "Weekly (7 day)", otherwise the model or group name with "limit".
-    static func title(kind: String, group: String) -> String {
+    /// Name of the model-scoped weekly limit when the response does not name it ("scope" is
+    /// null); Claude's own usage screen calls it this.
+    static let scopedLimitFallbackName = "Fable"
+
+    /// "Session (5 hr)", "Weekly (7 day)", "<Model> limit" for the model-scoped weekly limit,
+    /// otherwise the group name with "limit".
+    static func title(kind: String, group: String, scope: String? = nil) -> String {
+        if kind.lowercased().contains("scoped") {
+            let model = scope.flatMap { $0.isEmpty ? nil : $0 } ?? scopedLimitFallbackName
+            return "\(pretty(model)) limit"
+        }
         let words = (kind + " " + group).lowercased()
         let isSession = words.contains("five_hour") || words.contains("5h") || words.contains("session")
         let isWeekly = words.contains("seven_day") || words.contains("7d") || words.contains("week")
@@ -68,10 +77,14 @@ enum ClaudeUsageParser {
             if isSession { return "Session (5 hr)" }
             if isWeekly { return "Weekly (7 day)" }
         }
-        let pretty = name.split(whereSeparator: { $0 == "_" || $0 == "-" })
+        return "\(pretty(name)) limit"
+    }
+
+    /// "claude_opus" → "Claude Opus".
+    private static func pretty(_ name: String) -> String {
+        name.split(whereSeparator: { $0 == "_" || $0 == "-" })
             .map { $0.prefix(1).uppercased() + $0.dropFirst() }
             .joined(separator: " ")
-        return "\(pretty) limit"
     }
 
     /// Older responses: "five_hour", "seven_day" and "seven_day_<model>" objects.

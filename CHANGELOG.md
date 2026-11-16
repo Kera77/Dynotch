@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.11.4] - 2026-11-16
+
+### Fixed
+- The model-scoped weekly limit is called "Fable limit" (as in Claude's own usage screen) instead of a second "Weekly".
+
 ## [0.11.3] - 2026-11-16
 
 ### Fixed
