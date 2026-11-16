@@ -72,7 +72,7 @@ final class NativeBannerDismisser {
     fileprivate func sweep() {
         let now = Date()
         for item in pending where item.expires <= now {
-            DiagnosticsLog.append("banner-dismiss", "#\(item.id) not found within \(Int(Self.waitTime)) s")
+            DiagnosticsLog.append("banner-dismiss", "#\(item.id) not found within \(Int(Self.waitTime)) s; \(environmentSummary())")
         }
         pending.removeAll { $0.expires <= now }
         guard !pending.isEmpty else { return }
@@ -143,7 +143,9 @@ final class NativeBannerDismisser {
         var visited = 0
         let windows = Self.children(of: root, attribute: kAXWindowsAttribute)
         result.windows = windows.count
-        var queue: [(element: AXUIElement, depth: Int)] = windows.map { ($0, 0) }
+        // Banners are not always listed as windows: also walk the app's direct children.
+        let roots = windows + Self.children(of: root, attribute: kAXChildrenAttribute)
+        var queue: [(element: AXUIElement, depth: Int)] = roots.map { ($0, 0) }
         defer { result.visited = visited }
         while !queue.isEmpty, visited < Self.maxElements {
             let (element, depth) = queue.removeFirst()
@@ -163,6 +165,22 @@ final class NativeBannerDismisser {
             }
         }
         return result
+    }
+
+    /// What Notification Center exposes right now, for the log: windows, direct children and
+    /// its on-screen windows according to the window server. No text.
+    private func environmentSummary() -> String {
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: Self.notificationCenterBundleID).first
+        else { return "Notification Center not running" }
+        let root = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.3)
+        let windows = Self.children(of: root, attribute: kAXWindowsAttribute)
+        let children = Self.children(of: root, attribute: kAXChildrenAttribute)
+        let roles = children.compactMap { Self.string(of: $0, kAXRoleAttribute) }
+        let onScreen = (CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? [])
+            .filter { ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier }
+            .map { "layer \($0[kCGWindowLayer as String] as? Int ?? -1)" }
+        return "ax windows=\(windows.count) children=\(roles) screen windows=\(onScreen)"
     }
 
     private static func children(of element: AXUIElement, attribute: String) -> [AXUIElement] {

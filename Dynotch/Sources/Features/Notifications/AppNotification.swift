@@ -125,7 +125,21 @@ enum NotificationParser {
         } else if let nested = requestDictionary["usda"] as? [String: Any] {
             userInfoKeys = nested.keys.sorted()
         }
-        return "keys: \(plist.keys.sorted()) req: \(requestDictionary.keys.sorted()) usda: \(userInfoKeys)"
+        return "keys: \(plist.keys.sorted()) req: \(requestDictionary.keys.sorted()) usda: \(userInfoKeys) "
+            + "usda strings: \(structuralStrings(in: requestDictionary["usda"]))"
+    }
+
+    /// Strings in the archived userInfo that look like identifiers or addresses (they contain "/"
+    /// or ":"), with long runs masked, so the log shows their shape but no content.
+    static func structuralStrings(in value: Any?) -> [String] {
+        guard let data = value as? Data,
+              let archive = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+              let objects = archive["$objects"] as? [Any]
+        else { return [] }
+        return objects.compactMap { $0 as? String }
+            .filter { ($0.contains("/") || $0.contains(":")) && !$0.contains(" ") }
+            .map { $0.replacingOccurrences(of: #"[A-Za-z0-9_-]{6,}"#, with: "…", options: .regularExpression) }
+            .map { String($0.prefix(80)) }
     }
 
     private static func text(_ value: Any?) -> String {

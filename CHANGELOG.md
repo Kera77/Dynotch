@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-11-16
+
+### Fixed
+- Native banners are also searched among Notification Center's direct children, not only its windows.
+
+### Added
+- Diagnostics: Notification Center state when a banner is not found; shape of identifiers in web notifications.
+
 ## [0.16.0] - 2026-11-16
 
 ### Added
