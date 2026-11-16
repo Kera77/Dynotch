@@ -6,6 +6,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case features
     case calendar
     case notifications
+    case focus
     case about
 
     var id: String { rawValue }
@@ -16,6 +17,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "Features"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
+        case .focus: "Focus"
         case .about: "About"
         }
     }
@@ -26,6 +28,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "square.grid.2x2"
         case .calendar: "calendar"
         case .notifications: "bell"
+        case .focus: "cursorarrow.rays"
         case .about: "info.circle"
         }
     }
@@ -100,6 +103,8 @@ struct SettingsView: View {
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
             NotificationSettingsView(settings: settings, service: notifications)
+        case .focus:
+            FocusSettingsView(settings: settings)
         case .about:
             AboutSettingsView()
         }
@@ -134,20 +139,9 @@ private struct GeneralSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section {
-                Toggle("Focus follows mouse (without raising windows)", isOn: $settings.focusFollowsMouse)
-                LabeledContent("Delay before switching") {
-                    HStack {
-                        Slider(value: $settings.focusDelay, in: AppSettings.focusDelayRange, step: 0.05)
-                            .frame(width: 160)
-                        Text("\(Int(settings.focusDelay * 1000)) ms")
-                            .monospacedDigit()
-                            .frame(width: 52, alignment: .trailing)
-                    }
-                }
-                .disabled(!settings.focusFollowsMouse)
+                Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
-                Text("The app under the pointer gets the keyboard; its window stays where it is. "
-                    + "Switching windows within one app needs Accessibility access.")
+                Text("A light tap when the notch opens, when you swipe between features and between days.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -197,6 +191,50 @@ private struct GeneralSettingsView: View {
         } catch {
             launchError = error.localizedDescription
             launchAtLogin = SMAppService.mainApp.status == .enabled
+        }
+    }
+}
+
+// MARK: - Focus follows mouse
+
+/// AutoRaise-style focus, without raising (spec F-1…F-6).
+private struct FocusSettingsView: View {
+    @ObservedObject var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Focus follows mouse", isOn: $settings.focusFollowsMouse)
+                LabeledContent("Delay before switching") {
+                    HStack {
+                        Slider(value: $settings.focusDelay, in: AppSettings.focusDelayRange, step: 0.05)
+                            .frame(width: 160)
+                        Text("\(Int(settings.focusDelay * 1000)) ms")
+                            .monospacedDigit()
+                            .frame(width: 52, alignment: .trailing)
+                    }
+                }
+                .disabled(!settings.focusFollowsMouse)
+            }
+            Section("What it does") {
+                VStack(alignment: .leading, spacing: 6) {
+                    bullet("The app under the pointer gets the keyboard focus once the pointer rests on its window.")
+                    bullet("Windows are never raised: a window covering part of another stays in front.")
+                    bullet("Nothing happens over the menu bar, the Dock, menus, floating windows or the desktop.")
+                    bullet("It waits while a mouse button is held, and while you type in a Dynotch panel.")
+                    bullet("Switching between windows of the same app needs Accessibility access.")
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private func bullet(_ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text("•")
+            Text(text).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

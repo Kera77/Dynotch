@@ -159,4 +159,12 @@ struct AppSettingsTests {
         #expect(!AppSettings(defaults: defaults).showsInMenuBar(.notes))
         #expect(AppSettings(defaults: defaults).showsInMenuBar(.reminders))
     }
+
+    @Test func hapticsAreOnByDefault() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.hapticsEnabled)
+        settings.hapticsEnabled = false
+        #expect(!AppSettings(defaults: defaults).hapticsEnabled)
+    }
 }

@@ -72,7 +72,7 @@ struct NotificationStackView: View {
     enum ReplyStatus: Equatable {
         case idle
         case sending
-        case sent
+        case sent(String)
         case failed(String)
     }
 
@@ -203,14 +203,22 @@ struct NotificationStackView: View {
         .padding(.top, 6)
         .padding(.bottom, 10)
         .overlay(alignment: .bottomLeading) {
-            if case .failed(let message) = replyStatus {
-                Text(message)
+            if let note = statusNote {
+                Text(note.text)
                     .font(.system(size: 10))
-                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4))
+                    .foregroundStyle(note.isError ? Color(red: 1, green: 0.45, blue: 0.4) : Color.white.opacity(0.5))
                     .lineLimit(1)
                     .padding(.horizontal, 14)
                     .offset(y: 2)
             }
+        }
+    }
+
+    private var statusNote: (text: String, isError: Bool)? {
+        switch replyStatus {
+        case .failed(let message): (message, true)
+        case .sent(let note): (note, false)
+        default: nil
         }
     }
 
@@ -225,9 +233,9 @@ struct NotificationStackView: View {
         replyStatus = .sending
         Task {
             do {
-                try await service.reply(to: target, text: text)
+                let note = try await service.reply(to: target, text: text)
                 replyText = ""
-                replyStatus = .sent
+                replyStatus = .sent(note)
             } catch {
                 replyStatus = .failed("\(error)")
             }

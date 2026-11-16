@@ -11,12 +11,18 @@ struct AppNotification: Identifiable, Equatable, Sendable {
     let date: Date
     /// Website the notification came from, if the record names one (web apps, Safari).
     var site: String?
+    /// The conversation's web address, if the record carries one (spec E-11b).
+    var link: URL?
+    /// The app that posted it (e.g. the browser), before attributing it to a web app.
+    var sourceIdentifier: String?
 
     func with(appIdentifier: String) -> AppNotification {
-        AppNotification(
+        var copy = AppNotification(
             id: id, appIdentifier: appIdentifier, title: title,
-            subtitle: subtitle, body: body, date: date, site: site
+            subtitle: subtitle, body: body, date: date, site: site, link: link
         )
+        copy.sourceIdentifier = sourceIdentifier ?? self.appIdentifier
+        return copy
     }
 }
 
@@ -100,7 +106,8 @@ enum NotificationParser {
         return AppNotification(
             id: recordID, appIdentifier: identifier,
             title: title, subtitle: subtitle, body: body, date: date,
-            site: WebNotificationSource.site(in: plist)
+            site: WebNotificationSource.site(in: plist),
+            link: WebNotificationSource.conversationLink(in: plist)
         )
     }
 
@@ -109,8 +116,16 @@ enum NotificationParser {
         guard let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
             return "not a dictionary plist (\(data.count) bytes)"
         }
-        let request = (plist["req"] as? [String: Any])?.keys.sorted() ?? []
-        return "keys: \(plist.keys.sorted()) req: \(request)"
+        let requestDictionary = plist["req"] as? [String: Any] ?? [:]
+        // userInfo ("usda") is often a nested property list.
+        var userInfoKeys: [String] = []
+        if let data = requestDictionary["usda"] as? Data,
+           let nested = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
+            userInfoKeys = nested.keys.sorted()
+        } else if let nested = requestDictionary["usda"] as? [String: Any] {
+            userInfoKeys = nested.keys.sorted()
+        }
+        return "keys: \(plist.keys.sorted()) req: \(requestDictionary.keys.sorted()) usda: \(userInfoKeys)"
     }
 
     private static func text(_ value: Any?) -> String {

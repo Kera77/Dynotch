@@ -96,15 +96,21 @@ final class NotificationService: ObservableObject {
             && lhs.title.trimmingCharacters(in: .whitespaces).lowercased() == rhs.title.trimmingCharacters(in: .whitespaces).lowercased()
     }
 
-    /// Whether a reply can be sent from the notch (spec E-11). Only Beeper has an API for it.
+    /// Whether the card gets a reply field (spec E-11): chats, not mail or system notices.
     func canReply(to notification: AppNotification) -> Bool {
-        notification.appIdentifier.lowercased().contains("beeper")
+        let app = catalog.app(for: notification.appIdentifier)
+        return app.kind == .message && NotificationApp.systemName(for: notification.appIdentifier) == nil
     }
 
-    /// Sends a reply to the chat the notification came from.
-    func reply(to notification: AppNotification, text: String) async throws {
-        guard canReply(to: notification) else { throw BeeperError.failed("Replying is not available for this app.") }
-        try await BeeperClient().reply(to: notification.title, text: text)
+    /// Sends a reply: Beeper through its API, other chats by typing into the conversation.
+    /// - Returns: a short note on how it was sent.
+    func reply(to notification: AppNotification, text: String) async throws -> String {
+        if notification.appIdentifier.lowercased().contains("beeper") {
+            try await BeeperClient().reply(to: notification.title, text: text)
+            return "Sent"
+        }
+        let source = notification.sourceIdentifier ?? notification.appIdentifier
+        return try await TypedReply.send(text, link: notification.link, sourceApp: source, fallbackApp: notification.appIdentifier)
     }
 
     /// Negative ids never clash with the database's record ids.
@@ -237,7 +243,9 @@ final class NotificationService: ObservableObject {
             DiagnosticsLog.append(
                 "notification-records",
                 "#\(record.id) app=\(record.appIdentifier) site=\(parsed.site ?? "-") "
-                    + "as=\(notification.appIdentifier) shown=\(enabled)"
+                    + "link=\(parsed.link.map(WebNotificationSource.maskedShape) ?? "-") "
+                    + "as=\(notification.appIdentifier) shown=\(enabled) "
+                    + "fields=\(NotificationParser.keySummary(of: record.data))"
             )
             if enabled {
                 incoming.append(notification)

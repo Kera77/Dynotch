@@ -34,6 +34,7 @@ final class AppSettings: ObservableObject {
         static let focusFollowsMouse = "focusFollowsMouse"
         static let claudeRing = "claudeRing"
         static let hiddenFromMenuBar = "hiddenFromMenuBar"
+        static let haptics = "haptics"
         static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
     }
@@ -98,6 +99,11 @@ final class AppSettings: ObservableObject {
     }
 
     static let focusDelayRange: ClosedRange<Double> = 0...0.5
+
+    /// Trackpad taps when the notch opens and on swipes (spec H-7).
+    @Published var hapticsEnabled: Bool {
+        didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
+    }
 
     /// Features with a menu bar icon (spec M-7).
     static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage]
@@ -182,6 +188,7 @@ final class AppSettings: ObservableObject {
         hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
+        hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true
         let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-16
+
+### Added
+- Reply field for every chat notification. Google Chat (no API): the conversation is opened in the
+  app that posted the notification and the text is typed in (needs Accessibility).
+- System Settings notices (login and background items, software update, privacy) in the notch.
+- Settings › Focus tab with a description of focus-follows-mouse.
+- Trackpad feedback when the notch opens and on feature and day swipes.
+
 ## [0.15.0] - 2026-11-16
 
 ### Added

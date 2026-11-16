@@ -35,6 +35,35 @@ enum WebNotificationSource {
         return hosts.first { knownSites[$0] != nil } ?? hosts.first
     }
 
+    /// A conversation address in the record (not in the title or body), e.g.
+    /// https://chat.google.com/dm/… or https://mail.google.com/chat/… (spec E-11b).
+    static func conversationLink(in plist: [String: Any]) -> URL? {
+        var strings: [String] = []
+        collect(plist, into: &strings, skipping: ["titl", "body"])
+        let candidates = strings.flatMap(urls(in:))
+        return candidates.first(where: isConversation)
+    }
+
+    static func isConversation(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        let path = url.path.lowercased() + "#" + (url.fragment ?? "").lowercased()
+        if host == "chat.google.com" { return path.count > 2 }
+        if host == "mail.google.com" { return path.contains("/chat") || path.contains("#chat/") }
+        return false
+    }
+
+    /// The link's shape for the diagnostics log: host and path with ids masked.
+    static func maskedShape(of url: URL) -> String {
+        let path = (url.path + (url.fragment.map { "#" + $0 } ?? ""))
+            .replacingOccurrences(of: #"[A-Za-z0-9_-]{6,}"#, with: "…", options: .regularExpression)
+        return (url.host ?? "?") + path
+    }
+
+    private static func urls(in string: String) -> [URL] {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return [] }
+        return detector.matches(in: string, range: NSRange(string.startIndex..., in: string)).compactMap(\.url)
+    }
+
     /// The installed web app for a site, from (identifier, name) pairs.
     static func webApp(forSite site: String, among apps: [(identifier: String, name: String)]) -> String? {
         let words = knownSites[site] ?? fallbackWords(for: site)
@@ -78,6 +107,11 @@ enum WebNotificationSource {
             }
         case let array as [Any]:
             for nested in array { collect(nested, into: &strings, skipping: skipped) }
+        case let data as Data:
+            // userInfo is often stored as a nested property list.
+            if let nested = try? PropertyListSerialization.propertyList(from: data, format: nil) {
+                collect(nested, into: &strings, skipping: skipped)
+            }
         default:
             break
         }

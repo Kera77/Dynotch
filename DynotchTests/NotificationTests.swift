@@ -163,9 +163,10 @@ struct NotificationTests {
         let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
         let service = NotificationService(settings: AppSettings(defaults: defaults))
         service.present(title: "A", body: "1", appIdentifier: "com.automattic.beeper.desktop")
-        service.present(title: "B", body: "2", appIdentifier: "com.apple.safari.webapp.x")
+        service.present(title: "B", body: "2", appIdentifier: "com.apple.btmnotificationagent")
         #expect(service.unseen.map(\.title) == ["A", "B"])
         #expect(service.canReply(to: service.unseen[0]))
+        // System notices get no reply field.
         #expect(!service.canReply(to: service.unseen[1]))
         service.markSeen()
         #expect(service.unseen.isEmpty)
@@ -211,5 +212,37 @@ struct NotificationTests {
         service.markSeen(anna)
         #expect(service.unseen.map(\.body) == ["2", "4"])
         service.clearPeek()
+    }
+
+    /// Spec E-11b: the conversation address is read from the record, never from the message.
+    @Test func conversationLinkFromTheRecord() throws {
+        let userInfo = try PropertyListSerialization.data(
+            fromPropertyList: ["url": "https://chat.google.com/u/0/app/chat/AAAAbcdEfgh"], format: .binary, options: 0
+        )
+        let plist: [String: Any] = [
+            "app": "app.zen-browser.zen",
+            "req": ["titl": "Béla", "body": "see https://chat.google.com/dm/XYZ123456", "usda": userInfo]
+        ]
+        let link = WebNotificationSource.conversationLink(in: plist)
+        #expect(link?.absoluteString == "https://chat.google.com/u/0/app/chat/AAAAbcdEfgh")
+        #expect(WebNotificationSource.maskedShape(of: try #require(link)) == "chat.google.com/u/0/app/chat/…")
+
+        let noLink: [String: Any] = ["req": ["titl": "x", "body": "https://chat.google.com/dm/ABCDEF123"]]
+        #expect(WebNotificationSource.conversationLink(in: noLink) == nil)
+    }
+
+    @Test func conversationLinkShapes() throws {
+        #expect(WebNotificationSource.isConversation(try #require(URL(string: "https://mail.google.com/mail/u/0/#chat/dm/abc"))))
+        #expect(WebNotificationSource.isConversation(try #require(URL(string: "https://mail.google.com/chat/u/0/#chat/space/x"))))
+        #expect(!WebNotificationSource.isConversation(try #require(URL(string: "https://mail.google.com/mail/u/0/#inbox/123"))))
+        #expect(!WebNotificationSource.isConversation(try #require(URL(string: "https://example.com/chat"))))
+    }
+
+    /// Spec E-2c: System Settings notices are shown by default, with a readable name.
+    @Test func systemSettingsNotices() {
+        #expect(NotificationApp.systemName(for: "com.apple.btmnotificationagent") == "Login Items")
+        #expect(NotificationApp.systemName(for: "_system_center_:com.apple.softwareupdatenotification") == "Software Update")
+        #expect(NotificationApp.isDefaultEnabled(identifier: "com.apple.tccd", name: "com.apple.tccd"))
+        #expect(!NotificationApp.isDefaultEnabled(identifier: "com.apple.music", name: "Music"))
     }
 }

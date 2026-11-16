@@ -189,6 +189,7 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
+        Haptics.perform(.open, settings: settings)
         // Opened from a notification peek: that sender's new messages (spec E-4).
         let stack = notifications.peek.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
@@ -292,7 +293,9 @@ final class NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
+            let before = model.currentFeature
             withAnimation(Self.animation) { model.step(direction) }
+            if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
     }
@@ -349,6 +352,7 @@ extension NotchController {
         let calendarService = calendar
         if let day = Calendar.current.date(byAdding: .day, value: steps, to: calendarService.selectedDay) {
             calendarService.selectedDay = Calendar.current.startOfDay(for: day)
+            Haptics.perform(.dayStep, settings: settings)
         }
         return true
     }

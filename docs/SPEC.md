@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.15 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.16 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -74,6 +74,7 @@
 | C-2 | Beállítás: **hol nyíljanak meg a beállítások**. *A notchban* (alapértelmezett): a panel a beállítások méretére nő (520 × 440 pt tartalom a menüsor alatt), és minden beállítás a notchban jelenik meg; a fogaskerékre vagy egy funkció ikonjára kattintva, illetve a panel bezárásakor visszatér a funkciókhoz. *Külön ablakban*: a panel becsukódik, és egy normál macOS ablak nyílik meg ugyanazzal a tartalommal. |
 | C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
+| H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
 
 ---|---|
@@ -107,7 +108,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.16)
+### 2.3 Hatókör (v0.17)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -122,7 +123,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.16) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.17) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -178,6 +179,7 @@
 |---|---|
 | E-1 | A Dynotch a macOS Értesítési központ helyi adatbázisából olvassa az új értesítéseket (másodpercenként ellenőriz). Ehhez **Teljes lemezelérés** engedély kell; nélküle az Értesítések funkció és a Beállítások egy gombot mutat, amely megnyitja a megfelelő Rendszerbeállítások oldalt. Csak az indítás után érkezett értesítések jelennek meg. |
 | E-2 | Csak a kiválasztott appok értesítései jelennek meg. Alapból: **Beeper**, valamint a **Gmail** és a **Google Chat** Safari-webapp. A Beállításokban bármelyik telepített, értesítést küldő app ki- és bekapcsolható. |
+| E-2c | **Rendszerértesítések** (alapból be, a Rendszerbeállítások ikonjával): bejelentkezési és háttérelemek („Login Items”, pl. „Dynotch can run in the background”), szoftverfrissítés, adatvédelmi engedélyek („Privacy & Security”), Rendszerbeállítások. |
 | E-2b | **Webes értesítések** (Gmail, Google Chat): ha az értesítés egy böngészőből (Zen, Chrome, Firefox, Safari…) vagy a közös Safari „Web App” azonosítóval érkezik, a Dynotch az értesítésben szereplő oldal címéből (például `mail.google.com`, `chat.google.com`) megkeresi a telepített webappot, és annak a nevével, ikonjával és beállításával kezeli. A szöveg (cím, törzs) nem számít ebbe bele. |
 
 ### Megjelenés
@@ -191,7 +193,8 @@
 | E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |
 | E-7b | A forrást megnevező sorok (például „via chat.google.com”, „via WhatsApp”, vagy csak egy domain, mint „mail.google.com”) nem jelennek meg, sem az alcímben, sem a szövegben, egyik appnál sem. |
 | E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, figyeli az Értesítési központ új ablakait (kisegítő értesítés), és amint a szalagcím megjelenik, bezárja (a cím, cím nélkül a szöveg eleje alapján); tartalékként 8 mp-ig 0,2 mp-enként is keresi. A szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
-| E-11 | **Válasz a notchból:** a kártya alján **válaszmező** van („Reply to Anna…”), ha az üzenet Beeperből jött. Enter vagy a küldés gomb a választ a **Beeper Desktop API**-n keresztül elküldi abba a beszélgetésbe, amelynek a címe az értesítés címe (pontos egyezés, különben az olvasatlan, különben az első találat). Ehhez a Beeperben létre kell hozni egy tokent (*Settings › Integrations › Approved connections*), és be kell másolni a Dynotch *Settings › Notifications › Replies* részébe. **Google Chat (és más, válasz-API nélküli app) esetén** a mező helyén „Open Google Chat to reply” gomb van, amely megnyitja az appot. |
+| E-11 | **Válasz a notchból:** csevegő appok (nem levél, nem rendszerértesítés) kártyája alján **szöveges mező**; Enter küld. **Beeper:** a Beeper Desktop API-n (token: *Settings › Notifications › Replies*). |
+| E-11b | **Google Chat és más, API nélküli csevegők:** ha az értesítés rekordja tartalmazza a beszélgetés címét (chat.google.com / mail.google.com/chat), a Dynotch megnyitja azt abban az appban, amelyik az értesítést küldte (pl. Zen), megvárja, hogy előtérbe kerüljön és betöltsön, majd beilleszti a szöveget és Entert nyom (Kisegítő hozzáférés kell). Csak akkor gépel, ha közvetlenül előtte is az az app van előtérben; a vágólapot visszaállítja. Ha a cím nem ismert, nem küld semmit: a szöveget a vágólapra teszi és megnyitja az appot. Levélnél (Gmail) „Open … to reply” gomb marad. |
 | E-9 | Hibakereséshez az app naplót ír ide (a szalagcímek bezárásáról is: `banner-dismiss.log`): `~/Library/Logs/Dynotch/notifications.log` (adatbázis szerkezete, appazonosítók, az utóbbi értesítések száma appanként) és `notification-records.log` (érkezett értesítésenként: azonosító, oldal, kinek tulajdonítva, megjelent-e). Értesítések tartalma egyikben sincs. |
 
 ---
@@ -256,6 +259,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-3 | A váltás akkor történik, amikor az egér *N* ideig nyugalomban van (beállítás: 0–500 ms, alapból 100 ms). |
 | F-4 | Nem vált, amíg egérgomb le van nyomva (húzás, kijelölés), és amíg egy Dynotch-panel fogadja a billentyűzetet (számológép, jegyzet, emlékeztető bevitel, beállítások), hogy a gépelés ne szakadjon meg. |
 | F-5 | Ugyanazon appon belüli ablakváltáshoz **Kisegítő hozzáférés** kell (a jelenleg fókuszban lévő ablak azonosítása). Appok között enélkül is működik. |
+| F-7 | *Settings › Focus* fül: be/ki, várakozás, és rövid leírás arról, mit csinál a funkció. |
 | F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
 
 ---
@@ -316,5 +320,6 @@ Jelenleg nincs.
 | **v0.13** | Értesítések: minden új értesítés egymás alatt, válasz Beeper-üzenetekre a notchból |
 | **v0.14** | Értesítések küldőnként egy kártyán; session-visszaállás értesítés; figyelmeztetések csak új lépcsőnél; keskenyebb Jegyzetek/Emlékeztetők panel |
 | **v0.15** | Meeting-bejelentés a notchban (felfelé söpréssel zárható); AI-jelző csak session, 70% felett |
-| **v0.16** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.17+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.16** | Válasz Google Chatre gépeléssel; rendszerértesítések; Focus beállításfül; trackpad-visszajelzés |
+| **v0.17** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.18+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
