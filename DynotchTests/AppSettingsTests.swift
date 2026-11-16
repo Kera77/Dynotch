@@ -126,4 +126,14 @@ struct AppSettingsTests {
         #expect(FeatureSwitcher.targetIndex(from: 2, offset: -500, count: 5) == 0)
         #expect(FeatureSwitcher.targetIndex(from: 2, offset: 500, count: 5) == 4)
     }
+
+    /// Spec M-6: while dragging, the icons between the start and the drop place move aside.
+    @Test func dragShiftsTheIconsInBetween() {
+        let step = FeatureSwitcher.step
+        // Dragging index 1 to index 3: icons 2 and 3 move left.
+        #expect((0..<5).map { FeatureSwitcher.shift(of: $0, draggedFrom: 1, to: 3) } == [0, 0, -step, -step, 0])
+        // Dragging index 3 to index 0: icons 0…2 move right.
+        #expect((0..<5).map { FeatureSwitcher.shift(of: $0, draggedFrom: 3, to: 0) } == [step, step, step, 0, 0])
+        #expect((0..<5).map { FeatureSwitcher.shift(of: $0, draggedFrom: 2, to: 2) } == [0, 0, 0, 0, 0])
+    }
 }

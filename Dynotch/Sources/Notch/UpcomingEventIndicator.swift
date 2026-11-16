@@ -23,34 +23,57 @@ struct ClockwiseCapsule: Shape {
 }
 
 /// Where the countdowns sit beside the closed notch: one icon on the left, the countdown
-/// capsules on the right. Shared by the view and the hover hit test.
+/// capsules on the right. The two sides have their own widths, so the black area is asymmetric
+/// (spec K-7). Shared by the view and the hover hit test.
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
+    static let iconWidth: CGFloat = 22
     static let capsuleHeight: CGFloat = 18
     static let spacing: CGFloat = 6
-    static let padding: CGFloat = 7
-    static let minimumSideWidth: CGFloat = 60
+    static let padding: CGFloat = 8
     /// Extra height for the meeting name shown on hover (spec K-8d).
     static let labelHeight: CGFloat = 26
-    static let labelWidth: CGFloat = 360
+    static let labelWidth: CGFloat = 440
 
     /// Number of countdowns.
     let count: Int
 
-    var sideWidth: CGFloat {
-        guard !isEmpty else { return 0 }
-        let slots = CGFloat(count) * Self.slotWidth + CGFloat(count - 1) * Self.spacing
-        return max(Self.minimumSideWidth, 2 * Self.padding + slots)
+    var isEmpty: Bool { count < 1 }
+
+    /// Left of the notch: just the icon.
+    var leftWidth: CGFloat {
+        isEmpty ? 0 : Self.iconWidth + 2 * Self.padding
     }
 
-    var isEmpty: Bool { count < 1 }
+    /// Right of the notch: the countdowns.
+    var rightWidth: CGFloat {
+        guard !isEmpty else { return 0 }
+        return CGFloat(count) * Self.slotWidth + CGFloat(count - 1) * Self.spacing + 2 * Self.padding
+    }
+
+    /// Width of the row: icon, notch, countdowns.
+    func rowWidth(notch: CGSize) -> CGFloat {
+        notch.width + leftWidth + rightWidth
+    }
 
     /// Size of the closed notch with the countdowns, and with the hover label.
     func size(notch: CGSize, showsLabel: Bool) -> CGSize {
         guard !isEmpty else { return notch }
-        let width = notch.width + 2 * sideWidth
+        let width = rowWidth(notch: notch)
         guard showsLabel else { return CGSize(width: width, height: notch.height) }
         return CGSize(width: max(width, Self.labelWidth), height: notch.height + Self.labelHeight)
+    }
+
+    /// How far the black area's centre is right of the notch's centre.
+    var horizontalOffset: CGFloat {
+        (rightWidth - leftWidth) / 2
+    }
+
+    /// The black area in global coordinates (AppKit, origin bottom-left).
+    func rect(notchRect: CGRect, showsLabel: Bool) -> CGRect {
+        let size = size(notch: notchRect.size, showsLabel: showsLabel)
+        let centerX = notchRect.midX + horizontalOffset
+        return CGRect(x: centerX - size.width / 2, y: notchRect.maxY - size.height, width: size.width, height: size.height)
     }
 
     /// Horizontal centre of countdown `index`, right of the notch.
@@ -60,7 +83,7 @@ struct IndicatorLayout: Equatable {
 
     /// Horizontal centre of the single icon left of the notch.
     func iconCenter(notchRect: CGRect) -> CGFloat {
-        notchRect.minX - Self.padding - Self.slotWidth / 2
+        notchRect.minX - leftWidth / 2
     }
 
     /// The countdown under a point (global coordinates), if any. The icon stands for the first.
@@ -68,8 +91,8 @@ struct IndicatorLayout: Equatable {
         guard !isEmpty, point.y >= notchRect.minY, point.y <= notchRect.maxY + NotchGeometry.topEdgeTolerance else {
             return nil
         }
+        if point.x < notchRect.minX, point.x >= notchRect.minX - leftWidth { return 0 }
         let reach = (Self.slotWidth + Self.spacing) / 2
-        if abs(point.x - iconCenter(notchRect: notchRect)) <= reach { return 0 }
         return (0..<count).first { abs(point.x - center(of: $0, notchRect: notchRect)) <= reach }
     }
 }
@@ -82,6 +105,8 @@ struct UpcomingEventIndicator: View {
     let leadTime: TimeInterval
     let notchSize: CGSize
     let hoveredIndex: Int?
+    /// Hides a countdown (spec K-8e).
+    let dismiss: (CalendarEvent) -> Void
 
     private static let lineWidth: CGFloat = 1.5
 
@@ -112,9 +137,8 @@ struct UpcomingEventIndicator: View {
         return Image(systemName: events.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
             .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(color)
-            .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
-            .padding(.trailing, IndicatorLayout.padding)
-            .frame(width: layout.sideWidth, alignment: .trailing)
+            .frame(width: IndicatorLayout.iconWidth, height: IndicatorLayout.capsuleHeight)
+            .frame(width: layout.leftWidth)
     }
 
     private func countdowns(now: Date) -> some View {
@@ -125,7 +149,7 @@ struct UpcomingEventIndicator: View {
             }
         }
         .padding(.leading, IndicatorLayout.padding)
-        .frame(width: layout.sideWidth, alignment: .leading)
+        .frame(width: layout.rightWidth, alignment: .leading)
     }
 
     private func countdown(status: EventStatus) -> some View {
@@ -164,6 +188,16 @@ struct UpcomingEventIndicator: View {
                 .foregroundStyle(Self.color(for: status.phase))
                 .lineLimit(1)
                 .layoutPriority(1)
+            Button {
+                dismiss(event)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Visszaszámláló elrejtése")
         }
         .padding(.horizontal, 14)
         .frame(height: IndicatorLayout.labelHeight - 4)

@@ -24,6 +24,16 @@ struct NotchView: View {
             .size(notch: geometry.notchSize, showsLabel: hoveredIndicator != nil)
     }
 
+    private var indicatorLayout: IndicatorLayout {
+        IndicatorLayout(count: calendar.indicatorEvents.count)
+    }
+
+    /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
+    private var collapsedOffset: CGFloat {
+        guard !model.isExpanded, notifications.peek == nil else { return 0 }
+        return indicatorLayout.horizontalOffset
+    }
+
     private var hoveredIndicator: Int? {
         model.hoveredIndicator.flatMap { calendar.indicatorEvents.indices.contains($0) ? $0 : nil }
     }
@@ -52,7 +62,12 @@ struct NotchView: View {
                     leadTime: calendar.leadTime,
                     notchSize: geometry.notchSize,
                     hoveredIndex: hoveredIndicator
-                )
+                ) { event in
+                    withAnimation(NotchController.animation) {
+                        model.hoveredIndicator = nil
+                        calendar.dismissIndicator(event)
+                    }
+                }
                 .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                 .transition(.opacity)
             }
@@ -76,6 +91,7 @@ struct NotchView: View {
         .frame(width: size.width, height: size.height, alignment: .top)
         .background(.black)
         .clipShape(shape)
+        .offset(x: collapsedOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(NotchController.animation, value: calendar.indicatorEvents.map(\.id))
         .animation(NotchController.animation, value: hoveredIndicator)
@@ -122,7 +138,7 @@ struct NotchView: View {
             ) { feature in
                 withAnimation(NotchController.animation) { model.select(feature) }
             } move: { feature, index in
-                withAnimation(NotchController.animation) { settings.moveActiveFeature(feature, toActiveIndex: index) }
+                settings.moveActiveFeature(feature, toActiveIndex: index)
             }
             .padding(.leading, 14)
             .frame(width: sideWidth, alignment: .leading)
@@ -215,7 +231,9 @@ private struct TrailingControls: View {
 }
 
 /// Capsule-shaped icon switcher in the panel's top row (spec M-1). Holding Command while
-/// dragging an icon reorders the features (spec M-6).
+/// dragging an icon reorders the features (spec M-6). During the drag the views keep their
+/// order and only move by offsets, so the gesture is never interrupted; the order changes when
+/// the icon is dropped.
 struct FeatureSwitcher: View {
     let features: [FeatureID]
     let selected: FeatureID?
@@ -224,45 +242,48 @@ struct FeatureSwitcher: View {
 
     static let itemWidth: CGFloat = 32
     static let spacing: CGFloat = 2
-    private static var step: CGFloat { itemWidth + spacing }
+    static var step: CGFloat { itemWidth + spacing }
+    private static let coordinateSpace = "FeatureSwitcher"
 
     @State private var dragged: FeatureID?
     @State private var dragOffset: CGFloat = 0
-
-    /// Order while dragging: the dragged icon already at its drop position.
-    private var displayed: [FeatureID] {
-        guard let dragged, let from = features.firstIndex(of: dragged) else { return features }
-        var order = features
-        order.remove(at: from)
-        order.insert(dragged, at: Self.targetIndex(from: from, offset: dragOffset, count: features.count))
-        return order
-    }
 
     static func targetIndex(from: Int, offset: CGFloat, count: Int) -> Int {
         min(max(from + Int((offset / step).rounded()), 0), max(count - 1, 0))
     }
 
+    /// How far an icon is shifted while another one is dragged over its place.
+    static func shift(of index: Int, draggedFrom from: Int, to target: Int) -> CGFloat {
+        if target > from, index > from, index <= target { return -step }
+        if target < from, index >= target, index < from { return step }
+        return 0
+    }
+
+    private var target: Int? {
+        guard let dragged, let from = features.firstIndex(of: dragged) else { return nil }
+        return Self.targetIndex(from: from, offset: dragOffset, count: features.count)
+    }
+
     var body: some View {
         HStack(spacing: Self.spacing) {
-            ForEach(displayed) { feature in
+            ForEach(Array(features.enumerated()), id: \.element) { index, feature in
                 icon(feature)
-                    .offset(x: feature == dragged ? draggedVisualOffset : 0)
+                    .offset(x: offset(of: index, feature: feature))
                     .zIndex(feature == dragged ? 1 : 0)
                     .onTapGesture { select(feature) }
                     .gesture(reorderGesture(for: feature))
                     .help("\(feature.title) (⌘ + húzás: átrendezés)")
             }
         }
+        .coordinateSpace(name: Self.coordinateSpace)
         .padding(3)
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
-        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: displayed)
     }
 
-    /// The dragged icon follows the pointer, relative to its (already moved) slot.
-    private var draggedVisualOffset: CGFloat {
-        guard let dragged, let from = features.firstIndex(of: dragged) else { return 0 }
-        let target = Self.targetIndex(from: from, offset: dragOffset, count: features.count)
-        return dragOffset - CGFloat(target - from) * Self.step
+    private func offset(of index: Int, feature: FeatureID) -> CGFloat {
+        if feature == dragged { return dragOffset }
+        guard let dragged, let from = features.firstIndex(of: dragged), let target else { return 0 }
+        return Self.shift(of: index, draggedFrom: from, to: target)
     }
 
     private func icon(_ feature: FeatureID) -> some View {
@@ -278,10 +299,12 @@ struct FeatureSwitcher: View {
             )
             .scaleEffect(isDragged ? 1.12 : 1)
             .contentShape(Rectangle())
+            .animation(.spring(response: 0.22, dampingFraction: 0.85), value: target)
     }
 
     private func reorderGesture(for feature: FeatureID) -> some Gesture {
-        DragGesture(minimumDistance: 3)
+        // Measured in the row's space: the dragged icon moving does not change the translation.
+        DragGesture(minimumDistance: 3, coordinateSpace: .named(Self.coordinateSpace))
             .onChanged { value in
                 if dragged == nil {
                     // Only a drag started with Command held reorders.
@@ -294,9 +317,13 @@ struct FeatureSwitcher: View {
             .onEnded { _ in
                 guard dragged == feature, let from = features.firstIndex(of: feature) else { return }
                 let target = Self.targetIndex(from: from, offset: dragOffset, count: features.count)
-                dragged = nil
-                dragOffset = 0
-                if target != from { move(feature, target) }
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    dragged = nil
+                    dragOffset = 0
+                    if target != from { move(feature, target) }
+                }
             }
     }
 }

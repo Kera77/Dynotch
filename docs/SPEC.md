@@ -42,7 +42,7 @@
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
 | M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Info* (verzió, kijelző és notch adatai). |
-| M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni; a többi ikon elcsúszik, a húzott ikon kicsit nagyobb. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
+| M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 
 ### 1.3 Váltás két ujjas swipe-pal
@@ -155,11 +155,12 @@
 
 | ID | Követelmény |
 |---|---|
-| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik vagy éppen tart, a becsukott notch két oldalra kiszélesedik: **bal oldalon egyetlen ikon** (videó, ha bármelyik eseményben van meeting-link, egyébként naptár), **jobb oldalon** kapszulákban másodpercre pontos **visszaszámlálók**. A kapszula körvonala a **hátralévő időt** mutatja: teliről indul, és a tetejétől **az óramutató járásával megegyezően fogy el**. |
+| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik vagy éppen tart, a becsukott notch kiszélesedik, **aszimmetrikusan**: **bal oldalon** csak egyetlen ikonig (videó, ha bármelyik eseményben van meeting-link, egyébként naptár), **jobb oldalon** a kapszulákban lévő, másodpercre pontos **visszaszámlálókig**. A fizikai notch a helyén marad. A kapszula körvonala a **hátralévő időt** mutatja: teliről indul, és a tetejétől **az óramutató járásával megegyezően fogy el**. |
 | K-8 | **Kezdés előtt** (*N* perccel, beállítás: 1–30 perc, alapból 10): a kezdésig hátralévő idő **sárgával**, a körvonal az előjelzési időből hátralévő részt mutatja. **Az utolsó 3 percben pirossal.** |
 | K-8b | **A meeting alatt**: a meeting végéig hátralévő idő **világoskékkel**, a körvonal a meetingből hátralévő részt mutatja. A végén a jelzés eltűnik. |
 | K-8c | **Több meeting egyszerre:** minden futó meeting és minden, az előjelzési időn belül kezdődő meeting **egymás mellett** látszik (legfeljebb 3): elöl a futók, utána a kezdődők, kezdési idő szerint. A notch annyival szélesebb, amennyi hely kell. A 24 óránál hosszabb események nem jelennek meg. |
 | K-8d | **Hover:** egy visszaszámláló vagy a hozzá tartozó ikon fölé víve az egeret a notch kicsit lejjebb nyílik, és kiírja a **meeting nevét**, idejét és hogy „most tart” vagy „kezdődik”; a többi visszaszámláló halványabb. A notch-ra víve az egeret a panel a szokott módon kinyílik. |
+| K-8e | A hover-feliratban egy **X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi meeting visszaszámlálója marad. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---

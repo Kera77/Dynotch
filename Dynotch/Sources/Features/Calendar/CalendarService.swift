@@ -30,6 +30,12 @@ final class CalendarService: ObservableObject {
     private var lastFetch: Date?
     private var settingsObserver: AnyCancellable?
 
+    private static let dismissedKey = "dismissedCountdowns"
+    /// Countdowns hidden with the X (event ids); kept across restarts (spec K-8e).
+    private var dismissed: Set<String> {
+        didSet { UserDefaults.standard.set(Array(dismissed), forKey: Self.dismissedKey) }
+    }
+
     private static let refetchInterval: TimeInterval = 5 * 60
     private static let tickInterval: TimeInterval = 15
     private static let daysBack = 45
@@ -38,6 +44,7 @@ final class CalendarService: ObservableObject {
     init(settings: AppSettings) {
         self.settings = settings
         access = Self.currentAccess()
+        dismissed = Set(UserDefaults.standard.stringArray(forKey: Self.dismissedKey) ?? [])
     }
 
     /// How long before an event the indicator appears.
@@ -129,6 +136,14 @@ final class CalendarService: ObservableObject {
         CalendarAgenda.agenda(from: events, startingAt: day)
     }
 
+    /// Hides a countdown beside the notch for this event (spec K-8e).
+    func dismissIndicator(_ event: CalendarEvent) {
+        // Forget ids of events that have ended, so the set stays small.
+        let liveIDs = Set(events.filter { !$0.hasEnded(at: now) }.map(\.id))
+        dismissed = dismissed.intersection(liveIDs).union([event.id])
+        recompute()
+    }
+
     func openPrivacySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
             NSWorkspace.shared.open(url)
@@ -203,7 +218,7 @@ final class CalendarService: ObservableObject {
         self.now = now
 
         let newIndicatorEvents = settings.calendarAlertEnabled && settings.isEnabled(.calendar)
-            ? CalendarAgenda.indicatorEvents(in: events, now: now, leadTime: leadTime)
+            ? CalendarAgenda.indicatorEvents(in: events.filter { !dismissed.contains($0.id) }, now: now, leadTime: leadTime)
             : []
         if newIndicatorEvents != indicatorEvents { indicatorEvents = newIndicatorEvents }
     }

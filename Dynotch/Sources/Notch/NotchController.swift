@@ -169,7 +169,8 @@ final class NotchController {
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             setHoveredIndicator(slot)
         } else if model.hoveredIndicator != nil,
-                  geometry.keepOpenZone(for: layout.size(notch: geometry.notchSize, showsLabel: true)).contains(point) {
+                  layout.rect(notchRect: geometry.notchRect, showsLabel: true)
+                    .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
             // Moving down onto the name keeps it visible.
             return
         } else {
@@ -177,9 +178,18 @@ final class NotchController {
         }
     }
 
+    /// While a countdown is hovered the closed panel takes the mouse (for the X button) and the
+    /// pointer is polled, since the panel then hides the mouse-moved events from the monitor.
     private func setHoveredIndicator(_ index: Int?) {
         guard model.hoveredIndicator != index else { return }
         withAnimation(Self.animation) { model.hoveredIndicator = index }
+        guard !model.isExpanded else { return }
+        panel.ignoresMouseEvents = index == nil
+        if index == nil {
+            stopHoverTimer()
+        } else {
+            startHoverTimer()
+        }
     }
 
     private func evaluatePointerWhileExpanded() {
@@ -244,7 +254,7 @@ final class NotchController {
     private func startHoverTimer() {
         guard hoverTimer == nil else { return }
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.evaluatePointerWhileExpanded() }
+            MainActor.assumeIsolated { self?.pointerMoved() }
         }
         RunLoop.main.add(timer, forMode: .common)
         hoverTimer = timer

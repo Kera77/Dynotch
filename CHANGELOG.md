@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-16
+
+### Changed
+- Meeting countdowns: the black area is asymmetric, on the left it only reaches the icon.
+
+### Added
+- X button in the hover label hides that meeting's countdown.
+
+### Fixed
+- Cmd-drag reordering in the top row was jerky and stopped after one or two places.
+
 ## [0.7.3] - 2026-11-16
 
 ### Changed
