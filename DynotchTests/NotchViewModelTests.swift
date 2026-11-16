@@ -137,4 +137,14 @@ struct NotchViewModelTests {
         model.select(.home)
         #expect(!model.isLarge)
     }
+
+    /// Spec CL-3: the AI Usage panel is tall enough for every limit.
+    @Test func aiUsageHasItsOwnSize() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.claudeUsage)
+        #expect(model.openSize == model.geometry.usageSize)
+        #expect(model.openSize.height > model.geometry.expandedSize.height)
+        #expect(model.geometry.windowSize.height >= model.openSize.height)
+    }
 }

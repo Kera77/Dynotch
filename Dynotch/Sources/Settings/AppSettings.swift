@@ -33,6 +33,7 @@ final class AppSettings: ObservableObject {
         static let hideNativeBanners = "hideNativeBanners"
         static let focusFollowsMouse = "focusFollowsMouse"
         static let claudeRing = "claudeRing"
+        static let hiddenFromMenuBar = "hiddenFromMenuBar"
         static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
     }
@@ -98,7 +99,27 @@ final class AppSettings: ObservableObject {
 
     static let focusDelayRange: ClosedRange<Double> = 0...0.5
 
-    /// Usage ring on the Claude menu bar icon (spec CL-6).
+    /// Features with a menu bar icon (spec M-7).
+    static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage]
+
+    /// Features whose menu bar icon is turned off (they stay in the notch).
+    @Published private(set) var hiddenFromMenuBar: Set<FeatureID> {
+        didSet { defaults.set(hiddenFromMenuBar.map(\.rawValue).sorted(), forKey: Key.hiddenFromMenuBar) }
+    }
+
+    func showsInMenuBar(_ feature: FeatureID) -> Bool {
+        Self.menuBarFeatures.contains(feature) && !hiddenFromMenuBar.contains(feature)
+    }
+
+    func setShowsInMenuBar(_ feature: FeatureID, _ shows: Bool) {
+        if shows {
+            hiddenFromMenuBar.remove(feature)
+        } else {
+            hiddenFromMenuBar.insert(feature)
+        }
+    }
+
+    /// Usage indicator beside the notch (spec CL-6).
     @Published var claudeRingVisible: Bool {
         didSet { defaults.set(claudeRingVisible, forKey: Key.claudeRing) }
     }
@@ -161,6 +182,7 @@ final class AppSettings: ObservableObject {
         hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
+        hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true
         let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1
         focusDelay = min(max(storedFocusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound)

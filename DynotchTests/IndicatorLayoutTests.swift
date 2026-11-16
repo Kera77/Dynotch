@@ -79,4 +79,20 @@ struct IndicatorLayoutTests {
         #expect(IndicatorItem.iconSlots(for: onlyUsage) == [0])
         #expect(onlyUsage[0].labelHeight > IndicatorLayout.labelHeight - 1)
     }
+
+    /// Spec CL-6: the AI usage is a narrow ring; places are laid out by their own widths.
+    @Test func usageRingIsNarrowAndHitTestedByWidth() {
+        let event = CalendarEvent(id: "m", title: "M", start: Date(), end: Date().addingTimeInterval(600),
+                                  isAllDay: false, color: .fallback, meetingURL: nil)
+        let usage = [UsageLimit(id: "session", title: "Session", utilization: 84, resetsAt: nil)]
+        let layout = IndicatorLayout(items: IndicatorItem.items(meetings: [event], usage: usage))
+        #expect(layout.slotWidths == [IndicatorLayout.slotWidth, IndicatorLayout.ringSlotWidth])
+        #expect(layout.rightWidth == IndicatorLayout.slotWidth + IndicatorLayout.ringSlotWidth
+            + IndicatorLayout.spacing + 2 * IndicatorLayout.padding)
+        let ring = layout.center(of: 1, notchRect: notchRect)
+        #expect(ring - layout.center(of: 0, notchRect: notchRect)
+            == (IndicatorLayout.slotWidth + IndicatorLayout.ringSlotWidth) / 2 + IndicatorLayout.spacing)
+        #expect(layout.slot(at: CGPoint(x: ring, y: notchRect.midY), notchRect: notchRect) == 1)
+        #expect(layout.slot(at: CGPoint(x: ring + 20, y: notchRect.midY), notchRect: notchRect) == nil)
+    }
 }

@@ -87,7 +87,7 @@ final class MenuBarPopoverController: NSObject {
     /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
         updateIcon()
-        let enabled = settings.isEnabled(feature)
+        let enabled = settings.isEnabled(feature) && settings.showsInMenuBar(feature)
         if enabled, statusItem == nil {
             let length = badge == nil ? NSStatusItem.squareLength : NSStatusItem.variableLength
             let item = NSStatusBar.system.statusItem(withLength: length)
@@ -107,12 +107,25 @@ final class MenuBarPopoverController: NSObject {
         }
     }
 
+    /// When the panel was last closed by a click elsewhere.
+    private var closedByOutsideClickAt = Date.distantPast
+
+    /// Opens or closes the panel. A click on the icon closes an open panel even when it is
+    /// pinned, and unpins it (spec M-8).
     @objc private func togglePanel() {
-        if panel?.isVisible == true {
+        let justClosed = Date().timeIntervalSince(closedByOutsideClickAt) < 0.4
+        if panel?.isVisible == true || justClosed {
+            state.isPinned = false
             closePanel()
         } else {
             showPanel()
         }
+    }
+
+    /// The status item's frame on screen.
+    private var buttonScreenFrame: NSRect? {
+        guard let button = statusItem?.button, let window = button.window else { return nil }
+        return window.convertToScreen(button.convert(button.bounds, to: nil))
     }
 
     private func showPanel() {
@@ -139,9 +152,13 @@ final class MenuBarPopoverController: NSObject {
         }
     }
 
-    /// A click in another app closes the panel, unless it is pinned.
+    /// A click in another app closes the panel, unless it is pinned. Clicks on the icon itself
+    /// can arrive here too (status items live outside the app); the icon handles those.
     private func clickedOutside() {
-        if !state.isPinned { closePanel() }
+        if let frame = buttonScreenFrame, frame.insetBy(dx: -2, dy: -2).contains(NSEvent.mouseLocation) { return }
+        guard !state.isPinned else { return }
+        closedByOutsideClickAt = Date()
+        closePanel()
     }
 
     private func closePanel() {

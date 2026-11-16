@@ -152,10 +152,10 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                Toggle("Usage indicator next to the notch", isOn: $settings.claudeRingVisible)
+                Toggle("AI usage indicator next to the notch", isOn: $settings.claudeRingVisible)
                 Toggle("Notify above 70% (again every 10%)", isOn: $settings.claudeUsageAlerts)
             } header: {
-                Text("Claude usage")
+                Text("AI usage")
             } footer: {
                 Text("Uses the Claude Code login from the keychain; macOS asks for permission the first time.")
                     .font(.caption)
@@ -210,19 +210,35 @@ private struct FeatureSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             List {
                 ForEach(settings.featureOrder) { feature in
-                    Toggle(isOn: binding(for: feature)) {
-                        Label(feature.title, systemImage: feature.symbolName)
+                    HStack {
+                        Toggle(isOn: binding(for: feature)) {
+                            Label(feature.title, systemImage: feature.symbolName)
+                        }
+                        Spacer()
+                        if AppSettings.menuBarFeatures.contains(feature) {
+                            Toggle("Menu bar", isOn: menuBarBinding(for: feature))
+                                .toggleStyle(.checkbox)
+                                .disabled(!settings.isEnabled(feature))
+                                .help("Also show \(feature.title) as a menu bar icon; off: only in the notch")
+                        }
                     }
                 }
                 .onMove { settings.moveFeatures(from: $0, to: $1) }
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
 
-            Text("Drag to reorder. At least one feature must stay on.")
+            Text("Drag to reorder. At least one feature must stay on. \"Menu bar\" also adds an icon to the menu bar.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding()
+    }
+
+    private func menuBarBinding(for feature: FeatureID) -> Binding<Bool> {
+        Binding(
+            get: { settings.showsInMenuBar(feature) },
+            set: { settings.setShowsInMenuBar(feature, $0) }
+        )
     }
 
     private func binding(for feature: FeatureID) -> Binding<Bool> {

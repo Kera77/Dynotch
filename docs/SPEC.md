@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.11 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.12 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -43,6 +43,8 @@
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
 | M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Emlékeztetők* (4e. fejezet), *Claude* (4g. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-7 | **Menüsor-ikonok:** a Számológép, Jegyzetek, Emlékeztetők és AI Usage funkciónak menüsor-ikonja is van. *Settings › Features* alatt funkciónként kikapcsolható („Menu bar”), ilyenkor csak a notchban érhető el. |
+| M-8 | **Menüsor-buborék nyitás/zárás:** az ikonra kattintva kinyílik, újabb kattintásra bezáródik. Ha a lakat be van kapcsolva, az ikonra kattintás bezárja a buborékot és feloldja a lakatot; máshova kattintva a lakatolt buborék nyitva marad. |
 | M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 
@@ -105,7 +107,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.12)
+### 2.3 Hatókör (v0.13)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -120,7 +122,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.12) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.13) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -255,16 +257,16 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 
 ---
 
-## 4g. Claude-fogyasztás (v0.10)
+## 4g. AI Usage – Claude-fogyasztás (v0.10)
 
 | ID | Követelmény |
 |---|---|
-| CL-1 | **Adatforrás:** a Claude-előfizetés keretei, ugyanonnan, ahonnan a Claude Code `/usage` parancsa olvassa (`api.anthropic.com/api/oauth/usage`), a **Claude Code bejelentkezésével** („Claude Code-credentials” kulcskarika-elem). Az első kiolvasáskor a macOS engedélyt kér a kulcskarika-elemhez. A tokent a Dynotch nem frissíti és nem menti; ha lejárt, a Claude Code használatakor frissül. |
+| CL-1 | **Adatforrás:** a Claude-előfizetés keretei, ugyanonnan, ahonnan a Claude Code `/usage` parancsa olvassa (`api.anthropic.com/api/oauth/usage`), a **Claude Code bejelentkezésével**. A tokent a „Claude Code-credentials” kulcskarika-elemből a `/usr/bin/security` eszközzel olvassa (ugyanazzal, amellyel a Claude Code tárolja), így a macOS nem kér jelszót; a tokent memóriában tartja, és csak lejáratkor vagy elutasításkor olvassa újra. A tokent a Dynotch nem frissíti és nem menti. |
 | CL-2 | Keretek: **Munkamenet (5 óra)**, **Heti (7 nap)**, és a válaszban szereplő **modellenkénti heti keretek** (pl. „Fable limit”, „Opus limit”). |
-| CL-3 | **Nézet** (notch funkció és menüsor-buborék, a mellékelt kép szerint): „HASZNÁLAT” fejléc, frissítés ideje és gombja; keretenként cím, százalék, sáv (kék; 70%-tól narancs, 90%-tól piros), alatta **„Visszaáll: ma 14:30” / „holnap 9:00” / „kedd, nov. 17. 9:00”**. |
+| CL-3 | **Nézet** (*AI Usage* funkció a notchban és menüsor-buborék, a mellékelt kép szerint): „AI USAGE” fejléc, frissítés ideje és gombja; keretenként cím, százalék, sáv (70%-tól narancs, 90%-tól piros), alatta „Resets today 14:30”. A keretek listáját a válasz `limits` mezőjéből veszi (Session, Weekly, modellre szűkített heti keret „Fable limit” néven, ha a válasz nem nevezi meg). A notch-panel pont olyan magas, hogy görgetés nélkül minden keret látsszon. |
 | CL-4 | Frissítés 5 percenként (amíg a funkció be van kapcsolva), megnyitáskor ha 1 percnél régebbi, és gombbal. |
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
-| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló): **bal oldalon a Claude-ikon**, jobb oldalon egy kapszula a legjobban fogyó keret százalékával; a körvonala a fogyással arányosan telik (70%-tól narancs, 90%-tól piros). Meeting-visszaszámlálók mellett azok után áll. **Hoverre** a notch alatt keretenként kiírja: használt %, hátralévő %, mikor áll vissza; **jobb oldalt X**: a jelző eltűnik, amíg a legjobban fogyó keret el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható (*Settings › General › Usage indicator next to the notch*). A menüsor-ikon sima ikon, hoverre a százalékokkal. |
+| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló): **bal oldalon a Claude-ikon** (teljes méretben, mint a meeting-ikon), jobb oldalon egy **kör, szöveg nélkül**, amely a legjobban fogyó keret szerint telik az óramutató járásával (70%-tól narancs, 90%-tól piros). Meeting-visszaszámlálók mellett azok után áll. **Hoverre** a notch alatt keretenként: használt %, hátralévő %, visszaállás; **jobb oldalt X**: a jelző eltűnik, amíg a legjobban fogyó keret el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
 ---
@@ -306,5 +308,6 @@ Jelenleg nincs.
 | **v0.9** | Fókusz követi az egeret (előrehozás nélkül); Emlékeztetők engedélyének javítása |
 | **v0.10** | Claude-fogyasztás (notch, menüsor-karika, értesítés 70% felett); naptár: kevésbé érzékeny napsáv, lista a következő meetingnél |
 | **v0.11** | Claude-jelző a notch mellett; a teljes felület angolul |
-| **v0.12** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.13+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.12** | AI Usage: kör a notch mellett, nagyobb ikonok, jelszókérés megszüntetése; menüsor-ikonok funkciónként; menüsor-buborék zárása kattintásra |
+| **v0.13** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.14+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

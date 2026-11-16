@@ -147,4 +147,16 @@ struct AppSettingsTests {
         settings.focusFollowsMouse = false
         #expect(!AppSettings(defaults: defaults).focusFollowsMouse)
     }
+
+    /// Spec M-7: menu bar icons can be turned off per feature.
+    @Test func menuBarVisibilityPerFeature() {
+        let defaults = makeDefaults()
+        let settings = AppSettings(defaults: defaults)
+        #expect(settings.showsInMenuBar(.notes))
+        #expect(!settings.showsInMenuBar(.calendar))
+        settings.setShowsInMenuBar(.notes, false)
+        #expect(!settings.showsInMenuBar(.notes))
+        #expect(!AppSettings(defaults: defaults).showsInMenuBar(.notes))
+        #expect(AppSettings(defaults: defaults).showsInMenuBar(.reminders))
+    }
 }

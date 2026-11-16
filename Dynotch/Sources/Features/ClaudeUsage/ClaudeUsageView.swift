@@ -33,7 +33,7 @@ struct ClaudeUsageView: View {
     private var list: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("USAGE")
+                Text("AI USAGE")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.45))
                 Spacer()

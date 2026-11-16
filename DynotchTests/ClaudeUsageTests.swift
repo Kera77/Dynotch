@@ -86,11 +86,12 @@ struct ClaudeUsageTests {
         let now = Date(timeIntervalSince1970: 1_000)
         let valid = #"{"claudeAiOauth":{"accessToken":"abc","expiresAt":2000000}}"#
         let expired = #"{"claudeAiOauth":{"accessToken":"abc","expiresAt":500000}}"#
-        guard case .token(let token) = ClaudeCredential.parse(Data(valid.utf8), now: now) else {
+        guard case .token(let token, let expires) = ClaudeCredential.parse(Data(valid.utf8), now: now) else {
             Issue.record("expected a token")
             return
         }
         #expect(token == "abc")
+        #expect(expires == Date(timeIntervalSince1970: 2_000))
         guard case .expired = ClaudeCredential.parse(Data(expired.utf8), now: now) else {
             Issue.record("expected expired")
             return

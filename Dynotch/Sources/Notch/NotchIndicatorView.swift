@@ -36,6 +36,14 @@ enum IndicatorItem: Identifiable, Equatable {
         }
     }
 
+    /// Width of the item's place right of the notch: a countdown capsule, or the usage ring.
+    var slotWidth: CGFloat {
+        switch self {
+        case .meeting: IndicatorLayout.slotWidth
+        case .usage: IndicatorLayout.ringSlotWidth
+        }
+    }
+
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
@@ -64,7 +72,11 @@ enum IndicatorItem: Identifiable, Equatable {
 /// the view and the hover hit test.
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
-    static let iconWidth: CGFloat = 22
+    /// The AI usage is a ring without text (spec CL-6).
+    static let ringSlotWidth: CGFloat = 20
+    static let ringSize: CGFloat = 17
+    static let iconWidth: CGFloat = 24
+    static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 18
     static let spacing: CGFloat = 6
     static let padding: CGFloat = 8
@@ -72,18 +84,25 @@ struct IndicatorLayout: Equatable {
     static let labelHeight: CGFloat = 26
     static let labelWidth: CGFloat = 440
 
-    /// Number of capsules on the right.
-    let count: Int
-    /// For each icon on the left (from the notch outwards), the capsule it stands for.
+    /// Width of each place on the right.
+    let slotWidths: [CGFloat]
+    /// For each icon on the left (from the notch outwards), the place it stands for.
     let iconSlots: [Int]
 
+    /// Number of places on the right.
+    var count: Int { slotWidths.count }
+
     init(count: Int, iconSlots: [Int]? = nil) {
-        self.count = count
-        self.iconSlots = iconSlots ?? (count < 1 ? [] : [0])
+        self.init(slotWidths: Array(repeating: Self.slotWidth, count: max(count, 0)), iconSlots: iconSlots)
+    }
+
+    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil) {
+        self.slotWidths = slotWidths
+        self.iconSlots = iconSlots ?? (slotWidths.isEmpty ? [] : [0])
     }
 
     init(items: [IndicatorItem]) {
-        self.init(count: items.count, iconSlots: IndicatorItem.iconSlots(for: items))
+        self.init(slotWidths: items.map(\.slotWidth), iconSlots: IndicatorItem.iconSlots(for: items))
     }
 
     var isEmpty: Bool { count < 1 }
@@ -98,7 +117,7 @@ struct IndicatorLayout: Equatable {
     /// Right of the notch: the capsules.
     var rightWidth: CGFloat {
         guard !isEmpty else { return 0 }
-        return CGFloat(count) * Self.slotWidth + CGFloat(count - 1) * Self.spacing + 2 * Self.padding
+        return slotWidths.reduce(0, +) + CGFloat(count - 1) * Self.spacing + 2 * Self.padding
     }
 
     func rowWidth(notch: CGSize) -> CGFloat {
@@ -125,9 +144,10 @@ struct IndicatorLayout: Equatable {
         return CGRect(x: centerX - size.width / 2, y: notchRect.maxY - size.height, width: size.width, height: size.height)
     }
 
-    /// Horizontal centre of capsule `index`, right of the notch.
+    /// Horizontal centre of place `index`, right of the notch.
     func center(of index: Int, notchRect: CGRect) -> CGFloat {
-        notchRect.maxX + Self.padding + Self.slotWidth / 2 + CGFloat(index) * (Self.slotWidth + Self.spacing)
+        let before = slotWidths.prefix(index).reduce(0, +) + CGFloat(index) * Self.spacing
+        return notchRect.maxX + Self.padding + before + slotWidths[index] / 2
     }
 
     /// Horizontal centre of icon `index` (0 = next to the notch).
@@ -146,8 +166,9 @@ struct IndicatorLayout: Equatable {
             }
             return nearest.map { iconSlots[$0] }
         }
-        let reach = (Self.slotWidth + Self.spacing) / 2
-        return (0..<count).first { abs(point.x - center(of: $0, notchRect: notchRect)) <= reach }
+        return (0..<count).first {
+            abs(point.x - center(of: $0, notchRect: notchRect)) <= (slotWidths[$0] + Self.spacing) / 2
+        }
     }
 }
 
@@ -196,7 +217,7 @@ struct NotchIndicatorView: View {
         HStack(spacing: IndicatorLayout.spacing) {
             ForEach(Array(layout.iconSlots.enumerated().reversed()), id: \.offset) { _, slot in
                 icon(for: items[slot], now: now)
-                    .frame(width: IndicatorLayout.iconWidth, height: IndicatorLayout.capsuleHeight)
+                    .frame(width: IndicatorLayout.iconWidth, height: IndicatorLayout.iconHeight)
                     .opacity(hoveredIndex == nil || hoveredIndex == slot ? 1 : 0.45)
             }
         }
@@ -209,7 +230,7 @@ struct NotchIndicatorView: View {
         case .meeting(let first):
             let color = Self.color(for: CalendarAgenda.status(of: first, now: now, leadTime: leadTime).phase)
             Image(systemName: meetings.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(color)
         case .usage:
             ClaudeIcon()
@@ -236,12 +257,23 @@ struct NotchIndicatorView: View {
             capsule(text: CalendarAgenda.countdownText(status.remaining), color: Self.color(for: status.phase),
                     trim: status.progress...1)
         case .usage(let limits):
-            let peak = limits.max { $0.utilization < $1.utilization }
-            let used = peak?.utilization ?? 0
-            // How much of the fullest limit is used; it fills clockwise.
-            capsule(text: "\(Int(used.rounded()))%", color: Self.color(for: UsageLevel(utilization: used)),
-                    trim: 0...(used / 100))
+            let used = limits.map(\.utilization).max() ?? 0
+            usageRing(used: used)
         }
+    }
+
+    /// How much of the fullest limit is used, as a ring filling clockwise from the top; no text.
+    private func usageRing(used: Double) -> some View {
+        let color = Self.color(for: UsageLevel(utilization: used))
+        return ZStack {
+            Circle().stroke(Color.white.opacity(0.18), lineWidth: 2.5)
+            Circle()
+                .trim(from: 0, to: min(max(used / 100, 0), 1))
+                .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: IndicatorLayout.ringSize, height: IndicatorLayout.ringSize)
+        .frame(width: IndicatorLayout.ringSlotWidth, height: IndicatorLayout.capsuleHeight + 2)
     }
 
     /// Not animated: an animation on the outline would also delay the capsule when it moves.
@@ -376,10 +408,10 @@ private struct ClaudeIcon: View {
             Image(nsImage: icon)
                 .resizable()
                 .interpolation(.high)
-                .frame(width: 16, height: 16)
+                .frame(width: 22, height: 22)
         } else {
             Image(systemName: "sparkle")
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(NotchIndicatorView.claudeColor)
         }
     }

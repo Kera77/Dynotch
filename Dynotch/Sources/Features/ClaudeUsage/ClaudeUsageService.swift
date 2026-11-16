@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import Security
 
 /// Polls the Claude subscription usage with Claude Code's login (spec CL-1…CL-7).
 @MainActor
@@ -29,6 +28,8 @@ final class ClaudeUsageService: ObservableObject {
     private var timer: Timer?
     private var settingsObserver: AnyCancellable?
     private var isRefreshing = false
+    /// Token read from Claude Code's keychain item, with its expiry.
+    private var cachedToken: (token: String, expires: Date?)?
 
     private static let refreshInterval: TimeInterval = 5 * 60
     private static let minimumInterval: TimeInterval = 60
@@ -108,8 +109,16 @@ final class ClaudeUsageService: ObservableObject {
         if limits.isEmpty { state = .loading }
         Task {
             defer { isRefreshing = false }
-            // The keychain may ask the user for permission: not on the main thread.
-            let credential = await Task.detached { ClaudeCredential.read() }.value
+            // Read only when there is no token yet or it expired or was refused.
+            let credential: ClaudeCredential
+            if let cached = cachedToken, cached.expires.map({ $0 > Date() }) ?? true {
+                credential = .token(cached.token, expires: cached.expires)
+            } else {
+                credential = await Task.detached { ClaudeCredential.read() }.value
+                if case .token(let token, let expires) = credential {
+                    cachedToken = (token, expires)
+                }
+            }
             switch credential {
             case .missing:
                 state = .noCredentials
@@ -117,7 +126,7 @@ final class ClaudeUsageService: ObservableObject {
             case .expired:
                 state = .signedOut
                 return
-            case .token(let token):
+            case .token(let token, _):
                 do {
                     let (data, status) = try await Self.fetch(endpoint, token: token)
                     let shape = ClaudeUsageParser.labels(of: data) + "\n" + ClaudeUsageParser.structure(of: data)
@@ -126,6 +135,8 @@ final class ClaudeUsageService: ObservableObject {
                     case 200:
                         apply(try ClaudeUsageParser.limits(from: data))
                     case 401, 403:
+                        // Claude Code may have renewed the token meanwhile: read it again next time.
+                        cachedToken = nil
                         state = .signedOut
                     default:
                         state = .failed("HTTP \(status)")
@@ -174,24 +185,32 @@ final class ClaudeUsageService: ObservableObject {
 
 /// Claude Code's login, read from the keychain item it stores (spec CL-1).
 enum ClaudeCredential: Sendable {
-    case token(String)
+    case token(String, expires: Date?)
     case expired
     case missing
 
     static let service = "Claude Code-credentials"
 
+    /// Read with `/usr/bin/security`, the tool Claude Code itself stores the item with, so the
+    /// item's access list allows it and macOS does not ask for the password. (Reading it through
+    /// the keychain API asked again every time Claude Code renewed its token.)
     nonisolated static func read() -> ClaudeCredential {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let data = result as? Data else {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
+        process.arguments = ["find-generic-password", "-s", service, "-w"]
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = Pipe()
+        do {
+            try process.run()
+        } catch {
             return .missing
         }
-        return parse(data, now: Date())
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else { return .missing }
+        let trimmed = String(bytes: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return parse(Data(trimmed.utf8), now: Date())
     }
 
     nonisolated static func parse(_ data: Data, now: Date) -> ClaudeCredential {
@@ -199,10 +218,10 @@ enum ClaudeCredential: Sendable {
               let oauth = json["claudeAiOauth"] as? [String: Any],
               let token = oauth["accessToken"] as? String, !token.isEmpty
         else { return .missing }
-        if let expiresAt = (oauth["expiresAt"] as? NSNumber)?.doubleValue,
-           Date(timeIntervalSince1970: expiresAt / 1000) <= now {
+        let expires = ((oauth["expiresAt"] as? NSNumber)?.doubleValue).map { Date(timeIntervalSince1970: $0 / 1000) }
+        if let expires, expires <= now {
             return .expired
         }
-        return .token(token)
+        return .token(token, expires: expires)
     }
 }

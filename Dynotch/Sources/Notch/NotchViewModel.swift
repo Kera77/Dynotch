@@ -38,6 +38,7 @@ final class NotchViewModel: ObservableObject {
     var openSize: CGSize {
         if notification != nil { return geometry.notificationSize }
         if isShowingSettings { return geometry.settingsSize }
+        if currentFeature == .claudeUsage { return geometry.usageSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 

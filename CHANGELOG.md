@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-16
+
+### Added
+- Settings › Features: choose per feature whether it also has a menu bar icon.
+
+### Changed
+- The Claude usage feature is called AI Usage; beside the notch it is a ring without text.
+- Icons left of the notch are full size.
+- The AI Usage panel in the notch is tall enough to show every limit without scrolling.
+
+### Fixed
+- macOS kept asking for the password to read Claude Code's login: the token is now read with the
+  same tool Claude Code stores it with, and kept in memory until it expires.
+- Clicking a menu bar icon while its panel is open closes it (and unpins a pinned panel) instead of
+  opening it again.
+
 ## [0.11.4] - 2026-11-16
 
 ### Fixed

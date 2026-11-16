@@ -21,7 +21,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .calculator: "Calculator"
         case .notes: "Notes"
         case .reminders: "Reminders"
-        case .claudeUsage: "Claude"
+        case .claudeUsage: "AI Usage"
         case .info: "Info"
         }
     }

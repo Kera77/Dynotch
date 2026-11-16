@@ -96,6 +96,11 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// The panel showing the AI usage: tall enough for every limit without scrolling (spec CL-3).
+    var usageSize: CGSize {
+        CGSize(width: expandedSize.width, height: max(Self.expandedHeight, menuBarHeight + 260))
+    }
+
     /// The panel showing a single notification, opened by hovering its peek (spec E-4).
     var notificationSize: CGSize {
         CGSize(width: max(peekSize.width, 440), height: notchSize.height + 124)
