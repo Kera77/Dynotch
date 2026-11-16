@@ -36,8 +36,10 @@ struct NoteHTMLTests {
     }
 
     @Test func bridgeErrorClassification() {
-        #expect(NotesBridgeError.from(stderr: "execution error: Not authorized to send Apple events to Notes. (-1743)") == .notAuthorized)
-        #expect(NotesBridgeError.from(stderr: "execution error: Can't get object. (-1728)") == .failed("execution error: Can't get object. (-1728)"))
+        let denied = "execution error: Not authorized to send Apple events to Notes. (-1743)"
+        #expect(NotesBridgeError.from(stderr: denied) == .notAuthorized)
+        let missing = "execution error: Can't get object. (-1728)"
+        #expect(NotesBridgeError.from(stderr: missing) == .failed(missing))
         #expect(NotesBridgeError.from(stderr: "  ") == .failed("Ismeretlen hiba"))
     }
 
@@ -49,7 +51,8 @@ struct NoteHTMLTests {
     }
 
     @Test func decodesScriptOutput() throws {
-        let json = #"{"id":"x-coredata://1/ICNote/p1","name":"Cím","modified":1763280000000,"locked":false,"attachments":0,"body":"<div>Cím</div>","text":"Cím"}"#
+        let json = #"{"id":"x-coredata://1/ICNote/p1","name":"Cím","modified":1763280000000,"locked":false,"#
+            + #""attachments":0,"body":"<div>Cím</div>","text":"Cím"}"#
         let detail = try JSONDecoder().decode(NoteDetail.self, from: Data(json.utf8))
         #expect(detail.name == "Cím")
         #expect(NotesStore.readOnlyReason(for: detail) == nil)

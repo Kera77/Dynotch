@@ -123,7 +123,7 @@ struct NotesBridge: Sendable {
         let errorData = errors.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         guard process.terminationStatus == 0 else {
-            throw NotesBridgeError.from(stderr: String(decoding: errorData, as: UTF8.self))
+            throw NotesBridgeError.from(stderr: String(bytes: errorData, encoding: .utf8) ?? "")
         }
         return data
     }

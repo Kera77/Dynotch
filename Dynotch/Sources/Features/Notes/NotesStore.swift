@@ -50,15 +50,15 @@ final class NotesStore: ObservableObject {
         static let draft = "notesDraft"
     }
 
-    private let bridge = NotesBridge()
+    let bridge = NotesBridge()
     private let defaults: UserDefaults
     private var draftText: String {
         didSet { defaults.set(draftText, forKey: Key.draft) }
     }
     /// Modification time of the selected note as loaded, for conflict detection.
     private var loadedModified: Double?
-    private var saveTask: Task<Void, Never>?
-    private var lastRefresh = Date.distantPast
+    var saveTask: Task<Void, Never>?
+    var lastRefresh = Date.distantPast
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -76,21 +76,6 @@ final class NotesStore: ObservableObject {
 
     var isEditable: Bool {
         access == .ready && !isLoadingNote && readOnlyReason == nil
-    }
-
-    var selectedFolder: NotesFolder? {
-        folders.first { $0.id == selectedFolderID }
-    }
-
-    /// Accounts with their folders, in Notes' order.
-    var foldersByAccount: [(account: String, folders: [NotesFolder])] {
-        var order: [String] = []
-        var grouped: [String: [NotesFolder]] = [:]
-        for folder in folders {
-            if grouped[folder.account] == nil { order.append(folder.account) }
-            grouped[folder.account, default: []].append(folder)
-        }
-        return order.map { ($0, grouped[$0] ?? []) }
     }
 
     // MARK: - Loading
@@ -142,7 +127,7 @@ final class NotesStore: ObservableObject {
         }
     }
 
-    private func loadNote(_ id: String) async {
+    func loadNote(_ id: String) async {
         isLoadingNote = true
         defer { isLoadingNote = false }
         do {
@@ -236,6 +221,66 @@ final class NotesStore: ObservableObject {
         }
     }
 
+    private func scheduleSave() {
+        saveState = .pending
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.autosaveDelay)
+            guard !Task.isCancelled else { return }
+            await self?.save(force: false)
+        }
+    }
+
+    /// Saves pending edits right away (before switching notes).
+    func flush() async {
+        guard saveState == .pending else { return }
+        saveTask?.cancel()
+        await save(force: false)
+    }
+
+    func save(force: Bool) async {
+        guard case .note(let id) = selection, readOnlyReason == nil else { return }
+        let snapshot = text
+        saveState = .saving
+        do {
+            let result = try await bridge.save(
+                id, html: NoteHTML.html(fromPlainText: snapshot),
+                expectedModified: force ? nil : loadedModified
+            )
+            if result.conflict {
+                saveState = .conflict
+                return
+            }
+            loadedModified = result.modified
+            if let index = notes.firstIndex(where: { $0.id == id }) {
+                notes[index] = NoteSummary(id: id, name: result.name ?? NoteHTML.title(of: snapshot), modified: result.modified)
+            }
+            // Typed on while saving: the next autosave is already scheduled.
+            if text == snapshot, selection == .note(id) { saveState = .saved(Date()) }
+        } catch {
+            saveState = .failed("\(error)")
+        }
+    }
+}
+
+// MARK: - Conflicts, navigation to Notes, helpers
+
+extension NotesStore {
+    var selectedFolder: NotesFolder? {
+        folders.first { $0.id == selectedFolderID }
+    }
+
+    /// Accounts with their folders, in Notes' order.
+    var foldersByAccount: [(account: String, folders: [NotesFolder])] {
+        var order: [String] = []
+        var grouped: [String: [NotesFolder]] = [:]
+        for folder in folders {
+            if grouped[folder.account] == nil { order.append(folder.account) }
+            grouped[folder.account, default: []].append(folder)
+        }
+        return order.map { ($0, grouped[$0] ?? []) }
+    }
+
     /// After a conflict: discard local edits and load the version in Notes.
     func reloadFromNotes() {
         guard case .note(let id) = selection else { return }
@@ -263,47 +308,6 @@ final class NotesStore: ObservableObject {
         }
     }
 
-    private func scheduleSave() {
-        saveState = .pending
-        saveTask?.cancel()
-        saveTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.autosaveDelay)
-            guard !Task.isCancelled else { return }
-            await self?.save(force: false)
-        }
-    }
-
-    /// Saves pending edits right away (before switching notes).
-    private func flush() async {
-        guard saveState == .pending else { return }
-        saveTask?.cancel()
-        await save(force: false)
-    }
-
-    private func save(force: Bool) async {
-        guard case .note(let id) = selection, readOnlyReason == nil else { return }
-        let snapshot = text
-        saveState = .saving
-        do {
-            let result = try await bridge.save(
-                id, html: NoteHTML.html(fromPlainText: snapshot),
-                expectedModified: force ? nil : loadedModified
-            )
-            if result.conflict {
-                saveState = .conflict
-                return
-            }
-            loadedModified = result.modified
-            if let index = notes.firstIndex(where: { $0.id == id }) {
-                notes[index] = NoteSummary(id: id, name: result.name ?? NoteHTML.title(of: snapshot), modified: result.modified)
-            }
-            // Typed on while saving: the next autosave is already scheduled.
-            if text == snapshot, selection == .note(id) { saveState = .saved(Date()) }
-        } catch {
-            saveState = .failed("\(error)")
-        }
-    }
-
     /// Puts the store into a loaded state without talking to Notes (tests, previews).
     func setLoadedState(
         folders: [NotesFolder],
@@ -324,7 +328,7 @@ final class NotesStore: ObservableObject {
 
     // MARK: - Helpers
 
-    private func handle(_ error: Error) {
+    func handle(_ error: Error) {
         if let error = error as? NotesBridgeError, error == .notAuthorized {
             access = .denied
         } else {
@@ -333,11 +337,11 @@ final class NotesStore: ObservableObject {
     }
 
     /// The account's default "Notes" folder, otherwise the first one.
-    static func defaultFolder(in folders: [NotesFolder]) -> NotesFolder? {
+    nonisolated static func defaultFolder(in folders: [NotesFolder]) -> NotesFolder? {
         folders.first { ["Notes", "Jegyzetek"].contains($0.name) } ?? folders.first
     }
 
-    static func readOnlyReason(for detail: NoteDetail) -> String? {
+    nonisolated static func readOnlyReason(for detail: NoteDetail) -> String? {
         if detail.locked {
             return "Jelszóval védett, csak a Jegyzetekben nyitható meg"
         }
