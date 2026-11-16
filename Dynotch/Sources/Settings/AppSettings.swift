@@ -32,6 +32,8 @@ final class AppSettings: ObservableObject {
         static let settingsPresentation = "settingsPresentation"
         static let hideNativeBanners = "hideNativeBanners"
         static let focusFollowsMouse = "focusFollowsMouse"
+        static let claudeRing = "claudeRing"
+        static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
     }
 
@@ -96,6 +98,16 @@ final class AppSettings: ObservableObject {
 
     static let focusDelayRange: ClosedRange<Double> = 0...0.5
 
+    /// Usage ring on the Claude menu bar icon (spec CL-6).
+    @Published var claudeRingVisible: Bool {
+        didSet { defaults.set(claudeRingVisible, forKey: Key.claudeRing) }
+    }
+
+    /// Notch notifications from 70 % usage (spec CL-5).
+    @Published var claudeUsageAlerts: Bool {
+        didSet { defaults.set(claudeUsageAlerts, forKey: Key.claudeAlerts) }
+    }
+
     /// The app under the pointer gets the focus, its window is never raised (spec F-1).
     @Published var focusFollowsMouse: Bool {
         didSet { defaults.set(focusFollowsMouse, forKey: Key.focusFollowsMouse) }
@@ -148,6 +160,8 @@ final class AppSettings: ObservableObject {
         notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
         hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
+        claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
+        claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true
         let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1
         focusDelay = min(max(storedFocusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound)
         settingsPresentation = defaults.string(forKey: Key.settingsPresentation)

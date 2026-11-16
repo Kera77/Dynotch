@@ -152,6 +152,16 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Fogyasztás-karika a menüsorban", isOn: $settings.claudeRingVisible)
+                Toggle("Értesítés 70% felett (10%-onként újra)", isOn: $settings.claudeUsageAlerts)
+            } header: {
+                Text("Claude-fogyasztás")
+            } footer: {
+                Text("A Claude Code bejelentkezését használja a kulcskarikából; az első lekéréskor a macOS engedélyt kér.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Bezárási késleltetés") {
                     HStack {
                         Slider(

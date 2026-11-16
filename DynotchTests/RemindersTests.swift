@@ -106,8 +106,13 @@ struct RemindersTests {
 }
 
 struct DayStepperTests {
+    @Test func defaultNeedsALongerSwipe() {
+        #expect(DayStepper().stepWidth >= 50)
+    }
+
     @Test func stepsOneDayPerStepWidthFingersLeftGoForward() {
         var stepper = DayStepper()
+        stepper.stepWidth = 26
         #expect(stepper.handle(phase: .began, isMomentum: false, fingerDeltaX: -10, deltaY: 0) == 0)
         #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: -20, deltaY: 0) == 1)
         #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: -60, deltaY: 0) == 2)
@@ -118,11 +123,13 @@ struct DayStepperTests {
 
     @Test func momentumContinuesAndVerticalIsIgnored() {
         var stepper = DayStepper()
+        stepper.stepWidth = 26
         _ = stepper.handle(phase: .began, isMomentum: false, fingerDeltaX: 0, deltaY: 30)
         #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: -10, deltaY: 40) == 0)
         #expect(!stepper.isHorizontal)
 
         var flick = DayStepper()
+        flick.stepWidth = 26
         _ = flick.handle(phase: .began, isMomentum: false, fingerDeltaX: -5, deltaY: 0)
         #expect(flick.handle(phase: .none, isMomentum: true, fingerDeltaX: -60, deltaY: 0) == 2)
     }

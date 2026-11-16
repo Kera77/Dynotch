@@ -59,7 +59,7 @@ struct SwipeDetector {
 /// Turns horizontal scrolling over the calendar's day strip into day steps: one day per
 /// `stepWidth` points of finger movement, including the momentum after a flick.
 struct DayStepper {
-    var stepWidth: CGFloat = 26
+    var stepWidth: CGFloat = 60
 
     private var remainder: CGFloat = 0
     private var accumulatedX: CGFloat = 0

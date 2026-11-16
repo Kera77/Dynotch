@@ -153,4 +153,16 @@ struct CalendarAgendaTests {
         #expect(CalendarAgenda.durationText(60 * 60) == "1 ó")
         #expect(CalendarAgenda.durationText(90 * 60) == "1 ó 30 p")
     }
+
+    /// Spec K-5b: the day list starts at the meeting in progress or the next one.
+    @Test func focusEventIsTheFirstNotOver() {
+        let events = [
+            event("All day", startOffsetMinutes: -600, durationMinutes: 24 * 60, allDay: true),
+            event("Morning", startOffsetMinutes: -120),
+            event("Running", startOffsetMinutes: -10),
+            event("Next", startOffsetMinutes: 60)
+        ]
+        #expect(CalendarAgenda.focusEvent(in: events, now: now)?.title == "Running")
+        #expect(CalendarAgenda.focusEvent(in: Array(events.prefix(2)), now: now) == nil)
+    }
 }

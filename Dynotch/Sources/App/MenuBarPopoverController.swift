@@ -8,6 +8,13 @@ struct Badge {
     let value: @MainActor () -> Int?
 }
 
+/// An icon that changes with data (Claude usage ring, spec CL-6). Nil image: the feature's symbol.
+struct StatusIcon {
+    let changes: ObservableObjectPublisher
+    let image: @MainActor () -> NSImage?
+    let toolTip: @MainActor () -> String?
+}
+
 /// Menu bar icon of a feature that drops a popover panel down below it
 /// (calculator: spec SZ-6…SZ-8, notes: spec J-8).
 @MainActor
@@ -17,6 +24,8 @@ final class MenuBarPopoverController: NSObject {
     private let settings: AppSettings
     private let makeContent: (MenuBarPanelState) -> AnyView
     private let badge: Badge?
+    private let icon: StatusIcon?
+    private var iconObserver: AnyCancellable?
     private let onOpen: (() -> Void)?
     private var badgeObserver: AnyCancellable?
     private let state = MenuBarPanelState()
@@ -30,6 +39,7 @@ final class MenuBarPopoverController: NSObject {
         panelSize: NSSize,
         settings: AppSettings,
         badge: Badge? = nil,
+        icon: StatusIcon? = nil,
         onOpen: (() -> Void)? = nil,
         makeContent: @escaping (MenuBarPanelState) -> AnyView
     ) {
@@ -38,6 +48,7 @@ final class MenuBarPopoverController: NSObject {
         self.panelSize = panelSize
         self.settings = settings
         self.badge = badge
+        self.icon = icon
         self.makeContent = makeContent
     }
 
@@ -53,7 +64,18 @@ final class MenuBarPopoverController: NSObject {
                 MainActor.assumeIsolated { self?.updateBadge() }
             }
         }
+        iconObserver = icon?.changes.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.updateIcon() }
+            }
+        }
         updateStatusItem()
+    }
+
+    private func updateIcon() {
+        guard let button = statusItem?.button, let icon else { return }
+        button.image = icon.image() ?? NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
+        button.toolTip = icon.toolTip() ?? feature.title
     }
 
     private func updateBadge() {
@@ -64,6 +86,7 @@ final class MenuBarPopoverController: NSObject {
 
     /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
+        updateIcon()
         let enabled = settings.isEnabled(feature)
         if enabled, statusItem == nil {
             let length = badge == nil ? NSStatusItem.squareLength : NSStatusItem.variableLength
@@ -76,6 +99,7 @@ final class MenuBarPopoverController: NSObject {
             item.button?.action = #selector(togglePanel)
             statusItem = item
             updateBadge()
+            updateIcon()
         } else if !enabled, let item = statusItem {
             closePanel()
             NSStatusBar.system.removeStatusItem(item)

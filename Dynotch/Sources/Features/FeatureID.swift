@@ -8,6 +8,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case calculator
     case notes
     case reminders
+    case claudeUsage
     case info
 
     var id: String { rawValue }
@@ -20,6 +21,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .calculator: "Számológép"
         case .notes: "Jegyzetek"
         case .reminders: "Emlékeztetők"
+        case .claudeUsage: "Claude"
         case .info: "Info"
         }
     }
@@ -32,6 +34,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .calculator: "plus.forwardslash.minus"
         case .notes: "note.text"
         case .reminders: "checklist"
+        case .claudeUsage: "gauge.with.dots.needle.67percent"
         case .info: "info.circle.fill"
         }
     }

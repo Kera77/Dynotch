@@ -9,4 +9,5 @@ struct AppServices {
     let calculator: CalculatorStore
     let notes: NotesStore
     let reminders: RemindersStore
+    let claudeUsage: ClaudeUsageService
 }

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-16
+
+### Added
+- Claude usage feature (notch and menu bar): session, weekly and per-model limits with reset times,
+  using Claude Code's login; menu bar ring with percentages on hover; notch notification from 70 %,
+  again at every 10 %.
+
+### Changed
+- Day strip: a longer swipe is needed per day.
+- The day's event list starts at the meeting in progress or the next one.
+
 ## [0.9.0] - 2026-11-16
 
 ### Added

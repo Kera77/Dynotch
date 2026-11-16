@@ -8,6 +8,7 @@ struct NotchView: View {
     let calculator: CalculatorStore
     let notes: NotesStore
     let reminders: RemindersStore
+    let claudeUsage: ClaudeUsageService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
@@ -201,6 +202,8 @@ struct NotchView: View {
             NotesFeatureView(store: notes, isActive: model.isExpanded && model.currentFeature == .notes)
         case .reminders:
             RemindersFeatureView(store: reminders, isActive: model.isExpanded && model.currentFeature == .reminders)
+        case .claudeUsage:
+            ClaudeUsageFeatureView(service: claudeUsage, isActive: model.isExpanded && model.currentFeature == .claudeUsage)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }

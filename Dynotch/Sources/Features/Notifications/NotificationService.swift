@@ -58,6 +58,19 @@ final class NotificationService: ObservableObject {
         settings.isNotificationAppEnabled(app.identifier, default: app.isDefaultEnabled)
     }
 
+    /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
+    func present(title: String, body: String, appIdentifier: String) {
+        internalID -= 1
+        let notification = AppNotification(
+            id: internalID, appIdentifier: appIdentifier, title: title, subtitle: "", body: body, date: Date()
+        )
+        recent = Array(([notification] + recent).prefix(Self.historyLimit))
+        showPeek(notification)
+    }
+
+    /// Negative ids never clash with the database's record ids.
+    private var internalID: Int64 = 0
+
     func clearPeek() {
         peekTask?.cancel()
         peekTask = nil

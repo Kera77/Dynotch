@@ -85,6 +85,12 @@ enum CalendarAgenda {
         }
     }
 
+    /// The event the day list scrolls to: the first timed one not over yet (in progress or
+    /// next); none if every timed event has ended (spec K-5b).
+    static func focusEvent(in events: [CalendarEvent], now: Date) -> CalendarEvent? {
+        events.first { !$0.isAllDay && !$0.hasEnded(at: now) }
+    }
+
     /// At most this many countdowns sit beside the closed notch.
     static let maxIndicatorEvents = 3
 

@@ -4,13 +4,17 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
+    private lazy var notifications = NotificationService(settings: settings)
     private lazy var services = AppServices(
         settings: settings,
         calendar: CalendarService(settings: settings),
-        notifications: NotificationService(settings: settings),
+        notifications: notifications,
         calculator: CalculatorStore(),
         notes: NotesStore(),
-        reminders: RemindersStore()
+        reminders: RemindersStore(),
+        claudeUsage: ClaudeUsageService(settings: settings) { [notifications] title, body in
+            notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
+        }
     )
     private lazy var settingsWindow = SettingsWindowController(
         settings: settings, calendar: services.calendar, notifications: services.notifications
@@ -28,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Loads the open count for the menu bar icon if access was granted before; never prompts.
         services.reminders.start()
         focusFollowsMouse.start()
+        services.claudeUsage.start()
 
         let manager = NotchManager(services: services) { [weak self] in
             self?.settingsWindow.show()
@@ -38,6 +43,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let calculator = services.calculator
         let notes = services.notes
         let reminders = services.reminders
+        let usage = services.claudeUsage
+        let settings = settings
         menuBarPanels = [
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
@@ -54,6 +61,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil },
                 onOpen: { reminders.activate() },
                 makeContent: { AnyView(RemindersMenuBarView(store: reminders, state: $0)) }
+            ),
+            MenuBarPopoverController(
+                feature: .claudeUsage,
+                panelSize: NSSize(width: 340, height: 300),
+                settings: settings,
+                icon: StatusIcon(
+                    changes: usage.objectWillChange,
+                    image: {
+                        guard settings.claudeRingVisible, let primary = usage.primary else { return nil }
+                        return UsageRing.image(utilization: primary.utilization)
+                    },
+                    toolTip: { usage.limits.isEmpty ? nil : "Claude · " + usage.summary }
+                ),
+                onOpen: { usage.refreshIfStale() },
+                makeContent: { AnyView(ClaudeUsageMenuBarView(service: usage, state: $0)) }
             )
         ]
         menuBarPanels.forEach { $0.start() }

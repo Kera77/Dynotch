@@ -47,16 +47,40 @@ struct CalendarCompactView: View {
             .foregroundStyle(Color.white.opacity(0.55))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView(.vertical) {
-                VStack(spacing: 8) {
-                    ForEach(events) { event in
-                        CompactEventRow(event: event, now: service.now) { service.join(event) }
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    VStack(spacing: 8) {
+                        ForEach(events) { event in
+                            CompactEventRow(event: event, now: service.now) { service.join(event) }
+                                .id(event.id)
+                        }
                     }
+                    .padding(.vertical, 6)
                 }
-                .padding(.vertical, 6)
+                .scrollIndicators(.never)
+                // The meeting in progress or the next one is at the top (spec K-5b).
+                .onAppear { scrollToCurrent(events, proxy: proxy, animated: false) }
+                .onChange(of: service.selectedDay) { _, day in
+                    scrollToCurrent(service.events(on: day), proxy: proxy, animated: false)
+                }
+                .onChange(of: CalendarAgenda.focusEvent(in: events, now: service.now)?.id) { _, _ in
+                    scrollToCurrent(events, proxy: proxy, animated: true)
+                }
             }
-            .scrollIndicators(.never)
             .padding(.leading, Self.leadingColumn)
+        }
+    }
+}
+
+extension CalendarCompactView {
+    private func scrollToCurrent(_ events: [CalendarEvent], proxy: ScrollViewProxy, animated: Bool) {
+        guard let target = CalendarAgenda.focusEvent(in: events, now: service.now) else { return }
+        DispatchQueue.main.async {
+            if animated {
+                withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(target.id, anchor: .top) }
+            } else {
+                proxy.scrollTo(target.id, anchor: .top)
+            }
         }
     }
 }
