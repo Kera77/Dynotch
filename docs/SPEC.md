@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.21 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.22 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -205,6 +205,12 @@
 
 ---
 
+### Csoportosítás (v0.22)
+
+| # | Követelmény |
+|---|-------------|
+| E-5b | **Csoportosítás:** az Értesítések funkcióban az azonos alkalmazásból és küldőtől (vagy csevegésből) jött értesítések **egy csoportba** kerülnek; a csoport zárva a legfrissebb üzenetet és a darabszámot mutatja. **Kattintásra kinyílik:** minden üzenet időrendben, alatta **válaszmező** (csevegőappoknál; Enterre küld), levelezésnél és rendszerüzenetnél „Open <app>” gomb. Egyetlen csoport eleve nyitva van. |
+
 ## 4c. Számológép (v0.6)
 
 | ID | Követelmény |
@@ -299,7 +305,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude, valamint fehér **Beeper, Google Chat és Gmail** jel), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
 | B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
 | B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
-| B-6 | **Kattintás** az ikonra megnyitja a hozzá tartozó alkalmazást. |
+| B-6 | **Kattintás** az ikonra lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 
 ## 4i. Billentyűzetzár (v0.21)
@@ -364,6 +370,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.22** | Értesítések küldőnként csoportosítva, kattintásra kinyíló csoport válaszmezővel; jelvény-kattintás az app értesítéseit mutatja; hívásfelismerés javítása |
 | **v0.21** | Bejövő hívások a notchban (felvétel, elutasítás, SMS); billentyűzetzár; Beeper/Google Chat/Gmail jelvényikonok; hoverre megálló pulzálás |
 | **v0.20** | App-jelvények (olvasatlan értesítések száma a notch mellett); fehér Claude-ikon, szint szerinti színek |
 | **v0.20+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

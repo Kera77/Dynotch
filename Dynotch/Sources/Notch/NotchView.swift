@@ -19,6 +19,8 @@ struct NotchView: View {
     var closeNotifications: () -> Void = {}
     /// Clears every notification and closes the card (spec E-12).
     var clearNotifications: () -> Void = {}
+    /// A click on an app badge: its unopened notifications (spec B-6).
+    var openBadge: (BadgeItem) -> Void = { _ in }
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -106,7 +108,7 @@ struct NotchView: View {
                     hoveredIndex: labelIndex,
                     badges: badges.visible,
                     hoveredBadge: model.hoveredBadge,
-                    openBadge: { badges.open($0.app) },
+                    openBadge: openBadge,
                     moveBadge: { id, index in
                         withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
                     },

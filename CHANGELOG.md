@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-16
+
+### Added
+- Notifications: one row per sender; a click opens it with every message and a reply field.
+
+### Changed
+- A click on an app badge opens that app's unopened notifications in the notch instead of the app.
+
+### Fixed
+- Incoming calls did not appear: the macOS call banner lives in Notification Center's
+  screen-sized window, which was skipped.
+
 ## [0.21.0] - 2026-11-16
 
 ### Added

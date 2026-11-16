@@ -65,6 +65,7 @@ final class NotchController {
         }
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
+        rootView.openBadge = { [weak self] in self?.showNotifications(for: $0) }
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
@@ -198,7 +199,7 @@ final class NotchController {
         }
     }
 
-    private func expand() {
+    func expand() {
         cancelClose()
         graceUntil = nil
         panel.ignoresMouseEvents = false
@@ -218,6 +219,7 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
+        notifications.clearFocus()
         withAnimation(Self.animation) { model.setExpanded(false) }
     }
 

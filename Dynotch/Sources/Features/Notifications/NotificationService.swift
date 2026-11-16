@@ -21,6 +21,9 @@ final class NotificationService: ObservableObject {
     /// Arrived since the user last looked (hover card or Notifications feature), oldest first
     /// (spec E-4).
     @Published private(set) var unseen: [AppNotification] = []
+    /// The Notifications feature shows only these: one app's unopened notifications, after a
+    /// click on its badge (spec B-6).
+    @Published var focus: NotificationFocus?
     /// Installed apps found in the database, for the settings list.
     @Published private(set) var apps: [NotificationApp] = []
 
@@ -88,6 +91,7 @@ final class NotificationService: ObservableObject {
     func remove(_ notification: AppNotification) {
         recent.removeAll { $0.id == notification.id }
         unseen.removeAll { $0.id == notification.id }
+        focus?.notifications.removeAll { $0.id == notification.id }
         if peek?.id == notification.id { clearPeek() }
     }
 
@@ -95,6 +99,7 @@ final class NotificationService: ObservableObject {
     func clearAll() {
         recent = []
         unseen = []
+        focus?.notifications = []
         clearPeek()
     }
 

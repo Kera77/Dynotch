@@ -22,6 +22,7 @@ final class CallService: ObservableObject {
     /// Processes to look at for a few more ticks: banners fill in after their window appears.
     private var watched: [pid_t: Int] = [:]
     private var loggedOwners: Set<String> = []
+    private var loggedLabels: Set<String> = []
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -43,10 +44,12 @@ final class CallService: ObservableObject {
             return
         }
         let windows = CallBannerScanner.topWindows()
-        for window in windows where !knownWindows.contains(window.id) && Self.mayShowCalls(window.pid) {
-            watched[window.pid] = 4
-            if loggedOwners.insert(window.owner).inserted {
-                DiagnosticsLog.append("calls", "new top window owner: \(window.owner)")
+        for window in windows where Self.mayShowCalls(window.pid) {
+            let isNew = !knownWindows.contains(window.id)
+            // Banner hosts are watched while their window is on screen, others when one appears.
+            if isNew || window.isBannerHost { watched[window.pid] = 4 }
+            if isNew, loggedOwners.count < 300, loggedOwners.insert("\(window.owner) \(window.shape)").inserted {
+                DiagnosticsLog.append("calls", "new top window: \(window.owner) \(window.shape)")
             }
         }
         knownWindows = Set(windows.map(\.id))
@@ -59,10 +62,19 @@ final class CallService: ObservableObject {
         let current = call?.pid
         let candidates = Array(pids)
         Task { [weak self] in
-            let found = await Task.detached { CallBannerScanner.firstCall(in: candidates, preferring: current) }.value
+            let result = await Task.detached { CallBannerScanner.scan(candidates, preferring: current) }.value
             self?.isScanning = false
-            self?.update(found)
+            self?.logLabels(result.labels)
+            self?.update(result.call)
         }
+    }
+
+    /// What the watched banners offered when no call was recognised, once per set of labels.
+    private func logLabels(_ labels: [String]) {
+        guard !labels.isEmpty else { return }
+        let signature = Array(Set(labels)).sorted().joined(separator: " | ")
+        guard loggedLabels.count < 100, loggedLabels.insert(signature).inserted else { return }
+        DiagnosticsLog.append("calls", "no call in banner; buttons: \(String(signature.prefix(400)))")
     }
 
     /// Call banners come from system agents or the phone apps, not from ordinary apps.

@@ -9,11 +9,19 @@ enum CallBannerScanner {
     /// Processes whose small top-level windows are never call banners.
     private static let ignoredOwners: Set<String> = ["Dock", "Window Server", "WindowServer", "Spotlight", "Dynotch"]
 
-    /// A small window above the normal level: where banners live.
+    /// Processes that show call banners; they are looked at for as long as they have a window on
+    /// screen. Notification Center draws its banners in one screen-sized transparent window.
+    static let bannerHosts: Set<String> = ["Notification Center", "NotificationCenter", "FaceTime", "Phone"]
+
+    /// A window above the normal level: where banners live.
     struct TopWindow: Hashable, Sendable {
         let id: CGWindowID
         let pid: pid_t
         let owner: String
+        /// "layer 23 2560x1440", for the log.
+        let shape: String
+
+        var isBannerHost: Bool { CallBannerScanner.bannerHosts.contains(owner) }
     }
 
     static func topWindows() -> [TopWindow] {
@@ -26,9 +34,9 @@ enum CallBannerScanner {
                   let owner = window[kCGWindowOwnerName as String] as? String, !ignoredOwners.contains(owner),
                   let bounds = window[kCGWindowBounds as String] as? NSDictionary,
                   let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary),
-                  rect.width >= 200, rect.width <= 800, rect.height >= 40, rect.height <= 400
+                  rect.width >= 100, rect.height >= 30
             else { return nil }
-            return TopWindow(id: id, pid: pid, owner: owner)
+            return TopWindow(id: id, pid: pid, owner: owner, shape: "layer \(layer) \(Int(rect.width))x\(Int(rect.height))")
         }
     }
 
@@ -47,10 +55,25 @@ enum CallBannerScanner {
         return IncomingCall(pid: pid, caller: description.caller, detail: description.detail)
     }
 
+    struct ScanResult: Sendable {
+        let call: IncomingCall?
+        /// Button labels and action names seen while no call was found, for the log.
+        let labels: [String]
+    }
+
     /// The first call among the processes; the one already known to show it is looked at first.
-    static func firstCall(in pids: [pid_t], preferring preferred: pid_t?) -> IncomingCall? {
+    static func scan(_ pids: [pid_t], preferring preferred: pid_t?) -> ScanResult {
         let order = pids.sorted { ($0 == preferred ? 0 : 1) < ($1 == preferred ? 0 : 1) }
-        return order.lazy.compactMap { call(in: $0) }.first
+        var labels: [String] = []
+        for pid in order {
+            let banner = banner(in: pid)
+            if banner.accept != nil, banner.decline != nil {
+                let description = CallMatcher.describe(texts: banner.texts)
+                return ScanResult(call: IncomingCall(pid: pid, caller: description.caller, detail: description.detail), labels: [])
+            }
+            labels += banner.labels
+        }
+        return ScanResult(call: nil, labels: labels)
     }
 
     /// Button labels and action names a process shows, for the log; no other text.

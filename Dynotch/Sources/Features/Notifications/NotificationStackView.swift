@@ -12,16 +12,6 @@ struct NotificationStackView: View {
     /// Removes every notification and closes the card (spec E-12).
     var clearAll: () -> Void = {}
 
-    @State private var replyText = ""
-    @State private var replyStatus: ReplyStatus = .idle
-
-    enum ReplyStatus: Equatable {
-        case idle
-        case sending
-        case sent(String)
-        case failed(String)
-    }
-
     /// The reply goes to the newest message's chat.
     private var replyTarget: AppNotification? { notifications.last }
 
@@ -47,8 +37,11 @@ struct NotificationStackView: View {
                     if let last = notifications.last { proxy.scrollTo(last.id, anchor: .bottom) }
                 }
             }
-            if canReply {
-                replyField
+            if canReply, let replyTarget {
+                NotificationReplyField(service: service, target: replyTarget)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+                    .padding(.bottom, 10)
             } else if let latest = notifications.last {
                 openToReply(latest)
             }
@@ -119,74 +112,5 @@ struct NotificationStackView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.08)))
-    }
-
-    private var replyField: some View {
-        HStack(spacing: 8) {
-            TextField(placeholder, text: $replyText)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .padding(.horizontal, 10)
-                .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
-                .onSubmit(send)
-                .disabled(replyStatus == .sending)
-            Button(action: send) {
-                Group {
-                    switch replyStatus {
-                    case .sending: ProgressView().controlSize(.small)
-                    case .sent: Image(systemName: "checkmark")
-                    default: Image(systemName: "paperplane.fill")
-                    }
-                }
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color(red: 0.04, green: 0.52, blue: 1)))
-            }
-            .buttonStyle(.plain)
-            .disabled(replyText.trimmingCharacters(in: .whitespaces).isEmpty || replyStatus == .sending)
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 10)
-        .overlay(alignment: .bottomLeading) {
-            if let note = statusNote {
-                Text(note.text)
-                    .font(.system(size: 10))
-                    .foregroundStyle(note.isError ? Color(red: 1, green: 0.45, blue: 0.4) : Color.white.opacity(0.5))
-                    .lineLimit(1)
-                    .padding(.horizontal, 14)
-                    .offset(y: 2)
-            }
-        }
-    }
-
-    private var statusNote: (text: String, isError: Bool)? {
-        switch replyStatus {
-        case .failed(let message): (message, true)
-        case .sent(let note): (note, false)
-        default: nil
-        }
-    }
-
-    private var placeholder: String {
-        guard let target = replyTarget else { return "Reply…" }
-        return "Reply to \(service.content(for: target).sender)…"
-    }
-
-    private func send() {
-        let text = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, let target = replyTarget, replyStatus != .sending else { return }
-        replyStatus = .sending
-        Task {
-            do {
-                let note = try await service.reply(to: target, text: text)
-                replyText = ""
-                replyStatus = .sent(note)
-            } catch {
-                replyStatus = .failed("\(error)")
-            }
-        }
     }
 }

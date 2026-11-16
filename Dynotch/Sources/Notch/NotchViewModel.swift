@@ -38,7 +38,7 @@ final class NotchViewModel: ObservableObject {
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
         isExpanded && (isShowingNotifications ? notificationsCanReply
-            : isShowingSettings || [.calculator, .notes, .reminders].contains(currentFeature))
+            : isShowingSettings || [.calculator, .notes, .reminders, .notifications].contains(currentFeature))
     }
 
     /// Size of the panel while it is open.

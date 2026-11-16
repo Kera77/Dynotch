@@ -140,6 +140,23 @@ extension NotchController {
     }
 }
 
+// MARK: - App badges (spec B-6)
+
+extension NotchController {
+    /// A click on a badge opens the panel with that app's unopened notifications.
+    func showNotifications(for badge: BadgeItem) {
+        guard settings.isEnabled(.notifications) else {
+            badges.open(badge.app)
+            return
+        }
+        notifications.clearPeek()
+        setHoveredBadge(nil)
+        expand()
+        notifications.setFocus(bundleID: badge.app.bundleID, name: badge.app.name, count: BadgeTracker.count(badge.label))
+        withAnimation(Self.animation) { model.select(.notifications) }
+    }
+}
+
 // MARK: - Layout
 
 extension NotchController {

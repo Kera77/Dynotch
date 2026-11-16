@@ -64,6 +64,9 @@ struct NotificationsFeatureView: View {
     /// Looking at the list counts as having seen the new notifications.
     var isActive = false
 
+    /// The group whose messages and reply field are open (spec E-5b).
+    @State private var expanded: String?
+
     var body: some View {
         Group { content }
             .onChange(of: isActive) { _, active in
@@ -74,7 +77,7 @@ struct NotificationsFeatureView: View {
     @ViewBuilder private var content: some View {
         switch service.status {
         case .running:
-            if service.recent.isEmpty {
+            if service.recent.isEmpty, service.focus == nil {
                 message(symbol: "bell", text: "No new notifications")
             } else {
                 list
@@ -92,9 +95,51 @@ struct NotificationsFeatureView: View {
         }
     }
 
+    /// What is listed: everything, or one app's unopened notifications (spec B-6).
+    private var shown: [AppNotification] { service.focus?.notifications ?? service.recent }
+
     private var list: some View {
-        VStack(spacing: 4) {
-            HStack {
+        let groups = NotificationGroup.groups(of: shown)
+        return VStack(spacing: 4) {
+            listHeader
+            if groups.isEmpty, let focus = service.focus {
+                message(symbol: "bell", text: "No unopened notifications from \(focus.appName)")
+            }
+            ScrollView(.vertical) {
+                VStack(spacing: 6) {
+                    ForEach(groups) { group in
+                        // A single group is open right away.
+                        NotificationGroupRow(service: service, group: group, isExpanded: expanded == group.id || groups.count == 1) {
+                            withAnimation(.easeOut(duration: 0.18)) { expanded = expanded == group.id ? nil : group.id }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .scrollIndicators(.never)
+        }
+    }
+
+    private var listHeader: some View {
+        HStack(spacing: 8) {
+            if let focus = service.focus {
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) { service.clearFocus() }
+                } label: {
+                    Label("All", systemImage: "chevron.left")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.75))
+                }
+                .buttonStyle(.plain)
+                Text("\(focus.appName) · \(focus.notifications.count) unopened")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.5))
+                Spacer()
+                Button("Open \(focus.appName)") { service.openApp(bundleID: focus.bundleID) }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.75))
+            } else {
                 Text("\(service.recent.count) notification\(service.recent.count == 1 ? "" : "s")")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.5))
@@ -108,24 +153,8 @@ struct NotificationsFeatureView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.top, 4)
-            ScrollView(.vertical) {
-                VStack(spacing: 6) {
-                    ForEach(service.recent) { notification in
-                        NotificationRow(
-                            app: service.catalog.app(for: notification.appIdentifier),
-                            content: service.content(for: notification),
-                            date: notification.date
-                        ) {
-                            withAnimation(.easeOut(duration: 0.2)) { service.remove(notification) }
-                        }
-                        .onTapGesture { service.catalog.open(notification.appIdentifier) }
-                    }
-                }
-                .padding(.vertical, 4)
-            }
-            .scrollIndicators(.never)
         }
+        .padding(.top, 4)
     }
 
     private func message(symbol: String, text: String) -> some View {
@@ -148,46 +177,6 @@ struct NotificationsFeatureView: View {
                 .controlSize(.small)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-private struct NotificationRow: View {
-    let app: NotificationApp
-    let content: NotificationContent
-    let date: Date
-    /// Removes the notification (spec E-12).
-    var remove: () -> Void = {}
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            AppIconView(app: app, size: 26)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(content.sender)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                    Spacer(minLength: 8)
-                    Text("\(app.name) · \(date.formatted(date: .omitted, time: .shortened))")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.45))
-                        .lineLimit(1)
-                    NotificationHeaderButton(symbol: "xmark", help: "Remove", action: remove)
-                }
-                if !content.detail.isEmpty {
-                    Text(content.detail)
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.white.opacity(0.8))
-                        .lineLimit(4)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-        .padding(8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.07)))
-        .contentShape(Rectangle())
-        .help("Open \(app.name)")
     }
 }
 
