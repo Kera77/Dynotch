@@ -177,7 +177,6 @@ final class ClaudeUsageService: ObservableObject {
         }
     }
 
-
     /// Puts the service into a loaded state without the keychain or the network (tests, previews).
     func setLoadedState(_ limits: [UsageLimit], updated: Date = Date()) {
         self.limits = limits
