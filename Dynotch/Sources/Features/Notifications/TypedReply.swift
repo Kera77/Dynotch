@@ -23,7 +23,7 @@ enum TypedReply {
             // Without the conversation's address the text could land in the wrong chat.
             copyToClipboard(text)
             if let fallback = NSWorkspace.shared.urlForApplication(withBundleIdentifier: fallbackApp) {
-                NSWorkspace.shared.openApplication(at: fallback, configuration: NSWorkspace.OpenConfiguration())
+                NSWorkspace.shared.openApplication(at: fallback, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
             }
             throw Failure(description: "The notification doesn't name its conversation. Text copied: paste it with ⌘V.")
         }
