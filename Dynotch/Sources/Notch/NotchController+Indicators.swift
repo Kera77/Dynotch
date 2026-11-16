@@ -138,3 +138,17 @@ extension NotchController {
         collapse()
     }
 }
+
+// MARK: - Layout
+
+extension NotchController {
+    static func geometry(for screen: NSScreen) -> NotchGeometry {
+        NotchGeometry.make(
+            screenFrame: screen.frame,
+            safeAreaTop: screen.safeAreaInsets.top,
+            auxiliaryLeftWidth: screen.auxiliaryTopLeftArea?.width,
+            auxiliaryRightWidth: screen.auxiliaryTopRightArea?.width,
+            menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
+        )
+    }
+}

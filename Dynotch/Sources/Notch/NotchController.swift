@@ -139,16 +139,6 @@ final class NotchController {
 
     // MARK: - Layout
 
-    private static func geometry(for screen: NSScreen) -> NotchGeometry {
-        NotchGeometry.make(
-            screenFrame: screen.frame,
-            safeAreaTop: screen.safeAreaInsets.top,
-            auxiliaryLeftWidth: screen.auxiliaryTopLeftArea?.width,
-            auxiliaryRightWidth: screen.auxiliaryTopRightArea?.width,
-            menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
-        )
-    }
-
     /// When the open panel shrinks, the pointer may end up outside it; don't close right away.
     private func sizeChanged(large: Bool) {
         graceUntil = !large && model.isExpanded ? Date().addingTimeInterval(Self.shrinkGracePeriod) : nil

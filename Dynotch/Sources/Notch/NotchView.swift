@@ -101,16 +101,17 @@ struct NotchView: View {
                     openBadge: { badges.open($0.app) },
                     moveBadge: { id, index in
                         withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
-                    }
-                ) { item in
-                    withAnimation(Self.quickAnimation) {
-                        model.hoveredIndicator = nil
-                        switch item {
-                        case .meeting(let event): calendar.dismissIndicator(event)
-                        case .usage: claudeUsage.dismissIndicator()
+                    },
+                    dismiss: { item in
+                        withAnimation(Self.quickAnimation) {
+                            model.hoveredIndicator = nil
+                            switch item {
+                            case .meeting(let event): calendar.dismissIndicator(event)
+                            case .usage: claudeUsage.dismissIndicator()
+                            }
                         }
                     }
-                }
+                )
                 .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                 .transition(.opacity)
             }

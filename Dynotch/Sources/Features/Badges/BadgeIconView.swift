@@ -83,7 +83,7 @@ struct BadgeIconView: View {
             Image(nsImage: image)
                 .resizable()
                 .interpolation(.high)
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
                 .frame(width: size, height: size)
         } else {
             Image(systemName: "app.fill")
