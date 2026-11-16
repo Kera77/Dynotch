@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-11-16
+
+### Changed
+- Same app as 0.19.0. Releases now wait for CI before building, so they no longer queue for a macOS runner at the same time as CI.
+
 ## [0.19.0] - 2026-11-16
 
 ### Added
