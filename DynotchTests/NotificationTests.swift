@@ -196,4 +196,20 @@ struct NotificationTests {
         #expect(!NotificationPresenter.isSourceLine("Csapat"))
         #expect(NotificationPresenter.isSourceLine("  VIA chat.google.com "))
     }
+
+    /// Spec E-4: hovering shows only that sender's new messages; the others stay new.
+    @Test @MainActor func relatedNotificationsAreTheSameSendersOnly() {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = NotificationService(settings: AppSettings(defaults: defaults))
+        let beeper = "com.automattic.beeper.desktop"
+        service.present(title: "Anna", body: "1", appIdentifier: beeper)
+        service.present(title: "Béla", body: "2", appIdentifier: beeper)
+        service.present(title: "anna ", body: "3", appIdentifier: beeper)
+        service.present(title: "Anna", body: "4", appIdentifier: "com.apple.safari.webapp.x")
+        let anna = service.related(to: service.unseen[2])
+        #expect(anna.map(\.body) == ["1", "3"])
+        service.markSeen(anna)
+        #expect(service.unseen.map(\.body) == ["2", "4"])
+        service.clearPeek()
+    }
 }

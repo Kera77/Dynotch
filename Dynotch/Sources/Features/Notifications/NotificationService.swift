@@ -74,9 +74,26 @@ final class NotificationService: ObservableObject {
 
     private static let unseenLimit = 12
 
-    /// Called once the new notifications were seen.
-    func markSeen() {
-        if !unseen.isEmpty { unseen = [] }
+    /// Called once the new notifications were seen (all, or the given ones).
+    func markSeen(_ seen: [AppNotification]? = nil) {
+        guard let seen else {
+            if !unseen.isEmpty { unseen = [] }
+            return
+        }
+        let ids = Set(seen.map(\.id))
+        unseen.removeAll { ids.contains($0.id) }
+    }
+
+    /// The new notifications from the same app and sender (or chat) as this one, oldest first
+    /// (spec E-4).
+    func related(to notification: AppNotification) -> [AppNotification] {
+        let group = unseen.filter { Self.sameConversation($0, notification) }
+        return group.isEmpty ? [notification] : group
+    }
+
+    nonisolated static func sameConversation(_ lhs: AppNotification, _ rhs: AppNotification) -> Bool {
+        lhs.appIdentifier == rhs.appIdentifier
+            && lhs.title.trimmingCharacters(in: .whitespaces).lowercased() == rhs.title.trimmingCharacters(in: .whitespaces).lowercased()
     }
 
     /// Whether a reply can be sent from the notch (spec E-11). Only Beeper has an API for it.

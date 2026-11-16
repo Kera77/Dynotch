@@ -180,8 +180,8 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
-        // Opened from a notification peek: list the new notifications (spec E-4).
-        let stack = notifications.peek == nil ? [] : notifications.unseen
+        // Opened from a notification peek: that sender's new messages (spec E-4).
+        let stack = notifications.peek.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
         withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
         notifications.clearPeek()
@@ -193,7 +193,7 @@ final class NotchController {
         stopHoverTimer()
         graceUntil = nil
         panel.ignoresMouseEvents = true
-        if model.isShowingNotifications { notifications.markSeen() }
+        if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         withAnimation(Self.animation) { model.setExpanded(false) }
     }
 

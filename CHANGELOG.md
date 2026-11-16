@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-16
+
+### Added
+- Notch notification when the AI session resets.
+- "Open … to reply" button for notifications that cannot be answered from the notch (Google Chat).
+
+### Changed
+- Hovering a notification shows only that sender's new messages: the name once, the texts below.
+- Notes and Reminders use a narrower panel in the notch.
+- Reminders: room left of the circles.
+
+### Fixed
+- The "limit reached" usage notification came every hour: a moving reset time no longer starts a
+  new period, so every 10 % step is announced once.
+
 ## [0.13.1] - 2026-11-16
 
 ### Fixed

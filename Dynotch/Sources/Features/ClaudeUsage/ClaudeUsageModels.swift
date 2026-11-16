@@ -178,46 +178,73 @@ enum ClaudeUsageParser {
 
 /// When to warn about usage (spec CL-5): from 70 %, again at every further 10 %, once per limit
 /// and reset period.
+/// What was last seen of a limit, to tell a new period from a moving reset time.
+struct UsageAlertState: Codable, Equatable, Sendable {
+    /// Highest 10 % step already warned about in this period (0 = none).
+    var bucket: Int
+    var utilization: Double
+    var resetsAt: Date?
+}
+
+/// When to warn about usage (spec CL-5): from 70 %, again at every further 10 %, once per limit
+/// and period; and when the session resets (spec CL-5b).
 enum UsageAlerts {
     static let threshold: Double = 70
+    /// A drop this large means the limit was reset, even if its reset time moved.
+    static let resetDrop: Double = 20
+
+    struct Evaluation: Equatable {
+        /// Limits that crossed a new 10 % step from 70 %.
+        var due: [UsageLimit]
+        /// Limits that started a new period since the last look.
+        var reset: [UsageLimit]
+        var state: [String: UsageAlertState]
+    }
 
     static func bucket(for utilization: Double) -> Int? {
         guard utilization >= threshold else { return nil }
         return min(100, Int(utilization / 10) * 10)
     }
 
-    /// Remembers the limit, its reset period and its current 10 % step.
-    static func dismissMarker(for limit: UsageLimit) -> String {
-        "\(key(for: limit))|\(Int(limit.utilization / 10))"
+    /// A new period: the previous reset time has passed, or usage dropped sharply. The reset time
+    /// itself may move between looks (rolling windows), so it alone does not start a period.
+    static func isNewPeriod(_ limit: UsageLimit, previous: UsageAlertState, now: Date) -> Bool {
+        if let resetsAt = previous.resetsAt, now >= resetsAt { return true }
+        return limit.utilization <= previous.utilization - resetDrop
     }
 
-    /// Hidden while the same limit stays in the same period and has not reached a higher 10 % step.
+    static func evaluate(_ limits: [UsageLimit], state: [String: UsageAlertState], now: Date) -> Evaluation {
+        var result = Evaluation(due: [], reset: [], state: [:])
+        for limit in limits {
+            var entry = state[limit.id] ?? UsageAlertState(bucket: 0, utilization: limit.utilization, resetsAt: limit.resetsAt)
+            if let previous = state[limit.id], isNewPeriod(limit, previous: previous, now: now) {
+                result.reset.append(limit)
+                entry.bucket = 0
+            }
+            if let bucket = bucket(for: limit.utilization), bucket > entry.bucket {
+                result.due.append(limit)
+                entry.bucket = bucket
+            }
+            entry.utilization = limit.utilization
+            entry.resetsAt = limit.resetsAt
+            result.state[limit.id] = entry
+        }
+        return result
+    }
+
+    /// Remembers the limit and its current 10 % step for the indicator's X.
+    static func dismissMarker(for limit: UsageLimit) -> String {
+        "\(limit.id)|\(Int(limit.utilization / 10))"
+    }
+
+    /// Hidden while the same limit has not reached a higher 10 % step. A reset (usage drops below
+    /// the hidden step) also ends it, because the step is then lower.
     static func isDismissed(_ limit: UsageLimit, marker: String?) -> Bool {
         guard let marker, let separator = marker.lastIndex(of: "|"),
               let step = Int(marker[marker.index(after: separator)...])
         else { return false }
-        return String(marker[..<separator]) == key(for: limit) && Int(limit.utilization / 10) <= step
-    }
-
-    static func key(for limit: UsageLimit) -> String {
-        "\(limit.id)|\(Int(limit.resetsAt?.timeIntervalSince1970 ?? 0))"
-    }
-
-    /// The limits to warn about now, and the updated record of what was warned about.
-    static func alerts(for limits: [UsageLimit], notified: [String: Int]) -> (due: [UsageLimit], notified: [String: Int]) {
-        var updated: [String: Int] = [:]
-        var due: [UsageLimit] = []
-        for limit in limits {
-            let key = key(for: limit)
-            let previous = notified[key] ?? 0
-            guard let bucket = bucket(for: limit.utilization) else {
-                if previous > 0 { updated[key] = previous }
-                continue
-            }
-            if bucket > previous { due.append(limit) }
-            updated[key] = max(bucket, previous)
-        }
-        return (due, updated)
+        let current = Int(limit.utilization / 10)
+        return String(marker[..<separator]) == limit.id && current <= step && current >= step - 1
     }
 
     /// "today 14:30", "tomorrow 9:00", "Tuesday, Nov 17 9:00"

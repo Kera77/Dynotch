@@ -58,15 +58,14 @@ struct NotificationPeekView: View {
     }
 }
 
-/// The new notifications, one under the other, shown when the peek is hovered (spec E-4),
-/// with a reply field for apps that can be answered (spec E-11).
+/// One sender's new messages, shown when the peek is hovered (spec E-4): the sender once on
+/// top, the texts one under the other, and a reply field for apps that can be answered (spec E-11).
 struct NotificationStackView: View {
     @ObservedObject var service: NotificationService
     let notifications: [AppNotification]
     let canReply: Bool
     let notchHeight: CGFloat
 
-    @State private var replyTargetID: Int64?
     @State private var replyText = ""
     @State private var replyStatus: ReplyStatus = .idle
 
@@ -77,24 +76,25 @@ struct NotificationStackView: View {
         case failed(String)
     }
 
-    /// The notification a reply goes to: the selected one, otherwise the newest.
-    private var replyTarget: AppNotification? {
-        notifications.first { $0.id == replyTargetID } ?? notifications.last
-    }
+    /// The reply goes to the newest message's chat.
+    private var replyTarget: AppNotification? { notifications.last }
 
     var body: some View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
+            if let latest = notifications.last {
+                header(for: latest)
+            }
             ScrollViewReader { proxy in
                 ScrollView(.vertical) {
-                    VStack(spacing: 4) {
+                    VStack(alignment: .leading, spacing: 4) {
                         ForEach(notifications) { notification in
-                            row(for: notification)
+                            message(notification)
                                 .id(notification.id)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
+                    .padding(.leading, 50)
+                    .padding(.trailing, 14)
                 }
                 .scrollIndicators(.never)
                 .onAppear {
@@ -103,53 +103,74 @@ struct NotificationStackView: View {
             }
             if canReply {
                 replyField
+            } else if let latest = notifications.last {
+                openToReply(latest)
             }
         }
     }
 
-    private func row(for notification: AppNotification) -> some View {
+    /// For apps without a reply API (e.g. Google Chat): one click to the app instead.
+    private func openToReply(_ notification: AppNotification) -> some View {
         let app = service.catalog.app(for: notification.appIdentifier)
-        let content = service.content(for: notification)
-        let isTarget = canReply && notification.id == replyTarget?.id && notifications.count > 1
-        return HStack(alignment: .top, spacing: 10) {
-            AppIconView(app: app, size: 26)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(content.sender)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                    Spacer(minLength: 8)
-                    Text("\(app.name) · \(notification.date.formatted(date: .omitted, time: .shortened))")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.45))
-                        .lineLimit(1)
-                }
-                if !content.detail.isEmpty {
-                    Text(content.detail)
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.white.opacity(0.85))
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+        return Button {
+            service.catalog.open(notification.appIdentifier)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrowshape.turn.up.left.fill")
+                Text("Open \(app.name) to reply")
             }
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(Color.white.opacity(0.75))
+            .frame(maxWidth: .infinity)
+            .frame(height: 30)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.08)))
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .frame(minHeight: NotchGeometry.notificationRowHeight - 4, alignment: .top)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(isTarget ? 0.14 : 0.06))
-        )
+        .buttonStyle(.plain)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 10)
+    }
+
+    /// Icon, sender and app, once for all messages.
+    private func header(for notification: AppNotification) -> some View {
+        let app = service.catalog.app(for: notification.appIdentifier)
+        return HStack(spacing: 10) {
+            AppIconView(app: app, size: 28)
+            Text(service.content(for: notification).sender)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Text(app.name)
+                .font(.system(size: 10))
+                .foregroundStyle(Color.white.opacity(0.45))
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: NotchGeometry.notificationHeaderHeight)
         .contentShape(Rectangle())
-        .onTapGesture {
-            if canReply, service.canReply(to: notification) {
-                replyTargetID = notification.id
-            } else {
-                service.catalog.open(notification.appIdentifier)
-            }
+        .onTapGesture { service.catalog.open(notification.appIdentifier) }
+        .help("Open \(app.name)")
+    }
+
+    /// One message: its text and time, without repeating the sender.
+    private func message(_ notification: AppNotification) -> some View {
+        let detail = service.content(for: notification).detail
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(detail.isEmpty ? "—" : detail)
+                .font(.system(size: 13))
+                .foregroundStyle(Color.white.opacity(0.9))
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(notification.date.formatted(date: .omitted, time: .shortened))
+                .font(.system(size: 10))
+                .monospacedDigit()
+                .foregroundStyle(Color.white.opacity(0.4))
         }
-        .help(canReply ? "Click to reply to this one" : "Open \(app.name)")
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.08)))
     }
 
     private var replyField: some View {

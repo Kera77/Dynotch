@@ -101,21 +101,29 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: expandedSize.width, height: max(Self.expandedHeight, menuBarHeight + 260))
     }
 
-    static let notificationRowHeight: CGFloat = 58
+    static let notificationHeaderHeight: CGFloat = 40
+    static let notificationRowHeight: CGFloat = 34
     static let notificationReplyHeight: CGFloat = 46
-    static let maxVisibleNotificationRows = 5
+    static let maxVisibleNotificationRows = 6
 
-    /// The panel listing the new notifications, opened by hovering the peek (spec E-4): one row
-    /// per notification (scrolling beyond five), plus the reply field when replying is possible.
+    /// The panel with one sender's new messages, opened by hovering the peek (spec E-4): the
+    /// sender once, one row per message (scrolling beyond six), plus the reply field.
     func notificationSize(count: Int, hasReply: Bool) -> CGSize {
         let rows = CGFloat(min(max(count, 1), Self.maxVisibleNotificationRows))
-        let height = notchSize.height + 12 + rows * Self.notificationRowHeight + (hasReply ? Self.notificationReplyHeight : 0)
+        let height = notchSize.height + Self.notificationHeaderHeight + rows * Self.notificationRowHeight + 10
+            + (hasReply ? Self.notificationReplyHeight : 0)
         return CGSize(width: max(peekSize.width, 460), height: height)
     }
 
     /// The tallest notification panel, for the window size.
     var maxNotificationSize: CGSize {
         notificationSize(count: Self.maxVisibleNotificationRows, hasReply: true)
+    }
+
+    /// Notes and Reminders: tall like the full calendar, but narrower (spec J-1, R-2).
+    var mediumSize: CGSize {
+        let width = min(max(720, expandedSize.width), largeSize.width)
+        return CGSize(width: width, height: Self.largeHeight)
     }
 
     var expandedRect: CGRect {

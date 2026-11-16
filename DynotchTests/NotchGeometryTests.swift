@@ -106,7 +106,7 @@ struct NotchGeometryTests {
         #expect(geometry.settingsSize.height >= geometry.menuBarHeight + NotchGeometry.settingsContentSize.height)
     }
 
-    @Test func notificationPanelGrowsWithTheListUpToFiveRows() {
+    @Test func notificationPanelGrowsWithTheMessagesUpToSixRows() {
         let geometry = NotchGeometry.make(
             screenFrame: screen, safeAreaTop: 32,
             auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
@@ -114,7 +114,17 @@ struct NotchGeometryTests {
         let one = geometry.notificationSize(count: 1, hasReply: false)
         let three = geometry.notificationSize(count: 3, hasReply: false)
         #expect(three.height - one.height == 2 * NotchGeometry.notificationRowHeight)
-        #expect(geometry.notificationSize(count: 9, hasReply: false) == geometry.notificationSize(count: 5, hasReply: false))
+        #expect(geometry.notificationSize(count: 9, hasReply: false) == geometry.notificationSize(count: 6, hasReply: false))
         #expect(geometry.notificationSize(count: 3, hasReply: true).height - three.height == NotchGeometry.notificationReplyHeight)
+    }
+
+    @Test func notesAndRemindersPanelIsNarrowerThanTheFullCalendar() {
+        let geometry = NotchGeometry.make(
+            screenFrame: screen, safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        #expect(geometry.mediumSize.width < geometry.largeSize.width)
+        #expect(geometry.mediumSize.width >= geometry.expandedSize.width)
+        #expect(geometry.mediumSize.height == geometry.largeSize.height)
     }
 }

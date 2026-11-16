@@ -41,9 +41,11 @@ final class NotchViewModel: ObservableObject {
 
     /// Size of the panel while it is open.
     var openSize: CGSize {
-        if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: notificationsCanReply) }
+        // Room at the bottom for the reply field, or the "open to reply" button.
+        if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
+        if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 

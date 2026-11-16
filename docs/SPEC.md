@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.13 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.14 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -107,7 +107,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.14)
+### 2.3 Hatókör (v0.15)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -122,7 +122,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.14) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.15) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -184,13 +184,13 @@
 | ID | Követelmény |
 |---|---|
 | E-3 | **Új értesítéskor** a becsukott notch finoman, csak egy kicsit lenyílik (30 pt-tal), és megmutatja az app ikonját és azt, **ki írt**; ha több új értesítés van, mellette „+N”. A tartalom itt nem látszik. Minden kijelzőn megjelenik. |
-| E-4 | **Hoverre** a sáv egy kártyává nyílik, amelyen **minden új értesítés egymás alatt** látszik (az utolsó megnézés óta érkezettek, legfeljebb 12, időrendben, a legújabb alul; 5 felett görgethető): app ikon, feladó, app neve és időpont, szöveg (legfeljebb 2 sor). „Új” az, amit még nem láttál a kártyán vagy az Értesítések funkcióban; a kártya bezárásakor, illetve az Értesítések funkció megnyitásakor mind látottnak számít. Menüsor és funkciók itt nincsenek; a következő hoverre a panel a szokott módon, a legutóbbi funkcióval nyílik (L-1). |
+| E-4 | **Hoverre** a sáv egy kártyává nyílik, amelyen **csak annak a küldőnek (beszélgetésnek) az új üzenetei** látszanak, amelytől az értesítés jött (azonos app és cím). **A név egyszer szerepel felül** (ikon, név, app), alatta **a szövegek egymás alatt** időponttal, időrendben (6 felett görgethető). A kártya bezárásakor ezek látottnak számítanak; más küldők üzenetei újak maradnak. Az Értesítések funkció megnyitása mindent látottnak jelöl. A következő hoverre a panel a szokott módon nyílik (L-1). |
 | E-5 | Az *Értesítések* funkció az indítás óta érkezett értesítéseket listázza (legfeljebb 50, a legújabb elöl): app ikon, feladó, app neve és időpont, szöveg. Egy értesítésre kattintva megnyílik az app. |
 | E-6 | A lenyílt sáv a beállított idő után magától eltűnik (**2–30 mp**, alapból 6). |
 | E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |
 | E-7b | A forrást megnevező sorok (például „via chat.google.com”, „via WhatsApp”, vagy csak egy domain, mint „mail.google.com”) nem jelennek meg, sem az alcímben, sem a szövegben, egyik appnál sem. |
 | E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, figyeli az Értesítési központ új ablakait (kisegítő értesítés), és amint a szalagcím megjelenik, bezárja (a cím, cím nélkül a szöveg eleje alapján); tartalékként 8 mp-ig 0,2 mp-enként is keresi. A szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
-| E-11 | **Válasz a notchból:** ha a legújabb értesítés Beeper-üzenet, a kártya alján **válaszmező** van („Reply to Anna…”). Enter vagy a küldés gomb a választ a **Beeper Desktop API**-n keresztül elküldi abba a beszélgetésbe, amelynek a címe az értesítés címe (pontos egyezés, különben az olvasatlan, különben az első találat). Egy sorra kattintva az lesz a címzett. Ehhez a Beeperben létre kell hozni egy tokent (*Settings › Integrations › Approved connections*), és be kell másolni a Dynotch *Settings › Notifications › Replies* részébe; a Dynotch a saját kulcskarika-elemében tárolja. **Google Chat-értesítésre nem lehet válaszolni** (a webes értesítéseknek nincs válaszlehetősége; a Google Chat API saját Google Cloud OAuth-beállítást és Workspace-fiókot igényelne). |
+| E-11 | **Válasz a notchból:** a kártya alján **válaszmező** van („Reply to Anna…”), ha az üzenet Beeperből jött. Enter vagy a küldés gomb a választ a **Beeper Desktop API**-n keresztül elküldi abba a beszélgetésbe, amelynek a címe az értesítés címe (pontos egyezés, különben az olvasatlan, különben az első találat). Ehhez a Beeperben létre kell hozni egy tokent (*Settings › Integrations › Approved connections*), és be kell másolni a Dynotch *Settings › Notifications › Replies* részébe. **Google Chat (és más, válasz-API nélküli app) esetén** a mező helyén „Open Google Chat to reply” gomb van, amely megnyitja az appot. |
 | E-9 | Hibakereséshez az app naplót ír ide (a szalagcímek bezárásáról is: `banner-dismiss.log`): `~/Library/Logs/Dynotch/notifications.log` (adatbázis szerkezete, appazonosítók, az utóbbi értesítések száma appanként) és `notification-records.log` (érkezett értesítésenként: azonosító, oldal, kinek tulajdonítva, megjelent-e). Értesítések tartalma egyikben sincs. |
 
 ---
@@ -268,6 +268,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | CL-3 | **Nézet** (*AI Usage* funkció a notchban és menüsor-buborék, a mellékelt kép szerint): „AI USAGE” fejléc, frissítés ideje és gombja; keretenként cím, százalék, sáv (70%-tól narancs, 90%-tól piros), alatta „Resets today 14:30”. A keretek listáját a válasz `limits` mezőjéből veszi (Session, Weekly, modellre szűkített heti keret „Fable limit” néven, ha a válasz nem nevezi meg). A notch-panel pont olyan magas, hogy görgetés nélkül minden keret látsszon. |
 | CL-4 | Frissítés 5 percenként (amíg a funkció be van kapcsolva), megnyitáskor ha 1 percnél régebbi, és gombbal. |
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
+| CL-5b | **A munkamenet visszaállásakor** értesítés a notchban („AI session reset”). Visszaállásnak számít, ha az előző visszaállási idő elmúlt, vagy a fogyás legalább 20 százalékponttal visszaesett. A visszaállási idő puszta elmozdulása (gördülő ablak) nem számít új időszaknak, ezért a 70%/…/100% figyelmeztetés lépcsőnként csak egyszer jön. |
 | CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló): **bal oldalon a Claude-ikon** (teljes méretben, mint a meeting-ikon), jobb oldalon egy **kör, szöveg nélkül**, amely a legjobban fogyó keret szerint telik az óramutató járásával (70%-tól narancs, 90%-tól piros). Meeting-visszaszámlálók mellett azok után áll. **Hoverre** a notch alatt keretenként: használt %, hátralévő %, visszaállás; **jobb oldalt X**: a jelző eltűnik, amíg a legjobban fogyó keret el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
@@ -312,5 +313,6 @@ Jelenleg nincs.
 | **v0.11** | Claude-jelző a notch mellett; a teljes felület angolul |
 | **v0.12** | AI Usage: kör a notch mellett, nagyobb ikonok, jelszókérés megszüntetése; menüsor-ikonok funkciónként; menüsor-buborék zárása kattintásra |
 | **v0.13** | Értesítések: minden új értesítés egymás alatt, válasz Beeper-üzenetekre a notchból |
-| **v0.14** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.15+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.14** | Értesítések küldőnként egy kártyán; session-visszaállás értesítés; figyelmeztetések csak új lépcsőnél; keskenyebb Jegyzetek/Emlékeztetők panel |
+| **v0.15** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.16+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

@@ -315,8 +315,10 @@ private struct ReminderRow: View {
             Spacer(minLength: 0)
         }
         .padding(.vertical, 3)
+        // Room left of the circle, so it does not touch the edge (spec R-6).
+        .padding(.leading, 6)
         .overlay(alignment: .bottom) {
-            Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1).padding(.leading, 25)
+            Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1).padding(.leading, 31)
         }
     }
 }

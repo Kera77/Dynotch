@@ -33,7 +33,7 @@ final class ClaudeUsageService: ObservableObject {
 
     private static let refreshInterval: TimeInterval = 5 * 60
     private static let minimumInterval: TimeInterval = 60
-    private static let notifiedKey = "claudeUsageNotified"
+    private static let alertStateKey = "claudeUsageAlertState"
     private static let dismissedKey = "claudeIndicatorDismissed"
     private static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")
 
@@ -156,16 +156,27 @@ final class ClaudeUsageService: ObservableObject {
         self.limits = limits
         lastUpdated = Date()
         state = .loaded
+
+        let stored = (UserDefaults.standard.data(forKey: Self.alertStateKey))
+            .flatMap { try? JSONDecoder().decode([String: UsageAlertState].self, from: $0) } ?? [:]
+        let result = UsageAlerts.evaluate(limits, state: stored, now: Date())
+        if let data = try? JSONEncoder().encode(result.state) {
+            UserDefaults.standard.set(data, forKey: Self.alertStateKey)
+        }
         guard settings.claudeUsageAlerts else { return }
 
-        let notified = UserDefaults.standard.dictionary(forKey: Self.notifiedKey) as? [String: Int] ?? [:]
-        let result = UsageAlerts.alerts(for: limits, notified: notified)
-        UserDefaults.standard.set(result.notified, forKey: Self.notifiedKey)
+        // The session started over (spec CL-5b).
+        for limit in result.reset where limit.title.hasPrefix("Session") {
+            notify("AI session reset", "\(limit.title) is at \(Int(limit.utilization.rounded()))% again.")
+        }
+        // Only when a new 10 % step is reached, never again for the same step (spec CL-5).
         for limit in result.due {
             let reset = limit.resetsAt.map { "Resets " + UsageAlerts.resetText($0, now: Date()) } ?? ""
-            notify("Claude: \(limit.title) \(Int(limit.utilization.rounded()))%", "You are close to the limit. \(reset)")
+            let message = limit.utilization >= 100 ? "Limit reached." : "You are close to the limit."
+            notify("AI usage: \(limit.title) \(Int(limit.utilization.rounded()))%", "\(message) \(reset)")
         }
     }
+
 
     /// Puts the service into a loaded state without the keychain or the network (tests, previews).
     func setLoadedState(_ limits: [UsageLimit], updated: Date = Date()) {

@@ -65,21 +65,43 @@ struct ClaudeUsageTests {
         #expect(UsageLevel(utilization: 90) == .critical)
     }
 
-    /// Spec CL-5: from 70 %, again at every further 10 %, once per reset period.
-    @Test func alertsAtEveryTenPercentFromSeventy() {
-        let reset = Date(timeIntervalSince1970: 1_000_000)
-        func limit(_ value: Double, reset: Date? = reset) -> UsageLimit {
-            UsageLimit(id: "five_hour", title: "Session", utilization: value, resetsAt: reset)
-        }
-        var notified: [String: Int] = [:]
-        for (value, expected) in [(65.0, 0), (71.0, 1), (78.0, 0), (80.0, 1), (95.0, 1), (99.0, 0), (100.0, 1), (100.0, 0)] {
-            let result = UsageAlerts.alerts(for: [limit(value)], notified: notified)
+    private func limit(_ value: Double, reset: Date? = Date(timeIntervalSince1970: 1_000_000), id: String = "session") -> UsageLimit {
+        UsageLimit(id: id, title: "Session (5 hr)", utilization: value, resetsAt: reset)
+    }
+
+    /// Spec CL-5: from 70 %, again at every further 10 %, once per period; a moving reset time
+    /// does not start a new period (it used to, so "limit reached" came every hour).
+    @Test func alertsOnlyWhenANewStepIsReached() {
+        var state: [String: UsageAlertState] = [:]
+        let now = Date(timeIntervalSince1970: 900_000)
+        var resetTime = 1_000_000.0
+        for (value, expected) in [(65.0, 0), (71.0, 1), (78.0, 0), (80.0, 1), (95.0, 1), (99.0, 0), (100.0, 1), (100.0, 0), (100.0, 0)] {
+            resetTime += 3600 // the reset time moves on every look
+            let result = UsageAlerts.evaluate([limit(value, reset: Date(timeIntervalSince1970: resetTime))], state: state, now: now)
             #expect(result.due.count == expected, "at \(value)%")
-            notified = result.notified
+            #expect(result.reset.isEmpty, "at \(value)%")
+            state = result.state
         }
-        // A new period (new reset time) starts over.
-        let next = UsageAlerts.alerts(for: [limit(72, reset: Date(timeIntervalSince1970: 2_000_000))], notified: notified)
-        #expect(next.due.count == 1)
+    }
+
+    /// Spec CL-5b: the session reset is noticed when its reset time passes or usage drops.
+    @Test func sessionResetIsDetected() {
+        let first = UsageAlerts.evaluate([limit(85)], state: [:], now: Date(timeIntervalSince1970: 900_000))
+        #expect(first.reset.isEmpty)
+        #expect(first.due.count == 1)
+
+        let afterResetTime = UsageAlerts.evaluate(
+            [limit(3, reset: Date(timeIntervalSince1970: 1_018_000))], state: first.state, now: Date(timeIntervalSince1970: 1_000_100)
+        )
+        #expect(afterResetTime.reset.count == 1)
+        #expect(afterResetTime.state["session"]?.bucket == 0)
+
+        let dropped = UsageAlerts.evaluate([limit(40)], state: first.state, now: Date(timeIntervalSince1970: 900_100))
+        #expect(dropped.reset.count == 1)
+
+        // New period: 70 % warns again.
+        let again = UsageAlerts.evaluate([limit(72)], state: afterResetTime.state, now: Date(timeIntervalSince1970: 1_000_200))
+        #expect(again.due.count == 1)
     }
 
     @Test func credentialParsing() {
@@ -114,15 +136,12 @@ struct ClaudeUsageTests {
 
     /// Spec CL-6: hidden with the X until the fullest limit reaches its next 10 % or resets.
     @Test func dismissLastsUntilTheNextTenPercent() {
-        let reset = Date(timeIntervalSince1970: 1_000_000)
-        func limit(_ value: Double, reset: Date = reset) -> UsageLimit {
-            UsageLimit(id: "five_hour", title: "Session", utilization: value, resetsAt: reset)
-        }
         let marker = UsageAlerts.dismissMarker(for: limit(72))
-        #expect(UsageAlerts.isDismissed(limit(72), marker: marker))
+        #expect(UsageAlerts.isDismissed(limit(72, reset: Date(timeIntervalSince1970: 1_003_600)), marker: marker))
         #expect(UsageAlerts.isDismissed(limit(79.9), marker: marker))
         #expect(!UsageAlerts.isDismissed(limit(80), marker: marker))
-        #expect(!UsageAlerts.isDismissed(limit(73, reset: Date(timeIntervalSince1970: 2_000_000)), marker: marker))
+        #expect(!UsageAlerts.isDismissed(limit(5), marker: marker))
+        #expect(!UsageAlerts.isDismissed(limit(72, id: "weekly"), marker: marker))
         #expect(!UsageAlerts.isDismissed(limit(72), marker: nil))
     }
 

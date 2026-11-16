@@ -74,6 +74,7 @@ struct NotchViewModelTests {
 
         model.setExpanded(true, presenting: stack, canReply: false)
         #expect(!model.wantsKeyboard)
+        #expect(model.openSize == model.geometry.notificationSize(count: 3, hasReply: true))
         model.setExpanded(false)
 
         model.setExpanded(true)
@@ -140,7 +141,7 @@ struct NotchViewModelTests {
         model.select(.notes)
         #expect(model.isLarge)
         #expect(model.wantsKeyboard)
-        #expect(model.openSize == model.geometry.largeSize)
+        #expect(model.openSize == model.geometry.mediumSize)
         model.select(.reminders)
         #expect(model.isLarge)
         #expect(model.wantsKeyboard)
