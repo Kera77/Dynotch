@@ -93,15 +93,8 @@ struct NotchIndicatorView: View {
     /// How much of the fullest limit is used, as a ring filling clockwise from the top; no text.
     private func usageRing(used: Double) -> some View {
         let color = Self.color(for: UsageLevel(utilization: used))
-        return ZStack {
-            Circle().stroke(Color.white.opacity(0.18), lineWidth: 2.5)
-            Circle()
-                .trim(from: 0, to: min(max(used / 100, 0), 1))
-                .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-        }
-        .frame(width: IndicatorLayout.ringSize, height: IndicatorLayout.ringSize)
-        .frame(width: IndicatorLayout.ringSlotWidth, height: IndicatorLayout.capsuleHeight + 2)
+        return LevelRing(fraction: used / 100, color: color, label: LevelRing.label(for: used / 100))
+            .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
     }
 
     /// Not animated: an animation on the outline would also delay the capsule when it moves.

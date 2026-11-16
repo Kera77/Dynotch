@@ -133,7 +133,7 @@ struct NotchView: View {
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
-        .animation(Self.quickAnimation, value: hud.display?.kind)
+        .animation(Self.quickAnimation, value: hud.display != nil)
         .environment(\.colorScheme, .dark)
     }
 

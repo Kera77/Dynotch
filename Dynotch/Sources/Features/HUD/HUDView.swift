@@ -7,33 +7,28 @@ struct HUDView: View {
     let notchWidth: CGFloat
 
     static let sideWidth: CGFloat = 40
-    private static let ringSize: CGFloat = 17
 
     var body: some View {
         HStack(spacing: 0) {
+            // One fixed symbol per kind: no animated swaps while the level changes.
             Image(systemName: symbol)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
-                .contentTransition(.symbolEffect(.replace))
                 .frame(width: Self.sideWidth)
             Color.clear.frame(width: notchWidth)
-            ZStack {
-                Circle().stroke(Color.white.opacity(0.22), lineWidth: 2.5)
-                Circle()
-                    .trim(from: 0, to: display.muted ? 0 : min(max(display.level, 0), 1))
-                    .stroke(Color.white, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeOut(duration: 0.12), value: display.level)
-            }
-            .frame(width: Self.ringSize, height: Self.ringSize)
-            .frame(width: Self.sideWidth)
+            LevelRing(fraction: level, color: .white, label: LevelRing.label(for: level))
+                .frame(width: Self.sideWidth)
         }
+    }
+
+    private var level: Double {
+        display.muted ? 0 : display.level
     }
 
     private var symbol: String {
         switch display.kind {
-        case .volume: HUDLogic.volumeSymbol(level: display.level, muted: display.muted)
-        case .brightness: display.level < 0.3 ? "sun.min.fill" : "sun.max.fill"
+        case .volume: display.muted ? "speaker.slash.fill" : "speaker.wave.2.fill"
+        case .brightness: "sun.max.fill"
         }
     }
 }

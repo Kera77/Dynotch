@@ -15,6 +15,15 @@ extension NotchController {
         let geometry = model.geometry
         let layout = IndicatorLayout(items: items)
         let point = NSEvent.mouseLocation
+        if suppressIndicatorHover {
+            let area = layout.rect(notchRect: geometry.notchRect, labelHeight: IndicatorLayout.labelHeight)
+                .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
+            if area.contains(point) {
+                setHoveredIndicator(nil)
+                return
+            }
+            suppressIndicatorHover = false
+        }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             setHoveredIndicator(slot)
         } else if let hovered = model.hoveredIndicator, items.indices.contains(hovered),
@@ -85,7 +94,11 @@ extension NotchController {
         // Positive = fingers moved up, regardless of "natural scrolling".
         let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
         if announcementSwipe.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX) {
-            withAnimation(NotchView.quickAnimation) { calendar.dismissAnnouncement() }
+            suppressIndicatorHover = true
+            withAnimation(NotchView.quickAnimation) {
+                calendar.dismissAnnouncement()
+                setHoveredIndicator(nil)
+            }
         }
         return true
     }

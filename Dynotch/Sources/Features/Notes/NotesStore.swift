@@ -35,7 +35,11 @@ final class NotesStore: ObservableObject {
     @Published private(set) var notes: [NoteSummary] = []
     @Published private(set) var selectedFolderID: String?
     @Published private(set) var selection: Selection
-    @Published private(set) var text: String
+    /// The editor's formatted text (spec J-10).
+    @Published private(set) var content: NSAttributedString
+
+    /// Plain text of the editor.
+    var text: String { content.string }
     @Published private(set) var isLoadingNote = false
     /// Why the selected note can't be edited here, if it can't.
     @Published private(set) var readOnlyReason: String?
@@ -48,12 +52,14 @@ final class NotesStore: ObservableObject {
         static let folder = "notesFolder"
         static let note = "notesNote"
         static let draft = "notesDraft"
+        static let draftHTML = "notesDraftHTML"
     }
 
     let bridge = NotesBridge()
     private let defaults: UserDefaults
-    private var draftText: String {
-        didSet { defaults.set(draftText, forKey: Key.draft) }
+    /// The local draft as HTML (formatting included).
+    private var draftHTML: String {
+        didSet { defaults.set(draftHTML, forKey: Key.draftHTML) }
     }
     /// Modification time of the selected note as loaded, for conflict detection.
     private var loadedModified: Double?
@@ -62,15 +68,17 @@ final class NotesStore: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        let draft = defaults.string(forKey: Key.draft) ?? ""
-        draftText = draft
+        // Older versions kept the draft as plain text.
+        let draft = defaults.string(forKey: Key.draftHTML)
+            ?? defaults.string(forKey: Key.draft).map { NoteHTML.html(fromPlainText: $0) } ?? ""
+        draftHTML = draft
         selectedFolderID = defaults.string(forKey: Key.folder)
         if let noteID = defaults.string(forKey: Key.note) {
             selection = .note(noteID)
-            text = ""
+            content = RichNoteFormat.plain("")
         } else {
             selection = .draft
-            text = draft
+            content = Self.draftContent(draft)
         }
     }
 
@@ -133,14 +141,15 @@ final class NotesStore: ObservableObject {
         do {
             let detail = try await bridge.note(id)
             guard selection == .note(id) else { return }
-            text = detail.text
-            loadedModified = detail.modified
             readOnlyReason = Self.readOnlyReason(for: detail)
+            // Editable notes keep their formatting; read-only ones are shown as plain text.
+            content = readOnlyReason == nil ? RichNoteFormat.attributed(fromHTML: detail.body) : RichNoteFormat.plain(detail.text)
+            loadedModified = detail.modified
             saveState = .idle
         } catch {
             // Deleted or moved in Notes: fall back to the draft.
             selection = .draft
-            text = draftText
+            content = Self.draftContent(draftHTML)
             readOnlyReason = nil
             defaults.removeObject(forKey: Key.note)
             saveState = .failed("Can't open the note: \(error)")
@@ -165,7 +174,7 @@ final class NotesStore: ObservableObject {
             await flush()
             selection = .note(id)
             defaults.set(id, forKey: Key.note)
-            text = ""
+            content = RichNoteFormat.plain("")
             readOnlyReason = nil
             saveState = .idle
             await loadNote(id)
@@ -178,7 +187,7 @@ final class NotesStore: ObservableObject {
             await flush()
             selection = .draft
             defaults.removeObject(forKey: Key.note)
-            text = draftText
+            content = Self.draftContent(draftHTML)
             readOnlyReason = nil
             loadedModified = nil
             saveState = .idle
@@ -187,29 +196,38 @@ final class NotesStore: ObservableObject {
 
     // MARK: - Editing and saving
 
-    /// Text typed in an editor.
-    func edit(_ newText: String) {
-        guard newText != text, isEditable else { return }
-        text = newText
+    /// Text typed or formatted in an editor.
+    func edit(_ newContent: NSAttributedString) {
+        guard !newContent.isEqual(to: content), isEditable else { return }
+        content = newContent
         switch selection {
         case .draft:
-            draftText = newText
+            draftHTML = RichNoteFormat.html(from: newContent)
         case .note:
             scheduleSave()
         }
     }
 
+    /// Plain text typed in an editor.
+    func edit(_ newText: String) {
+        edit(RichNoteFormat.plain(newText))
+    }
+
+    private static func draftContent(_ html: String) -> NSAttributedString {
+        html.isEmpty ? RichNoteFormat.plain("") : RichNoteFormat.attributed(fromHTML: html)
+    }
+
     /// Saves the draft as a new note in the selected folder (spec J-4).
     func saveDraftToNotes() {
         guard selection == .draft, let folderID = selectedFolderID,
-              !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else { return }
-        let content = draftText
+        let html = RichNoteFormat.html(from: content)
         saveState = .saving
         Task {
             do {
-                let created = try await bridge.create(inFolder: folderID, html: NoteHTML.html(fromPlainText: content))
-                draftText = ""
+                let created = try await bridge.create(inFolder: folderID, html: html)
+                draftHTML = ""
                 selection = .note(created.id)
                 defaults.set(created.id, forKey: Key.note)
                 loadedModified = created.modified
@@ -240,11 +258,11 @@ final class NotesStore: ObservableObject {
 
     func save(force: Bool) async {
         guard case .note(let id) = selection, readOnlyReason == nil else { return }
-        let snapshot = text
+        let snapshot = content
         saveState = .saving
         do {
             let result = try await bridge.save(
-                id, html: NoteHTML.html(fromPlainText: snapshot),
+                id, html: RichNoteFormat.html(from: snapshot),
                 expectedModified: force ? nil : loadedModified
             )
             if result.conflict {
@@ -253,10 +271,10 @@ final class NotesStore: ObservableObject {
             }
             loadedModified = result.modified
             if let index = notes.firstIndex(where: { $0.id == id }) {
-                notes[index] = NoteSummary(id: id, name: result.name ?? NoteHTML.title(of: snapshot), modified: result.modified)
+                notes[index] = NoteSummary(id: id, name: result.name ?? NoteHTML.title(of: snapshot.string), modified: result.modified)
             }
             // Typed on while saving: the next autosave is already scheduled.
-            if text == snapshot, selection == .note(id) { saveState = .saved(Date()) }
+            if content.isEqual(to: snapshot), selection == .note(id) { saveState = .saved(Date()) }
         } catch {
             saveState = .failed("\(error)")
         }
@@ -320,7 +338,7 @@ extension NotesStore {
         self.notes = notes
         selectedFolderID = folders.first?.id
         self.selection = selection
-        self.text = text
+        content = RichNoteFormat.plain(text)
         self.readOnlyReason = readOnlyReason
         access = .ready
         lastRefresh = Date()

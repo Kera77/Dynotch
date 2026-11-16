@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.18 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.19 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -93,8 +93,8 @@
 | ID | Követelmény |
 |---|---|
 | H-1 | Amikor a hangerő vagy a beépített kijelző fényereje változik, a notch **két oldalra kiszélesedik**, fekete sávként, a notch magasságában. |
-| H-2 | **Bal oldalon** az ikon, **fehéren**: hangszóró (a szinttől függően 1–3 hullámmal, némításkor vagy 0-nál áthúzva) vagy nap (alacsony szintnél kisebb nap). |
-| H-3 | **Jobb oldalon** egy **fehér kör**, amely a tetejétől **az óramutató járásával megegyezően** mutatja a szintet 0–100%-ig. |
+| H-2 | **Bal oldalon** egy fix, fehér ikon: hangszóró (némításkor áthúzott) vagy nap. Szintenként nem cserélődik, nem villog. |
+| H-3 | **Jobb oldalon** egy **fehér kör**, amely a tetejétől **az óramutató járásával megegyezően** mutatja a szintet, **közepén a szint számmal** (0–100). Ugyanez a kör (a szám a közepén) mutatja az AI session-fogyást is. A körök nem Retina kijelzőn is élesek. |
 | H-4 | A HUD az utolsó változás után 1,5 s-mal visszahúzódik. Ha közben újabb változás jön, az időzítés újraindul. |
 | H-5 | Ha a panel éppen nyitva van, a HUD a menüsorban, a notch két oldalán ugyanígy megjelenik, és nem zárja be a panelt. |
 | H-6 | Hangerőt csak akkor mutat, ha a kimeneti eszköz állítható (például HDMI-kimeneten nem). |
@@ -170,7 +170,7 @@
 | K-8c | **Több meeting egyszerre:** minden futó meeting és minden, az előjelzési időn belül kezdődő meeting **egymás mellett** látszik (legfeljebb 3): elöl a futók, utána a kezdődők, kezdési idő szerint. A notch annyival szélesebb, amennyi hely kell. A 24 óránál hosszabb események nem jelennek meg. |
 | K-8d | **Hover:** egy visszaszámláló vagy a hozzá tartozó ikon fölé víve az egeret a notch kicsit lejjebb nyílik, és kiírja a **meeting nevét**, idejét és hogy „most tart” vagy „kezdődik”; a többi visszaszámláló halványabb. A notch-ra víve az egeret a panel a szokott módon kinyílik. |
 | K-8e | A hover-feliratban **a jobb szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
-| K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött), vagy amíg a visszaszámláló el nem tűnik. Minden meeting egyszer kerül bejelentésre (újraindítás után sem újra). |
+| K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött); ezután csak a visszaszámláló marad, a név akkor sem nyílik ki újra, ha az egér még ott van (csak ha elhagyta és visszatér). Minden meeting egyszer kerül bejelentésre. |
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
@@ -232,7 +232,9 @@
 | J-3 | **Oldalsáv:** felül mappaválasztó (fiókonként csoportosítva, a *Nemrég törölt* mappa nélkül), alatta az *Új jegyzet* piszkozat, majd a kiválasztott mappa jegyzetei a legutóbb módosítottal kezdve (cím és relatív idő). A kiválasztott mappa és jegyzet megmarad újraindítás után is. |
 | J-4 | **Piszkozat:** helyi jegyzet, amely csak a Dynotch-ban van meg (újraindítás után is). A **„Mentés a Jegyzetekbe”** gomb új jegyzetként menti a kiválasztott mappába; az első sor lesz a címe. Mentés után a piszkozat kiürül, és az új jegyzet nyílik meg. |
 | J-5 | **Meglévő jegyzet szerkesztése:** a szöveg sima szövegként látszik. Gépelés után 1,5 mp szünettel **automatikusan mentődik a Jegyzetekbe**; másik jegyzetre vagy mappára váltáskor azonnal. Az állapotsor mutatja: „Módosítva…”, „Mentés…”, „Mentve a Jegyzetekbe · 10:42”. |
-| J-6 | **Formázott jegyzetek védelme:** a mentés a jegyzet teljes tartalmát sima szövegre cseréli. Ezért csak olvasható az a jegyzet, amelyben lista vagy jelölőnégyzetes lista, táblázat, kép, link vagy melléklet van, és a jelszóval védett jegyzet is. A cím és a sima szöveg formázása (félkövér, dőlt, betűméret) mentéskor elveszik. |
+| J-6 | **Listás és formázott tartalmú jegyzetek védelme:** a mentés a jegyzet teljes tartalmát újraírja. Csak olvasható az a jegyzet, amelyben lista vagy **teendőlista (checklist)**, táblázat, kép, link vagy melléklet van, és a jelszóval védett jegyzet is. A teendőlisták pipáit a Jegyzetek szkriptelhető felülete nem adja ki és nem engedi írni, ezért a Dynotch nem tud teendőlistát létrehozni vagy szinkronizálni; ezek jegyzetei csak olvashatók. |
+| J-10 | **Formázás:** a szerkesztő felett eszköztár: *Aa* (Title, Heading, Subheading, Body), **B**, *I*, U, S. Félkövér, dőlt, aláhúzott, áthúzott szöveg és a címméretek a Jegyzetekbe is mentődnek (`<b>`, `<i>`, `<u>`, `<strike>`, betűméret). Más formázás (szín, betűtípus) mentéskor elveszik. |
+| J-11 | **Billentyűparancsok** (mint az Apple Jegyzetekben): ⌘B félkövér, ⌘I dőlt, ⌘U aláhúzott, ⇧⌘X áthúzott, ⇧⌘T cím, ⇧⌘H címsor, ⇧⌘J alcím, ⇧⌘B törzsszöveg. |
 | J-7 | **Ütközés:** ha a jegyzet a betöltése óta megváltozott a Jegyzetekben (például iPhone-on), a mentés nem írja felül; az állapotsor jelzi, és két gombot ad: *Újratöltés* (a helyi módosítás elvetése) és *Felülírás*. |
 | J-8 | **Menüsor-ikon** (jegyzet ikon), amíg a funkció be van kapcsolva: a számológéphez hasonló nyilas buborék (680 × 440 pt) ugyanazzal az oldalsávval és szerkesztővel, alul **lakattal**. Másolás funkció itt nincs. A notch és a menüsor ugyanazt a jegyzetet mutatja. |
 | J-9 | *Megnyitás a Jegyzetekben* gomb: a kiválasztott jegyzetet megnyitja a Jegyzetek appban. |
@@ -330,4 +332,5 @@ Jelenleg nincs.
 | **v0.16** | Válasz Google Chatre gépeléssel; rendszerértesítések; Focus beállításfül; trackpad-visszajelzés |
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
-| **v0.19+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.20+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-16
+
+### Added
+- Notes: formatting toolbar (Title, Heading, Subheading, Body, bold, italic, underline,
+  strikethrough) and Apple Notes' shortcuts; formatting is saved to Notes.
+
+### Changed
+- Level rings show the value in the middle and are sharper (volume, brightness, AI session).
+- The volume and brightness icon no longer changes while the level changes.
+
+### Fixed
+- After swiping the meeting announcement away, its name opened again while the pointer stayed on it.
+
 ## [0.18.0] - 2026-11-16
 
 ### Added

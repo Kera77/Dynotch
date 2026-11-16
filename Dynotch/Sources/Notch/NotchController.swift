@@ -31,6 +31,9 @@ final class NotchController {
     var dayStepper = DayStepper()
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
+    /// After the announcement was swiped away the pointer is still on it: no hover details until
+    /// it leaves, so only the countdown stays (spec K-8f).
+    var suppressIndicatorHover = false
     private var wasExpanded = false
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {

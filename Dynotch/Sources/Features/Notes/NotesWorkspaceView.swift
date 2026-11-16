@@ -13,6 +13,8 @@ struct NotesWorkspaceView: View {
     let isActive: Bool
     var pin: PinControl?
 
+    @StateObject private var editorController = RichNoteController()
+
     static let accent = Color(red: 0.98, green: 0.78, blue: 0.16)
     private static let sidebarWidth: CGFloat = 210
 
@@ -55,15 +57,21 @@ struct NotesWorkspaceView: View {
     }
 
     private var editor: some View {
-        PlainTextEditor(
-            text: Binding(get: { store.text }, set: { store.edit($0) }),
-            isEditable: store.isEditable,
-            placeholder: store.selection == .draft ? "New note. The first line becomes its title." : nil,
-            caretColor: NSColor(Self.accent)
-        )
-        .overlay {
-            if store.isLoadingNote {
-                ProgressView().controlSize(.small)
+        VStack(alignment: .trailing, spacing: 4) {
+            RichNoteToolbar(controller: editorController, isEnabled: store.isEditable)
+                .padding(.trailing, 4)
+                .padding(.top, 2)
+            RichNoteEditor(
+                content: Binding(get: { store.content }, set: { store.edit($0) }),
+                isEditable: store.isEditable,
+                placeholder: store.selection == .draft ? "New note. The first line becomes its title." : nil,
+                caretColor: NSColor(Self.accent),
+                controller: editorController
+            )
+            .overlay {
+                if store.isLoadingNote {
+                    ProgressView().controlSize(.small)
+                }
             }
         }
         .padding(.leading, 6)

@@ -73,8 +73,7 @@ enum IndicatorItem: Identifiable, Equatable {
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
     /// The AI usage is a ring without text (spec CL-6).
-    static let ringSlotWidth: CGFloat = 20
-    static let ringSize: CGFloat = 17
+    static let ringSlotWidth: CGFloat = 26
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 18
