@@ -149,4 +149,15 @@ struct ClaudeUsageTests {
         let limit = UsageLimit(id: "five_hour", title: "Session", utilization: 72.4, resetsAt: nil)
         #expect(NotchIndicatorView.usageText(for: limit, now: Date()) == "72% used · 28% left")
     }
+
+    /// Spec CL-6: only the session limit, only from 70 %.
+    @Test @MainActor func notchShowsOnlyTheSessionFromSeventyPercent() {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = ClaudeUsageService(settings: AppSettings(defaults: defaults)) { _, _ in }
+        let weekly = UsageLimit(id: "weekly", title: "Weekly (7 day)", utilization: 95, resetsAt: nil)
+        service.setLoadedState([UsageLimit(id: "session", title: "Session (5 hr)", utilization: 60, resetsAt: nil), weekly])
+        #expect(service.notchLimits == nil)
+        service.setLoadedState([UsageLimit(id: "session", title: "Session (5 hr)", utilization: 74, resetsAt: nil), weekly])
+        #expect(service.notchLimits?.map(\.id) == ["session"])
+    }
 }

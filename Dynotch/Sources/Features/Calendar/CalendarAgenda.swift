@@ -91,6 +91,18 @@ enum CalendarAgenda {
         events.first { !$0.isAllDay && !$0.hasEnded(at: now) }
     }
 
+    /// The meeting to announce (spec K-8f): one that starts later and has not been announced
+    /// yet. Also returns the announced set, pruned to the meetings still counted down.
+    static func newAnnouncement(
+        in indicatorEvents: [CalendarEvent], announced: Set<String>, now: Date
+    ) -> (event: CalendarEvent?, announced: Set<String>) {
+        let live = Set(indicatorEvents.map(\.id))
+        var updated = announced.intersection(live)
+        let fresh = indicatorEvents.first { $0.start > now && !announced.contains($0.id) }
+        if let fresh { updated.insert(fresh.id) }
+        return (fresh, updated)
+    }
+
     /// At most this many countdowns sit beside the closed notch.
     static let maxIndicatorEvents = 3
 

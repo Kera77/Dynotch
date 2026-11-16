@@ -88,3 +88,31 @@ struct DayStepper {
         return steps
     }
 }
+
+/// A two-finger swipe up: fires once per gesture after `threshold` points (spec K-8f).
+struct VerticalSwipe {
+    var threshold: CGFloat = 30
+
+    private var accumulatedUp: CGFloat = 0
+    private var accumulatedX: CGFloat = 0
+    private var hasFired = false
+
+    /// - Parameter fingerUp: vertical finger movement, positive = up.
+    mutating func handle(phase: SwipeDetector.Phase, fingerUp: CGFloat, deltaX: CGFloat) -> Bool {
+        switch phase {
+        case .none, .ended:
+            return false
+        case .began:
+            accumulatedUp = 0
+            accumulatedX = 0
+            hasFired = false
+        case .changed:
+            break
+        }
+        accumulatedUp += fingerUp
+        accumulatedX += abs(deltaX)
+        guard !hasFired, accumulatedUp >= threshold, accumulatedUp > accumulatedX else { return false }
+        hasFired = true
+        return true
+    }
+}

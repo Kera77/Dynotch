@@ -18,6 +18,14 @@ final class CalendarService: ObservableObject {
     @Published private(set) var dayCounts: [Date: Int] = [:]
     /// Events shown beside the closed notch: in progress, or starting soon.
     @Published private(set) var indicatorEvents: [CalendarEvent] = []
+    /// A meeting that just entered the lead time: its name stays open below the notch until
+    /// swiped away (spec K-8f).
+    @Published private(set) var announcement: CalendarEvent?
+    /// Meetings already announced, so each is announced once (also across restarts).
+    private var announced: Set<String> {
+        didSet { UserDefaults.standard.set(Array(announced), forKey: Self.announcedKey) }
+    }
+    private static let announcedKey = "announcedMeetings"
     @Published private(set) var now = Date()
     /// Day whose events are shown (start of day).
     @Published var selectedDay = Calendar.current.startOfDay(for: Date())
@@ -45,6 +53,7 @@ final class CalendarService: ObservableObject {
         self.settings = settings
         access = Self.currentAccess()
         dismissed = Set(UserDefaults.standard.stringArray(forKey: Self.dismissedKey) ?? [])
+        announced = Set(UserDefaults.standard.stringArray(forKey: Self.announcedKey) ?? [])
     }
 
     /// How long before an event the indicator appears.
@@ -136,8 +145,27 @@ final class CalendarService: ObservableObject {
         CalendarAgenda.agenda(from: events, startingAt: day)
     }
 
+    /// Announces a meeting when it enters the lead time; drops the announcement when the meeting
+    /// is no longer counted down.
+    private func updateAnnouncement(now: Date) {
+        if let current = announcement, !indicatorEvents.contains(where: { $0.id == current.id }) {
+            announcement = nil
+        }
+        let result = CalendarAgenda.newAnnouncement(in: indicatorEvents, announced: announced, now: now)
+        if let event = result.event {
+            announcement = event
+        }
+        if result.announced != announced { announced = result.announced }
+    }
+
+    /// Two-finger swipe up on the open name (spec K-8f).
+    func dismissAnnouncement() {
+        announcement = nil
+    }
+
     /// Hides a countdown beside the notch for this event (spec K-8e).
     func dismissIndicator(_ event: CalendarEvent) {
+        if announcement?.id == event.id { announcement = nil }
         // Forget ids of events that have ended, so the set stays small.
         let liveIDs = Set(events.filter { !$0.hasEnded(at: now) }.map(\.id))
         dismissed = dismissed.intersection(liveIDs).union([event.id])
@@ -221,6 +249,7 @@ final class CalendarService: ObservableObject {
             ? CalendarAgenda.indicatorEvents(in: events.filter { !dismissed.contains($0.id) }, now: now, leadTime: leadTime)
             : []
         if newIndicatorEvents != indicatorEvents { indicatorEvents = newIndicatorEvents }
+        updateAnnouncement(now: now)
     }
 
     private static func makeEvent(_ event: EKEvent) -> CalendarEvent {

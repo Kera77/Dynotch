@@ -25,7 +25,7 @@ struct NotchView: View {
     /// taller while one of them is hovered (spec K-8d).
     private var collapsedSize: CGSize {
         if notifications.peek != nil { return geometry.peekSize }
-        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: hoveredIndicator.map { indicatorItems[$0].labelHeight })
+        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelIndex.map { indicatorItems[$0].labelHeight })
     }
 
     /// Meeting countdowns and the Claude usage beside the closed notch.
@@ -43,6 +43,15 @@ struct NotchView: View {
         return indicatorLayout.horizontalOffset
     }
 
+    /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
+    private var labelIndex: Int? {
+        if let hoveredIndicator { return hoveredIndicator }
+        guard let announcement = calendar.announcement else { return nil }
+        return indicatorItems.firstIndex { item in
+            if case .meeting(let event) = item { event.id == announcement.id } else { false }
+        }
+    }
+
     private var hoveredIndicator: Int? {
         model.hoveredIndicator.flatMap { indicatorItems.indices.contains($0) ? $0 : nil }
     }
@@ -50,7 +59,7 @@ struct NotchView: View {
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
     private var cornerRadius: CGFloat {
         if model.isExpanded { return 24 }
-        return notifications.peek != nil || hoveredIndicator != nil ? 16 : 10
+        return notifications.peek != nil || labelIndex != nil ? 16 : 10
     }
 
     var body: some View {
@@ -71,7 +80,7 @@ struct NotchView: View {
                     items: indicatorItems,
                     leadTime: calendar.leadTime,
                     notchSize: geometry.notchSize,
-                    hoveredIndex: hoveredIndicator
+                    hoveredIndex: labelIndex
                 ) { item in
                     withAnimation(Self.quickAnimation) {
                         model.hoveredIndicator = nil
@@ -106,7 +115,7 @@ struct NotchView: View {
         .offset(x: collapsedOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
-        .animation(NotchController.animation, value: hoveredIndicator)
+        .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .environment(\.colorScheme, .dark)
     }

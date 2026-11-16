@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.14 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.15 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -107,7 +107,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.15)
+### 2.3 Hatókör (v0.16)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -122,7 +122,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.15) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.16) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -165,6 +165,7 @@
 | K-8c | **Több meeting egyszerre:** minden futó meeting és minden, az előjelzési időn belül kezdődő meeting **egymás mellett** látszik (legfeljebb 3): elöl a futók, utána a kezdődők, kezdési idő szerint. A notch annyival szélesebb, amennyi hely kell. A 24 óránál hosszabb események nem jelennek meg. |
 | K-8d | **Hover:** egy visszaszámláló vagy a hozzá tartozó ikon fölé víve az egeret a notch kicsit lejjebb nyílik, és kiírja a **meeting nevét**, idejét és hogy „most tart” vagy „kezdődik”; a többi visszaszámláló halványabb. A notch-ra víve az egeret a panel a szokott módon kinyílik. |
 | K-8e | A hover-feliratban **a jobb szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
+| K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött), vagy amíg a visszaszámláló el nem tűnik. Minden meeting egyszer kerül bejelentésre (újraindítás után sem újra). |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---
@@ -269,7 +270,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | CL-4 | Frissítés 5 percenként (amíg a funkció be van kapcsolva), megnyitáskor ha 1 percnél régebbi, és gombbal. |
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
 | CL-5b | **A munkamenet visszaállásakor** értesítés a notchban („AI session reset”). Visszaállásnak számít, ha az előző visszaállási idő elmúlt, vagy a fogyás legalább 20 százalékponttal visszaesett. A visszaállási idő puszta elmozdulása (gördülő ablak) nem számít új időszaknak, ezért a 70%/…/100% figyelmeztetés lépcsőnként csak egyszer jön. |
-| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló): **bal oldalon a Claude-ikon** (teljes méretben, mint a meeting-ikon), jobb oldalon egy **kör, szöveg nélkül**, amely a legjobban fogyó keret szerint telik az óramutató járásával (70%-tól narancs, 90%-tól piros). Meeting-visszaszámlálók mellett azok után áll. **Hoverre** a notch alatt keretenként: használt %, hátralévő %, visszaállás; **jobb oldalt X**: a jelző eltűnik, amíg a legjobban fogyó keret el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. |
+| CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló), **csak a munkamenet-keretre (Session) és csak 70% felett**: bal oldalon a Claude-ikon, jobb oldalon egy kör szöveg nélkül, amely a session fogyásával telik (70%-tól narancs, 90%-tól piros). Más keret nem jelenik meg a notch mellett. **Hoverre** a session használt %-a, hátralévő %-a és visszaállása; **jobb oldalt X**: a jelző eltűnik, amíg a session el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. A teljes nézet (notch funkció, menüsor) továbbra is minden keretet mutat. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
 ---
@@ -314,5 +315,6 @@ Jelenleg nincs.
 | **v0.12** | AI Usage: kör a notch mellett, nagyobb ikonok, jelszókérés megszüntetése; menüsor-ikonok funkciónként; menüsor-buborék zárása kattintásra |
 | **v0.13** | Értesítések: minden új értesítés egymás alatt, válasz Beeper-üzenetekre a notchból |
 | **v0.14** | Értesítések küldőnként egy kártyán; session-visszaállás értesítés; figyelmeztetések csak új lépcsőnél; keskenyebb Jegyzetek/Emlékeztetők panel |
-| **v0.15** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.16+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.15** | Meeting-bejelentés a notchban (felfelé söpréssel zárható); AI-jelző csak session, 70% felett |
+| **v0.16** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.17+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

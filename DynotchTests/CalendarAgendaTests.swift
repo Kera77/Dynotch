@@ -165,4 +165,21 @@ struct CalendarAgendaTests {
         #expect(CalendarAgenda.focusEvent(in: events, now: now)?.title == "Running")
         #expect(CalendarAgenda.focusEvent(in: Array(events.prefix(2)), now: now) == nil)
     }
+
+    /// Spec K-8f: a meeting is announced once, when it enters the lead time.
+    @Test func meetingsAreAnnouncedOnce() {
+        let soon = event("Soon", startOffsetMinutes: 8)
+        let running = event("Running", startOffsetMinutes: -5)
+        let first = CalendarAgenda.newAnnouncement(in: [running, soon], announced: [], now: now)
+        #expect(first.event?.title == "Soon")
+        #expect(first.announced == ["Soon"])
+
+        let again = CalendarAgenda.newAnnouncement(in: [running, soon], announced: first.announced, now: now)
+        #expect(again.event == nil)
+
+        // Ended meetings are forgotten, so the set stays small.
+        let later = CalendarAgenda.newAnnouncement(in: [running], announced: first.announced, now: now)
+        #expect(later.event == nil)
+        #expect(later.announced.isEmpty)
+    }
 }

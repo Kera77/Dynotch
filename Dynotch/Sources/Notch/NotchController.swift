@@ -19,6 +19,8 @@ final class NotchController {
     private let panel: NotchPanel
 
     private var globalMonitor: Any?
+    private var scrollMonitor: Any?
+    private var announcementSwipe = VerticalSwipe()
     private var localMonitor: Any?
     private var sizeObserver: AnyCancellable?
     private var settingsObserver: AnyCancellable?
@@ -62,6 +64,11 @@ final class NotchController {
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.pointerMoved() }
+        }
+        // Scrolling while the panel is closed goes to other apps; watch it for the swipe up that
+        // closes a meeting announcement (spec K-8f).
+        scrollMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.scrollWheel]) { [weak self] event in
+            MainActor.assumeIsolated { _ = self?.handleCollapsedScroll(event) }
         }
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel]) { [weak self] event in
             guard let self else { return event }
@@ -109,6 +116,8 @@ final class NotchController {
     func stop() {
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
+        if let scrollMonitor { NSEvent.removeMonitor(scrollMonitor) }
+        scrollMonitor = nil
         globalMonitor = nil
         localMonitor = nil
         sizeObserver = nil
@@ -253,8 +262,9 @@ final class NotchController {
     // MARK: - Swipe (spec S-1…S-4)
 
     private func handleScroll(_ event: NSEvent) -> Bool {
+        if !model.isExpanded { return handleCollapsedScroll(event) }
         // The settings scroll on their own; no feature switching there.
-        guard model.isExpanded, !model.isShowingSettings, !model.isShowingNotifications else { return false }
+        guard !model.isShowingSettings, !model.isShowingNotifications else { return false }
 
         let phase: SwipeDetector.Phase
         if event.phase.contains(.began) {
@@ -339,6 +349,39 @@ extension NotchController {
         let calendarService = calendar
         if let day = Calendar.current.date(byAdding: .day, value: steps, to: calendarService.selectedDay) {
             calendarService.selectedDay = Calendar.current.startOfDay(for: day)
+        }
+        return true
+    }
+}
+
+// MARK: - Meeting announcement (spec K-8f)
+
+extension NotchController {
+    /// A two-finger swipe up over the announced meeting's name closes it.
+    fileprivate func handleCollapsedScroll(_ event: NSEvent) -> Bool {
+        guard let announcement = calendar.announcement, notifications.peek == nil else { return false }
+        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
+        guard let index = items.firstIndex(where: { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } })
+        else { return false }
+        let area = IndicatorLayout(items: items)
+            .rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
+            .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
+        guard area.contains(NSEvent.mouseLocation) else { return false }
+
+        let phase: SwipeDetector.Phase
+        if event.phase.contains(.began) {
+            phase = .began
+        } else if event.phase.contains(.changed) {
+            phase = .changed
+        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            phase = .ended
+        } else {
+            phase = .none
+        }
+        // Positive = fingers moved up, regardless of "natural scrolling".
+        let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
+        if announcementSwipe.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX) {
+            withAnimation(NotchView.quickAnimation) { calendar.dismissAnnouncement() }
         }
         return true
     }

@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-16
+
+### Added
+- Meeting announcement: when a meeting enters the countdown, its name opens below the notch and
+  stays until swiped away with two fingers up.
+
+### Changed
+- The AI usage indicator beside the notch shows only the session limit, and only from 70 %.
+
 ## [0.14.0] - 2026-11-16
 
 ### Added

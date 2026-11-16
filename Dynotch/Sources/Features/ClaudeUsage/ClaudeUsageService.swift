@@ -48,18 +48,25 @@ final class ClaudeUsageService: ObservableObject {
         limits.max { $0.utilization < $1.utilization }
     }
 
-    /// Limits to show beside the notch, or nil when the indicator is off or hidden (spec CL-6).
-    var notchLimits: [UsageLimit]? {
-        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded,
-              !limits.isEmpty, let peak, !UsageAlerts.isDismissed(peak, marker: dismissedIndicator)
-        else { return nil }
-        return limits
+    /// The session (5 hour) limit.
+    var session: UsageLimit? {
+        limits.first { $0.title.hasPrefix("Session") }
     }
 
-    /// Hides the notch indicator until the fullest limit reaches its next 10 % (or resets).
+    /// What the notch shows (spec CL-6): only the session limit, only from 70 %, and not while
+    /// hidden with the X.
+    var notchLimits: [UsageLimit]? {
+        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded,
+              let session, session.utilization >= UsageAlerts.threshold,
+              !UsageAlerts.isDismissed(session, marker: dismissedIndicator)
+        else { return nil }
+        return [session]
+    }
+
+    /// Hides the notch indicator until the session reaches its next 10 % (or resets).
     func dismissIndicator() {
-        guard let peak else { return }
-        dismissedIndicator = UsageAlerts.dismissMarker(for: peak)
+        guard let session else { return }
+        dismissedIndicator = UsageAlerts.dismissMarker(for: session)
     }
 
     /// The limit shown by the menu bar ring: the session, otherwise the fullest one.

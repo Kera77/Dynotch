@@ -35,3 +35,23 @@ struct SwipeDetectorTests {
         #expect(detector.handle(phase: .changed, isMomentum: true, fingerDeltaX: -100, deltaY: 0) == nil)
     }
 }
+
+struct VerticalSwipeTests {
+    @Test func swipeUpFiresOnce() {
+        var swipe = VerticalSwipe()
+        #expect(!swipe.handle(phase: .began, fingerUp: 10, deltaX: 0))
+        #expect(swipe.handle(phase: .changed, fingerUp: 25, deltaX: 2))
+        #expect(!swipe.handle(phase: .changed, fingerUp: 40, deltaX: 0))
+        #expect(!swipe.handle(phase: .ended, fingerUp: 0, deltaX: 0))
+    }
+
+    @Test func downOrSidewaysDoesNothing() {
+        var swipe = VerticalSwipe()
+        _ = swipe.handle(phase: .began, fingerUp: -10, deltaX: 0)
+        #expect(!swipe.handle(phase: .changed, fingerUp: -40, deltaX: 0))
+        var sideways = VerticalSwipe()
+        _ = sideways.handle(phase: .began, fingerUp: 5, deltaX: 30)
+        #expect(!sideways.handle(phase: .changed, fingerUp: 30, deltaX: 40))
+        #expect(!sideways.handle(phase: .none, fingerUp: 100, deltaX: 0))
+    }
+}
