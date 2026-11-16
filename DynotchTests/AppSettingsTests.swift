@@ -167,4 +167,10 @@ struct AppSettingsTests {
         settings.hapticsEnabled = false
         #expect(!AppSettings(defaults: defaults).hapticsEnabled)
     }
+
+    @Test func hudIsOnAndSessionUnpinnedByDefault() {
+        let settings = AppSettings(defaults: makeDefaults())
+        #expect(settings.hudEnabled)
+        #expect(!settings.claudeSessionPinned)
+    }
 }

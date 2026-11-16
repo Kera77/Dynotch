@@ -56,15 +56,26 @@ final class ClaudeUsageService: ObservableObject {
     /// What the notch shows (spec CL-6): only the session limit, only from 70 %, and not while
     /// hidden with the X.
     var notchLimits: [UsageLimit]? {
-        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded,
-              let session, session.utilization >= UsageAlerts.threshold,
+        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded, let session
+        else { return nil }
+        // Pinned with the button in the AI Usage view: always shown (spec CL-6b).
+        if settings.claudeSessionPinned { return [session] }
+        guard session.utilization >= UsageAlerts.threshold,
               !UsageAlerts.isDismissed(session, marker: dismissedIndicator)
         else { return nil }
         return [session]
     }
 
+    var isSessionPinned: Bool { settings.claudeSessionPinned }
+
+    /// Shows or hides the session beside the notch regardless of the 70 % threshold.
+    func toggleSessionPinned() {
+        settings.claudeSessionPinned.toggle()
+    }
+
     /// Hides the notch indicator until the session reaches its next 10 % (or resets).
     func dismissIndicator() {
+        settings.claudeSessionPinned = false
         guard let session else { return }
         dismissedIndicator = UsageAlerts.dismissMarker(for: session)
     }

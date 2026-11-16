@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-16
+
+### Added
+- Volume and brightness beside the notch instead of the macOS overlay: white icon on the left,
+  white ring filling clockwise on the right; Option-Shift for finer steps.
+- AI Usage: "Show at notch" keeps the session ring beside the notch below 70 % too.
+- Settings: the meeting lead time can be typed in.
+- Cut, copy, paste and select all work in every text field; Paste button for the Beeper token.
+
 ## [0.17.0] - 2026-11-16
 
 ### Added

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.17 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.18 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -14,6 +14,7 @@
 | G-5 | A beállítások `UserDefaults`-ban tárolódnak, újraindítás után is megmaradnak. | |
 | G-7 | **Az app felülete angol.** A dátumok és időpontok a rendszer nyelvi és régióbeállítását követik. |
 | G-8 | **App-ikon:** sötétkék, lekerekített négyzet, benne kék kijelző fekete notch-csal (`Design/AppIcon.svg`, ebből készül minden méret). |
+| G-9 | **Szerkesztés-billentyűk:** a ⌘X/⌘C/⌘V/⌘A/⌘Z minden szövegmezőben működik (láthatatlan Szerkesztés menü), a Beeper-token mezője mellett „Paste” gomb is van. |
 | G-6 | **Stabil aláírás saját (önaláírt) tanúsítvánnyal** („Dynotch Self-Signed”). A CI ezzel ír alá. | A macOS az adatvédelmi engedélyeket (Naptár, Kisegítő hozzáférés) az aláíráshoz köti; stabil tanúsítvánnyal a frissítések után is megmaradnak. |
 
 ---
@@ -85,15 +86,15 @@
 
 ---
 
-## 2. Hangerő és fényerő kijelzés (HUD)
+## 2. Hangerő és fényerő kijelzés (HUD) – v0.18
 
 ### 2.1 Viselkedés
 
 | ID | Követelmény |
 |---|---|
 | H-1 | Amikor a hangerő vagy a beépített kijelző fényereje változik, a notch **két oldalra kiszélesedik**, fekete sávként, a notch magasságában. |
-| H-2 | **Bal oldalon** az ikon látszik: hangszóró (a szinttől függően 0–3 hullámmal, némításkor áthúzva) vagy nap (fényerő). |
-| H-3 | **Jobb oldalon** egy **kör alakú jelző** mutatja a szintet 0–100%-ig. A körív animálva követi a változást. |
+| H-2 | **Bal oldalon** az ikon, **fehéren**: hangszóró (a szinttől függően 1–3 hullámmal, némításkor vagy 0-nál áthúzva) vagy nap (alacsony szintnél kisebb nap). |
+| H-3 | **Jobb oldalon** egy **fehér kör**, amely a tetejétől **az óramutató járásával megegyezően** mutatja a szintet 0–100%-ig. |
 | H-4 | A HUD az utolsó változás után 1,5 s-mal visszahúzódik. Ha közben újabb változás jön, az időzítés újraindul. |
 | H-5 | Ha a panel éppen nyitva van, a HUD a menüsorban, a notch két oldalán ugyanígy megjelenik, és nem zárja be a panelt. |
 | H-6 | Hangerőt csak akkor mutat, ha a kimeneti eszköz állítható (például HDMI-kimeneten nem). |
@@ -112,7 +113,7 @@
 ### 2.3 Hatókör (v0.18)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
-- Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
+- Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő. Ha nincs aktív beépített kijelző (pl. csukott fedél), a fényerőgombokat a macOS kezeli.
 
 ---
 
@@ -170,6 +171,7 @@
 | K-8d | **Hover:** egy visszaszámláló vagy a hozzá tartozó ikon fölé víve az egeret a notch kicsit lejjebb nyílik, és kiírja a **meeting nevét**, idejét és hogy „most tart” vagy „kezdődik”; a többi visszaszámláló halványabb. A notch-ra víve az egeret a panel a szokott módon kinyílik. |
 | K-8e | A hover-feliratban **a jobb szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
 | K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött), vagy amíg a visszaszámláló el nem tűnik. Minden meeting egyszer kerül bejelentésre (újraindítás után sem újra). |
+| K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---
@@ -279,6 +281,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | CL-5 | **Értesítés a notchban 70% felett**, majd minden további 10%-nál újra (80, 90, 100), keretenként és visszaállási időszakonként egyszer. Kikapcsolható. |
 | CL-5b | **A munkamenet visszaállásakor** értesítés a notchban („AI session reset”). Visszaállásnak számít, ha az előző visszaállási idő elmúlt, vagy a fogyás legalább 20 százalékponttal visszaesett. A visszaállási idő puszta elmozdulása (gördülő ablak) nem számít új időszaknak, ezért a 70%/…/100% figyelmeztetés lépcsőnként csak egyszer jön. |
 | CL-6 | **Jelző a notch mellett** (mint a meeting-visszaszámláló), **csak a munkamenet-keretre (Session) és csak 70% felett**: bal oldalon a Claude-ikon, jobb oldalon egy kör szöveg nélkül, amely a session fogyásával telik (70%-tól narancs, 90%-tól piros). Más keret nem jelenik meg a notch mellett. **Hoverre** a session használt %-a, hátralévő %-a és visszaállása; **jobb oldalt X**: a jelző eltűnik, amíg a session el nem éri a következő 10%-ot (vagy vissza nem áll). Kikapcsolható. A teljes nézet (notch funkció, menüsor) továbbra is minden keretet mutat. |
+| CL-6b | Az AI Usage nézet fejlécében **„Show at notch”** gomb: bekapcsolva a session-kör 70% alatt is a notch mellett marad. Az X kikapcsolja. |
 | CL-7 | Hibakezelés: nincs bejelentkezés vagy elutasított kulcskarika-hozzáférés, lejárt token, hálózati hiba; mindegyik saját üzenettel és Frissítés gombbal. Napló: `claude-usage.log` (HTTP-állapot és a válasz kulcsai, token és értékek nélkül). |
 
 ---
@@ -326,5 +329,5 @@ Jelenleg nincs.
 | **v0.15** | Meeting-bejelentés a notchban (felfelé söpréssel zárható); AI-jelző csak session, 70% felett |
 | **v0.16** | Válasz Google Chatre gépeléssel; rendszerértesítések; Focus beállításfül; trackpad-visszajelzés |
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
-| **v0.18** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

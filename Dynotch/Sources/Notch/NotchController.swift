@@ -49,7 +49,7 @@ final class NotchController {
         var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
-            reminders: services.reminders, claudeUsage: services.claudeUsage
+            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud
         ) { [weak self] in
             self?.settingsButtonPressed()
         }

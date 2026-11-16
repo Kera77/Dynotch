@@ -27,7 +27,12 @@ struct NotificationSettingsView: View {
                 LabeledContent("Beeper Desktop API") {
                     HStack {
                         SecureField(beeperHasToken ? "Token saved" : "Paste token", text: $beeperToken)
-                            .frame(width: 180)
+                            .frame(width: 160)
+                        Button("Paste") {
+                            beeperToken = NSPasteboard.general.string(forType: .string)?
+                                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        }
+                        .help("Paste the token from the clipboard")
                         Button("Save") {
                             BeeperClient.setToken(beeperToken)
                             beeperToken = ""

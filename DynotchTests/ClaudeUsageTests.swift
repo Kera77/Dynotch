@@ -160,4 +160,17 @@ struct ClaudeUsageTests {
         service.setLoadedState([UsageLimit(id: "session", title: "Session (5 hr)", utilization: 74, resetsAt: nil), weekly])
         #expect(service.notchLimits?.map(\.id) == ["session"])
     }
+
+    /// Spec CL-6b: pinned with the button, the session shows below 70 % too; X unpins it.
+    @Test @MainActor func pinnedSessionShowsBelowSeventy() {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = ClaudeUsageService(settings: AppSettings(defaults: defaults)) { _, _ in }
+        service.setLoadedState([UsageLimit(id: "session", title: "Session (5 hr)", utilization: 20, resetsAt: nil)])
+        #expect(service.notchLimits == nil)
+        service.toggleSessionPinned()
+        #expect(service.notchLimits?.map(\.utilization) == [20])
+        service.dismissIndicator()
+        #expect(!service.isSessionPinned)
+        #expect(service.notchLimits == nil)
+    }
 }

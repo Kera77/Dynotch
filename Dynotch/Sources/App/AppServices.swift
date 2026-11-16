@@ -10,4 +10,5 @@ struct AppServices {
     let notes: NotesStore
     let reminders: RemindersStore
     let claudeUsage: ClaudeUsageService
+    let hud: HUDService
 }

@@ -139,6 +139,13 @@ private struct GeneralSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section {
+                Toggle("Volume and brightness next to the notch", isOn: $settings.hudEnabled)
+            } footer: {
+                Text("Replaces the macOS volume and brightness overlay (needs Accessibility). Option-Shift: finer steps.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
                 Text("A light tap when the notch opens, when you swipe between features and between days.")
@@ -316,11 +323,16 @@ private struct CalendarSettingsView: View {
 
             Section {
                 Toggle("Meeting countdown next to the notch", isOn: $settings.calendarAlertEnabled)
-                Stepper(
-                    value: $settings.calendarLeadMinutes,
-                    in: AppSettings.calendarLeadRange
-                ) {
-                    LabeledContent("Show before start", value: "\(settings.calendarLeadMinutes) min")
+                LabeledContent("Show before start") {
+                    HStack(spacing: 6) {
+                        TextField("", value: $settings.calendarLeadMinutes, format: .number)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 44)
+                        Text("min")
+                            .foregroundStyle(.secondary)
+                        Stepper("", value: $settings.calendarLeadMinutes, in: AppSettings.calendarLeadRange)
+                            .labelsHidden()
+                    }
                 }
                 .disabled(!settings.calendarAlertEnabled)
             } footer: {

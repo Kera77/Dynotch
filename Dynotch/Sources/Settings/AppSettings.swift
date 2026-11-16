@@ -35,6 +35,8 @@ final class AppSettings: ObservableObject {
         static let claudeRing = "claudeRing"
         static let hiddenFromMenuBar = "hiddenFromMenuBar"
         static let haptics = "haptics"
+        static let hud = "hud"
+        static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
     }
@@ -99,6 +101,16 @@ final class AppSettings: ObservableObject {
     }
 
     static let focusDelayRange: ClosedRange<Double> = 0...0.5
+
+    /// Volume and brightness beside the notch instead of the macOS overlay (spec A-1).
+    @Published var hudEnabled: Bool {
+        didSet { defaults.set(hudEnabled, forKey: Key.hud) }
+    }
+
+    /// Keep the session usage beside the notch even below 70 % (spec CL-6b).
+    @Published var claudeSessionPinned: Bool {
+        didSet { defaults.set(claudeSessionPinned, forKey: Key.claudeSessionPinned) }
+    }
 
     /// Trackpad taps when the notch opens and on swipes (spec H-7).
     @Published var hapticsEnabled: Bool {
@@ -189,6 +201,8 @@ final class AppSettings: ObservableObject {
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
+        hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
+        claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true
         let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1

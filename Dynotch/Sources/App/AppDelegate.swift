@@ -14,7 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         reminders: RemindersStore(),
         claudeUsage: ClaudeUsageService(settings: settings) { [notifications] title, body in
             notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
-        }
+        },
+        hud: HUDService(settings: settings)
     )
     private lazy var settingsWindow = SettingsWindowController(
         settings: settings, calendar: services.calendar, notifications: services.notifications
@@ -33,6 +34,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.reminders.start()
         focusFollowsMouse.start()
         services.claudeUsage.start()
+        services.hud.start()
+        NSApp.mainMenu = EditMenu.make()
 
         let manager = NotchManager(services: services) { [weak self] in
             self?.settingsWindow.show()

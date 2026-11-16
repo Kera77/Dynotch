@@ -42,6 +42,17 @@ struct ClaudeUsageView: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Color.white.opacity(0.35))
                 }
+                Button(action: service.toggleSessionPinned) {
+                    Label(service.isSessionPinned ? "At notch" : "Show at notch",
+                          systemImage: service.isSessionPinned ? "pin.fill" : "pin")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(service.isSessionPinned ? Color.white : Color.white.opacity(0.6))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.white.opacity(service.isSessionPinned ? 0.2 : 0.08)))
+                }
+                .buttonStyle(.plain)
+                .help("Keep the session usage next to the notch, also below 70%")
                 Button(action: service.refresh) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 11, weight: .semibold))

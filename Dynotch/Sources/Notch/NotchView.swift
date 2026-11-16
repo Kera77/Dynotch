@@ -9,6 +9,7 @@ struct NotchView: View {
     let notes: NotesStore
     let reminders: RemindersStore
     @ObservedObject var claudeUsage: ClaudeUsageService
+    @ObservedObject var hud: HUDService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -28,6 +29,9 @@ struct NotchView: View {
     /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
     /// taller while one of them is hovered (spec K-8d).
     private var collapsedSize: CGSize {
+        if hud.display != nil {
+            return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
+        }
         if notifications.peek != nil { return geometry.peekSize }
         return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelIndex.map { indicatorItems[$0].labelHeight })
     }
@@ -43,7 +47,7 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     private var collapsedOffset: CGFloat {
-        guard !model.isExpanded, notifications.peek == nil else { return 0 }
+        guard !model.isExpanded, notifications.peek == nil, hud.display == nil else { return 0 }
         return indicatorLayout.horizontalOffset
     }
 
@@ -63,6 +67,7 @@ struct NotchView: View {
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
     private var cornerRadius: CGFloat {
         if model.isExpanded { return 24 }
+        if hud.display != nil { return 10 }
         return notifications.peek != nil || labelIndex != nil ? 16 : 10
     }
 
@@ -70,7 +75,12 @@ struct NotchView: View {
         // Content lives inside the black background and is clipped by it, so both grow and
         // shrink together in one animation instead of the content appearing first.
         ZStack(alignment: .top) {
-            if !model.isExpanded, let notification = notifications.peek {
+            if !model.isExpanded, let display = hud.display {
+                // Volume and brightness come first (spec H-1).
+                HUDView(display: display, notchWidth: geometry.notchSize.width)
+                    .frame(height: geometry.notchSize.height)
+                    .transition(.opacity)
+            } else if !model.isExpanded, let notification = notifications.peek {
                 NotificationPeekView(
                     app: notifications.catalog.app(for: notification.appIdentifier),
                     content: notifications.content(for: notification),
@@ -123,6 +133,7 @@ struct NotchView: View {
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
+        .animation(Self.quickAnimation, value: hud.display?.kind)
         .environment(\.colorScheme, .dark)
     }
 
