@@ -18,12 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud: HUDService(settings: settings),
         badges: BadgeService(),
         calls: CallService(settings: settings),
-        keyboardLock: KeyboardLock()
+        keyboardLock: KeyboardLock(),
+        shortcuts: ShortcutStore(),
+        notices: NoticeService()
     )
     private lazy var settingsWindow = SettingsWindowController(
-        settings: settings, calendar: services.calendar, notifications: services.notifications, badges: services.badges
+        services: services
     )
     private var notchManager: NotchManager?
+    private var hotkeys: HotkeyCenter?
     private var menuBarPanels: [MenuBarPopoverController] = []
     private lazy var focusFollowsMouse = FocusFollowsMouse(settings: settings)
 
@@ -47,6 +50,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         manager.start()
         notchManager = manager
+
+        let shortcuts = services.shortcuts
+        let center = HotkeyCenter(store: shortcuts) { [weak manager] feature in
+            manager?.open(feature, pinned: shortcuts.pinsOnOpen)
+        }
+        center.start()
+        hotkeys = center
 
         let calculator = services.calculator
         let notes = services.notes
@@ -83,6 +93,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         ]
         menuBarPanels.forEach { $0.start() }
+    }
+
+    /// dynotch:// links, e.g. from Claude Code's Stop hook (spec CN-2).
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard !AppInfo.isRunningTests else { return }
+        urls.forEach(services.notices.handle)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

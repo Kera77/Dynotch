@@ -93,30 +93,27 @@ extension NotchController {
 // MARK: - Meeting announcement (spec K-8f)
 
 extension NotchController {
-    /// A two-finger swipe up over the announced meeting's name closes it.
+    /// A two-finger swipe up over the announced meeting's name, or over a sticky notice, closes
+    /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
-        guard let announcement = calendar.announcement, notifications.peek == nil else { return false }
+        guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
-        guard let index = items.firstIndex(where: { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } })
-        else { return false }
-        let area = IndicatorLayout(items: items, badges: badges.visible)
-            .rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
+        let layout = IndicatorLayout(items: items, badges: badges.visible)
+        let announced = calendar.announcement.flatMap { announcement in
+            items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }
+        }
+        guard let announced else {
+            // No announcement: the notice is what is written under the notch.
+            guard notices.notice != nil, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
+            if isSwipeUp(event) {
+                withAnimation(NotchView.quickAnimation) { notices.dismiss() }
+            }
+            return true
+        }
+        let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[announced].labelHeight)
             .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
         guard area.contains(NSEvent.mouseLocation) else { return false }
-
-        let phase: SwipeDetector.Phase
-        if event.phase.contains(.began) {
-            phase = .began
-        } else if event.phase.contains(.changed) {
-            phase = .changed
-        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            phase = .ended
-        } else {
-            phase = .none
-        }
-        // Positive = fingers moved up, regardless of "natural scrolling".
-        let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
-        if announcementSwipe.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX) {
+        if isSwipeUp(event) {
             suppressIndicatorHover = true
             withAnimation(NotchView.quickAnimation) {
                 calendar.dismissAnnouncement()

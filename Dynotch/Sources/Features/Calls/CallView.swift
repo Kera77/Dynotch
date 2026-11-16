@@ -26,7 +26,7 @@ struct CallView: View {
                             .foregroundStyle(Color.white.opacity(0.55))
                             .lineLimit(1)
                     }
-                    Text(call.caller)
+                    Text(service.contact?.name ?? call.caller)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
@@ -45,10 +45,15 @@ struct CallView: View {
     }
 
     private var avatar: some View {
-        let initials = CallMatcher.initials(of: call.caller)
+        let initials = CallMatcher.initials(of: service.contact?.name ?? call.caller)
         return ZStack {
             Circle().fill(Color.white.opacity(0.18))
-            if initials.isEmpty {
+            if let data = service.contact?.imageData, let image = NSImage(data: data) {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(Circle())
+            } else if initials.isEmpty {
                 Image(systemName: "person.fill")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.white.opacity(0.8))
@@ -77,7 +82,7 @@ struct CallView: View {
     /// Enter sends the text to the caller.
     private var composer: some View {
         HStack(spacing: 8) {
-            TextField(service.sendError ?? "Message to \(call.caller) — Enter sends", text: $service.draft)
+            TextField("Message to \(service.contact?.name ?? call.caller) — Enter sends", text: $service.draft)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12))
                 .foregroundStyle(.white)
@@ -93,6 +98,16 @@ struct CallView: View {
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.12)))
         .padding(.horizontal, 14)
         .frame(height: Self.composeHeight, alignment: .top)
+        .overlay(alignment: .bottomLeading) {
+            if let error = service.sendError {
+                Text(error)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4))
+                    .lineLimit(1)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 1)
+            }
+        }
         .onAppear { isFieldFocused = true }
     }
 }

@@ -42,6 +42,7 @@ struct SettingsView: View {
     let calendar: CalendarService
     let notifications: NotificationService
     let badges: BadgeService
+    let shortcuts: ShortcutStore
 
     @State private var selectedTab = SettingsTab.general
     @State private var hoveredTab: SettingsTab?
@@ -102,7 +103,7 @@ struct SettingsView: View {
         case .general:
             GeneralSettingsView(settings: settings)
         case .features:
-            FeatureSettingsView(settings: settings)
+            FeatureSettingsView(settings: settings, shortcuts: shortcuts)
         case .calendar:
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
@@ -123,6 +124,8 @@ private struct GeneralSettingsView: View {
     @ObservedObject var settings: AppSettings
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
+    @State private var claudeHook = ClaudeHook.isInstalled()
+    @State private var claudeHookError: String?
 
     var body: some View {
         Form {
@@ -177,6 +180,22 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Tell me when Claude Code finishes a task", isOn: $claudeHook)
+                    .onChange(of: claudeHook) { _, enabled in
+                        setClaudeHook(enabled)
+                    }
+                if let claudeHookError {
+                    Text(claudeHookError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            } footer: {
+                Text("Adds a Stop hook to ~/.claude/settings.json (a backup is kept). The notice stays under the notch "
+                    + "until you swipe it up with two fingers.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Close delay") {
                     HStack {
                         Slider(
@@ -199,6 +218,17 @@ private struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private func setClaudeHook(_ enabled: Bool) {
+        guard enabled != ClaudeHook.isInstalled() else { return }
+        do {
+            try ClaudeHook.setInstalled(enabled)
+            claudeHookError = nil
+        } catch {
+            claudeHookError = "Couldn't change ~/.claude/settings.json: \(error.localizedDescription)"
+            claudeHook = ClaudeHook.isInstalled()
+        }
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {
@@ -257,54 +287,6 @@ private struct FocusSettingsView: View {
             Text("•")
             Text(text).fixedSize(horizontal: false, vertical: true)
         }
-    }
-}
-
-// MARK: - Features
-
-private struct FeatureSettingsView: View {
-    @ObservedObject var settings: AppSettings
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            List {
-                ForEach(settings.featureOrder) { feature in
-                    HStack {
-                        Toggle(isOn: binding(for: feature)) {
-                            Label(feature.title, systemImage: feature.symbolName)
-                        }
-                        Spacer()
-                        if AppSettings.menuBarFeatures.contains(feature) {
-                            Toggle("Menu bar", isOn: menuBarBinding(for: feature))
-                                .toggleStyle(.checkbox)
-                                .disabled(!settings.isEnabled(feature))
-                                .help("Also show \(feature.title) as a menu bar icon; off: only in the notch")
-                        }
-                    }
-                }
-                .onMove { settings.moveFeatures(from: $0, to: $1) }
-            }
-            .listStyle(.inset(alternatesRowBackgrounds: true))
-
-            Text("Drag to reorder. At least one feature must stay on. \"Menu bar\" also adds an icon to the menu bar.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-    }
-
-    private func menuBarBinding(for feature: FeatureID) -> Binding<Bool> {
-        Binding(
-            get: { settings.showsInMenuBar(feature) },
-            set: { settings.setShowsInMenuBar(feature, $0) }
-        )
-    }
-
-    private func binding(for feature: FeatureID) -> Binding<Bool> {
-        Binding(
-            get: { settings.isEnabled(feature) },
-            set: { settings.setEnabled(feature, $0) }
-        )
     }
 }
 

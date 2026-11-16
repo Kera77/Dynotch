@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-11-16
+
+### Added
+- Notes: to-do lists. A toolbar button (⇧⌘L) turns lines into items; a click on the circle checks
+  an item and moves it to the end of the list; Return starts the next item. Notes with Apple Notes
+  lists can be made editable ("Make editable").
+- Shortcuts: a global shortcut per feature (Settings › Features), optionally pinning the notch open.
+- A notice under the notch when Claude Code finishes a task; it stays until swiped up.
+
+### Fixed
+- Incoming calls showed "Notification Center" instead of the caller; the caller's name and
+  Contacts picture are shown, and the text reply reports why it could not be sent.
+
 ## [0.22.0] - 2026-11-16
 
 ### Added

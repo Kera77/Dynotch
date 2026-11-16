@@ -36,6 +36,12 @@ struct CallTests {
         #expect(empty.caller == "Incoming call")
         #expect(empty.detail.isEmpty)
 
+        // The banner's own names are not the caller (seen as "Notification Center").
+        let noisy = CallMatcher.describe(texts: ["Notification Center", "FaceTime Notification", "Wesley Tingey", "mobile"])
+        #expect(noisy.caller == "Wesley Tingey")
+        #expect(noisy.detail == "mobile")
+        #expect(CallMatcher.describe(texts: ["Notification Center"]).caller == CallMatcher.unknownCaller)
+
         #expect(CallMatcher.initials(of: "Wesley Tingey") == "WT")
         #expect(CallMatcher.initials(of: "+36 30 123 4567").isEmpty)
     }

@@ -5,17 +5,11 @@ import SwiftUI
 /// so SwiftUI's `Settings` scene can't be opened reliably; a plain NSWindow can.
 @MainActor
 final class SettingsWindowController {
-    private let settings: AppSettings
-    private let calendar: CalendarService
-    private let notifications: NotificationService
-    private let badges: BadgeService
+    private let services: AppServices
     private var window: NSWindow?
 
-    init(settings: AppSettings, calendar: CalendarService, notifications: NotificationService, badges: BadgeService) {
-        self.settings = settings
-        self.calendar = calendar
-        self.notifications = notifications
-        self.badges = badges
+    init(services: AppServices) {
+        self.services = services
     }
 
     func show() {
@@ -26,7 +20,10 @@ final class SettingsWindowController {
     }
 
     private func makeWindow() -> NSWindow {
-        let rootView = SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges)
+        let rootView = SettingsView(
+            settings: services.settings, calendar: services.calendar, notifications: services.notifications,
+            badges: services.badges, shortcuts: services.shortcuts
+        )
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
         window.title = "Dynotch Settings"
         window.styleMask = [.titled, .closable, .miniaturizable]

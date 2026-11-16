@@ -18,6 +18,9 @@ final class NotchController {
     let calls: CallService
     private var callObserver: AnyCancellable?
     var callIsShown = false
+    let notices: NoticeService
+    /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
+    var isHeldOpen = false
     private let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
@@ -47,6 +50,7 @@ final class NotchController {
         claudeUsage = services.claudeUsage
         badges = services.badges
         calls = services.calls
+        notices = services.notices
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -59,7 +63,8 @@ final class NotchController {
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
-            calls: services.calls, keyboardLock: services.keyboardLock
+            calls: services.calls, keyboardLock: services.keyboardLock,
+            notices: services.notices, shortcuts: services.shortcuts
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -189,7 +194,8 @@ final class NotchController {
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
-        if isInside || model.isPinned {
+        if isInside { isHeldOpen = false }
+        if isInside || model.isPinned || isHeldOpen {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {
@@ -217,6 +223,7 @@ final class NotchController {
         cancelClose()
         stopHoverTimer()
         graceUntil = nil
+        isHeldOpen = false
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         notifications.clearFocus()
@@ -233,7 +240,7 @@ final class NotchController {
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
             let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.model.isPinned {
+            if isOutside, !self.model.isPinned, !self.isHeldOpen {
                 self.collapse()
             }
         }

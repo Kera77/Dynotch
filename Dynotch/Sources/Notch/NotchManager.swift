@@ -25,6 +25,13 @@ final class NotchManager {
         }
     }
 
+    /// A shortcut opens the feature on the display the pointer is on (spec SC-1).
+    func open(_ feature: FeatureID, pinned: Bool) {
+        let pointer = NSEvent.mouseLocation
+        let controller = controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+        controller?.toggle(feature, pinned: pinned)
+    }
+
     private func rebuildIfNeeded() {
         let screens = NSScreen.screens
         let newSignature = screens

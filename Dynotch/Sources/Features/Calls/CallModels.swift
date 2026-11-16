@@ -10,6 +10,13 @@ struct IncomingCall: Equatable, Sendable {
     var detail: String
 }
 
+/// What Contacts knows about the caller (spec P-1b).
+struct CallerContact: Equatable, Sendable {
+    var name: String?
+    var number: String?
+    var imageData: Data?
+}
+
 enum CallAction: Sendable {
     case accept
     case decline
@@ -17,6 +24,8 @@ enum CallAction: Sendable {
 
 /// Recognises the call banner's buttons and texts (spec P-1, P-2).
 enum CallMatcher {
+    static let unknownCaller = "Incoming call"
+
     /// Labels of the answer button, English and Hungarian.
     static let acceptWords = ["accept", "answer", "fogadás", "felvétel", "válaszol"]
     static let declineWords = ["decline", "reject", "elutasít"]
@@ -41,13 +50,21 @@ enum CallMatcher {
         var seen = Set<String>()
         let lines = texts
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty && action(forLabel: $0) == nil && seen.insert($0).inserted }
+            .filter { !$0.isEmpty && action(forLabel: $0) == nil && !isChrome($0) && seen.insert($0).inserted }
         let detailWords = ["from ", "iphone", "facetime", "mobile", "audio", "video", "call", "hívás"]
         let detail = lines.first { line in
             !isPhoneNumber(line) && detailWords.contains(where: line.lowercased().contains)
         }
         let caller = lines.first { $0 != detail }
-        return (caller ?? "Incoming call", detail ?? "")
+        return (caller ?? unknownCaller, detail ?? "")
+    }
+
+    /// Names of the banner's own parts, not of the caller: "Notification Center",
+    /// "FaceTime Notification".
+    static func isChrome(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+        return lowered == "notification center" || lowered.hasSuffix("notification") || lowered == "facetime"
+            || lowered == "értesítési központ" || lowered.hasSuffix("értesítés")
     }
 
     /// Up to two letters for the round picture.

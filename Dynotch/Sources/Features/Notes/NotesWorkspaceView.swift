@@ -88,6 +88,14 @@ struct NotesWorkspaceView: View {
                 .help(statusText)
             Spacer(minLength: 8)
 
+            if store.readOnlyReason != nil, store.convertibleHTML != nil {
+                Button("Make editable", action: store.makeListsEditable)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Turns the list into a to-do list Dynotch can edit (○ / ◉ lines). Apple Notes gets this form "
+                        + "with your first change; its own checkboxes and their ticks are not kept.")
+            }
+
             if store.saveState == .conflict {
                 Button("Reload", action: store.reloadFromNotes)
                     .buttonStyle(.bordered)

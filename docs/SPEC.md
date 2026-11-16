@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.22 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.23 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -320,10 +320,32 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 
 | # | Követelmény |
 |---|-------------|
+| P-1b | A hívó nevét a banner saját szövegéből veszi (a banner és az Értesítési központ saját elnevezései nélkül); a **képet** és – ha a banner csak számot mutat – a nevet a Névjegyekből (engedély kell). Ha az SMS nem küldhető el, a mező alatt látszik az ok. |
 | P-1 | A bejövő (iPhone-ról átirányított vagy FaceTime) hívás **a notchban jelenik meg**: kör alakú monogram, a hívás eredete („from iPhone”) és a hívó neve vagy száma. A hívást az app a macOS saját hívásbanneréből ismeri fel (Accessibility), mert macOS-en nincs hívás-API. Kikapcsolható (Beállítások › General). |
 | P-2 | **Felvétel** (zöld) és **elutasítás** (piros) gomb: a macOS-banner megfelelő gombját nyomja meg. A hívás végén (felvétel, elutasítás, a hívó leteszi) a kártya eltűnik. |
 | P-3 | Harmadik gomb: **üzenet**. Kattintásra beviteli mező jelenik meg; **Enterre** SMS-t (ha nincs SMS-továbbítás, iMessage-et) küld a hívónak a Messages appon keresztül, majd elutasítja a hívást. A számot a banner szövegéből, név esetén a Névjegyekből veszi (engedély kell). |
 | P-4 | Hívás közben a kártya elsőbbséget élvez a notch többi jelzésével szemben; a notch hoverre nem nyílik le. |
+
+## 4k. Teendőlista a jegyzetekben (v0.23)
+
+| # | Követelmény |
+|---|-------------|
+| J-12 | **Teendőlista:** az eszköztár gombja vagy a ⇧⌘L a kijelölt sorokat teendővé alakítja (és vissza). Egy teendő a sor elején álló kör: ○ nyitott, ◉ (narancs) kész; a kész sor szövege halványabb. **Kattintás a körre** kipipálja / visszavonja; a kipipált elem **a lista aljára kerül**, a visszavont a nyitottak végére. Enter új teendőt kezd, üres teendőn Enter kilép a listából. |
+| J-12b | Az Apple Notes a saját (natív) listáit és pipáit más appnak nem adja ki és nem engedi írni, ezért a teendők az Apple Notes-ban ○ / ◉ kezdetű sima sorokként látszanak. A natív listát tartalmazó jegyzet csak olvasható marad, de a **„Make editable”** gombbal a listaelemek nyitott teendővé alakíthatók (a natív pipák állapota nem olvasható ki); az Apple Notes az első módosításkor kapja meg az új formát. |
+
+## 4l. Gyorsbillentyűk (v0.23)
+
+| # | Követelmény |
+|---|-------------|
+| SC-1 | **Beállítások › Features:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
+| SC-2 | Kapcsoló: **gyorsbillentyűs megnyitáskor a notch rögzítése** automatikusan bekapcsol (nem záródik be). |
+
+## 4m. „Claude befejezte” jelzés (v0.23)
+
+| # | Követelmény |
+|---|-------------|
+| CN-1 | Amikor a Claude Code befejez egy feladatot, a becsukott notch alatt megjelenik egy sor: fehér Claude-ikon, „Claude finished”, a projekt neve és az időpont. **Csak kétujjas felfelé swipe-ra tűnik el.** Ha egy jelző részletei (hover, meeting-bejelentés) nyitva vannak, azok látszanak helyette. |
+| CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
 
 ## 5. Nyitott kérdések
 
@@ -370,6 +392,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.23** | Teendőlista a jegyzetekben; modulonkénti gyorsbillentyűk; „Claude befejezte” jelzés; hívó neve és képe |
 | **v0.22** | Értesítések küldőnként csoportosítva, kattintásra kinyíló csoport válaszmezővel; jelvény-kattintás az app értesítéseit mutatja; hívásfelismerés javítása |
 | **v0.21** | Bejövő hívások a notchban (felvétel, elutasítás, SMS); billentyűzetzár; Beeper/Google Chat/Gmail jelvényikonok; hoverre megálló pulzálás |
 | **v0.20** | App-jelvények (olvasatlan értesítések száma a notch mellett); fehér Claude-ikon, szint szerinti színek |

@@ -43,6 +43,8 @@ final class NotesStore: ObservableObject {
     @Published private(set) var isLoadingNote = false
     /// Why the selected note can't be edited here, if it can't.
     @Published private(set) var readOnlyReason: String?
+    /// The body of a note that is read-only only because of its lists (spec J-12b).
+    @Published private(set) var convertibleHTML: String?
     @Published private(set) var saveState: SaveState = .idle
 
     static let autosaveDelay: Duration = .milliseconds(1500)
@@ -142,6 +144,8 @@ final class NotesStore: ObservableObject {
             let detail = try await bridge.note(id)
             guard selection == .note(id) else { return }
             readOnlyReason = Self.readOnlyReason(for: detail)
+            let listsOnly = !detail.locked && detail.attachments == 0 && Checklist.hasOnlyLists(html: detail.body)
+            convertibleHTML = listsOnly ? detail.body : nil
             // Editable notes keep their formatting; read-only ones are shown as plain text.
             content = readOnlyReason == nil ? RichNoteFormat.attributed(fromHTML: detail.body) : RichNoteFormat.plain(detail.text)
             loadedModified = detail.modified
@@ -192,6 +196,15 @@ final class NotesStore: ObservableObject {
             loadedModified = nil
             saveState = .idle
         }
+    }
+
+    /// Makes a note with Apple Notes lists editable: the list items become to-do items. Notes
+    /// gets the new form with the first edit.
+    func makeListsEditable() {
+        guard let html = convertibleHTML, readOnlyReason != nil else { return }
+        convertibleHTML = nil
+        readOnlyReason = nil
+        content = RichNoteFormat.attributed(fromHTML: Checklist.htmlByConvertingLists(html))
     }
 
     // MARK: - Editing and saving
@@ -364,7 +377,8 @@ extension NotesStore {
             return "Locked note: open it in Notes"
         }
         if detail.attachments > 0 || NoteHTML.isRich(html: detail.body) {
-            return "Read-only: contains a list, image or link"
+            return Checklist.hasOnlyLists(html: detail.body) && detail.attachments == 0
+                ? "Read-only: contains an Apple Notes list" : "Read-only: contains an image, table or link"
         }
         return nil
     }

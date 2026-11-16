@@ -14,4 +14,6 @@ struct AppServices {
     let badges: BadgeService
     let calls: CallService
     let keyboardLock: KeyboardLock
+    let shortcuts: ShortcutStore
+    let notices: NoticeService
 }

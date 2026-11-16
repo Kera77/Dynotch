@@ -45,6 +45,8 @@ enum CallBannerScanner {
         var decline: (element: AXUIElement, action: String)?
         var texts: [String] = []
         var labels: [String] = []
+        /// Roles with the shape of their texts ("W…(13)"), for the log.
+        var outline: [String] = []
     }
 
     /// The call a process shows, if it has both an answer and a decline button.
@@ -67,9 +69,11 @@ enum CallBannerScanner {
         var labels: [String] = []
         for pid in order {
             let banner = banner(in: pid)
-            if banner.accept != nil, banner.decline != nil {
-                let description = CallMatcher.describe(texts: banner.texts)
-                return ScanResult(call: IncomingCall(pid: pid, caller: description.caller, detail: description.detail), labels: [])
+            if let accept = banner.accept, banner.decline != nil {
+                let own = bannerTexts(around: accept.element)
+                let description = CallMatcher.describe(texts: own.texts.isEmpty ? banner.texts : own.texts)
+                let call = IncomingCall(pid: pid, caller: description.caller, detail: description.detail)
+                return ScanResult(call: call, labels: own.outline)
             }
             labels += banner.labels
         }
@@ -106,6 +110,36 @@ enum CallBannerScanner {
         return banner
     }
 
+    /// The texts of the banner the answer button belongs to: the closest ancestor that also holds
+    /// the decline button. Texts of other banners and the window's own name stay out.
+    private static func bannerTexts(around accept: AXUIElement) -> (texts: [String], outline: [String]) {
+        var element = accept
+        for _ in 0..<8 {
+            var parent: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(element, kAXParentAttribute as CFString, &parent) == .success,
+                  let parent, CFGetTypeID(parent) == AXUIElementGetTypeID()
+            else { break }
+            // swiftlint:disable:next force_cast
+            element = parent as! AXUIElement
+            if (string(of: element, kAXRoleAttribute) ?? "") == kAXApplicationRole { break }
+            var subtree = Banner()
+            var queue: [(element: AXUIElement, depth: Int)] = [(element, 0)]
+            var visited = 0
+            while !queue.isEmpty, visited < 120 {
+                let (current, depth) = queue.removeFirst()
+                visited += 1
+                inspect(current, into: &subtree)
+                if depth < 8 { queue += children(of: current, kAXChildrenAttribute).map { ($0, depth + 1) } }
+            }
+            if subtree.decline != nil { return (subtree.texts, subtree.outline) }
+        }
+        return ([], [])
+    }
+
+    private static func masked(_ text: String) -> String {
+        "\(text.prefix(1))…(\(text.count))"
+    }
+
     private static func inspect(_ element: AXUIElement, into banner: inout Banner) {
         let role = string(of: element, kAXRoleAttribute) ?? ""
         let texts = [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute].compactMap { string(of: element, $0) }
@@ -114,9 +148,13 @@ enum CallBannerScanner {
             if let kind = texts.lazy.compactMap(CallMatcher.action(forLabel:)).first {
                 assign(kind, element: element, action: kAXPressAction, to: &banner)
             }
+        } else if role == kAXStaticTextRole {
+            // What the banner writes comes before the names of its groups.
+            banner.texts = texts + banner.texts
         } else {
             banner.texts += texts
         }
+        if !texts.isEmpty { banner.outline.append("\(role): \(texts.map(masked).joined(separator: ", "))") }
         // Banners also offer their buttons as named actions ("Name:Accept\n…").
         for action in actionNames(of: element) where action.hasPrefix("Name:") {
             let name = BannerMatcher.displayName(ofAction: action)

@@ -12,6 +12,8 @@ final class CallService: ObservableObject {
     @Published var draft = ""
     @Published private(set) var isSending = false
     @Published private(set) var sendError: String?
+    /// The caller's Contacts card: picture, and the name when the banner only shows a number.
+    @Published private(set) var contact: CallerContact?
 
     private let settings: AppSettings
     private var timer: Timer?
@@ -64,7 +66,11 @@ final class CallService: ObservableObject {
         Task { [weak self] in
             let result = await Task.detached { CallBannerScanner.scan(candidates, preferring: current) }.value
             self?.isScanning = false
-            self?.logLabels(result.labels)
+            if result.call == nil {
+                self?.logLabels(result.labels)
+            } else {
+                self?.logOutline(result.labels)
+            }
             self?.update(result.call)
         }
     }
@@ -75,6 +81,13 @@ final class CallService: ObservableObject {
         let signature = Array(Set(labels)).sorted().joined(separator: " | ")
         guard loggedLabels.count < 100, loggedLabels.insert(signature).inserted else { return }
         DiagnosticsLog.append("calls", "no call in banner; buttons: \(String(signature.prefix(400)))")
+    }
+
+    /// The shape of a recognised banner (roles, first letters and lengths), once per shape.
+    private func logOutline(_ outline: [String]) {
+        let signature = outline.joined(separator: " | ")
+        guard !signature.isEmpty, loggedLabels.count < 100, loggedLabels.insert(signature).inserted else { return }
+        DiagnosticsLog.append("calls", "banner outline: \(String(signature.prefix(600)))")
     }
 
     /// Call banners come from system agents or the phone apps, not from ordinary apps.
@@ -89,6 +102,7 @@ final class CallService: ObservableObject {
             if call == nil {
                 DiagnosticsLog.append("calls", "call banner found; buttons: \(CallBannerScanner.labels(in: found.pid))")
             }
+            if call?.caller != found.caller { lookUpContact(for: found.caller) }
             if call != found { call = found }
         } else if call != nil {
             misses += 1
@@ -96,8 +110,19 @@ final class CallService: ObservableObject {
         }
     }
 
+    private func lookUpContact(for caller: String) {
+        contact = nil
+        guard caller != CallMatcher.unknownCaller else { return }
+        Task { [weak self] in
+            let found = await Task.detached { CallMessenger.contact(for: caller) }.value
+            guard let self, self.call?.caller == caller else { return }
+            self.contact = found
+        }
+    }
+
     private func end() {
         call = nil
+        contact = nil
         misses = 0
         isComposing = false
         draft = ""
@@ -143,6 +168,7 @@ final class CallService: ObservableObject {
             guard let self else { return }
             self.isSending = false
             if let failure {
+                DiagnosticsLog.append("calls", "text not sent: \(failure.message)")
                 self.sendError = failure.message
             } else {
                 self.draft = ""

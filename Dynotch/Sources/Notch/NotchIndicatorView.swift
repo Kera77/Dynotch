@@ -11,6 +11,8 @@ struct NotchIndicatorView: View {
     /// Apps with unread notifications, at the far left (spec B-4).
     var badges: [BadgeItem] = []
     var hoveredBadge: String?
+    /// Written under the row while no indicator's details are open (spec CN-1).
+    var notice: StickyNotice?
     var openBadge: (BadgeItem) -> Void = { _ in }
     var moveBadge: (String, Int) -> Void = { _, _ in }
     /// Hides an indicator (spec K-8e, CL-6).
@@ -36,6 +38,8 @@ struct NotchIndicatorView: View {
 
                 if let hoveredIndex, items.indices.contains(hoveredIndex) {
                     label(for: items[hoveredIndex], now: context.date)
+                } else if let notice {
+                    noticeLabel(notice)
                 }
             }
         }
@@ -146,6 +150,30 @@ struct NotchIndicatorView: View {
         case .usage(let limits):
             usageLabel(for: limits, now: now)
         }
+    }
+
+    /// E.g. Claude finished a task: stays until swiped up.
+    private func noticeLabel(_ notice: StickyNotice) -> some View {
+        HStack(spacing: 7) {
+            BrandGlyphView(glyph: .claude, size: 14)
+            Text(notice.title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Text([notice.detail, notice.date.formatted(date: .omitted, time: .shortened)].filter { !$0.isEmpty }.joined(separator: " · "))
+                .font(.system(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(Color.white.opacity(0.6))
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.compact.up")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.4))
+                .help("Swipe up with two fingers to dismiss")
+        }
+        .padding(.horizontal, 12)
+        .frame(height: IndicatorLayout.labelHeight - 4)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     /// Name and time of the hovered meeting.

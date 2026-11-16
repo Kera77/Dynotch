@@ -13,6 +13,8 @@ struct NotchView: View {
     @ObservedObject var badges: BadgeService
     @ObservedObject var calls: CallService
     @ObservedObject var keyboardLock: KeyboardLock
+    @ObservedObject var notices: NoticeService
+    let shortcuts: ShortcutStore
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -39,7 +41,12 @@ struct NotchView: View {
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
         if notifications.peek != nil { return geometry.peekSize }
-        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelIndex.map { indicatorItems[$0].labelHeight })
+        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
+        if indicatorLayout.isEmpty, let labelHeight {
+            // Only the notice: centred under the bare notch.
+            return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)
+        }
+        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelHeight)
     }
 
     /// Meeting countdowns and the Claude usage beside the closed notch.
@@ -56,6 +63,9 @@ struct NotchView: View {
         guard !model.isExpanded, notifications.peek == nil, hud.display == nil, calls.call == nil else { return 0 }
         return indicatorLayout.horizontalOffset
     }
+
+    /// A sticky notice is written under the notch unless an indicator's details are open there.
+    private var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
 
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     private var labelIndex: Int? {
@@ -75,7 +85,7 @@ struct NotchView: View {
         if model.isExpanded { return 24 }
         if hud.display != nil { return 10 }
         if calls.call != nil { return 20 }
-        return notifications.peek != nil || labelIndex != nil ? 16 : 10
+        return notifications.peek != nil || labelIndex != nil || shownNotice != nil ? 16 : 10
     }
 
     var body: some View {
@@ -100,7 +110,7 @@ struct NotchView: View {
                 )
                 .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                 .transition(.opacity)
-            } else if !model.isExpanded, !indicatorLayout.isEmpty {
+            } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
                 NotchIndicatorView(
                     items: indicatorItems,
                     leadTime: calendar.leadTime,
@@ -108,6 +118,7 @@ struct NotchView: View {
                     hoveredIndex: labelIndex,
                     badges: badges.visible,
                     hoveredBadge: model.hoveredBadge,
+                    notice: shownNotice,
                     openBadge: openBadge,
                     moveBadge: { id, index in
                         withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
@@ -154,6 +165,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: notifications.peek?.id)
         .animation(Self.quickAnimation, value: hud.display != nil)
         .animation(NotchController.animation, value: calls.call != nil)
+        .animation(NotchController.animation, value: notices.notice)
         .animation(Self.quickAnimation, value: calls.isComposing)
         .environment(\.colorScheme, .dark)
     }
@@ -170,7 +182,7 @@ struct NotchView: View {
         VStack(spacing: 0) {
             menuBar
             if model.isShowingSettings {
-                SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges)
+                SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges, shortcuts: shortcuts)
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)

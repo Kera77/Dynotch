@@ -12,6 +12,13 @@ final class RichNoteController: ObservableObject {
         RichNoteFormat.toggle(style, in: textView)
     }
 
+    /// Turns the selected lines into to-do items and back (spec J-12).
+    func toggleChecklist() {
+        guard let textView else { return }
+        textView.window?.makeFirstResponder(textView)
+        Checklist.toggleList(in: textView)
+    }
+
     func apply(_ style: RichNoteFormat.ParagraphStyle) {
         guard let textView else { return }
         textView.window?.makeFirstResponder(textView)
@@ -36,9 +43,25 @@ final class RichNoteTextView: EditingTextView {
         case ([.command, .shift], "h"): RichNoteFormat.apply(.heading, in: self)
         case ([.command, .shift], "j"): RichNoteFormat.apply(.subheading, in: self)
         case ([.command, .shift], "b"): RichNoteFormat.apply(.body, in: self)
+        case ([.command, .shift], "l"): Checklist.toggleList(in: self)
         default: return super.performKeyEquivalent(with: event)
         }
         return true
+    }
+
+    /// A click on an item's circle checks or unchecks it (spec J-12).
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        if isEditable, let line = Checklist.markerLine(at: point, in: self) {
+            Checklist.toggleItem(onLine: line, in: self)
+            return
+        }
+        super.mouseDown(with: event)
+    }
+
+    override func insertNewline(_ sender: Any?) {
+        if isEditable, Checklist.handleReturn(in: self) { return }
+        super.insertNewline(sender)
     }
 }
 
@@ -98,6 +121,12 @@ struct RichNoteEditor: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
+            // Typing may have made or unmade a to-do item: colour the circles again.
+            if let storage = textView.textStorage {
+                storage.beginEditing()
+                Checklist.restyle(storage)
+                storage.endEditing()
+            }
             content.wrappedValue = NSAttributedString(attributedString: textView.attributedString())
         }
     }
@@ -132,6 +161,18 @@ struct RichNoteToolbar: View {
             button("I", font: .system(size: 13).italic(), help: "Italic ⌘I") { controller.toggle(.italic) }
             button("U", font: .system(size: 13), underline: true, help: "Underline ⌘U") { controller.toggle(.underline) }
             button("S", font: .system(size: 13), strikethrough: true, help: "Strikethrough ⇧⌘X") { controller.toggle(.strikethrough) }
+            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16)
+            Button {
+                controller.toggleChecklist()
+            } label: {
+                Image(systemName: "checklist")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("To-do list ⇧⌘L · click a circle to check it off")
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)

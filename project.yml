@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.22.0"
+    MARKETING_VERSION: "0.23.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -28,6 +28,9 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.peterkereki.Dynotch
+            CFBundleURLSchemes: [dynotch]
         NSCalendarsFullAccessUsageDescription: "Dynotch shows your upcoming events in the notch."
         NSAppleEventsUsageDescription: "Dynotch reads and saves your notes in Notes, and sends a text through Messages when you reply to a call."
         NSContactsUsageDescription: "Dynotch looks up the caller's phone number to send them a text."

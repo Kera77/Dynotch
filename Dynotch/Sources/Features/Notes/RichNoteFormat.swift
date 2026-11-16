@@ -83,6 +83,7 @@ enum RichNoteFormat {
                 result.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range)
             }
         }
+        Checklist.restyle(result)
         return result
     }
 
