@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.7.6] - 2026-11-16
+
+### Changed
+- The X in the countdown hover label sits at the right edge.
+
+### Added
+- Diagnostics: accessibility structure of Notification Center when a banner can't be closed (no text).
+
 ## [0.7.5] - 2026-11-16
 
 ### Added

@@ -175,17 +175,6 @@ struct UpcomingEventIndicator: View {
         let time = "\(event.start.formatted(date: .omitted, time: .shortened))–\(event.end.formatted(date: .omitted, time: .shortened))"
         let phase = status.phase == .ongoing ? "most tart" : "kezdődik"
         return HStack(spacing: 6) {
-            // Always at the left edge, whatever the meeting's name (spec K-8e).
-            Button {
-                dismiss(event)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.white.opacity(0.55))
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .help("Visszaszámláló elrejtése")
             Circle()
                 .fill(event.color.color)
                 .frame(width: 6, height: 6)
@@ -199,7 +188,18 @@ struct UpcomingEventIndicator: View {
                 .foregroundStyle(Self.color(for: status.phase))
                 .lineLimit(1)
                 .layoutPriority(1)
-            Spacer(minLength: 0)
+            Spacer(minLength: 8)
+            // Always at the right edge, whatever the meeting's name (spec K-8e).
+            Button {
+                dismiss(event)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Visszaszámláló elrejtése")
         }
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)

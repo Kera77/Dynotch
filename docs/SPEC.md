@@ -160,7 +160,7 @@
 | K-8b | **A meeting alatt**: a meeting végéig hátralévő idő **világoskékkel**, a körvonal a meetingből hátralévő részt mutatja. A végén a jelzés eltűnik. |
 | K-8c | **Több meeting egyszerre:** minden futó meeting és minden, az előjelzési időn belül kezdődő meeting **egymás mellett** látszik (legfeljebb 3): elöl a futók, utána a kezdődők, kezdési idő szerint. A notch annyival szélesebb, amennyi hely kell. A 24 óránál hosszabb események nem jelennek meg. |
 | K-8d | **Hover:** egy visszaszámláló vagy a hozzá tartozó ikon fölé víve az egeret a notch kicsit lejjebb nyílik, és kiírja a **meeting nevét**, idejét és hogy „most tart” vagy „kezdődik”; a többi visszaszámláló halványabb. A notch-ra víve az egeret a panel a szokott módon kinyílik. |
-| K-8e | A hover-feliratban **a bal szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
+| K-8e | A hover-feliratban **a jobb szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---

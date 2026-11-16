@@ -44,9 +44,14 @@ final class NativeBannerDismisser {
                     // Counts and action names only, never the banner's text.
                     DiagnosticsLog.append(
                         "banner-dismiss",
-                        "#\(notification.id) attempt \(attempt + 1): closed=\(result.closed) "
+                        "#\(notification.id) attempt \(attempt + 1): found=\(result.foundProcess) windows=\(result.windows) "
+                            + "visited=\(result.visited) closed=\(result.closed) "
                             + "candidates=\(result.candidates) actions=\(result.actionNames.sorted())"
                     )
+                }
+                if !result.closed, attempt == 1 {
+                    // While the banner is likely on screen: record the structure for troubleshooting.
+                    DiagnosticsLog.write("banner-tree", self.structureDump(keys: keys))
                 }
                 if result.closed { return }
             }
@@ -56,6 +61,9 @@ final class NativeBannerDismisser {
     // MARK: - Accessibility
 
     private struct Result {
+        var foundProcess = false
+        var windows = 0
+        var visited = 0
         var closed = false
         var candidates = 0
         var actionNames: Set<String> = []
@@ -65,11 +73,15 @@ final class NativeBannerDismisser {
         var result = Result()
         guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: Self.notificationCenterBundleID).first
         else { return result }
+        result.foundProcess = true
         let root = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(root, 0.3)
 
         var visited = 0
-        var queue: [(element: AXUIElement, depth: Int)] = Self.children(of: root, attribute: kAXWindowsAttribute).map { ($0, 0) }
+        let windows = Self.children(of: root, attribute: kAXWindowsAttribute)
+        result.windows = windows.count
+        var queue: [(element: AXUIElement, depth: Int)] = windows.map { ($0, 0) }
+        defer { result.visited = visited }
         while !queue.isEmpty, visited < Self.maxElements {
             let (element, depth) = queue.removeFirst()
             visited += 1
@@ -88,6 +100,34 @@ final class NativeBannerDismisser {
             }
         }
         return result
+    }
+
+    /// Accessibility structure of Notification Center: roles, subroles, identifiers, action
+    /// names and whether the notification's text is there. No text is written.
+    private func structureDump(keys: [String]) -> String {
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: Self.notificationCenterBundleID).first
+        else { return "Notification Center not running" }
+        let root = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 0.3)
+        var lines: [String] = []
+        var count = 0
+        func visit(_ element: AXUIElement, depth: Int) {
+            guard count < 300 else { return }
+            count += 1
+            let role = Self.string(of: element, kAXRoleAttribute) ?? "?"
+            let subrole = Self.string(of: element, kAXSubroleAttribute) ?? "-"
+            let identifier = Self.string(of: element, "AXIdentifier") ?? "-"
+            let actions = Self.actionNames(of: element).map(BannerMatcher.displayName(ofAction:))
+            let children = Self.children(of: element, attribute: kAXChildrenAttribute)
+            let ownText = [kAXDescriptionAttribute, kAXTitleAttribute, kAXValueAttribute]
+                .compactMap { Self.string(of: element, $0) }.joined(separator: " ")
+            let marker = BannerMatcher.matches(text: ownText, keys: keys) ? " [contains title]" : ""
+            lines.append(String(repeating: "  ", count: depth)
+                + "\(role) \(subrole) id=\(identifier) actions=\(actions) children=\(children.count) textLength=\(ownText.count)\(marker)")
+            if depth < Self.maxDepth { children.forEach { visit($0, depth: depth + 1) } }
+        }
+        Self.children(of: root, attribute: kAXWindowsAttribute).forEach { visit($0, depth: 0) }
+        return lines.isEmpty ? "no windows" : lines.joined(separator: "\n")
     }
 
     private static func children(of element: AXUIElement, attribute: String) -> [AXUIElement] {
