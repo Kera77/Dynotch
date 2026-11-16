@@ -58,11 +58,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         center.start()
         hotkeys = center
 
+        menuBarPanels = makeMenuBarPanels()
+        menuBarPanels.forEach { $0.start() }
+    }
+
+    private func makeMenuBarPanels() -> [MenuBarPopoverController] {
         let calculator = services.calculator
         let notes = services.notes
         let reminders = services.reminders
         let usage = services.claudeUsage
-        menuBarPanels = [
+        return [
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
             },
@@ -92,7 +97,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 makeContent: { AnyView(ClaudeUsageMenuBarView(service: usage, state: $0)) }
             )
         ]
-        menuBarPanels.forEach { $0.start() }
     }
 
     /// dynotch:// links, e.g. from Claude Code's Stop hook (spec CN-2).

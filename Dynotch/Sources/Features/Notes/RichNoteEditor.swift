@@ -28,21 +28,26 @@ final class RichNoteController: ObservableObject {
 
 /// Text view with Apple Notes' formatting shortcuts (spec J-11).
 final class RichNoteTextView: EditingTextView {
+    /// ⇧⌘ with these keys sets the paragraph style.
+    private static let paragraphKeys: [String: RichNoteFormat.ParagraphStyle] = [
+        "t": .title, "h": .heading, "j": .subheading, "b": .body
+    ]
+
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         guard event.type == .keyDown, window?.firstResponder === self, isEditable else {
             return super.performKeyEquivalent(with: event)
         }
         let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control])
         let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
+        if modifiers == [.command, .shift], let style = Self.paragraphKeys[key] {
+            RichNoteFormat.apply(style, in: self)
+            return true
+        }
         switch (modifiers, key) {
         case (.command, "b"): RichNoteFormat.toggle(.bold, in: self)
         case (.command, "i"): RichNoteFormat.toggle(.italic, in: self)
         case (.command, "u"): RichNoteFormat.toggle(.underline, in: self)
         case ([.command, .shift], "x"): RichNoteFormat.toggle(.strikethrough, in: self)
-        case ([.command, .shift], "t"): RichNoteFormat.apply(.title, in: self)
-        case ([.command, .shift], "h"): RichNoteFormat.apply(.heading, in: self)
-        case ([.command, .shift], "j"): RichNoteFormat.apply(.subheading, in: self)
-        case ([.command, .shift], "b"): RichNoteFormat.apply(.body, in: self)
         case ([.command, .shift], "l"): Checklist.toggleList(in: self)
         default: return super.performKeyEquivalent(with: event)
         }

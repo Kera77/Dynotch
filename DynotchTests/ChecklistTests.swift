@@ -30,7 +30,8 @@ struct ChecklistTests {
     @Test func togglingMovesTheLineAndKeepsItsFormatting() {
         let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 300, height: 200))
         let text = NSMutableAttributedString(string: "List\n○ one\n○ two\n◉ old", attributes: RichNoteFormat.baseAttributes)
-        text.addAttribute(.font, value: RichNoteFormat.makeFont(size: 14, bold: true, italic: false), range: NSRange(location: 7, length: 3))
+        let bold = RichNoteFormat.makeFont(size: 14, bold: true, italic: false)
+        text.addAttribute(.font, value: bold, range: NSRange(location: 7, length: 3))
         textView.textStorage?.setAttributedString(text)
 
         Checklist.toggleItem(onLine: 1, in: textView)

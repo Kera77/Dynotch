@@ -26,7 +26,7 @@ struct KeyShortcut: Codable, Equatable, Sendable {
     /// take that key away from every app).
     static func make(keyCode: UInt16, flags: NSEvent.ModifierFlags, characters: String?) -> KeyShortcut? {
         let flags = flags.intersection([.command, .option, .control, .shift])
-        guard !flags.intersection([.command, .option, .control]).isEmpty else { return nil }
+        guard !flags.isDisjoint(with: [.command, .option, .control]) else { return nil }
         var carbon: UInt32 = 0
         var symbols = ""
         if flags.contains(.control) { carbon |= UInt32(controlKey); symbols += "⌃" }

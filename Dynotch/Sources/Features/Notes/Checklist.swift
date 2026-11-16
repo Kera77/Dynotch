@@ -44,7 +44,7 @@ enum Checklist {
         var result = html
         let replacements: [(pattern: String, with: String)] = [
             (#"<li[^>]*>\s*"#, "<div>\(openPrefix)"),
-            (#"\s*</li>"#, "</div>"),
+            (#"\s*</li>\s*"#, "</div>"),
             (#"</?(ul|ol)[^>]*>"#, "")
         ]
         for replacement in replacements {
