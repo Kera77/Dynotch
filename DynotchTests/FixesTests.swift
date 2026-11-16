@@ -60,14 +60,18 @@ struct FixesTests {
 
     @Test func aWindowThatRefusesFocusIsLeftAlone() {
         var attempts = FocusRules.Attempts()
-        #expect(attempts.shouldTry(7))
-        #expect(attempts.shouldTry(7))
-        #expect(!attempts.shouldTry(7))
+        // Mutating calls are made outside #expect.
+        let first = attempts.shouldTry(7)
+        let second = attempts.shouldTry(7)
+        let third = attempts.shouldTry(7)
+        #expect(first && second && !third)
         // Another window starts over.
-        #expect(attempts.shouldTry(8))
-        #expect(attempts.shouldTry(7))
+        let other = attempts.shouldTry(8)
+        let back = attempts.shouldTry(7)
+        #expect(other && back)
         attempts.reset()
-        #expect(attempts.shouldTry(7))
+        let afterReset = attempts.shouldTry(7)
+        #expect(afterReset)
         #expect(FocusRules.isDialog(subrole: "AXDialog"))
         #expect(FocusRules.isDialog(subrole: "AXSystemDialog"))
         #expect(!FocusRules.isDialog(subrole: "AXStandardWindow"))
