@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.7 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.8 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -41,7 +41,7 @@
 | M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
-| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Info* (verzió, kijelző és notch adatai). |
+| M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Emlékeztetők* (4e. fejezet), *Info* (verzió, kijelző és notch adatai). |
 | M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 
@@ -104,7 +104,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.8)
+### 2.3 Hatókör (v0.9)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -119,7 +119,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.8) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.9) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -138,7 +138,7 @@
 
 | ID | Követelmény |
 |---|---|
-| K-4 | Felül **napsáv**: bal oldalon a hónap rövid neve, mellette a napok vízszintes sora (a nap betűjele, a dátum, alatta pötty, ha van esemény). A mai nap kék és kiemelt, a hétvége pirosas. Egy napra kattintva az lesz kiválasztva; a sáv fölött két ujjal vízszintesen húzva a napok görgethetők (itt a swipe nem vált funkciót). A panel megnyitásakor mindig a mai nap van kiválasztva. |
+| K-4 | Felül **napsáv**: bal oldalon a hónap rövid neve, mellette a napok vízszintes sora (a nap betűjele, a dátum, alatta pötty, ha van esemény). A mai nap kék és kiemelt, a hétvége pirosas. Egy napra kattintva az lesz kiválasztva. **A sáv fölött két ujjal vízszintesen húzva a kiválasztott nap lép** (kb. 26 pt-onként egy nap, lendülettel együtt; ujjak balra = előre), a sáv követi; itt a swipe nem vált funkciót. A panel megnyitásakor mindig a mai nap van kiválasztva. |
 | K-5 | A napsáv alatt a **kiválasztott nap eseményei**: cím, alatta pirossal a nap rövid neve és a kezdési idő (egész napos eseménynél „egész nap”). Elöl az egész napos események, utána kezdési idő szerint. A már véget ért események halványítva látszanak. Ha nincs esemény: „Mára nincs esemény”. |
 | K-6 | **Csatlakozás gomb** (zöld kapszula), ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). A meeting **mindig az alapértelmezett böngészőben** nyílik meg, nem közvetlenül a meeting-appban. |
 
@@ -184,7 +184,7 @@
 | E-5 | Az *Értesítések* funkció az indítás óta érkezett értesítéseket listázza (legfeljebb 50, a legújabb elöl): app ikon, feladó, app neve és időpont, szöveg. Egy értesítésre kattintva megnyílik az app. |
 | E-6 | A lenyílt sáv a beállított idő után magától eltűnik (**2–30 mp**, alapból 6). |
 | E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |
-| E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, megkeresi a szalagcímet az Értesítési központ kisegítő felületén (a cím, cím nélkül a szöveg eleje alapján), és bezárja; a szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell, amelyet az app egyszer kér, a Beállítások pedig mutatja az állapotát. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
+| E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, figyeli az Értesítési központ új ablakait (kisegítő értesítés), és amint a szalagcím megjelenik, bezárja (a cím, cím nélkül a szöveg eleje alapján); tartalékként 8 mp-ig 0,2 mp-enként is keresi. A szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
 | E-9 | Hibakereséshez az app naplót ír ide (a szalagcímek bezárásáról is: `banner-dismiss.log`): `~/Library/Logs/Dynotch/notifications.log` (adatbázis szerkezete, appazonosítók, az utóbbi értesítések száma appanként) és `notification-records.log` (érkezett értesítésenként: azonosító, oldal, kinek tulajdonítva, megjelent-e). Értesítések tartalma egyikben sincs. |
 
 ---
@@ -223,6 +223,21 @@
 
 ---
 
+## 4e. Emlékeztetők (v0.8)
+
+| ID | Követelmény |
+|---|---|
+| R-1 | **Adatforrás az Apple Emlékeztetők** (EventKit). Az engedélyt az app akkor kéri, amikor az Emlékeztetők először látszanak. Engedély nélkül gomb a megfelelő Rendszerbeállítások oldalhoz. Más eszközről érkező változásoknál a lista frissül. |
+| R-2 | **Notch:** új funkció (*checklist* ikon), nagy panelen, két oszlopban: bal oldalon a gyors bevitel és a közelgő emlékeztetők, jobb oldalon a kiválasztott lista feladatai. A panel megkapja a billentyűzetet. **Menüsor:** külön ikon és nyilas buborék (400 × 520 pt), egy oszlopban, alul lakattal. |
+| R-3 | **Gyors bevitel:** „Írj be egy emlékeztetőt, majd Enter”. A szövegből felismeri a dátumot és időt (pl. „holnap 14:00”, „Friday”, „2026-11-20 14:30”), és a „@Lista” szót (név eleje, kis-/nagybetű mindegy), ami a listát választja. A felismert dátum a beállítástól függően kikerül a címből; a cím sosem lesz üres, a végén maradt kötőszó („on”, „at”…) is lekerül. |
+| R-4 | **Kék lista-gomb** a mező mellett: a listák (pipa a kiválasztotton) és két beállítás: *Ha nincs dátum: határidő ma*, *Felismert dátum törlése a címből*. A kiválasztott lista megmarad. |
+| R-5 | **Közelgő emlékeztetők** (piros cím): minden lista nyitott emlékeztetője, amely 7 napon belül esedékes vagy lejárt; a lejárt pirosan („Lejárt · tegnap”). Jobbra rendezés: *Határidő*, *Prioritás*, *Cím* (a feladatlistára is vonatkozik). |
+| R-6 | **Feladatok** (a lista színével): a kiválasztott lista nyitott feladatai. A **kör alakú jelölőnégyzetre** kattintva a feladat kipipálódik (kitöltött kör, áthúzott cím), és 0,7 mp múlva **késznek** mentődik az Emlékeztetőkbe, majd eltűnik; addig újra kattintva visszavonható. A szűrő gombbal az elmúlt 7 nap kész feladatai is látszanak, és visszaállíthatók. |
+| R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). |
+| R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
+
+---
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -256,5 +271,6 @@ Jelenleg nincs.
 | **v0.5** | Értesítések a notchban (Beeper, Gmail, Google Chat) |
 | **v0.6** | Számológép a notchban és a menüsorban, lakat (nyitva tartás), ikonos beállításfülek |
 | **v0.7** | Jegyzetek: Apple Jegyzetek szerkesztése a notchban és a menüsorban |
-| **v0.8** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.9+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.8** | Emlékeztetők a notchban és a menüsorban; natív szalagcímek bezárása eseményre; napok léptetése a napsávon |
+| **v0.9** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.10+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

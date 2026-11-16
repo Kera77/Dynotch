@@ -9,7 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         calendar: CalendarService(settings: settings),
         notifications: NotificationService(settings: settings),
         calculator: CalculatorStore(),
-        notes: NotesStore()
+        notes: NotesStore(),
+        reminders: RemindersStore()
     )
     private lazy var settingsWindow = SettingsWindowController(
         settings: settings, calendar: services.calendar, notifications: services.notifications
@@ -23,6 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         services.calendar.start()
         services.notifications.start()
+        // Loads the open count for the menu bar icon if access was granted before; never prompts.
+        services.reminders.start()
 
         let manager = NotchManager(services: services) { [weak self] in
             self?.settingsWindow.show()
@@ -32,12 +35,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let calculator = services.calculator
         let notes = services.notes
+        let reminders = services.reminders
         menuBarPanels = [
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
             },
             MenuBarPopoverController(feature: .notes, panelSize: NSSize(width: 680, height: 440), settings: settings) {
                 AnyView(NotesMenuBarView(store: notes, state: $0))
+            },
+            MenuBarPopoverController(
+                feature: .reminders,
+                panelSize: NSSize(width: 400, height: 520),
+                settings: settings,
+                badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil }
+            ) {
+                AnyView(RemindersMenuBarView(store: reminders, state: $0))
             }
         ]
         menuBarPanels.forEach { $0.start() }

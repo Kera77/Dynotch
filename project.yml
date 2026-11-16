@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.7.6"
+    MARKETING_VERSION: "0.8.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -30,6 +30,8 @@ targets:
         LSUIElement: true
         NSCalendarsFullAccessUsageDescription: "A Dynotch a következő 7 nap eseményeit mutatja a notchban."
         NSAppleEventsUsageDescription: "A Dynotch a Jegyzetek appból olvassa és oda menti a jegyzeteidet."
+        NSRemindersFullAccessUsageDescription: "A Dynotch az emlékeztetőidet mutatja és pipálja ki a notchban és a menüsorban."
+        NSRemindersUsageDescription: "A Dynotch az emlékeztetőidet mutatja és pipálja ki a notchban és a menüsorban."
         NSCalendarsUsageDescription: "A Dynotch a következő 7 nap eseményeit mutatja a notchban."
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Dynotch"

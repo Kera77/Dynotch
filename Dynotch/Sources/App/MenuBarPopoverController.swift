@@ -2,6 +2,12 @@ import AppKit
 import Combine
 import SwiftUI
 
+/// A number next to a menu bar icon (open reminders, spec R-7).
+struct Badge {
+    let changes: ObservableObjectPublisher
+    let value: @MainActor () -> Int?
+}
+
 /// Menu bar icon of a feature that drops a popover panel down below it
 /// (calculator: spec SZ-6…SZ-8, notes: spec J-8).
 @MainActor
@@ -10,6 +16,8 @@ final class MenuBarPopoverController: NSObject {
     private let panelSize: NSSize
     private let settings: AppSettings
     private let makeContent: (MenuBarPanelState) -> AnyView
+    private let badge: Badge?
+    private var badgeObserver: AnyCancellable?
     private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
     private var panel: MenuBarPanel?
@@ -20,11 +28,13 @@ final class MenuBarPopoverController: NSObject {
         feature: FeatureID,
         panelSize: NSSize,
         settings: AppSettings,
+        badge: Badge? = nil,
         makeContent: @escaping (MenuBarPanelState) -> AnyView
     ) {
         self.feature = feature
         self.panelSize = panelSize
         self.settings = settings
+        self.badge = badge
         self.makeContent = makeContent
     }
 
@@ -34,19 +44,35 @@ final class MenuBarPopoverController: NSObject {
                 MainActor.assumeIsolated { self?.updateStatusItem() }
             }
         }
+        badgeObserver = badge?.changes.sink { [weak self] in
+            // objectWillChange fires before the change; read the value on the next turn.
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.updateBadge() }
+            }
+        }
         updateStatusItem()
+    }
+
+    private func updateBadge() {
+        guard let button = statusItem?.button, let badge else { return }
+        let title = badge.value().map { " \($0)" } ?? ""
+        if button.title != title { button.title = title }
     }
 
     /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
         let enabled = settings.isEnabled(feature)
         if enabled, statusItem == nil {
-            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            let length = badge == nil ? NSStatusItem.squareLength : NSStatusItem.variableLength
+            let item = NSStatusBar.system.statusItem(withLength: length)
             item.button?.image = NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
+            item.button?.imagePosition = .imageLeading
+            item.button?.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .medium)
             item.button?.toolTip = feature.title
             item.button?.target = self
             item.button?.action = #selector(togglePanel)
             statusItem = item
+            updateBadge()
         } else if !enabled, let item = statusItem {
             closePanel()
             NSStatusBar.system.removeStatusItem(item)

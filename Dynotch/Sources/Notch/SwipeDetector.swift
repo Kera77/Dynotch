@@ -55,3 +55,36 @@ struct SwipeDetector {
         return accumulatedX < 0 ? .next : .previous
     }
 }
+
+/// Turns horizontal scrolling over the calendar's day strip into day steps: one day per
+/// `stepWidth` points of finger movement, including the momentum after a flick.
+struct DayStepper {
+    var stepWidth: CGFloat = 26
+
+    private var remainder: CGFloat = 0
+    private var accumulatedX: CGFloat = 0
+    private var accumulatedY: CGFloat = 0
+
+    /// True while the current gesture is mostly horizontal.
+    var isHorizontal: Bool {
+        accumulatedX != 0 && abs(accumulatedX) >= abs(accumulatedY)
+    }
+
+    /// - Returns: days to move; fingers moving left go forward in time.
+    mutating func handle(phase: SwipeDetector.Phase, isMomentum: Bool, fingerDeltaX: CGFloat, deltaY: CGFloat) -> Int {
+        if phase == .began {
+            remainder = 0
+            accumulatedX = 0
+            accumulatedY = 0
+        }
+        guard phase != .none || isMomentum else { return 0 }
+        accumulatedX += abs(fingerDeltaX)
+        accumulatedY += abs(deltaY)
+        guard isHorizontal else { return 0 }
+
+        remainder -= fingerDeltaX
+        let steps = Int((remainder / stepWidth).rounded(.towardZero))
+        remainder -= CGFloat(steps) * stepWidth
+        return steps
+    }
+}

@@ -25,6 +25,7 @@ final class NotchController {
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
+    private var dayStepper = DayStepper()
     private var wasExpanded = false
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
@@ -41,7 +42,8 @@ final class NotchController {
 
         let rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
-            notifications: notifications, calculator: services.calculator, notes: services.notes
+            notifications: notifications, calculator: services.calculator, notes: services.notes,
+            reminders: services.reminders
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -249,11 +251,6 @@ final class NotchController {
     private func handleScroll(_ event: NSEvent) -> Bool {
         // The settings scroll on their own; no feature switching there.
         guard model.isExpanded, !model.isShowingSettings, model.notification == nil else { return false }
-        // Over the calendar's day strip a horizontal swipe scrolls the days (spec K-4).
-        if model.currentFeature == .calendar, !model.isLarge,
-           model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
-            return false
-        }
 
         let phase: SwipeDetector.Phase
         if event.phase.contains(.began) {
@@ -268,6 +265,12 @@ final class NotchController {
         // Normalize so positive = fingers moved right, regardless of "natural scrolling".
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let isMomentum = !event.momentumPhase.isEmpty
+
+        // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4).
+        if model.currentFeature == .calendar, !model.isLarge,
+           model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
+            return stepDays(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY)
+        }
 
         if let direction = swipe.handle(
             phase: phase,
@@ -319,5 +322,20 @@ extension NotchController {
         } else {
             startHoverTimer()
         }
+    }
+}
+
+// MARK: - Day strip swipe (spec K-4)
+
+extension NotchController {
+    /// Moves the selected day while swiping over the day strip; the strip scrolls with it.
+    fileprivate func stepDays(phase: SwipeDetector.Phase, isMomentum: Bool, fingerDeltaX: CGFloat, deltaY: CGFloat) -> Bool {
+        let steps = dayStepper.handle(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: deltaY)
+        guard steps != 0 else { return dayStepper.isHorizontal }
+        let calendarService = calendar
+        if let day = Calendar.current.date(byAdding: .day, value: steps, to: calendarService.selectedDay) {
+            calendarService.selectedDay = Calendar.current.startOfDay(for: day)
+        }
+        return true
     }
 }

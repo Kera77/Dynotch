@@ -131,6 +131,9 @@ struct NotchViewModelTests {
         #expect(model.isLarge)
         #expect(model.wantsKeyboard)
         #expect(model.openSize == model.geometry.largeSize)
+        model.select(.reminders)
+        #expect(model.isLarge)
+        #expect(model.wantsKeyboard)
         model.select(.home)
         #expect(!model.isLarge)
     }

@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-16
+
+### Added
+- Reminders feature in the notch and the menu bar (Apple Reminders via EventKit): quick add with
+  date and "@list" recognition, list picker, upcoming reminders, tasks with circle checkboxes,
+  recently completed filter, open count on the menu bar icon.
+
+### Changed
+- Swiping over the calendar's day strip steps through the days.
+
+### Fixed
+- Native banners are now closed as soon as they appear (Notification Center window events),
+  not only when a poll happens to find them.
+
 ## [0.7.6] - 2026-11-16
 
 ### Changed
