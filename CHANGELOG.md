@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-11-16
+
+### Changed
+- Usage diagnostics log the response's shape (keys and types, no values).
+
 ## [0.11.0] - 2026-11-16
 
 ### Changed

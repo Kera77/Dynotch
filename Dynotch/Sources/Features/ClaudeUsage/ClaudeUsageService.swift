@@ -120,7 +120,7 @@ final class ClaudeUsageService: ObservableObject {
             case .token(let token):
                 do {
                     let (data, status) = try await Self.fetch(endpoint, token: token)
-                    DiagnosticsLog.write("claude-usage", "HTTP \(status), keys: \(Self.keys(of: data))")
+                    DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + ClaudeUsageParser.structure(of: data))
                     switch status {
                     case 200:
                         apply(try ClaudeUsageParser.limits(from: data))
@@ -169,10 +169,6 @@ final class ClaudeUsageService: ObservableObject {
         return (data, (response as? HTTPURLResponse)?.statusCode ?? 0)
     }
 
-    /// Top-level keys of the response, for the diagnostics log (no token, no values).
-    nonisolated private static func keys(of data: Data) -> [String] {
-        ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?.keys.sorted() ?? []
-    }
 }
 
 /// Claude Code's login, read from the keychain item it stores (spec CL-1).

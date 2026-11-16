@@ -49,6 +49,32 @@ enum ClaudeUsageParser {
         return limits.sorted { order(of: $0) < order(of: $1) }
     }
 
+    /// Shape of the response for the diagnostics log: keys and value types, no values.
+    static func structure(of data: Data) -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) else { return "not JSON (\(data.count) bytes)" }
+        return describe(json, depth: 0)
+    }
+
+    private static func describe(_ value: Any, depth: Int) -> String {
+        switch value {
+        case let dictionary as [String: Any]:
+            guard depth < 4 else { return "{…}" }
+            let fields = dictionary.keys.sorted().map { "\($0): \(describe(dictionary[$0] as Any, depth: depth + 1))" }
+            return "{" + fields.joined(separator: ", ") + "}"
+        case let array as [Any]:
+            guard let first = array.first else { return "[]" }
+            return "[\(array.count) × \(describe(first, depth: depth + 1))]"
+        case is NSNull:
+            return "null"
+        case let number as NSNumber:
+            return CFGetTypeID(number) == CFBooleanGetTypeID() ? "bool" : "number"
+        case is String:
+            return "string"
+        default:
+            return "?"
+        }
+    }
+
     static func title(for key: String) -> String {
         switch key {
         case "five_hour": return "Session (5 hr)"
