@@ -171,4 +171,29 @@ struct NotificationTests {
         #expect(service.unseen.isEmpty)
         service.clearPeek()
     }
+
+    /// Spec E-7b: "via chat.google.com" and similar source lines are not shown.
+    @Test func sourceLinesAreHidden() {
+        let chat = NotificationPresenter.content(
+            for: notification(title: "Béla", subtitle: "via chat.google.com", body: "Szia!\nvia chat.google.com"),
+            appName: "Google Chat", kind: .message
+        )
+        #expect(chat.detail == "Szia!")
+
+        let beeper = NotificationPresenter.content(
+            for: notification(title: "Anna", subtitle: "via WhatsApp", body: "Holnap?"),
+            appName: "Beeper Desktop", kind: .message
+        )
+        #expect(beeper.detail == "Holnap?")
+
+        let gmail = NotificationPresenter.content(
+            for: notification(title: "Kovács Béla", subtitle: "via mail.google.com", body: "Ajánlat\nSzia, küldöm…"),
+            appName: "Gmail", kind: .mail
+        )
+        #expect(gmail.detail == "Ajánlat")
+
+        #expect(!NotificationPresenter.isSourceLine("via the office later"))
+        #expect(!NotificationPresenter.isSourceLine("Csapat"))
+        #expect(NotificationPresenter.isSourceLine("  VIA chat.google.com "))
+    }
 }

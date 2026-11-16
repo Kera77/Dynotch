@@ -42,24 +42,40 @@ enum NotificationKind: Equatable, Sendable {
 enum NotificationPresenter {
     static func content(for notification: AppNotification, appName: String, kind: NotificationKind) -> NotificationContent {
         let subtitle = isMeaningful(subtitle: notification.subtitle) ? notification.subtitle : ""
+        let body = withoutSourceLines(notification.body)
         let sender = notification.title.isEmpty ? appName : notification.title
 
         switch kind {
         case .mail:
             // Sender and subject only: the subject is the subtitle, or the first line of the body.
-            let subject = subtitle.isEmpty ? firstLine(of: notification.body) : subtitle
+            let subject = subtitle.isEmpty ? firstLine(of: body) : subtitle
             return NotificationContent(sender: sender, detail: subject)
         case .message:
-            let detail = [subtitle, notification.body].filter { !$0.isEmpty }.joined(separator: "\n")
+            let detail = [subtitle, body].filter { !$0.isEmpty }.joined(separator: "\n")
             return NotificationContent(sender: sender, detail: detail)
         }
     }
 
-    /// Web notifications can carry the site's domain as subtitle; that is not worth showing.
+    /// Browsers and bridges add where a notification came from ("chat.google.com",
+    /// "via chat.google.com", "via WhatsApp"); that is not worth showing (spec E-7b).
+    static func isSourceLine(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        let looksLikeDomain = !trimmed.contains(" ") && trimmed.contains(".")
+        let isVia = trimmed.range(of: #"^via\s+\S+$"#, options: [.regularExpression, .caseInsensitive]) != nil
+        return looksLikeDomain || isVia
+    }
+
     private static func isMeaningful(subtitle: String) -> Bool {
-        guard !subtitle.isEmpty else { return false }
-        let looksLikeDomain = !subtitle.contains(" ") && subtitle.contains(".")
-        return !looksLikeDomain
+        !subtitle.isEmpty && !isSourceLine(subtitle)
+    }
+
+    /// The body without lines that only name the source.
+    static func withoutSourceLines(_ body: String) -> String {
+        body.components(separatedBy: .newlines)
+            .filter { !isSourceLine($0) }
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func firstLine(of text: String) -> String {

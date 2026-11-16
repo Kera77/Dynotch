@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-16
+
+### Fixed
+- "via chat.google.com" and similar source lines are no longer shown in notifications.
+
 ## [0.13.0] - 2026-11-16
 
 ### Added
