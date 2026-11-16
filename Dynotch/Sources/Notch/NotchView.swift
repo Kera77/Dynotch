@@ -14,6 +14,7 @@ struct NotchView: View {
     @ObservedObject var calls: CallService
     @ObservedObject var keyboardLock: KeyboardLock
     @ObservedObject var notices: NoticeService
+    @ObservedObject var chat: ClaudeChatService
     let shortcuts: ShortcutStore
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
@@ -21,8 +22,8 @@ struct NotchView: View {
     var closeNotifications: () -> Void = {}
     /// Clears every notification and closes the card (spec E-12).
     var clearNotifications: () -> Void = {}
-    /// A click on an app badge: its unopened notifications (spec B-6).
-    var openBadge: (BadgeItem) -> Void = { _ in }
+    /// A right click on an app badge: its unopened notifications (spec B-6).
+    var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -51,7 +52,7 @@ struct NotchView: View {
 
     /// Meeting countdowns and the Claude usage beside the closed notch.
     private var indicatorItems: [IndicatorItem] {
-        IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
+        IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
     }
 
     private var indicatorLayout: IndicatorLayout {
@@ -119,7 +120,8 @@ struct NotchView: View {
                     badges: badges.visible,
                     hoveredBadge: model.hoveredBadge,
                     notice: shownNotice,
-                    openBadge: openBadge,
+                    openBadge: { badges.open($0.app) },
+                    showBadgeNotifications: showBadgeNotifications,
                     moveBadge: { id, index in
                         withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
                     },
@@ -129,6 +131,7 @@ struct NotchView: View {
                             switch item {
                             case .meeting(let event): calendar.dismissIndicator(event)
                             case .usage: claudeUsage.dismissIndicator()
+                            case .working: break
                             }
                         }
                     }
@@ -272,6 +275,8 @@ struct NotchView: View {
             RemindersFeatureView(store: reminders, isActive: model.isExpanded && model.currentFeature == .reminders)
         case .claudeUsage:
             ClaudeUsageFeatureView(service: claudeUsage, isActive: model.isExpanded && model.currentFeature == .claudeUsage)
+        case .claudeChat:
+            ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }

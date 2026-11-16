@@ -28,6 +28,11 @@ struct FeatureSettingsView: View {
             }
             .listStyle(.inset(alternatesRowBackgrounds: true))
 
+            HStack {
+                Label("Pin the notch open / release it", systemImage: "lock.fill")
+                Spacer()
+                ShortcutRecorder(shortcut: shortcuts.pinShortcut) { shortcuts.setPinShortcut($0) }
+            }
             Toggle("Keep the notch open (pinned) when opened with a shortcut", isOn: $shortcuts.pinsOnOpen)
             Text("Drag to reorder. At least one feature must stay on. \"Menu bar\" also adds an icon to the menu bar. "
                 + "A shortcut opens the feature in the notch; pressing it again closes it.")

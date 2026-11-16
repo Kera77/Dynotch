@@ -9,6 +9,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isLarge = false
     /// True while the panel shows the settings instead of the features (spec C-2).
     @Published private(set) var isShowingSettings = false
+    /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
+    @Published private(set) var isChatTall = false
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
@@ -38,7 +40,7 @@ final class NotchViewModel: ObservableObject {
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
         isExpanded && (isShowingNotifications ? notificationsCanReply
-            : isShowingSettings || [.calculator, .notes, .reminders, .notifications].contains(currentFeature))
+            : isShowingSettings || [.calculator, .notes, .reminders, .notifications, .claudeChat].contains(currentFeature))
     }
 
     /// Size of the panel while it is open.
@@ -47,6 +49,7 @@ final class NotchViewModel: ObservableObject {
         if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
+        if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
@@ -72,6 +75,10 @@ final class NotchViewModel: ObservableObject {
     func setCalendarLarge(_ large: Bool) {
         if settings.calendarLarge != large { settings.calendarLarge = large }
         updateLarge()
+    }
+
+    func setChatTall(_ tall: Bool) {
+        if tall != isChatTall { isChatTall = tall }
     }
 
     func setShowingSettings(_ showing: Bool) {

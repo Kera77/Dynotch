@@ -65,3 +65,20 @@ extension NotificationService {
         if focus != nil { focus = nil }
     }
 }
+
+/// Finds notifications that were dealt with in their app (spec E-13).
+enum NotificationCleanup {
+    /// Younger notifications are left alone: their record may not be visible yet.
+    static let minimumAge: TimeInterval = 5
+
+    /// The listed notifications whose record is gone from Notification Center. Dynotch's own
+    /// notices (negative ids) have no record and stay.
+    static func handled(
+        recent: [AppNotification], now: Date, stillPresent: (Int64) throws -> Set<Int64>
+    ) rethrows -> Set<Int64> {
+        let candidates = recent.filter { $0.id > 0 && now.timeIntervalSince($0.date) >= minimumAge }
+        guard let lowest = candidates.map(\.id).min() else { return [] }
+        let present = try stillPresent(lowest)
+        return Set(candidates.map(\.id)).subtracting(present)
+    }
+}

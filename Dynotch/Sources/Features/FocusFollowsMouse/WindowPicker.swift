@@ -43,3 +43,34 @@ enum WindowPicker {
         }
     }
 }
+
+/// When focus must not follow the pointer (spec F-8).
+enum FocusRules {
+    static func isDialog(subrole: String) -> Bool {
+        ["AXDialog", "AXSystemDialog", "AXSheet"].contains(subrole)
+    }
+
+    /// An app may refuse a focus change (e.g. while it shows an alert) and take the focus back;
+    /// asking again and again makes its windows flicker.
+    struct Attempts: Equatable {
+        static let limit = 2
+        private(set) var window: CGWindowID?
+        private(set) var count = 0
+
+        /// - Returns: false once the same window was tried `limit` times in a row.
+        mutating func shouldTry(_ target: CGWindowID) -> Bool {
+            if window != target {
+                window = target
+                count = 0
+            }
+            guard count < Self.limit else { return false }
+            count += 1
+            return true
+        }
+
+        mutating func reset() {
+            window = nil
+            count = 0
+        }
+    }
+}

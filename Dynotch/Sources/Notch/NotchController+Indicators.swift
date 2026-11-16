@@ -7,16 +7,17 @@ extension NotchController {
     /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
     /// ignores the mouse while closed, so this is computed from the pointer position.
     func updateHoveredIndicator() {
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
+        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
         let shownBadges = badges.visible
         let layout = IndicatorLayout(items: items, badges: shownBadges)
+        let point = NSEvent.mouseLocation
+        if notifications.peek == nil, opensAnswer(at: point, layout: layout) { return }
         guard !layout.isEmpty, notifications.peek == nil else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             return
         }
         let geometry = model.geometry
-        let point = NSEvent.mouseLocation
         // A badge being clicked or dragged stays the hovered one.
         if model.hoveredBadge != nil, NSEvent.pressedMouseButtons != 0 { return }
         let badge = layout.badge(at: point, notchRect: geometry.notchRect).map { shownBadges[$0].id }
@@ -97,7 +98,7 @@ extension NotchController {
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
-        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits)
+        let items = IndicatorItem.items(meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking)
         let layout = IndicatorLayout(items: items, badges: badges.visible)
         let announced = calendar.announcement.flatMap { announcement in
             items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }

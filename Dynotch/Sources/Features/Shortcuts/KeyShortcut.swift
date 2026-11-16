@@ -45,6 +45,7 @@ struct KeyShortcut: Codable, Equatable, Sendable {
 final class ShortcutStore: ObservableObject {
     private static let shortcutsKey = "featureShortcuts"
     private static let pinKey = "shortcutPins"
+    private static let pinShortcutKey = "pinShortcut"
 
     @Published private(set) var shortcuts: [FeatureID: KeyShortcut] {
         didSet { save() }
@@ -53,6 +54,11 @@ final class ShortcutStore: ObservableObject {
     /// Opening with a shortcut also pins the panel, so it stays open (spec SC-2).
     @Published var pinsOnOpen: Bool {
         didSet { defaults.set(pinsOnOpen, forKey: Self.pinKey) }
+    }
+
+    /// Pins the notch open, or releases it (spec SC-3).
+    @Published private(set) var pinShortcut: KeyShortcut? {
+        didSet { defaults.set(pinShortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Self.pinShortcutKey) }
     }
 
     private let defaults: UserDefaults
@@ -67,15 +73,26 @@ final class ShortcutStore: ObservableObject {
         }
         shortcuts = loaded
         pinsOnOpen = defaults.bool(forKey: Self.pinKey)
+        pinShortcut = defaults.data(forKey: Self.pinShortcutKey).flatMap { try? JSONDecoder().decode(KeyShortcut.self, from: $0) }
+    }
+
+    private static func same(_ lhs: KeyShortcut, _ rhs: KeyShortcut) -> Bool {
+        lhs.keyCode == rhs.keyCode && lhs.modifiers == rhs.modifiers
+    }
+
+    func setPinShortcut(_ shortcut: KeyShortcut?) {
+        if let shortcut {
+            shortcuts = shortcuts.filter { !Self.same($0.value, shortcut) }
+        }
+        pinShortcut = shortcut
     }
 
     /// Sets or clears a feature's shortcut; a combination belongs to one feature only.
     func set(_ shortcut: KeyShortcut?, for feature: FeatureID) {
         var updated = shortcuts
         if let shortcut {
-            for (other, existing) in updated where existing.keyCode == shortcut.keyCode && existing.modifiers == shortcut.modifiers {
-                updated[other] = nil
-            }
+            updated = updated.filter { !Self.same($0.value, shortcut) }
+            if let pinShortcut, Self.same(pinShortcut, shortcut) { self.pinShortcut = nil }
         }
         updated[feature] = shortcut
         shortcuts = updated

@@ -9,6 +9,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case notes
     case reminders
     case claudeUsage
+    case claudeChat
     case info
 
     var id: String { rawValue }
@@ -22,6 +23,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .notes: "Notes"
         case .reminders: "Reminders"
         case .claudeUsage: "AI Usage"
+        case .claudeChat: "Claude"
         case .info: "Info"
         }
     }
@@ -35,6 +37,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .notes: "note.text"
         case .reminders: "checklist"
         case .claudeUsage: "gauge.with.dots.needle.67percent"
+        case .claudeChat: "sparkle"
         case .info: "info.circle.fill"
         }
     }

@@ -88,6 +88,11 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// The Claude chat with a conversation: grows downwards (spec CC-3).
+    var chatSize: CGSize {
+        CGSize(width: mediumSize.width, height: min(470, settingsSize.height))
+    }
+
     /// Size of the opened panel while it shows the settings: the settings plus the top row.
     var settingsSize: CGSize {
         CGSize(

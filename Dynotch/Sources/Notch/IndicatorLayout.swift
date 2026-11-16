@@ -28,33 +28,40 @@ enum IndicatorItem: Identifiable, Equatable {
     case meeting(CalendarEvent)
     /// All usage limits; the capsule shows the fullest one.
     case usage([UsageLimit])
+    /// Claude is writing an answer in the chat (spec CC-4).
+    case working
 
     var id: String {
         switch self {
         case .meeting(let event): "meeting-\(event.id)"
         case .usage: "claude-usage"
+        case .working: "claude-working"
         }
+    }
+
+    var isClaude: Bool {
+        if case .meeting = self { false } else { true }
     }
 
     /// Width of the item's place right of the notch: a countdown capsule, or the usage ring.
     var slotWidth: CGFloat {
         switch self {
         case .meeting: IndicatorLayout.slotWidth
-        case .usage: IndicatorLayout.ringSlotWidth
+        case .usage, .working: IndicatorLayout.ringSlotWidth
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting: IndicatorLayout.labelHeight
+        case .meeting, .working: IndicatorLayout.labelHeight
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
 
     /// Meetings first, the usage last (rightmost).
-    static func items(meetings: [CalendarEvent], usage: [UsageLimit]?) -> [IndicatorItem] {
-        meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
+    static func items(meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false) -> [IndicatorItem] {
+        meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? []) + (working ? [.working] : [])
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
@@ -62,7 +69,7 @@ enum IndicatorItem: Identifiable, Equatable {
     static func iconSlots(for items: [IndicatorItem]) -> [Int] {
         var slots: [Int] = []
         if let meeting = items.firstIndex(where: { if case .meeting = $0 { true } else { false } }) { slots.append(meeting) }
-        if let usage = items.firstIndex(where: { if case .usage = $0 { true } else { false } }) { slots.append(usage) }
+        if let claude = items.firstIndex(where: \.isClaude) { slots.append(claude) }
         return slots
     }
 }

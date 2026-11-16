@@ -15,6 +15,7 @@ struct NotchIndicatorView: View {
     var notice: StickyNotice?
     var openBadge: (BadgeItem) -> Void = { _ in }
     var moveBadge: (String, Int) -> Void = { _, _ in }
+    var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
     /// Hides an indicator (spec K-8e, CL-6).
     let dismiss: (IndicatorItem) -> Void
 
@@ -53,7 +54,10 @@ struct NotchIndicatorView: View {
         if layout.leftWidth > 0 {
             HStack(spacing: 0) {
                 if !badges.isEmpty {
-                    NotchBadgesView(badges: badges, hoveredID: hoveredBadge, now: now, open: openBadge, move: moveBadge)
+                    NotchBadgesView(
+                        badges: badges, hoveredID: hoveredBadge, now: now, open: openBadge,
+                        showNotifications: showBadgeNotifications, move: moveBadge
+                    )
                 }
                 if !badges.isEmpty, !layout.iconSlots.isEmpty {
                     Rectangle()
@@ -87,7 +91,7 @@ struct NotchIndicatorView: View {
             Image(systemName: meetings.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(color)
-        case .usage:
+        case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
             BrandGlyphView(glyph: .claude, size: 16)
         }
@@ -115,6 +119,9 @@ struct NotchIndicatorView: View {
         case .usage(let limits):
             let used = limits.map(\.utilization).max() ?? 0
             usageRing(used: used)
+        case .working:
+            WorkingDots()
+                .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
         }
     }
 
@@ -149,6 +156,15 @@ struct NotchIndicatorView: View {
             meetingLabel(for: event, now: now)
         case .usage(let limits):
             usageLabel(for: limits, now: now)
+        case .working:
+            HStack(spacing: 7) {
+                Text("Claude is working on your question…")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .frame(height: IndicatorLayout.labelHeight - 4)
         }
     }
 

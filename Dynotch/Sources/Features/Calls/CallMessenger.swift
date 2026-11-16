@@ -9,28 +9,35 @@ enum CallMessenger {
 
         var message: String {
             switch self {
-            case .noNumber: "No phone number found for this caller."
+            case .noNumber: "The caller is unknown, so there is nobody to send to."
             case .failed(let text): text
             }
         }
     }
 
+    /// Tries every address of the caller: as a text message first, then as an iMessage.
     private static let script = """
     on run argv
-        set theNumber to item 1 of argv
-        set theText to item 2 of argv
+        set theText to item 1 of argv
+        set wasSent to false
+        set lastError to "No address to send to."
         tell application "Messages"
-            try
-                set theAccount to first account whose service type = SMS
-            on error
-                set theAccount to first account whose service type = iMessage
-            end try
-            try
-                send theText to participant theNumber of theAccount
-            on error
-                send theText to buddy theNumber of theAccount
-            end try
+            repeat with i from 2 to (count of argv)
+                set theTarget to item i of argv
+                repeat with theType in {SMS, iMessage}
+                    if not wasSent then
+                        try
+                            set theAccount to first account whose service type = theType
+                            send theText to participant theTarget of theAccount
+                            set wasSent to true
+                        on error errorMessage
+                            set lastError to errorMessage
+                        end try
+                    end if
+                end repeat
+            end repeat
         end tell
+        if not wasSent then error lastError
     end run
     """
 
@@ -47,8 +54,8 @@ enum CallMessenger {
             answered.wait()
         }
         let keys = [
-            CNContactPhoneNumbersKey, CNContactThumbnailImageDataKey, CNContactGivenNameKey, CNContactFamilyNameKey,
-            CNContactOrganizationNameKey
+            CNContactPhoneNumbersKey, CNContactEmailAddressesKey, CNContactThumbnailImageDataKey,
+            CNContactGivenNameKey, CNContactFamilyNameKey, CNContactOrganizationNameKey
         ] as [CNKeyDescriptor]
         let predicate = isNumber
             ? CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: caller))
@@ -57,6 +64,7 @@ enum CallMessenger {
         let name = [contact.givenName, contact.familyName].filter { !$0.isEmpty }.joined(separator: " ")
         result.name = name.isEmpty ? (contact.organizationName.isEmpty ? nil : contact.organizationName) : name
         result.imageData = contact.thumbnailImageData
+        result.emails = contact.emailAddresses.map { $0.value as String }
         if result.number == nil {
             let numbers = contact.phoneNumbers
             let mobile = numbers.first { ($0.label ?? "").lowercased().contains("mobile") || $0.label == CNLabelPhoneNumberiPhone }
@@ -77,11 +85,21 @@ enum CallMessenger {
         }
     }
 
+    /// Where a message can go, best first: the number, the e-mail addresses (iMessage), and the
+    /// name itself, which Messages resolves for people it already has a conversation with.
+    static func targets(for caller: String, contact: CallerContact) -> [String] {
+        var targets = [contact.number].compactMap { $0 } + contact.emails
+        if caller != CallMatcher.unknownCaller, !CallMatcher.isPhoneNumber(caller) { targets.append(caller) }
+        var seen = Set<String>()
+        return targets.filter { !$0.isEmpty && seen.insert($0).inserted }
+    }
+
     static func send(_ text: String, toCaller caller: String) throws {
-        guard let number = contact(for: caller).number else { throw Failure.noNumber }
+        let targets = targets(for: caller, contact: contact(for: caller))
+        guard !targets.isEmpty else { throw Failure.noNumber }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", script, number, text]
+        process.arguments = ["-e", script, text] + targets
         let errors = Pipe()
         process.standardOutput = Pipe()
         process.standardError = errors

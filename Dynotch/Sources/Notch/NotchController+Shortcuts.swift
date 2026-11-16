@@ -32,6 +32,24 @@ extension NotchController {
     }
 }
 
+extension NotchController {
+    /// Pins the open panel or releases it; a closed panel opens pinned (spec SC-3).
+    func togglePin() {
+        guard !callIsShown else { return }
+        if model.isExpanded {
+            model.isPinned.toggle()
+            // Released with the pointer elsewhere: close as usual.
+            if !model.isPinned { isHeldOpen = false }
+            return
+        }
+        notifications.clearPeek()
+        setHoveredIndicator(nil)
+        setHoveredBadge(nil)
+        expand()
+        model.isPinned = true
+    }
+}
+
 // MARK: - Sticky notice (spec CN-1)
 
 extension NotchController {
@@ -59,5 +77,30 @@ extension NotchController {
         // Positive = fingers moved up, regardless of "natural scrolling".
         let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
         return announcementSwipe.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX)
+    }
+}
+
+// MARK: - Claude chat (spec CC-3, CC-5)
+
+extension NotchController {
+    func chatChanged() {
+        withAnimation(Self.animation) { model.setChatTall(chat.isTall) }
+    }
+
+    /// The panel was opened while "Claude answered" hangs under the notch: show the answer.
+    func showAnswerIfReady() {
+        guard notices.notice?.opensChat == true, settings.isEnabled(.claudeChat) else { return }
+        notices.dismiss()
+        withAnimation(Self.animation) { model.select(.claudeChat) }
+    }
+
+    /// Hovering the "Claude answered" line opens the chat.
+    func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
+        guard notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
+              settings.isEnabled(.claudeChat), noticeArea(for: layout).contains(point)
+        else { return false }
+        setHoveredBadge(nil)
+        expand()
+        return true
     }
 }

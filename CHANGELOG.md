@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-16
+
+### Added
+- Claude in the notch: a chat feature with the earlier chats on the left and the conversation on
+  the right. While Claude works, its icon and moving dots show beside the closed notch; when the
+  answer is ready a line hangs under the notch until you hover it, which opens the chat.
+- A shortcut for pinning the notch open.
+
+### Changed
+- App badges: a click opens the app, a right click shows its unopened notifications.
+- Notifications that were read or answered in their app disappear from the notch too.
+- Incoming calls show only the caller's name; a reply is sent as a text, or as an iMessage if
+  there is no number.
+- The lock (pin) is blue while on, like the keyboard lock.
+
+### Fixed
+- The Beeper token no longer makes macOS ask for the keychain password (it is kept in a private file).
+- Focus follows mouse made windows flicker while an app showed a dialog.
+
 ## [0.23.0] - 2026-11-16
 
 ### Added

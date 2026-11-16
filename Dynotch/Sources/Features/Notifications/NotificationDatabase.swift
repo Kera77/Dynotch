@@ -63,6 +63,11 @@ final class NotificationDatabase {
         }
     }
 
+    /// The ids, from `lowest` up, that are still in Notification Center.
+    func recordIDs(from lowest: Int64) throws -> Set<Int64> {
+        Set(try query("SELECT rec_id FROM record WHERE rec_id >= ?", argument: lowest) { sqlite3_column_int64($0, 0) })
+    }
+
     func appIdentifiers() throws -> [String] {
         try query("SELECT identifier FROM app") { Self.text($0, 0) }
     }

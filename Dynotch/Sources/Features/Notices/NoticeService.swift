@@ -6,6 +6,8 @@ struct StickyNotice: Equatable, Sendable {
     let title: String
     let detail: String
     let date: Date
+    /// Hovering it opens the Claude chat (spec CC-5).
+    var opensChat = false
 }
 
 @MainActor
@@ -41,6 +43,8 @@ enum ClaudeHook {
         guard url.scheme?.lowercased() == "dynotch", url.host?.lowercased() == "claude-finished" else { return nil }
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
         let project = items.first { $0.name == "project" }?.value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // Dynotch's own chat runs through Claude Code too; it reports its answers itself.
+        guard project != ClaudeCLI.folderName else { return nil }
         return StickyNotice(title: "Claude finished", detail: String(project.prefix(60)), date: now)
     }
 

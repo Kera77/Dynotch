@@ -35,6 +35,7 @@ final class NotificationService: ObservableObject {
     private var lastSeenID: Int64 = 0
     private var pollTimer: Timer?
     private var lastOpenAttempt = Date.distantPast
+    private var pollCount = 0
     private var peekTask: Task<Void, Never>?
     private var settingsObserver: AnyCancellable?
 
@@ -206,11 +207,28 @@ final class NotificationService: ObservableObject {
         do {
             let records = try database.records(after: lastSeenID)
             if !records.isEmpty { handle(records) }
+            try dropHandled(in: database)
         } catch {
             DiagnosticsLog.write("notifications", "read failed: \(error)")
             self.database = nil
             status = .unsupported("\(error)")
         }
+    }
+
+    /// A notification that left Notification Center was dealt with in its app (read or answered
+    /// there): it leaves the list here too (spec E-13). Checked every few seconds.
+    private func dropHandled(in database: NotificationDatabase) throws {
+        pollCount += 1
+        guard pollCount.isMultiple(of: 3) else { return }
+        let gone = try NotificationCleanup.handled(
+            recent: recent, now: Date(), stillPresent: { try database.recordIDs(from: $0) }
+        )
+        .subtracting(bannerDismisser.closedIDs)
+        guard !gone.isEmpty else { return }
+        recent.removeAll { gone.contains($0.id) }
+        unseen.removeAll { gone.contains($0.id) }
+        focus?.notifications.removeAll { gone.contains($0.id) }
+        if let peek, gone.contains(peek.id) { clearPeek() }
     }
 
     private func openDatabaseIfDue() {

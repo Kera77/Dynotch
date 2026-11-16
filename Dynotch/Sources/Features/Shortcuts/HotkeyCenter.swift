@@ -9,20 +9,27 @@ final class HotkeyCenter {
 
     private let store: ShortcutStore
     private let onFire: (FeatureID) -> Void
+    private let onPin: () -> Void
+    private static let pinNumber = 100
     private var references: [EventHotKeyRef] = []
     private var handler: EventHandlerRef?
     private var observer: AnyCancellable?
 
-    init(store: ShortcutStore, onFire: @escaping (FeatureID) -> Void) {
+    init(store: ShortcutStore, onFire: @escaping (FeatureID) -> Void, onPin: @escaping () -> Void) {
         self.store = store
         self.onFire = onFire
+        self.onPin = onPin
     }
 
     func start() {
         installHandler()
-        observer = store.$shortcuts.sink { [weak self] shortcuts in
-            MainActor.assumeIsolated { self?.register(shortcuts) }
+        // Fires before the change; register from the new state on the next run loop turn.
+        observer = store.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.register() }
+            }
         }
+        register()
     }
 
     private func installHandler() {
@@ -46,23 +53,36 @@ final class HotkeyCenter {
         )
     }
 
-    private func register(_ shortcuts: [FeatureID: KeyShortcut]) {
+    private var registered: [Int: KeyShortcut] = [:]
+
+    private func register() {
+        var wanted: [Int: KeyShortcut] = [:]
+        for (index, feature) in FeatureID.allCases.enumerated() {
+            if let shortcut = store.shortcuts[feature] { wanted[index + 1] = shortcut }
+        }
+        if let pin = store.pinShortcut { wanted[Self.pinNumber] = pin }
+        guard wanted != registered else { return }
+        registered = wanted
+
         references.forEach { UnregisterEventHotKey($0) }
         references = []
-        for (index, feature) in FeatureID.allCases.enumerated() {
-            guard let shortcut = shortcuts[feature] else { continue }
+        for (number, shortcut) in wanted {
             var reference: EventHotKeyRef?
-            let id = EventHotKeyID(signature: Self.signature, id: UInt32(index + 1))
+            let id = EventHotKeyID(signature: Self.signature, id: UInt32(number))
             let status = RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, id, GetApplicationEventTarget(), 0, &reference)
             if status == noErr, let reference {
                 references.append(reference)
             } else {
-                DiagnosticsLog.append("shortcuts", "\(feature.rawValue) \(shortcut.display) not registered (\(status))")
+                DiagnosticsLog.append("shortcuts", "#\(number) \(shortcut.display) not registered (\(status))")
             }
         }
     }
 
     private func fired(_ number: Int) {
+        if number == Self.pinNumber {
+            onPin()
+            return
+        }
         let features = FeatureID.allCases
         guard features.indices.contains(number - 1) else { return }
         onFire(features[number - 1])

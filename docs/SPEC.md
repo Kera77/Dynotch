@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.23 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.24 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -211,6 +211,13 @@
 |---|-------------|
 | E-5b | **Csoportosítás:** az Értesítések funkcióban az azonos alkalmazásból és küldőtől (vagy csevegésből) jött értesítések **egy csoportba** kerülnek; a csoport zárva a legfrissebb üzenetet és a darabszámot mutatja. **Kattintásra kinyílik:** minden üzenet időrendben, alatta **válaszmező** (csevegőappoknál; Enterre küld), levelezésnél és rendszerüzenetnél „Open <app>” gomb. Egyetlen csoport eleve nyitva van. |
 
+### Elintézett értesítések (v0.24)
+
+| # | Követelmény |
+|---|-------------|
+| E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
+| E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
+
 ## 4c. Számológép (v0.6)
 
 | ID | Követelmény |
@@ -275,6 +282,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-5 | Ugyanazon appon belüli ablakváltáshoz **Kisegítő hozzáférés** kell (a jelenleg fókuszban lévő ablak azonosítása). Appok között enélkül is működik. |
 | F-7 | *Settings › Focus* fül: be/ki, várakozás, és rövid leírás arról, mit csinál a funkció. |
 | F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
+| F-8 | (v0.24) Ha az aktív app **párbeszédablakot, figyelmeztetést vagy lapot** mutat, a fókusz az appon belül nem vált ablakot; és ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. Így nincs villódzás. |
 
 ---
 
@@ -305,7 +313,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude, valamint fehér **Beeper, Google Chat és Gmail** jel), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
 | B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
 | B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
-| B-6 | **Kattintás** az ikonra lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
+| B-6 | **Bal kattintás** az ikonra megnyitja az alkalmazást (v0.24). **Jobb kattintás** lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 
 ## 4i. Billentyűzetzár (v0.21)
@@ -320,6 +328,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 
 | # | Követelmény |
 |---|-------------|
+| P-1c | (v0.24) A kártyán **csak a hívó neve** áll; a macOS sorából („Név, P, From Your iPhone”) csak az első rész kell. Üzenetnél a cím sorrendje: telefonszám (SMS, majd iMessage), e-mail-cím (iMessage), végül maga a név, amelyet a Messages a meglévő beszélgetésekből old fel. |
 | P-1b | A hívó nevét a banner saját szövegéből veszi (a banner és az Értesítési központ saját elnevezései nélkül); a **képet** és – ha a banner csak számot mutat – a nevet a Névjegyekből (engedély kell). Ha az SMS nem küldhető el, a mező alatt látszik az ok. |
 | P-1 | A bejövő (iPhone-ról átirányított vagy FaceTime) hívás **a notchban jelenik meg**: kör alakú monogram, a hívás eredete („from iPhone”) és a hívó neve vagy száma. A hívást az app a macOS saját hívásbanneréből ismeri fel (Accessibility), mert macOS-en nincs hívás-API. Kikapcsolható (Beállítások › General). |
 | P-2 | **Felvétel** (zöld) és **elutasítás** (piros) gomb: a macOS-banner megfelelő gombját nyomja meg. A hívás végén (felvétel, elutasítás, a hívó leteszi) a kártya eltűnik. |
@@ -338,6 +347,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | # | Követelmény |
 |---|-------------|
 | SC-1 | **Beállítások › Features:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
+| SC-3 | Külön gyorsbillentyű a **notch rögzítésére**: nyitott panelnél ki-be kapcsolja a rögzítést, csukottnál rögzítve megnyitja. A lakat ikon rögzítéskor **kék**, mint a billentyűzetzár. |
 | SC-2 | Kapcsoló: **gyorsbillentyűs megnyitáskor a notch rögzítése** automatikusan bekapcsol (nem záródik be). |
 
 ## 4m. „Claude befejezte” jelzés (v0.23)
@@ -346,6 +356,16 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | CN-1 | Amikor a Claude Code befejez egy feladatot, a becsukott notch alatt megjelenik egy sor: fehér Claude-ikon, „Claude finished”, a projekt neve és az időpont. **Csak kétujjas felfelé swipe-ra tűnik el.** Ha egy jelző részletei (hover, meeting-bejelentés) nyitva vannak, azok látszanak helyette. |
 | CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
+
+## 4n. Claude a notchban (v0.24)
+
+| # | Követelmény |
+|---|-------------|
+| CC-1 | Új modul **Claude** néven, a menüsorban a Claude jelével. **Bal oldalt** a korábbi chatek listája (legfrissebb felül, törölhetők) és az „New chat” gomb; **jobb oldalt** a beszélgetés és alul a beviteli mező. |
+| CC-2 | A válaszokat a gépen lévő **Claude Code** program adja (a szerkesztő-bővítmény legújabb beépített példánya, különben a telepített `claude`), a meglévő bejelentkezéssel; eszközök nélkül, sima beszélgetésként. A beszélgetés folytatható: a chat megjegyzi a munkamenetét. |
+| CC-3 | Új chatnél a panel kicsi; **Enterre** elküldi a kérdést, és a panel **lefelé megnő**, a válasz folyamatosan íródik ki. Folyamatosan lehet tovább chatelni; a futó válasz leállítható. |
+| CC-4 | Ha a notchot elhagyom, bezárul, de amíg Claude dolgozik, a becsukott notch **bal oldalán a Claude jele, jobb oldalán mozgó pontok** jelzik a munkát. |
+| CC-5 | Amikor megjön a válasz (és a chat nincs a képernyőn), a jelzés eltűnik, és a notch alatt **kis sor lóg le: „Claude answered” + a chat címe**. Ott marad, amíg rá nem viszem az egeret; **hoverre a notch megnő** és a chatet mutatja. |
 
 ## 5. Nyitott kérdések
 
@@ -392,6 +412,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.24** | Claude-chat a notchban; rögzítés-gyorsbillentyű; jelvény bal/jobb klikk; appban elintézett értesítések eltűnnek; hívó csak névvel, iMessage-tartalék; Beeper-kulcs fájlban; fókusz-villódzás javítása |
 | **v0.23** | Teendőlista a jegyzetekben; modulonkénti gyorsbillentyűk; „Claude befejezte” jelzés; hívó neve és képe |
 | **v0.22** | Értesítések küldőnként csoportosítva, kattintásra kinyíló csoport válaszmezővel; jelvény-kattintás az app értesítéseit mutatja; hívásfelismerés javítása |
 | **v0.21** | Bejövő hívások a notchban (felvétel, elutasítás, SMS); billentyűzetzár; Beeper/Google Chat/Gmail jelvényikonok; hoverre megálló pulzálás |

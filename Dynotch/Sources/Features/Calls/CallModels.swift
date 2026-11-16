@@ -14,6 +14,7 @@ struct IncomingCall: Equatable, Sendable {
 struct CallerContact: Equatable, Sendable {
     var name: String?
     var number: String?
+    var emails: [String] = []
     var imageData: Data?
 }
 
@@ -45,12 +46,29 @@ enum CallMatcher {
         return digits >= 6 && text.allSatisfy(allowed.contains)
     }
 
+    /// Text without the invisible direction marks macOS wraps names in.
+    static func clean(_ text: String) -> String {
+        let marks: Set<Unicode.Scalar> = [
+            "\u{200E}", "\u{200F}", "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}",
+            "\u{2066}", "\u{2067}", "\u{2068}", "\u{2069}"
+        ]
+        return String(String.UnicodeScalarView(text.unicodeScalars.filter { !marks.contains($0) }))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     /// Splits the banner's texts into the caller and the line saying where the call comes from.
+    /// macOS writes them in one line: "Name, P, From Your iPhone" (P: which of your numbers).
     static func describe(texts: [String]) -> (caller: String, detail: String) {
         var seen = Set<String>()
         let lines = texts
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map(clean)
             .filter { !$0.isEmpty && action(forLabel: $0) == nil && !isChrome($0) && seen.insert($0).inserted }
+        for line in lines {
+            let parts = line.components(separatedBy: ", ")
+            if parts.count >= 2, let origin = parts.dropFirst().first(where: { $0.lowercased().hasPrefix("from ") }) {
+                return (parts[0], origin)
+            }
+        }
         let detailWords = ["from ", "iphone", "facetime", "mobile", "audio", "video", "call", "hívás"]
         let detail = lines.first { line in
             !isPhoneNumber(line) && detailWords.contains(where: line.lowercased().contains)
@@ -63,7 +81,7 @@ enum CallMatcher {
     /// "FaceTime Notification".
     static func isChrome(_ text: String) -> Bool {
         let lowered = text.lowercased()
-        return lowered == "notification center" || lowered.hasSuffix("notification") || lowered == "facetime"
+        return lowered == "notification center" || lowered.hasSuffix("notification") || lowered == "facetime" || lowered == "phone"
             || lowered == "értesítési központ" || lowered.hasSuffix("értesítés")
     }
 

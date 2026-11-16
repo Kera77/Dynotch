@@ -19,6 +19,8 @@ final class NotchController {
     private var callObserver: AnyCancellable?
     var callIsShown = false
     let notices: NoticeService
+    let chat: ClaudeChatService
+    private var chatObserver: AnyCancellable?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
     private let openSettings: () -> Void
@@ -51,6 +53,7 @@ final class NotchController {
         badges = services.badges
         calls = services.calls
         notices = services.notices
+        chat = services.chat
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -64,13 +67,13 @@ final class NotchController {
             notifications: notifications, calculator: services.calculator, notes: services.notes,
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
-            notices: services.notices, shortcuts: services.shortcuts
+            notices: services.notices, chat: services.chat, shortcuts: services.shortcuts
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
-        rootView.openBadge = { [weak self] in self?.showNotifications(for: $0) }
+        rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
@@ -98,6 +101,12 @@ final class NotchController {
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
             MainActor.assumeIsolated { self?.sizeChanged(large: large) }
         }
+        chatObserver = chat.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self?.chatChanged() }
+            }
+        }
+        chatChanged()
         callObserver = calls.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
                 MainActor.assumeIsolated { self?.callChanged() }
@@ -148,6 +157,7 @@ final class NotchController {
         localMonitor = nil
         sizeObserver = nil
         callObserver = nil
+        chatObserver = nil
         settingsObserver = nil
         closeTask?.cancel()
         stopHoverTimer()
@@ -217,6 +227,7 @@ final class NotchController {
         withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
         notifications.clearPeek()
         startHoverTimer()
+        showAnswerIfReady()
     }
 
     func collapse() {

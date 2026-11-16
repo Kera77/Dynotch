@@ -16,4 +16,5 @@ struct AppServices {
     let keyboardLock: KeyboardLock
     let shortcuts: ShortcutStore
     let notices: NoticeService
+    let chat: ClaudeChatService
 }

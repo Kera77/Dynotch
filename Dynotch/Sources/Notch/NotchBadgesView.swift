@@ -7,6 +7,8 @@ struct NotchBadgesView: View {
     let hoveredID: String?
     let now: Date
     let open: (BadgeItem) -> Void
+    /// Right click: the app's unopened notifications (spec B-6).
+    var showNotifications: (BadgeItem) -> Void = { _ in }
     /// A badge was dropped at a new place among the visible ones.
     let move: (String, Int) -> Void
 
@@ -38,7 +40,8 @@ struct NotchBadgesView: View {
                     .animation(.spring(response: 0.22, dampingFraction: 0.85), value: target)
                     .onTapGesture { open(badge) }
                     .gesture(reorderGesture(for: badge))
-                    .help("\(badge.app.name): \(badge.label) — click to open, drag to reorder")
+                    .overlay(RightClickCatcher { showNotifications(badge) })
+                    .help("\(badge.app.name): \(badge.label) — click opens the app, right click its notifications, drag reorders")
             }
         }
         .coordinateSpace(name: Self.coordinateSpace)
@@ -115,5 +118,33 @@ private struct BadgeChip: View {
         }
         .brightness(isHighlighted ? 0.12 : 0)
         .scaleEffect(isHighlighted ? 1.08 : 1)
+    }
+}
+
+/// Takes right clicks only; everything else goes to the views below.
+private struct RightClickCatcher: NSViewRepresentable {
+    let action: () -> Void
+
+    func makeNSView(context: Context) -> CatcherView {
+        let view = CatcherView()
+        view.action = action
+        return view
+    }
+
+    func updateNSView(_ view: CatcherView, context: Context) {
+        view.action = action
+    }
+
+    final class CatcherView: NSView {
+        var action: () -> Void = {}
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            let type = NSApp.currentEvent?.type
+            return type == .rightMouseDown || type == .rightMouseUp ? super.hitTest(point) : nil
+        }
+
+        override func rightMouseDown(with event: NSEvent) {
+            action()
+        }
     }
 }

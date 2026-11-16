@@ -43,6 +43,28 @@ enum SkyLightFocus {
         return windowID
     }
 
+    /// True if the app's focused window is a dialog, alert or sheet: it wants to keep the focus
+    /// (spec F-8).
+    static func hasFocusedDialog(pid: pid_t) -> Bool {
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.2)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXFocusedWindowAttribute as CFString, &value) == .success,
+              let value, CFGetTypeID(value) == AXUIElementGetTypeID()
+        else { return false }
+        // swiftlint:disable:next force_cast
+        let window = value as! AXUIElement
+        var modal: CFTypeRef?
+        if AXUIElementCopyAttributeValue(window, kAXModalAttribute as CFString, &modal) == .success, (modal as? Bool) == true {
+            return true
+        }
+        var subrole: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole) == .success,
+              let name = subrole as? String
+        else { return false }
+        return FocusRules.isDialog(subrole: name)
+    }
+
     /// Makes `windowID` of `pid` the key window and its app the active one, leaving the window
     /// order on screen unchanged.
     @discardableResult

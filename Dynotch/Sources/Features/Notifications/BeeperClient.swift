@@ -32,35 +32,36 @@ enum BeeperError: Error, Equatable, CustomStringConvertible {
 struct BeeperClient: Sendable {
     static let baseURL = URL(string: "http://localhost:23373")
 
-    // MARK: - Token (Dynotch's own keychain item, so no password prompt)
+    // MARK: - Token
 
-    private static let tokenService = "com.peterkereki.Dynotch.beeper-token"
+    /// The token lives in a file only the user can read. A keychain item made macOS ask for the
+    /// password again after every update, because each build is signed anew.
+    static var tokenFile: URL {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSTemporaryDirectory())
+        return support.appendingPathComponent("Dynotch/beeper-token")
+    }
 
     static var hasToken: Bool {
         token() != nil
     }
 
-    static func token() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: tokenService,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let data = result as? Data else { return nil }
-        return String(bytes: data, encoding: .utf8)
+    static func token(file: URL = tokenFile) -> String? {
+        guard let text = try? String(contentsOf: file, encoding: .utf8) else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     /// Stores the token; an empty string removes it.
-    static func setToken(_ token: String) {
-        let base: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: tokenService]
-        SecItemDelete(base as CFDictionary)
+    static func setToken(_ token: String, file: URL = tokenFile) {
         let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        var item = base
-        item[kSecValueData as String] = Data(trimmed.utf8)
-        SecItemAdd(item as CFDictionary, nil)
+        guard !trimmed.isEmpty else {
+            try? FileManager.default.removeItem(at: file)
+            return
+        }
+        try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: file.path, contents: Data(trimmed.utf8), attributes: [.posixPermissions: 0o600])
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
     }
 
     // MARK: - API

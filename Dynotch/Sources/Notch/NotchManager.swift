@@ -32,6 +32,14 @@ final class NotchManager {
         controller?.toggle(feature, pinned: pinned)
     }
 
+    /// The pin shortcut (spec SC-3).
+    func togglePin() {
+        let pointer = NSEvent.mouseLocation
+        let controller = controllers.first { $0.model.isExpanded }
+            ?? controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+        controller?.togglePin()
+    }
+
     private func rebuildIfNeeded() {
         let screens = NSScreen.screens
         let newSignature = screens

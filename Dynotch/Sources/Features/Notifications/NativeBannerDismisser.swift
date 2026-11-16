@@ -39,6 +39,8 @@ final class NativeBannerDismisser {
     private static let pollInterval: Duration = .milliseconds(200)
 
     private var pending: [Pending] = []
+    /// Notifications whose banner Dynotch closed itself: their record goes away without having been read.
+    private(set) var closedIDs: Set<Int64> = []
     private var pollTask: Task<Void, Never>?
     private var observer: AXObserver?
     private var observedPID: pid_t = 0
@@ -87,6 +89,7 @@ final class NativeBannerDismisser {
             }
             let result = closeBanner(matching: item.keys)
             if result.closed {
+                closedIDs.insert(item.id)
                 // Counts and action names only, never the banner's text.
                 DiagnosticsLog.append(
                     "banner-dismiss",

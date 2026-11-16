@@ -59,10 +59,18 @@ struct FeatureSwitcher: View {
     private func icon(_ feature: FeatureID) -> some View {
         let isSelected = feature == selected
         let isDragged = feature == dragged
-        return Image(systemName: feature.symbolName)
-            .font(.system(size: 12, weight: .semibold))
+        let color = isSelected || isDragged ? Color.white : Color.white.opacity(0.7)
+        return Group {
+            if feature == .claudeChat {
+                // Claude's own mark (spec CC-1).
+                BrandGlyphView(glyph: .claude, size: 13, color: color)
+            } else {
+                Image(systemName: feature.symbolName)
+                    .font(.system(size: 12, weight: .semibold))
+            }
+        }
             .frame(width: Self.itemWidth, height: 22)
-            .foregroundStyle(isSelected || isDragged ? Color.white : Color.white.opacity(0.7))
+            .foregroundStyle(color)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(isDragged ? Color.white.opacity(0.32) : (isSelected ? Color.white.opacity(0.22) : .clear))

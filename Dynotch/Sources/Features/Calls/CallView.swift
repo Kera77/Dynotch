@@ -19,18 +19,11 @@ struct CallView: View {
             Color.clear.frame(height: notchHeight)
             HStack(spacing: 10) {
                 avatar
-                VStack(alignment: .leading, spacing: 1) {
-                    if !call.detail.isEmpty {
-                        Text(call.detail)
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.white.opacity(0.55))
-                            .lineLimit(1)
-                    }
-                    Text(service.contact?.name ?? call.caller)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                }
+                // Only the name (spec P-1): no line or number labels.
+                Text(service.contact?.name ?? call.caller)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
                 Spacer(minLength: 8)
                 roundButton("message.fill", color: service.isComposing ? ClaudeUsageView.blue : Color.white.opacity(0.22),
                             help: "Reply with a message") { service.toggleComposing() }

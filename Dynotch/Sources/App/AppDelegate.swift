@@ -20,7 +20,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         calls: CallService(settings: settings),
         keyboardLock: KeyboardLock(),
         shortcuts: ShortcutStore(),
-        notices: NoticeService()
+        notices: NoticeService(),
+        chat: ClaudeChatService()
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -43,6 +44,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.hud.start()
         services.badges.start()
         services.calls.start()
+        let notices = services.notices
+        services.chat.onAnswerReady = { chat in
+            notices.show(StickyNotice(title: "Claude answered", detail: chat.title, date: Date(), opensChat: true))
+        }
         NSApp.mainMenu = EditMenu.make()
 
         let manager = NotchManager(services: services) { [weak self] in
@@ -52,9 +57,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         notchManager = manager
 
         let shortcuts = services.shortcuts
-        let center = HotkeyCenter(store: shortcuts) { [weak manager] feature in
-            manager?.open(feature, pinned: shortcuts.pinsOnOpen)
-        }
+        let center = HotkeyCenter(
+            store: shortcuts,
+            onFire: { [weak manager] in manager?.open($0, pinned: shortcuts.pinsOnOpen) },
+            onPin: { [weak manager] in manager?.togglePin() }
+        )
         center.start()
         hotkeys = center
 

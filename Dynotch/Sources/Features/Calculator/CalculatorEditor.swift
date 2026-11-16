@@ -41,7 +41,8 @@ struct PinButton: View {
     let isPinned: Bool
     let action: () -> Void
 
-    static let activeColor = Color(nsColor: CalculatorResultsView.resultColor)
+    /// Blue while pinned, like the keyboard lock (spec SZ-8).
+    static let activeColor = ClaudeUsageView.blue
 
     var body: some View {
         Button(action: action) {

@@ -9,6 +9,7 @@ final class FocusFollowsMouse {
     private var pending: Task<Void, Never>?
     private var settingsObserver: AnyCancellable?
     private var lastFocused: CGWindowID?
+    private var attempts = FocusRules.Attempts()
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -67,8 +68,13 @@ final class FocusFollowsMouse {
         let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let focusedWindow = frontPID.flatMap(SkyLightFocus.focusedWindowID(of:))
         if target.pid == frontPID, focusedWindow == target.id || (focusedWindow == nil && lastFocused == target.id) {
+            attempts.reset()
             return
         }
+        // A dialog or alert of the active app keeps the focus, and a window that did not take
+        // the focus twice is left alone until the pointer goes elsewhere (spec F-8).
+        if target.pid == frontPID, SkyLightFocus.hasFocusedDialog(pid: target.pid) { return }
+        guard attempts.shouldTry(target.id) else { return }
         if SkyLightFocus.focusWithoutRaise(
             pid: target.pid, windowID: target.id, focusedPID: frontPID, focusedWindowID: focusedWindow
         ) {
