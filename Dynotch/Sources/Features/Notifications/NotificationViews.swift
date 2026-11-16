@@ -48,6 +48,48 @@ struct NotificationPeekView: View {
     }
 }
 
+/// A single notification with its text, shown when its peek is hovered (spec E-4).
+struct NotificationCardView: View {
+    let app: NotificationApp
+    let content: NotificationContent
+    let date: Date
+    let notchHeight: CGFloat
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Color.clear.frame(height: notchHeight)
+            HStack(alignment: .top, spacing: 12) {
+                AppIconView(app: app, size: 32)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(content.sender)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text("\(app.name) · \(date.formatted(date: .omitted, time: .shortened))")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color.white.opacity(0.45))
+                            .lineLimit(1)
+                    }
+                    if !content.detail.isEmpty {
+                        Text(content.detail)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .lineLimit(5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .contentShape(Rectangle())
+        .help("Megnyitás: \(app.name)")
+    }
+}
+
 /// Notifications feature: what arrived since launch, newest first (spec E-4, E-5).
 struct NotificationsFeatureView: View {
     @ObservedObject var service: NotificationService

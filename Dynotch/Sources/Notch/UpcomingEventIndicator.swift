@@ -1,7 +1,30 @@
 import SwiftUI
 
+/// Capsule outline that starts at the top centre and runs clockwise, so trimming its start
+/// makes the line disappear clockwise.
+struct ClockwiseCapsule: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius = min(rect.height, rect.width) / 2
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - radius, y: rect.midY), radius: radius,
+            startAngle: .degrees(-90), endAngle: .degrees(90), clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + radius, y: rect.midY), radius: radius,
+            startAngle: .degrees(90), endAngle: .degrees(270), clockwise: false
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
 /// Shown beside the closed notch before and during an event (spec K-7…K-9): icon on the left,
-/// countdown on the right inside a capsule whose outline fills as time passes.
+/// countdown on the right inside a capsule whose outline shows the time left and runs down
+/// clockwise.
 struct UpcomingEventIndicator: View {
     let event: CalendarEvent
     let leadTime: TimeInterval
@@ -33,10 +56,11 @@ struct UpcomingEventIndicator: View {
             .monospacedDigit()
             .foregroundStyle(color)
             .frame(width: 46, height: 18)
-            .background(Capsule(style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: Self.lineWidth))
+            .background(ClockwiseCapsule().stroke(Color.white.opacity(0.14), lineWidth: Self.lineWidth))
             .overlay(
-                Capsule(style: .continuous)
-                    .trim(from: 0, to: status.progress)
+                // What is left of the lead time or of the meeting; it shrinks clockwise.
+                ClockwiseCapsule()
+                    .trim(from: status.progress, to: 1)
                     .stroke(color.opacity(0.9), style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
                     .animation(.linear(duration: 1), value: status.progress)
             )

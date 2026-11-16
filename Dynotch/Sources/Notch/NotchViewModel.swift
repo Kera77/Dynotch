@@ -9,6 +9,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isLarge = false
     /// True while the panel shows the settings instead of the features (spec C-2).
     @Published private(set) var isShowingSettings = false
+    /// The single notification the panel shows instead of the features (spec E-4).
+    @Published private(set) var notification: AppNotification?
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     @Published var isPinned = false
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
@@ -27,23 +29,25 @@ final class NotchViewModel: ObservableObject {
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
-        isExpanded && (isShowingSettings || currentFeature == .calculator)
+        isExpanded && notification == nil && (isShowingSettings || currentFeature == .calculator)
     }
 
     /// Size of the panel while it is open.
     var openSize: CGSize {
+        if notification != nil { return geometry.notificationSize }
         if isShowingSettings { return geometry.settingsSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
-    /// - Parameter showing: feature to open with instead of the remembered one (e.g. the
-    ///   notifications when opened from a notification peek); it does not change what is remembered.
-    func setExpanded(_ expanded: Bool, showing override: FeatureID? = nil) {
+    /// - Parameter presenting: a notification to show on its own instead of the features
+    ///   (opened from a notification peek); the remembered feature is not changed.
+    func setExpanded(_ expanded: Bool, presenting presented: AppNotification? = nil) {
         guard expanded != isExpanded else { return }
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
-            currentFeature = override.flatMap { settings.isEnabled($0) ? $0 : nil } ?? settings.initialFeature
+            currentFeature = settings.initialFeature
         }
+        notification = expanded ? presented : nil
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded, isPinned { isPinned = false }
         isExpanded = expanded
@@ -84,7 +88,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     private func updateLarge() {
-        let large = isExpanded && !isShowingSettings && currentFeature == .calendar && settings.calendarLarge
+        let large = isExpanded && notification == nil && !isShowingSettings && currentFeature == .calendar && settings.calendarLarge
         if large != isLarge { isLarge = large }
     }
 

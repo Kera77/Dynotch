@@ -98,7 +98,7 @@ struct NotchGeometryTests {
             auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
         )
         let window = geometry.rect(for: geometry.windowSize)
-        for size in [geometry.expandedSize, geometry.largeSize, geometry.settingsSize, geometry.peekSize] {
+        for size in [geometry.expandedSize, geometry.largeSize, geometry.settingsSize, geometry.peekSize, geometry.notificationSize] {
             #expect(window.contains(geometry.rect(for: size)))
         }
         #expect(geometry.settingsSize.width >= NotchGeometry.settingsContentSize.width)

@@ -154,9 +154,9 @@
 
 | ID | Követelmény |
 |---|---|
-| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik vagy éppen tart, a becsukott notch két oldalra kiszélesedik: **bal oldalon** egy ikon (videó, ha van meeting-link, egyébként naptár), **jobb oldalon** egy kapszulában másodpercre pontos **visszaszámláló**, amelynek körvonala az idő múlásával arányosan töltődik. |
-| K-8 | **Kezdés előtt** (*N* perccel, beállítás: 1–30 perc, alapból 10): a kezdésig hátralévő idő **sárgával**, a körvonal az előjelzési idő eltelt részét mutatja. **Az utolsó 3 percben pirossal.** |
-| K-8b | **A meeting alatt**: a meeting végéig hátralévő idő **világoskékkel**, a körvonal a meeting eltelt részét mutatja. A végén a jelzés eltűnik. |
+| K-7 | Ha egy (nem egész napos) esemény hamarosan kezdődik vagy éppen tart, a becsukott notch két oldalra kiszélesedik: **bal oldalon** egy ikon (videó, ha van meeting-link, egyébként naptár), **jobb oldalon** egy kapszulában másodpercre pontos **visszaszámláló**. A kapszula körvonala a **hátralévő időt** mutatja: teliről indul, és a tetejétől **az óramutató járásával megegyezően fogy el**. |
+| K-8 | **Kezdés előtt** (*N* perccel, beállítás: 1–30 perc, alapból 10): a kezdésig hátralévő idő **sárgával**, a körvonal az előjelzési időből hátralévő részt mutatja. **Az utolsó 3 percben pirossal.** |
+| K-8b | **A meeting alatt**: a meeting végéig hátralévő idő **világoskékkel**, a körvonal a meetingből hátralévő részt mutatja. A végén a jelzés eltűnik. |
 | K-8c | Ha egy meeting tart és közben egy másik az előjelzési időn belül kezdődik, a hamarosan kezdődő látszik. A 24 óránál hosszabb események nem jelennek meg a jelzésben. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
@@ -176,7 +176,7 @@
 | ID | Követelmény |
 |---|---|
 | E-3 | **Új értesítéskor** a becsukott notch finoman, csak egy kicsit lenyílik (30 pt-tal), és megmutatja az app ikonját és azt, **ki írt**. A tartalom itt nem látszik. Minden kijelzőn megjelenik. |
-| E-4 | **Hoverre** (a notch-ra vagy a lenyílt sávra víve az egeret) a panel kinyílik az *Értesítések* funkcióval, benne az értesítés **tartalmával**. Ez nem írja felül, hogy legközelebb melyik funkció nyílik meg (L-1). |
+| E-4 | **Hoverre** (a notch-ra vagy a lenyílt sávra víve az egeret) a sáv egy **kártyává nyílik, amelyen csak az az egy értesítés látszik**: app ikon, feladó, app neve és időpont, és az értesítés szövege (legfeljebb 5 sor). Menüsor és funkciók itt nincsenek. A kártyára kattintva megnyílik az app. Ha az egér elhagyja, a kártya becsukódik; a következő hoverre a panel a szokott módon, a legutóbbi funkcióval nyílik (L-1). |
 | E-5 | Az *Értesítések* funkció az indítás óta érkezett értesítéseket listázza (legfeljebb 50, a legújabb elöl): app ikon, feladó, app neve és időpont, szöveg. Egy értesítésre kattintva megnyílik az app. |
 | E-6 | A lenyílt sáv a beállított idő után magától eltűnik (**2–30 mp**, alapból 6). |
 | E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |

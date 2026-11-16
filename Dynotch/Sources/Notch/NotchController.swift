@@ -173,9 +173,9 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
-        // Opened from a notification peek: show the notifications (spec E-4).
-        let fromPeek = notifications.peek != nil
-        withAnimation(Self.animation) { model.setExpanded(true, showing: fromPeek ? .notifications : nil) }
+        // Opened from a notification peek: show just that notification (spec E-4).
+        let peeked = notifications.peek
+        withAnimation(Self.animation) { model.setExpanded(true, presenting: peeked) }
         notifications.clearPeek()
         startHoverTimer()
     }
@@ -245,7 +245,7 @@ final class NotchController {
 
     private func handleScroll(_ event: NSEvent) -> Bool {
         // The settings scroll on their own; no feature switching there.
-        guard model.isExpanded, !model.isShowingSettings else { return false }
+        guard model.isExpanded, !model.isShowingSettings, model.notification == nil else { return false }
         // Over the calendar's day strip a horizontal swipe scrolls the days (spec K-4).
         if model.currentFeature == .calendar, !model.isLarge,
            model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {

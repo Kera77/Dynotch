@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-11-16
+
+### Changed
+- Hovering a notification peek opens a card with just that notification instead of the
+  Notifications feature.
+- Meeting countdown outline now shows the time left: it starts full and runs down clockwise.
+
 ## [0.6.2] - 2026-11-16
 
 ### Changed

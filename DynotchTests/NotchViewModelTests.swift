@@ -50,20 +50,26 @@ struct NotchViewModelTests {
         #expect(!model.isLarge)
     }
 
-    /// Spec E-4: opening from a notification peek shows the notifications without changing
-    /// which feature is remembered.
-    @Test func openingFromPeekDoesNotChangeRememberedFeature() {
+    /// Spec E-4: opening from a notification peek shows only that notification, in its own
+    /// size, and does not change which feature is remembered.
+    @Test func openingFromPeekShowsOnlyThatNotification() {
         let model = makeModel()
         model.setExpanded(true)
         model.select(.calendar)
         model.setExpanded(false)
 
-        model.setExpanded(true, showing: .notifications)
-        #expect(model.currentFeature == .notifications)
+        let notification = AppNotification(id: 7, appIdentifier: "app", title: "Anna", subtitle: "", body: "Szia", date: Date())
+        model.setExpanded(true, presenting: notification)
+        #expect(model.notification == notification)
+        #expect(model.openSize == model.geometry.notificationSize)
+        #expect(!model.wantsKeyboard)
         model.setExpanded(false)
+        #expect(model.notification == nil)
 
         model.setExpanded(true)
+        #expect(model.notification == nil)
         #expect(model.currentFeature == .calendar)
+        #expect(model.openSize == model.geometry.expandedSize)
     }
 
     /// Spec C-2: settings in the notch use their own size and end when a feature is picked

@@ -52,7 +52,17 @@ struct NotchView: View {
                 .transition(.opacity)
             }
 
-            if model.isExpanded {
+            if model.isExpanded, let notification = model.notification {
+                NotificationCardView(
+                    app: notifications.catalog.app(for: notification.appIdentifier),
+                    content: notifications.content(for: notification),
+                    date: notification.date,
+                    notchHeight: geometry.notchSize.height
+                )
+                .frame(width: model.openSize.width, height: model.openSize.height)
+                .onTapGesture { notifications.catalog.open(notification.appIdentifier) }
+                .transition(Self.contentTransition)
+            } else if model.isExpanded {
                 expandedContent
                     .frame(width: model.openSize.width, height: model.openSize.height)
                     .transition(Self.contentTransition)

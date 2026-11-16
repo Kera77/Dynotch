@@ -96,6 +96,11 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// The panel showing a single notification, opened by hovering its peek (spec E-4).
+    var notificationSize: CGSize {
+        CGSize(width: max(peekSize.width, 440), height: notchSize.height + 124)
+    }
+
     var expandedRect: CGRect {
         rect(for: expandedSize)
     }
