@@ -93,3 +93,7 @@ A script a `preflight` ágra tolja a commitot, megvárja a Preflight workflow-t,
 
 Próbabuild publikálás nélkül: *Actions → Release → Run workflow*, verzió megadásával; az
 eredmény a futás artifactjai között lesz.
+
+## Licenc
+
+[MIT](LICENSE) – szabadon használható, módosítható és terjeszthető, a szerzői jogi megjegyzés megtartásával.
