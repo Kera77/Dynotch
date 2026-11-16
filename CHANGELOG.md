@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-16
+
+### Added
+- Hovering a notification peek lists every new notification, one under the other; the peek shows
+  "+N" when there are more.
+- Reply to Beeper messages from the notch (Beeper Desktop API; token in Settings › Notifications).
+
 ## [0.12.0] - 2026-11-16
 
 ### Added

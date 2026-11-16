@@ -19,11 +19,12 @@ struct AppIconView: View {
     }
 }
 
-/// The closed notch opened just a little: who wrote, in which app (spec E-3).
+/// The closed notch opened just a little: who wrote, in which app, and how many are new (spec E-3).
 struct NotificationPeekView: View {
     let app: NotificationApp
     let content: NotificationContent
     let notchHeight: CGFloat
+    var newCount = 1
 
     var body: some View {
         VStack(spacing: 0) {
@@ -41,6 +42,15 @@ struct NotificationPeekView: View {
                         .lineLimit(1)
                         .layoutPriority(-1)
                 }
+                if newCount > 1 {
+                    Text("+\(newCount - 1)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 1)
+                        .background(Capsule().fill(Color.white.opacity(0.2)))
+                        .help("\(newCount) new notifications")
+                }
             }
             .padding(.horizontal, 14)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -48,53 +58,176 @@ struct NotificationPeekView: View {
     }
 }
 
-/// A single notification with its text, shown when its peek is hovered (spec E-4).
-struct NotificationCardView: View {
-    let app: NotificationApp
-    let content: NotificationContent
-    let date: Date
+/// The new notifications, one under the other, shown when the peek is hovered (spec E-4),
+/// with a reply field for apps that can be answered (spec E-11).
+struct NotificationStackView: View {
+    @ObservedObject var service: NotificationService
+    let notifications: [AppNotification]
+    let canReply: Bool
     let notchHeight: CGFloat
+
+    @State private var replyTargetID: Int64?
+    @State private var replyText = ""
+    @State private var replyStatus: ReplyStatus = .idle
+
+    enum ReplyStatus: Equatable {
+        case idle
+        case sending
+        case sent
+        case failed(String)
+    }
+
+    /// The notification a reply goes to: the selected one, otherwise the newest.
+    private var replyTarget: AppNotification? {
+        notifications.first { $0.id == replyTargetID } ?? notifications.last
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
-            HStack(alignment: .top, spacing: 12) {
-                AppIconView(app: app, size: 32)
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(content.sender)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        Text("\(app.name) · \(date.formatted(date: .omitted, time: .shortened))")
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color.white.opacity(0.45))
-                            .lineLimit(1)
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    VStack(spacing: 4) {
+                        ForEach(notifications) { notification in
+                            row(for: notification)
+                                .id(notification.id)
+                        }
                     }
-                    if !content.detail.isEmpty {
-                        Text(content.detail)
-                            .font(.system(size: 13))
-                            .foregroundStyle(Color.white.opacity(0.85))
-                            .lineLimit(5)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+                }
+                .scrollIndicators(.never)
+                .onAppear {
+                    if let last = notifications.last { proxy.scrollTo(last.id, anchor: .bottom) }
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            if canReply {
+                replyField
+            }
         }
+    }
+
+    private func row(for notification: AppNotification) -> some View {
+        let app = service.catalog.app(for: notification.appIdentifier)
+        let content = service.content(for: notification)
+        let isTarget = canReply && notification.id == replyTarget?.id && notifications.count > 1
+        return HStack(alignment: .top, spacing: 10) {
+            AppIconView(app: app, size: 26)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(content.sender)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text("\(app.name) · \(notification.date.formatted(date: .omitted, time: .shortened))")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.white.opacity(0.45))
+                        .lineLimit(1)
+                }
+                if !content.detail.isEmpty {
+                    Text(content.detail)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .frame(minHeight: NotchGeometry.notificationRowHeight - 4, alignment: .top)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(isTarget ? 0.14 : 0.06))
+        )
         .contentShape(Rectangle())
-        .help("Open \(app.name)")
+        .onTapGesture {
+            if canReply, service.canReply(to: notification) {
+                replyTargetID = notification.id
+            } else {
+                service.catalog.open(notification.appIdentifier)
+            }
+        }
+        .help(canReply ? "Click to reply to this one" : "Open \(app.name)")
+    }
+
+    private var replyField: some View {
+        HStack(spacing: 8) {
+            TextField(placeholder, text: $replyText)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .padding(.horizontal, 10)
+                .frame(height: 30)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                .onSubmit(send)
+                .disabled(replyStatus == .sending)
+            Button(action: send) {
+                Group {
+                    switch replyStatus {
+                    case .sending: ProgressView().controlSize(.small)
+                    case .sent: Image(systemName: "checkmark")
+                    default: Image(systemName: "paperplane.fill")
+                    }
+                }
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color(red: 0.04, green: 0.52, blue: 1)))
+            }
+            .buttonStyle(.plain)
+            .disabled(replyText.trimmingCharacters(in: .whitespaces).isEmpty || replyStatus == .sending)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 10)
+        .overlay(alignment: .bottomLeading) {
+            if case .failed(let message) = replyStatus {
+                Text(message)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4))
+                    .lineLimit(1)
+                    .padding(.horizontal, 14)
+                    .offset(y: 2)
+            }
+        }
+    }
+
+    private var placeholder: String {
+        guard let target = replyTarget else { return "Reply…" }
+        return "Reply to \(service.content(for: target).sender)…"
+    }
+
+    private func send() {
+        let text = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, let target = replyTarget, replyStatus != .sending else { return }
+        replyStatus = .sending
+        Task {
+            do {
+                try await service.reply(to: target, text: text)
+                replyText = ""
+                replyStatus = .sent
+            } catch {
+                replyStatus = .failed("\(error)")
+            }
+        }
     }
 }
 
 /// Notifications feature: what arrived since launch, newest first (spec E-4, E-5).
 struct NotificationsFeatureView: View {
     @ObservedObject var service: NotificationService
+    /// Looking at the list counts as having seen the new notifications.
+    var isActive = false
 
     var body: some View {
+        Group { content }
+            .onChange(of: isActive) { _, active in
+                if active { service.markSeen() }
+            }
+    }
+
+    @ViewBuilder private var content: some View {
         switch service.status {
         case .running:
             if service.recent.isEmpty {

@@ -180,9 +180,10 @@ final class NotchController {
         graceUntil = nil
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
-        // Opened from a notification peek: show just that notification (spec E-4).
-        let peeked = notifications.peek
-        withAnimation(Self.animation) { model.setExpanded(true, presenting: peeked) }
+        // Opened from a notification peek: list the new notifications (spec E-4).
+        let stack = notifications.peek == nil ? [] : notifications.unseen
+        let canReply = stack.last.map(notifications.canReply(to:)) ?? false
+        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
         notifications.clearPeek()
         startHoverTimer()
     }
@@ -192,6 +193,7 @@ final class NotchController {
         stopHoverTimer()
         graceUntil = nil
         panel.ignoresMouseEvents = true
+        if model.isShowingNotifications { notifications.markSeen() }
         withAnimation(Self.animation) { model.setExpanded(false) }
     }
 
@@ -252,7 +254,7 @@ final class NotchController {
 
     private func handleScroll(_ event: NSEvent) -> Bool {
         // The settings scroll on their own; no feature switching there.
-        guard model.isExpanded, !model.isShowingSettings, model.notification == nil else { return false }
+        guard model.isExpanded, !model.isShowingSettings, !model.isShowingNotifications else { return false }
 
         let phase: SwipeDetector.Phase
         if event.phase.contains(.began) {

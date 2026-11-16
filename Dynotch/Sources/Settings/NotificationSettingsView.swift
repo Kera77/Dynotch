@@ -4,6 +4,9 @@ struct NotificationSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var service: NotificationService
     @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
+    @State private var beeperToken = ""
+    @State private var beeperHasToken = BeeperClient.hasToken
+    @State private var beeperStatus = ""
 
     var body: some View {
         Form {
@@ -18,6 +21,34 @@ struct NotificationSettingsView: View {
                             .frame(width: 44, alignment: .trailing)
                     }
                 }
+            }
+
+            Section {
+                LabeledContent("Beeper Desktop API") {
+                    HStack {
+                        SecureField(beeperHasToken ? "Token saved" : "Paste token", text: $beeperToken)
+                            .frame(width: 180)
+                        Button("Save") {
+                            BeeperClient.setToken(beeperToken)
+                            beeperToken = ""
+                            beeperHasToken = BeeperClient.hasToken
+                            checkBeeper()
+                        }
+                        .disabled(beeperToken.isEmpty)
+                    }
+                }
+                if !beeperStatus.isEmpty {
+                    Text(beeperStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Replies")
+            } footer: {
+                Text("Reply to Beeper messages from the notch. In Beeper: Settings › Integrations › \"+\" next to "
+                    + "Approved connections, then paste the token here. Google Chat cannot be answered this way.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Apps") {
@@ -84,6 +115,22 @@ struct NotificationSettingsView: View {
                 .help(message)
         case .disabled:
             Text("Off (Features tab)").foregroundStyle(.secondary)
+        }
+    }
+
+    private func checkBeeper() {
+        guard BeeperClient.hasToken else {
+            beeperStatus = ""
+            return
+        }
+        beeperStatus = "Checking…"
+        Task {
+            do {
+                try await BeeperClient().verify()
+                beeperStatus = "Connected to Beeper ✓"
+            } catch {
+                beeperStatus = "\(error)"
+            }
         }
     }
 

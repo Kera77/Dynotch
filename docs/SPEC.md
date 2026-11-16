@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.12 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.13 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -107,7 +107,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.13)
+### 2.3 Hatókör (v0.14)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -122,7 +122,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.13) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.14) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -183,12 +183,13 @@
 
 | ID | Követelmény |
 |---|---|
-| E-3 | **Új értesítéskor** a becsukott notch finoman, csak egy kicsit lenyílik (30 pt-tal), és megmutatja az app ikonját és azt, **ki írt**. A tartalom itt nem látszik. Minden kijelzőn megjelenik. |
-| E-4 | **Hoverre** (a notch-ra vagy a lenyílt sávra víve az egeret) a sáv egy **kártyává nyílik, amelyen csak az az egy értesítés látszik**: app ikon, feladó, app neve és időpont, és az értesítés szövege (legfeljebb 5 sor). Menüsor és funkciók itt nincsenek. A kártyára kattintva megnyílik az app. Ha az egér elhagyja, a kártya becsukódik; a következő hoverre a panel a szokott módon, a legutóbbi funkcióval nyílik (L-1). |
+| E-3 | **Új értesítéskor** a becsukott notch finoman, csak egy kicsit lenyílik (30 pt-tal), és megmutatja az app ikonját és azt, **ki írt**; ha több új értesítés van, mellette „+N”. A tartalom itt nem látszik. Minden kijelzőn megjelenik. |
+| E-4 | **Hoverre** a sáv egy kártyává nyílik, amelyen **minden új értesítés egymás alatt** látszik (az utolsó megnézés óta érkezettek, legfeljebb 12, időrendben, a legújabb alul; 5 felett görgethető): app ikon, feladó, app neve és időpont, szöveg (legfeljebb 2 sor). „Új” az, amit még nem láttál a kártyán vagy az Értesítések funkcióban; a kártya bezárásakor, illetve az Értesítések funkció megnyitásakor mind látottnak számít. Menüsor és funkciók itt nincsenek; a következő hoverre a panel a szokott módon, a legutóbbi funkcióval nyílik (L-1). |
 | E-5 | Az *Értesítések* funkció az indítás óta érkezett értesítéseket listázza (legfeljebb 50, a legújabb elöl): app ikon, feladó, app neve és időpont, szöveg. Egy értesítésre kattintva megnyílik az app. |
 | E-6 | A lenyílt sáv a beállított idő után magától eltűnik (**2–30 mp**, alapból 6). |
 | E-7 | **Gmail:** a feladó és a levél **tárgya** látszik, a levél szövege nem. **Beeper, Google Chat és más appok:** a feladó és az üzenet szövege. |
 | E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, figyeli az Értesítési központ új ablakait (kisegítő értesítés), és amint a szalagcím megjelenik, bezárja (a cím, cím nélkül a szöveg eleje alapján); tartalékként 8 mp-ig 0,2 mp-enként is keresi. A szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
+| E-11 | **Válasz a notchból:** ha a legújabb értesítés Beeper-üzenet, a kártya alján **válaszmező** van („Reply to Anna…”). Enter vagy a küldés gomb a választ a **Beeper Desktop API**-n keresztül elküldi abba a beszélgetésbe, amelynek a címe az értesítés címe (pontos egyezés, különben az olvasatlan, különben az első találat). Egy sorra kattintva az lesz a címzett. Ehhez a Beeperben létre kell hozni egy tokent (*Settings › Integrations › Approved connections*), és be kell másolni a Dynotch *Settings › Notifications › Replies* részébe; a Dynotch a saját kulcskarika-elemében tárolja. **Google Chat-értesítésre nem lehet válaszolni** (a webes értesítéseknek nincs válaszlehetősége; a Google Chat API saját Google Cloud OAuth-beállítást és Workspace-fiókot igényelne). |
 | E-9 | Hibakereséshez az app naplót ír ide (a szalagcímek bezárásáról is: `banner-dismiss.log`): `~/Library/Logs/Dynotch/notifications.log` (adatbázis szerkezete, appazonosítók, az utóbbi értesítések száma appanként) és `notification-records.log` (érkezett értesítésenként: azonosító, oldal, kinek tulajdonítva, megjelent-e). Értesítések tartalma egyikben sincs. |
 
 ---
@@ -309,5 +310,6 @@ Jelenleg nincs.
 | **v0.10** | Claude-fogyasztás (notch, menüsor-karika, értesítés 70% felett); naptár: kevésbé érzékeny napsáv, lista a következő meetingnél |
 | **v0.11** | Claude-jelző a notch mellett; a teljes felület angolul |
 | **v0.12** | AI Usage: kör a notch mellett, nagyobb ikonok, jelszókérés megszüntetése; menüsor-ikonok funkciónként; menüsor-buborék zárása kattintásra |
-| **v0.13** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.14+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.13** | Értesítések: minden új értesítés egymás alatt, válasz Beeper-üzenetekre a notchból |
+| **v0.14** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.15+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

@@ -18,6 +18,9 @@ final class NotificationService: ObservableObject {
     @Published private(set) var recent: [AppNotification] = []
     /// Notification currently peeking out of the closed notch.
     @Published private(set) var peek: AppNotification?
+    /// Arrived since the user last looked (hover card or Notifications feature), oldest first
+    /// (spec E-4).
+    @Published private(set) var unseen: [AppNotification] = []
     /// Installed apps found in the database, for the settings list.
     @Published private(set) var apps: [NotificationApp] = []
 
@@ -65,7 +68,26 @@ final class NotificationService: ObservableObject {
             id: internalID, appIdentifier: appIdentifier, title: title, subtitle: "", body: body, date: Date()
         )
         recent = Array(([notification] + recent).prefix(Self.historyLimit))
+        unseen = Array((unseen + [notification]).suffix(Self.unseenLimit))
         showPeek(notification)
+    }
+
+    private static let unseenLimit = 12
+
+    /// Called once the new notifications were seen.
+    func markSeen() {
+        if !unseen.isEmpty { unseen = [] }
+    }
+
+    /// Whether a reply can be sent from the notch (spec E-11). Only Beeper has an API for it.
+    func canReply(to notification: AppNotification) -> Bool {
+        notification.appIdentifier.lowercased().contains("beeper")
+    }
+
+    /// Sends a reply to the chat the notification came from.
+    func reply(to notification: AppNotification, text: String) async throws {
+        guard canReply(to: notification) else { throw BeeperError.failed("Replying is not available for this app.") }
+        try await BeeperClient().reply(to: notification.title, text: text)
     }
 
     /// Negative ids never clash with the database's record ids.
@@ -207,6 +229,7 @@ final class NotificationService: ObservableObject {
         }
         guard let newest = incoming.last else { return }
         recent = Array((incoming.reversed() + recent).prefix(Self.historyLimit))
+        unseen = Array((unseen + incoming).suffix(Self.unseenLimit))
         showPeek(newest)
     }
 

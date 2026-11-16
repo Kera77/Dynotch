@@ -91,8 +91,8 @@ struct NotchGeometry: Equatable, Sendable {
     /// Size of the (constant) panel window: big enough for every panel size.
     var windowSize: CGSize {
         CGSize(
-            width: max(largeSize.width, settingsSize.width),
-            height: max(largeSize.height, settingsSize.height)
+            width: max(largeSize.width, settingsSize.width, maxNotificationSize.width),
+            height: max(largeSize.height, settingsSize.height, maxNotificationSize.height, usageSize.height)
         )
     }
 
@@ -101,9 +101,21 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: expandedSize.width, height: max(Self.expandedHeight, menuBarHeight + 260))
     }
 
-    /// The panel showing a single notification, opened by hovering its peek (spec E-4).
-    var notificationSize: CGSize {
-        CGSize(width: max(peekSize.width, 440), height: notchSize.height + 124)
+    static let notificationRowHeight: CGFloat = 58
+    static let notificationReplyHeight: CGFloat = 46
+    static let maxVisibleNotificationRows = 5
+
+    /// The panel listing the new notifications, opened by hovering the peek (spec E-4): one row
+    /// per notification (scrolling beyond five), plus the reply field when replying is possible.
+    func notificationSize(count: Int, hasReply: Bool) -> CGSize {
+        let rows = CGFloat(min(max(count, 1), Self.maxVisibleNotificationRows))
+        let height = notchSize.height + 12 + rows * Self.notificationRowHeight + (hasReply ? Self.notificationReplyHeight : 0)
+        return CGSize(width: max(peekSize.width, 460), height: height)
+    }
+
+    /// The tallest notification panel, for the window size.
+    var maxNotificationSize: CGSize {
+        notificationSize(count: Self.maxVisibleNotificationRows, hasReply: true)
     }
 
     var expandedRect: CGRect {

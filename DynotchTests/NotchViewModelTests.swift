@@ -50,24 +50,34 @@ struct NotchViewModelTests {
         #expect(!model.isLarge)
     }
 
-    /// Spec E-4: opening from a notification peek shows only that notification, in its own
-    /// size, and does not change which feature is remembered.
-    @Test func openingFromPeekShowsOnlyThatNotification() {
+    /// Spec E-4, E-11: opening from a peek lists the new notifications in their own size, with
+    /// the keyboard only when a reply is possible; the remembered feature is untouched.
+    @Test func openingFromPeekListsTheNewNotifications() {
         let model = makeModel()
         model.setExpanded(true)
         model.select(.calendar)
         model.setExpanded(false)
 
-        let notification = AppNotification(id: 7, appIdentifier: "app", title: "Anna", subtitle: "", body: "Szia", date: Date())
-        model.setExpanded(true, presenting: notification)
-        #expect(model.notification == notification)
-        #expect(model.openSize == model.geometry.notificationSize)
+        let stack = (1...3).map {
+            AppNotification(
+                id: Int64($0), appIdentifier: "com.automattic.beeper.desktop",
+                title: "Anna", subtitle: "", body: "\($0)", date: Date()
+            )
+        }
+        model.setExpanded(true, presenting: stack, canReply: true)
+        #expect(model.notifications == stack)
+        #expect(model.notificationsCanReply)
+        #expect(model.openSize == model.geometry.notificationSize(count: 3, hasReply: true))
+        #expect(model.wantsKeyboard)
+        model.setExpanded(false)
+        #expect(!model.isShowingNotifications)
+
+        model.setExpanded(true, presenting: stack, canReply: false)
         #expect(!model.wantsKeyboard)
         model.setExpanded(false)
-        #expect(model.notification == nil)
 
         model.setExpanded(true)
-        #expect(model.notification == nil)
+        #expect(!model.isShowingNotifications)
         #expect(model.currentFeature == .calendar)
         #expect(model.openSize == model.geometry.expandedSize)
     }

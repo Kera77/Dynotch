@@ -9,8 +9,12 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isLarge = false
     /// True while the panel shows the settings instead of the features (spec C-2).
     @Published private(set) var isShowingSettings = false
-    /// The single notification the panel shows instead of the features (spec E-4).
-    @Published private(set) var notification: AppNotification?
+    /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
+    @Published private(set) var notifications: [AppNotification] = []
+    /// The listed notifications can be answered from the panel (spec E-11).
+    @Published private(set) var notificationsCanReply = false
+
+    var isShowingNotifications: Bool { !notifications.isEmpty }
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     @Published var isPinned = false
     /// Countdown beside the closed notch under the pointer (spec K-8d).
@@ -31,26 +35,30 @@ final class NotchViewModel: ObservableObject {
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
-        isExpanded && notification == nil && (isShowingSettings || [.calculator, .notes, .reminders].contains(currentFeature))
+        isExpanded && (isShowingNotifications ? notificationsCanReply
+            : isShowingSettings || [.calculator, .notes, .reminders].contains(currentFeature))
     }
 
     /// Size of the panel while it is open.
     var openSize: CGSize {
-        if notification != nil { return geometry.notificationSize }
+        if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: notificationsCanReply) }
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
-    /// - Parameter presenting: a notification to show on its own instead of the features
-    ///   (opened from a notification peek); the remembered feature is not changed.
-    func setExpanded(_ expanded: Bool, presenting presented: AppNotification? = nil) {
+    /// - Parameters:
+    ///   - presenting: new notifications to list instead of the features (opened from a
+    ///     notification peek); the remembered feature is not changed.
+    ///   - canReply: whether the list gets a reply field.
+    func setExpanded(_ expanded: Bool, presenting presented: [AppNotification] = [], canReply: Bool = false) {
         guard expanded != isExpanded else { return }
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
             currentFeature = settings.initialFeature
         }
-        notification = expanded ? presented : nil
+        notifications = expanded ? presented : []
+        notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded, isPinned { isPinned = false }
         isExpanded = expanded
@@ -91,7 +99,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     private func updateLarge() {
-        let large = isExpanded && notification == nil && !isShowingSettings
+        let large = isExpanded && !isShowingNotifications && !isShowingSettings
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
     }

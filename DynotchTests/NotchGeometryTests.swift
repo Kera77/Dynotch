@@ -98,10 +98,23 @@ struct NotchGeometryTests {
             auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
         )
         let window = geometry.rect(for: geometry.windowSize)
-        for size in [geometry.expandedSize, geometry.largeSize, geometry.settingsSize, geometry.peekSize, geometry.notificationSize] {
+        for size in [geometry.expandedSize, geometry.largeSize, geometry.settingsSize, geometry.peekSize,
+                     geometry.maxNotificationSize, geometry.usageSize] {
             #expect(window.contains(geometry.rect(for: size)))
         }
         #expect(geometry.settingsSize.width >= NotchGeometry.settingsContentSize.width)
         #expect(geometry.settingsSize.height >= geometry.menuBarHeight + NotchGeometry.settingsContentSize.height)
+    }
+
+    @Test func notificationPanelGrowsWithTheListUpToFiveRows() {
+        let geometry = NotchGeometry.make(
+            screenFrame: screen, safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        let one = geometry.notificationSize(count: 1, hasReply: false)
+        let three = geometry.notificationSize(count: 3, hasReply: false)
+        #expect(three.height - one.height == 2 * NotchGeometry.notificationRowHeight)
+        #expect(geometry.notificationSize(count: 9, hasReply: false) == geometry.notificationSize(count: 5, hasReply: false))
+        #expect(geometry.notificationSize(count: 3, hasReply: true).height - three.height == NotchGeometry.notificationReplyHeight)
     }
 }

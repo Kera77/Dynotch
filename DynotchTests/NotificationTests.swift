@@ -146,4 +146,29 @@ struct NotificationTests {
         #expect(BannerMatcher.keys(for: untitled) == ["Holnap 9-kor találkozunk a föl"])
         #expect(BannerMatcher.keys(for: notification(title: "", body: "")).isEmpty)
     }
+
+    /// Spec E-11: the reply goes to the chat named like the notification.
+    @Test func beeperChatMatching() {
+        let chats = [
+            BeeperChat(id: "1", title: "Anna Kovács (work)", unreadCount: 0, lastActivity: nil),
+            BeeperChat(id: "2", title: "anna kovács", unreadCount: 0, lastActivity: nil),
+            BeeperChat(id: "3", title: "Team", unreadCount: 2, lastActivity: nil)
+        ]
+        #expect(BeeperClient.bestMatch(for: "Anna Kovács", in: chats)?.id == "2")
+        #expect(BeeperClient.bestMatch(for: "Someone else", in: chats)?.id == "3")
+        #expect(BeeperClient.bestMatch(for: "x", in: []) == nil)
+    }
+
+    @Test @MainActor func unseenNotificationsAndReplyAvailability() {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = NotificationService(settings: AppSettings(defaults: defaults))
+        service.present(title: "A", body: "1", appIdentifier: "com.automattic.beeper.desktop")
+        service.present(title: "B", body: "2", appIdentifier: "com.apple.safari.webapp.x")
+        #expect(service.unseen.map(\.title) == ["A", "B"])
+        #expect(service.canReply(to: service.unseen[0]))
+        #expect(!service.canReply(to: service.unseen[1]))
+        service.markSeen()
+        #expect(service.unseen.isEmpty)
+        service.clearPeek()
+    }
 }

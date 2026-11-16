@@ -61,7 +61,8 @@ struct NotchView: View {
                 NotificationPeekView(
                     app: notifications.catalog.app(for: notification.appIdentifier),
                     content: notifications.content(for: notification),
-                    notchHeight: geometry.notchSize.height
+                    notchHeight: geometry.notchSize.height,
+                    newCount: notifications.unseen.count
                 )
                 .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                 .transition(.opacity)
@@ -84,15 +85,14 @@ struct NotchView: View {
                 .transition(.opacity)
             }
 
-            if model.isExpanded, let notification = model.notification {
-                NotificationCardView(
-                    app: notifications.catalog.app(for: notification.appIdentifier),
-                    content: notifications.content(for: notification),
-                    date: notification.date,
+            if model.isExpanded, model.isShowingNotifications {
+                NotificationStackView(
+                    service: notifications,
+                    notifications: model.notifications,
+                    canReply: model.notificationsCanReply,
                     notchHeight: geometry.notchSize.height
                 )
                 .frame(width: model.openSize.width, height: model.openSize.height)
-                .onTapGesture { notifications.catalog.open(notification.appIdentifier) }
                 .transition(Self.contentTransition)
             } else if model.isExpanded {
                 expandedContent
@@ -202,7 +202,7 @@ struct NotchView: View {
         case .calendar:
             CalendarFeatureView(service: calendar, model: model)
         case .notifications:
-            NotificationsFeatureView(service: notifications)
+            NotificationsFeatureView(service: notifications, isActive: model.isExpanded && model.currentFeature == .notifications)
         case .calculator:
             CalculatorFeatureView(store: calculator)
         case .notes:
