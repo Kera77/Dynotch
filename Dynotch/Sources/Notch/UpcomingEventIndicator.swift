@@ -161,11 +161,11 @@ struct UpcomingEventIndicator: View {
             .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
             .background(ClockwiseCapsule().stroke(Color.white.opacity(0.14), lineWidth: Self.lineWidth))
             .overlay(
-                // What is left of the lead time or of the meeting; it shrinks clockwise.
+                // What is left of the lead time or of the meeting; it shrinks clockwise. Not
+                // animated: an animation here would also delay the capsule when it moves.
                 ClockwiseCapsule()
                     .trim(from: status.progress, to: 1)
                     .stroke(color.opacity(0.9), style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
-                    .animation(.linear(duration: 1), value: status.progress)
             )
     }
 
@@ -175,6 +175,17 @@ struct UpcomingEventIndicator: View {
         let time = "\(event.start.formatted(date: .omitted, time: .shortened))–\(event.end.formatted(date: .omitted, time: .shortened))"
         let phase = status.phase == .ongoing ? "most tart" : "kezdődik"
         return HStack(spacing: 6) {
+            // Always at the left edge, whatever the meeting's name (spec K-8e).
+            Button {
+                dismiss(event)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Visszaszámláló elrejtése")
             Circle()
                 .fill(event.color.color)
                 .frame(width: 6, height: 6)
@@ -188,20 +199,11 @@ struct UpcomingEventIndicator: View {
                 .foregroundStyle(Self.color(for: status.phase))
                 .lineLimit(1)
                 .layoutPriority(1)
-            Button {
-                dismiss(event)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.white.opacity(0.55))
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .help("Visszaszámláló elrejtése")
+            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     static func color(for phase: EventStatus.Phase) -> Color {

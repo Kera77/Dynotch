@@ -3,6 +3,7 @@ import SwiftUI
 struct NotificationSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var service: NotificationService
+    @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
 
     var body: some View {
         Form {
@@ -36,19 +37,39 @@ struct NotificationSettingsView: View {
             }
 
             Section {
-                Button("macOS értesítési beállítások megnyitása", action: service.openNotificationSettings)
+                Toggle("Natív macOS szalagcímek elrejtése", isOn: $settings.hideNativeBanners)
+                LabeledContent("Kisegítő hozzáférés") {
+                    if accessibilityTrusted {
+                        Label("Engedélyezve", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    } else {
+                        Button("Engedély megadása…") {
+                            NativeBannerDismisser.requestTrust()
+                            NativeBannerDismisser.openAccessibilitySettings()
+                        }
+                    }
+                }
+                .disabled(!settings.hideNativeBanners)
             } header: {
-                Text("Natív macOS értesítések elrejtése")
+                Text("Natív értesítések")
             } footer: {
-                Text("A fent bekapcsolt appoknál állítsd a szalagcím stílusát „Nincs”-re, az „Értesítési központban” "
-                    + "kapcsolót pedig hagyd bekapcsolva. Így a macOS nem mutat szalagcímet, a Dynotch viszont megkapja "
-                    + "az értesítést.")
+                Text("A notchban megjelenő értesítések macOS-szalagcímét a Dynotch azonnal bezárja; egy pillanatra "
+                    + "még felvillanhat. Ha egyáltalán nem szeretnéd látni, az appnál állítsd a szalagcím stílusát "
+                    + "„Nincs”-re (az Értesítési központ maradjon bekapcsolva).")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Button("macOS értesítési beállítások megnyitása", action: service.openNotificationSettings)
+                    .buttonStyle(.link)
+                    .font(.caption)
             }
         }
         .formStyle(.grouped)
-        .onAppear { service.refreshApps() }
+        .onAppear {
+            service.refreshApps()
+            accessibilityTrusted = NativeBannerDismisser.isTrusted
+        }
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            accessibilityTrusted = NativeBannerDismisser.isTrusted
+        }
     }
 
     @ViewBuilder private var statusView: some View {

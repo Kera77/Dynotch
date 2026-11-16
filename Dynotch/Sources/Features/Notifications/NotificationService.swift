@@ -22,6 +22,7 @@ final class NotificationService: ObservableObject {
     @Published private(set) var apps: [NotificationApp] = []
 
     let catalog = NotificationAppCatalog()
+    private let bannerDismisser = NativeBannerDismisser()
 
     private let settings: AppSettings
     private var database: NotificationDatabase?
@@ -98,6 +99,12 @@ final class NotificationService: ObservableObject {
 
     private func applyEnabled() {
         let enabled = settings.isEnabled(.notifications)
+        // Ask once for the permission that hiding the native banners needs.
+        if enabled, settings.hideNativeBanners, !NativeBannerDismisser.isTrusted,
+           !UserDefaults.standard.bool(forKey: "askedAccessibility") {
+            UserDefaults.standard.set(true, forKey: "askedAccessibility")
+            NativeBannerDismisser.requestTrust()
+        }
         if enabled, pollTimer == nil {
             let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated { self?.poll() }
@@ -182,6 +189,7 @@ final class NotificationService: ObservableObject {
             )
             if enabled {
                 incoming.append(notification)
+                if settings.hideNativeBanners { bannerDismisser.dismiss(notification) }
             }
         }
         guard let newest = incoming.last else { return }

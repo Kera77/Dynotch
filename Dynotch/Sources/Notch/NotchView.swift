@@ -10,6 +10,9 @@ struct NotchView: View {
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
 
+    /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
+    static let quickAnimation = Animation.easeOut(duration: 0.16)
+
     /// Content scales up from the notch and fades in with the same spring as the background.
     private static let contentTransition: AnyTransition =
         .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
@@ -63,7 +66,7 @@ struct NotchView: View {
                     notchSize: geometry.notchSize,
                     hoveredIndex: hoveredIndicator
                 ) { event in
-                    withAnimation(NotchController.animation) {
+                    withAnimation(Self.quickAnimation) {
                         model.hoveredIndicator = nil
                         calendar.dismissIndicator(event)
                     }
@@ -93,7 +96,7 @@ struct NotchView: View {
         .clipShape(shape)
         .offset(x: collapsedOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(NotchController.animation, value: calendar.indicatorEvents.map(\.id))
+        .animation(Self.quickAnimation, value: calendar.indicatorEvents.map(\.id))
         .animation(NotchController.animation, value: hoveredIndicator)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .environment(\.colorScheme, .dark)

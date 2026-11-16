@@ -30,6 +30,7 @@ final class AppSettings: ObservableObject {
         static let notificationDuration = "notificationDuration"
         static let notificationApps = "notificationApps"
         static let settingsPresentation = "settingsPresentation"
+        static let hideNativeBanners = "hideNativeBanners"
     }
 
     private let defaults: UserDefaults
@@ -91,6 +92,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(notificationApps, forKey: Key.notificationApps) }
     }
 
+    /// Close the macOS banner of notifications the notch shows (spec E-8).
+    @Published var hideNativeBanners: Bool {
+        didSet { defaults.set(hideNativeBanners, forKey: Key.hideNativeBanners) }
+    }
+
     @Published var settingsPresentation: SettingsPresentation {
         didSet { defaults.set(settingsPresentation.rawValue, forKey: Key.settingsPresentation) }
     }
@@ -122,6 +128,7 @@ final class AppSettings: ObservableObject {
         let durationRange = Self.notificationDurationRange
         notificationDuration = min(max(storedDuration, durationRange.lowerBound), durationRange.upperBound)
         notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
+        hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
         settingsPresentation = defaults.string(forKey: Key.settingsPresentation)
             .flatMap(SettingsPresentation.init(rawValue:)) ?? .notch
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes

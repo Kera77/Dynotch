@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-11-16
+
+### Added
+- Native macOS banners of notifications shown in the notch are closed automatically
+  (needs Accessibility permission; setting on the Notifications tab).
+
+### Changed
+- The X in the countdown hover label sits at the left edge.
+- Hiding a countdown is quick; the remaining countdowns and their outlines move up at once.
+
 ## [0.7.4] - 2026-11-16
 
 ### Changed

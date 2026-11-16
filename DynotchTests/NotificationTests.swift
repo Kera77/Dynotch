@@ -127,4 +127,23 @@ struct NotificationTests {
             == webApps[0].identifier)
         #expect(WebNotificationSource.resolvedIdentifier("app.zen-browser.zen", site: nil, apps: webApps) == "app.zen-browser.zen")
     }
+
+    @Test func bannerCloseActionNames() {
+        #expect(BannerMatcher.isCloseAction("Name:Close\nTarget:0x0\nSelector:(null)"))
+        #expect(BannerMatcher.isCloseAction("Name:Bezárás\nTarget:0x0"))
+        #expect(!BannerMatcher.isCloseAction("AXPress"))
+        #expect(!BannerMatcher.isCloseAction("Name:Show Details\nTarget:0x0"))
+        #expect(BannerMatcher.displayName(ofAction: "Name:Close\nTarget:0x0") == "Close")
+    }
+
+    @Test func bannerMatchingUsesTitleOrBody() {
+        let titled = notification(title: "Kovács Béla", body: "Ajánlat")
+        #expect(BannerMatcher.keys(for: titled) == ["Kovács Béla"])
+        #expect(BannerMatcher.matches(text: "Zen, mail.google.com, KOVÁCS BÉLA, Ajánlat", keys: ["Kovács Béla"]))
+        #expect(!BannerMatcher.matches(text: "Zen, Nagy Anna, Szia", keys: ["Kovács Béla"]))
+
+        let untitled = notification(title: "", body: "Holnap 9-kor találkozunk a földszinten")
+        #expect(BannerMatcher.keys(for: untitled) == ["Holnap 9-kor találkozunk a föl"])
+        #expect(BannerMatcher.keys(for: notification(title: "", body: "")).isEmpty)
+    }
 }
