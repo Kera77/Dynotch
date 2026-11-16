@@ -338,9 +338,9 @@ private struct CalendarSettingsView: View {
 private struct AboutSettingsView: View {
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: "rectangle.topthird.inset.filled")
-                .font(.system(size: 40))
-                .foregroundStyle(.tint)
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 72, height: 72)
             Text("Dynotch")
                 .font(.title2.bold())
             Text("Version \(AppInfo.version) (\(AppInfo.build))")

@@ -11,6 +11,10 @@ struct NotchView: View {
     @ObservedObject var claudeUsage: ClaudeUsageService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
+    /// Closes the notification card (spec E-12).
+    var closeNotifications: () -> Void = {}
+    /// Clears every notification and closes the card (spec E-12).
+    var clearNotifications: () -> Void = {}
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -99,7 +103,9 @@ struct NotchView: View {
                     service: notifications,
                     notifications: model.notifications,
                     canReply: model.notificationsCanReply,
-                    notchHeight: geometry.notchSize.height
+                    notchHeight: geometry.notchSize.height,
+                    close: closeNotifications,
+                    clearAll: clearNotifications
                 )
                 .frame(width: model.openSize.width, height: model.openSize.height)
                 .transition(Self.contentTransition)

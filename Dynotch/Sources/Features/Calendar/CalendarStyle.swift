@@ -4,7 +4,8 @@ import SwiftUI
 enum CalendarStyle {
     static let accent = Color(red: 0.04, green: 0.52, blue: 1)
     static let weekend = Color(red: 0.86, green: 0.42, blue: 0.4)
-    static let eventTime = Color(red: 1, green: 0.27, blue: 0.35)
+    /// Date and time under a meeting's name (spec K-5).
+    static let eventTime = Color(red: 0.3, green: 0.62, blue: 1)
     static let joinGreen = Color(red: 0.19, green: 0.74, blue: 0.33)
 
     /// "Today", "Tomorrow", otherwise the weekday name.

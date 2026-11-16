@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-16
+
+### Added
+- New app icon.
+- Notifications: X and "clear all" on the hover card; remove one or all in the Notifications feature.
+
+### Changed
+- Calendar: the date under a meeting's name is blue; the full view uses the same Join button.
+
+### Fixed
+- A swipe that switched to the calendar also stepped days when it continued over the day strip;
+  stepping days now needs a new swipe.
+
 ## [0.16.1] - 2026-11-16
 
 ### Fixed

@@ -245,4 +245,19 @@ struct NotificationTests {
         #expect(NotificationApp.isDefaultEnabled(identifier: "com.apple.tccd", name: "com.apple.tccd"))
         #expect(!NotificationApp.isDefaultEnabled(identifier: "com.apple.music", name: "Music"))
     }
+
+    /// Spec E-12: one notification can be removed, or all at once.
+    @Test @MainActor func removeAndClearAll() {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = NotificationService(settings: AppSettings(defaults: defaults))
+        service.present(title: "A", body: "1", appIdentifier: "x")
+        service.present(title: "B", body: "2", appIdentifier: "x")
+        service.remove(service.recent[0])
+        #expect(service.recent.map(\.title) == ["A"])
+        #expect(service.unseen.map(\.title) == ["A"])
+        service.clearAll()
+        #expect(service.recent.isEmpty)
+        #expect(service.unseen.isEmpty)
+        #expect(service.peek == nil)
+    }
 }

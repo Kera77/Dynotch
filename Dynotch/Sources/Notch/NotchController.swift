@@ -29,6 +29,8 @@ final class NotchController {
     private var graceUntil: Date?
     private var swipe = SwipeDetector()
     private var dayStepper = DayStepper()
+    /// The current trackpad gesture already switched features: it must not step days too.
+    private var gestureSwitchedFeature = false
     private var wasExpanded = false
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
@@ -44,13 +46,15 @@ final class NotchController {
         let windowRect = geometry.rect(for: geometry.windowSize)
         panel = NotchPanel(contentRect: windowRect)
 
-        let rootView = NotchView(
+        var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
             reminders: services.reminders, claudeUsage: services.claudeUsage
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
+        rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
+        rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
@@ -280,10 +284,13 @@ final class NotchController {
         // Normalize so positive = fingers moved right, regardless of "natural scrolling".
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let isMomentum = !event.momentumPhase.isEmpty
+        if phase == .began { gestureSwitchedFeature = false }
 
-        // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4).
+        // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4) —
+        // but not the rest of a swipe that just switched to the calendar: that needs a new one.
         if model.currentFeature == .calendar, !model.isLarge,
            model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
+            if gestureSwitchedFeature { return true }
             return stepDays(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY)
         }
 
@@ -295,7 +302,10 @@ final class NotchController {
         ) {
             let before = model.currentFeature
             withAnimation(Self.animation) { model.step(direction) }
-            if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
+            if model.currentFeature != before {
+                gestureSwitchedFeature = true
+                Haptics.perform(.featureSwitch, settings: settings)
+            }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
     }
@@ -388,5 +398,18 @@ extension NotchController {
             withAnimation(NotchView.quickAnimation) { calendar.dismissAnnouncement() }
         }
         return true
+    }
+}
+
+// MARK: - Notification card buttons (spec E-12)
+
+extension NotchController {
+    fileprivate func closeNotificationCard() {
+        collapse()
+    }
+
+    fileprivate func clearAllNotifications() {
+        notifications.clearAll()
+        collapse()
     }
 }

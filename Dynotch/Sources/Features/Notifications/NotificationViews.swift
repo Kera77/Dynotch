@@ -65,6 +65,10 @@ struct NotificationStackView: View {
     let notifications: [AppNotification]
     let canReply: Bool
     let notchHeight: CGFloat
+    /// Closes the card; its messages count as seen (spec E-12).
+    var close: () -> Void = {}
+    /// Removes every notification and closes the card (spec E-12).
+    var clearAll: () -> Void = {}
 
     @State private var replyText = ""
     @State private var replyStatus: ReplyStatus = .idle
@@ -146,6 +150,8 @@ struct NotificationStackView: View {
                 .font(.system(size: 10))
                 .foregroundStyle(Color.white.opacity(0.45))
                 .lineLimit(1)
+            NotificationHeaderButton(symbol: "trash", help: "Clear all notifications", action: clearAll)
+            NotificationHeaderButton(symbol: "xmark", help: "Close", action: close)
         }
         .padding(.horizontal, 12)
         .frame(height: NotchGeometry.notificationHeaderHeight)
@@ -278,20 +284,39 @@ struct NotificationsFeatureView: View {
     }
 
     private var list: some View {
-        ScrollView(.vertical) {
-            VStack(spacing: 6) {
-                ForEach(service.recent) { notification in
-                    NotificationRow(
-                        app: service.catalog.app(for: notification.appIdentifier),
-                        content: service.content(for: notification),
-                        date: notification.date
-                    )
-                    .onTapGesture { service.catalog.open(notification.appIdentifier) }
+        VStack(spacing: 4) {
+            HStack {
+                Text("\(service.recent.count) notification\(service.recent.count == 1 ? "" : "s")")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.5))
+                Spacer()
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) { service.clearAll() }
+                } label: {
+                    Label("Clear all", systemImage: "trash")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.75))
                 }
+                .buttonStyle(.plain)
             }
-            .padding(.vertical, 6)
+            .padding(.top, 4)
+            ScrollView(.vertical) {
+                VStack(spacing: 6) {
+                    ForEach(service.recent) { notification in
+                        NotificationRow(
+                            app: service.catalog.app(for: notification.appIdentifier),
+                            content: service.content(for: notification),
+                            date: notification.date
+                        ) {
+                            withAnimation(.easeOut(duration: 0.2)) { service.remove(notification) }
+                        }
+                        .onTapGesture { service.catalog.open(notification.appIdentifier) }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .scrollIndicators(.never)
         }
-        .scrollIndicators(.never)
     }
 
     private func message(symbol: String, text: String) -> some View {
@@ -321,6 +346,8 @@ private struct NotificationRow: View {
     let app: NotificationApp
     let content: NotificationContent
     let date: Date
+    /// Removes the notification (spec E-12).
+    var remove: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -336,6 +363,7 @@ private struct NotificationRow: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Color.white.opacity(0.45))
                         .lineLimit(1)
+                    NotificationHeaderButton(symbol: "xmark", help: "Remove", action: remove)
                 }
                 if !content.detail.isEmpty {
                     Text(content.detail)
@@ -351,5 +379,25 @@ private struct NotificationRow: View {
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.07)))
         .contentShape(Rectangle())
         .help("Open \(app.name)")
+    }
+}
+
+/// Small round icon button (close, clear all).
+struct NotificationHeaderButton: View {
+    let symbol: String
+    let help: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(Color.white.opacity(0.12)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
     }
 }

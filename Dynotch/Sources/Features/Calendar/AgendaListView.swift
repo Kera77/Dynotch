@@ -97,7 +97,7 @@ private struct AgendaEventRow: View {
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 if event.meetingURL != nil {
-                    JoinButton(style: .subtle, action: join)
+                    JoinButton(style: .filled, action: join)
                 }
             }
             .padding(.horizontal, 8)

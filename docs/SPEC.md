@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.16 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.17 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -13,6 +13,7 @@
 | G-4 | Minden funkció **külön kapcsolható** a Beállításokban. Kikapcsolt funkció nem fut a háttérben. | |
 | G-5 | A beállítások `UserDefaults`-ban tárolódnak, újraindítás után is megmaradnak. | |
 | G-7 | **Az app felülete angol.** A dátumok és időpontok a rendszer nyelvi és régióbeállítását követik. |
+| G-8 | **App-ikon:** sötétkék, lekerekített négyzet, benne kék kijelző fekete notch-csal (`Design/AppIcon.svg`, ebből készül minden méret). |
 | G-6 | **Stabil aláírás saját (önaláírt) tanúsítvánnyal** („Dynotch Self-Signed”). A CI ezzel ír alá. | A macOS az adatvédelmi engedélyeket (Naptár, Kisegítő hozzáférés) az aláíráshoz köti; stabil tanúsítvánnyal a frissítések után is megmaradnak. |
 
 ---
@@ -108,7 +109,7 @@
 | A-5 | Kikapcsolt beállításnál, illetve ha a Dynotch kilép vagy összeomlik, a billentyűk a megszokott módon működnek, Apple HUD-dal. |
 | A-6 | A billentyűk elfogásához **Kisegítő hozzáférés (Accessibility)** engedély kell. Ha hiányzik, a Beállítások ezt jelzi, és egy gombbal megnyitja a megfelelő Rendszerbeállítások oldalt. |
 
-### 2.3 Hatókör (v0.17)
+### 2.3 Hatókör (v0.18)
 
 - Benne van: rendszerhangerő (alapértelmezett kimenet), némítás, a beépített kijelző fényereje.
 - Nincs benne: külső monitor fényereje (DDC), billentyűzet-háttérfény, appokénti hangerő.
@@ -123,7 +124,7 @@
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
-| **HUD** (v0.17) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
+| **HUD** (v0.18) | Hangerő/fényerő HUD be/ki · Rendszer HUD helyettesítése · HUD megjelenési ideje (alapból 1,5 s) · Accessibility engedély állapota |
 | **Névjegy** | Verzió, build, GitHub-repó linkje, Kilépés |
 
 ---
@@ -142,9 +143,10 @@
 
 | ID | Követelmény |
 |---|---|
-| K-4 | Felül **napsáv**: bal oldalon a hónap rövid neve, mellette a napok vízszintes sora (a nap betűjele, a dátum, alatta pötty, ha van esemény). A mai nap kék és kiemelt, a hétvége pirosas. Egy napra kattintva az lesz kiválasztva. **A sáv fölött két ujjal vízszintesen húzva a kiválasztott nap lép** (kb. 60 pt-onként egy nap, lendülettel együtt; ujjak balra = előre), a sáv követi; itt a swipe nem vált funkciót. A panel megnyitásakor mindig a mai nap van kiválasztva. |
+| K-4 | Felül **napsáv**: bal oldalon a hónap rövid neve, mellette a napok vízszintes sora (a nap betűjele, a dátum, alatta pötty, ha van esemény). A mai nap kék és kiemelt, a hétvége pirosas. Egy napra kattintva az lesz kiválasztva. **A sáv fölött két ujjal vízszintesen húzva a kiválasztott nap lép** (kb. 60 pt-onként egy nap, lendülettel együtt; ujjak balra = előre), a sáv követi; itt a swipe nem vált funkciót. Ha egy funkcióváltó swipe érkezik meg a Naptárra, annak a mozdulatnak a maradéka (lendülettel együtt) nem léptet napot; ahhoz új mozdulat kell. A panel megnyitásakor mindig a mai nap van kiválasztva. |
 | K-5 | A napsáv alatt a **kiválasztott nap eseményei**: cím, alatta pirossal a nap rövid neve és a kezdési idő (egész napos eseménynél „egész nap”). Elöl az egész napos események, utána kezdési idő szerint. A már véget ért események halványítva látszanak. Ha nincs esemény: „Mára nincs esemény”. |
 | K-5b | A kiválasztott nap listája úgy görget, hogy **a folyamatban lévő vagy a következő meeting legyen felül** (megnyitáskor, napváltáskor, és amikor egy meeting véget ér). Ha minden meeting véget ért, a lista elejéről indul. |
+| K-5c | A meeting neve alatti dátum és idő **kék**. |
 | K-6 | **Csatlakozás gomb** (zöld kapszula), ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). A meeting **mindig az alapértelmezett böngészőben** nyílik meg, nem közvetlenül a meeting-appban. |
 
 ### 4.2b Teljes naptár nézet
@@ -152,6 +154,7 @@
 | ID | Követelmény |
 |---|---|
 | K-10 | A napi nézet jobb felső sarkában (a napsáv végén) egy kis ikon a panelt **nagy méretre** nyitja (960 × 340 pt, kisebb kijelzőn a kijelzőhöz igazítva). A jobb felső sarokban lévő ikon visszavált. A panel **megjegyzi a legutóbbi nézetet**, és újranyitáskor (újraindítás után is) ugyanabban nyílik. |
+| K-12b | A teljes nézet napirendjében ugyanaz a zöld **Join** gomb van, mint a napi nézetben. |
 | K-11 | Bal oldalon **havi rács**: év és hónap, előző/következő hónap gombok, a hét a rendszer szerinti első nappal kezdődik, a mai nap kék körben, a napok alatt legfeljebb három pötty az események száma szerint. Egy napra kattintva az lesz kiválasztva. |
 | K-12 | Jobb oldalon **napirend** a kiválasztott naptól 14 napra előre: a kiválasztott nap mindig látszik (üresen „Nincs esemény”), utána csak azok a napok, amelyeken van esemény. Soronként: kezdési idő és időtartam, a naptár színe, cím, Csatlakozás gomb. Az első nap fejlécében a hét száma is látszik. |
 | K-13 | Esemény létrehozása nincs (K-1: csak olvasás). |
@@ -195,6 +198,7 @@
 | E-8 | **Natív macOS értesítések:** a macOS nem engedi programból letiltani más appok szalagcímeit. Ezért a Dynotch (*Natív macOS szalagcímek elrejtése*, alapból be) minden olyan értesítésnél, amelyet a notchban megmutat, figyeli az Értesítési központ új ablakait (kisegítő értesítés), és amint a szalagcím megjelenik, bezárja (a cím, cím nélkül a szöveg eleje alapján); tartalékként 8 mp-ig 0,2 mp-enként is keresi. A szalagcím egy pillanatra felvillanhat. Ehhez **Kisegítő hozzáférés** kell. Teljesen láthatatlanná az appnál a szalagcím stílusát „Nincs”-re állítva lehet tenni. A notchban nem kezelt értesítésekhez nem nyúl. |
 | E-11 | **Válasz a notchból:** csevegő appok (nem levél, nem rendszerértesítés) kártyája alján **szöveges mező**; Enter küld. **Beeper:** a Beeper Desktop API-n (token: *Settings › Notifications › Replies*). |
 | E-11b | **Google Chat és más, API nélküli csevegők:** ha az értesítés rekordja tartalmazza a beszélgetés címét (chat.google.com / mail.google.com/chat), a Dynotch megnyitja azt abban az appban, amelyik az értesítést küldte (pl. Zen), megvárja, hogy előtérbe kerüljön és betöltsön, majd beilleszti a szöveget és Entert nyom (Kisegítő hozzáférés kell). Csak akkor gépel, ha közvetlenül előtte is az az app van előtérben; a vágólapot visszaállítja. Ha a cím nem ismert, nem küld semmit: a szöveget a vágólapra teszi és megnyitja az appot. Levélnél (Gmail) „Open … to reply” gomb marad. |
+| E-12 | **Bezárás és törlés:** a lenyíló kártya fejlécében jobb oldalt **X** (bezárja a kártyát; az üzenetei látottnak számítanak) és **kuka** (minden értesítést töröl). Az Értesítések funkcióban soronként **X** (azt az egyet törli), felül **Clear all**. A macOS Értesítési központjából nem töröl. |
 | E-9 | Hibakereséshez az app naplót ír ide (a szalagcímek bezárásáról is: `banner-dismiss.log`): `~/Library/Logs/Dynotch/notifications.log` (adatbázis szerkezete, appazonosítók, az utóbbi értesítések száma appanként) és `notification-records.log` (érkezett értesítésenként: azonosító, oldal, kinek tulajdonítva, megjelent-e). Értesítések tartalma egyikben sincs. |
 
 ---
@@ -321,5 +325,6 @@ Jelenleg nincs.
 | **v0.14** | Értesítések küldőnként egy kártyán; session-visszaállás értesítés; figyelmeztetések csak új lépcsőnél; keskenyebb Jegyzetek/Emlékeztetők panel |
 | **v0.15** | Meeting-bejelentés a notchban (felfelé söpréssel zárható); AI-jelző csak session, 70% felett |
 | **v0.16** | Válasz Google Chatre gépeléssel; rendszerértesítések; Focus beállításfül; trackpad-visszajelzés |
-| **v0.17** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
-| **v0.18+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |
+| **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
+| **v0.18** | Hangerő/fényerő HUD és a rendszer HUD helyettesítése |
+| **v0.19+** | További funkciók (például Most játszott zene, Fájlpolc, Időzítő), külön specifikálva |

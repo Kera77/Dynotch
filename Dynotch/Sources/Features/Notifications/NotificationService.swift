@@ -84,6 +84,20 @@ final class NotificationService: ObservableObject {
         unseen.removeAll { ids.contains($0.id) }
     }
 
+    /// Removes one notification from the list (spec E-12).
+    func remove(_ notification: AppNotification) {
+        recent.removeAll { $0.id == notification.id }
+        unseen.removeAll { $0.id == notification.id }
+        if peek?.id == notification.id { clearPeek() }
+    }
+
+    /// Removes every notification (spec E-12).
+    func clearAll() {
+        recent = []
+        unseen = []
+        clearPeek()
+    }
+
     /// The new notifications from the same app and sender (or chat) as this one, oldest first
     /// (spec E-4).
     func related(to notification: AppNotification) -> [AppNotification] {
