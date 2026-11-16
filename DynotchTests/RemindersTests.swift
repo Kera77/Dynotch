@@ -54,13 +54,12 @@ struct RemindersTests {
     }
 
     @Test func parserReadsListAndDate() {
-        let parsed = ReminderParser.parse(
-            "Meeting 2026-11-20 14:30 @munka", lists: lists, now: now, autoToday: false, removeDate: true, calendar: calendar
-        )
+        // The date detector works in the machine's own time zone.
+        let parsed = ReminderParser.parse("Meeting 2026-11-20 14:30 @munka", lists: lists, now: now, autoToday: false, removeDate: true)
         #expect(parsed.title == "Meeting")
         #expect(parsed.listID == "work")
         #expect(parsed.dueHasTime)
-        #expect(parsed.due.map { calendar.component(.hour, from: $0) } == 14)
+        #expect(parsed.due.map { Calendar.current.component(.hour, from: $0) } == 14)
     }
 
     @Test func parserKeepsDateWhenAskedAndNeverEmptiesTheTitle() {
@@ -74,7 +73,9 @@ struct RemindersTests {
     }
 
     @Test func parserAutoToday() {
-        let plain = ReminderParser.parse("Számla befizetése", lists: lists, now: now, autoToday: true, removeDate: true, calendar: calendar)
+        let plain = ReminderParser.parse(
+            "Számla befizetése", lists: lists, now: now, autoToday: true, removeDate: true, calendar: calendar
+        )
         #expect(plain.title == "Számla befizetése")
         #expect(plain.due == calendar.startOfDay(for: now))
         #expect(!plain.dueHasTime)
@@ -110,7 +111,9 @@ struct DayStepperTests {
         #expect(stepper.handle(phase: .began, isMomentum: false, fingerDeltaX: -10, deltaY: 0) == 0)
         #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: -20, deltaY: 0) == 1)
         #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: -60, deltaY: 0) == 2)
-        #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: 30, deltaY: 0) == -1)
+        // 12 pt left over forward; 30 pt back leaves -18, not yet a whole day.
+        #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: 30, deltaY: 0) == 0)
+        #expect(stepper.handle(phase: .changed, isMomentum: false, fingerDeltaX: 10, deltaY: 0) == -1)
     }
 
     @Test func momentumContinuesAndVerticalIsIgnored() {
