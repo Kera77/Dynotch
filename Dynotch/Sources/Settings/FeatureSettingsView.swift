@@ -11,7 +11,15 @@ struct FeatureSettingsView: View {
                 ForEach(settings.featureOrder) { feature in
                     HStack {
                         Toggle(isOn: binding(for: feature)) {
-                            Label(feature.title, systemImage: feature.symbolName)
+                            Label {
+                                Text(feature.title)
+                            } icon: {
+                                if feature == .claudeChat {
+                                    BrandGlyphView(glyph: .claude, size: 14, color: .primary)
+                                } else {
+                                    Image(systemName: feature.symbolName)
+                                }
+                            }
                         }
                         Spacer()
                         if AppSettings.menuBarFeatures.contains(feature) {

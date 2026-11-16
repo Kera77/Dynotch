@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.24 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.25 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -282,7 +282,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-5 | Ugyanazon appon belüli ablakváltáshoz **Kisegítő hozzáférés** kell (a jelenleg fókuszban lévő ablak azonosítása). Appok között enélkül is működik. |
 | F-7 | *Settings › Focus* fül: be/ki, várakozás, és rövid leírás arról, mit csinál a funkció. |
 | F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
-| F-8 | (v0.24) Ha az aktív app **párbeszédablakot, figyelmeztetést vagy lapot** mutat, a fókusz az appon belül nem vált ablakot; és ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. Így nincs villódzás. |
+| F-8 | (v0.25) **Az aktív alkalmazáson belül a fókusz nem vált ablakot** (az app maga dönti el, melyik ablaka aktív), csak másik alkalmazásra. Így a párbeszédablakok és felugró ablakok nem villódznak. Ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. |
 
 ---
 
@@ -355,6 +355,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | # | Követelmény |
 |---|-------------|
 | CN-1 | Amikor a Claude Code befejez egy feladatot, a becsukott notch alatt megjelenik egy sor: fehér Claude-ikon, „Claude finished”, a projekt neve és az időpont. **Csak kétujjas felfelé swipe-ra tűnik el.** Ha egy jelző részletei (hover, meeting-bejelentés) nyitva vannak, azok látszanak helyette. |
+| CN-3 | A jelzés **csak akkor jelenik meg, ha a Claude Code mindennel végzett**: ha a leállás pillanatában még fut háttérfeladata (a munkamenet naplója szerint elindult, de nem jelentett vissza és nem lett leállítva), nincs jelzés; az a végső leálláskor jön. A Dynotch saját chatjének futásai nem váltják ki. |
 | CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
 
 ## 4n. Claude a notchban (v0.24)
@@ -365,7 +366,19 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CC-2 | A válaszokat a gépen lévő **Claude Code** program adja (a szerkesztő-bővítmény legújabb beépített példánya, különben a telepített `claude`), a meglévő bejelentkezéssel; eszközök nélkül, sima beszélgetésként. A beszélgetés folytatható: a chat megjegyzi a munkamenetét. |
 | CC-3 | Új chatnél a panel kicsi; **Enterre** elküldi a kérdést, és a panel **lefelé megnő**, a válasz folyamatosan íródik ki. Folyamatosan lehet tovább chatelni; a futó válasz leállítható. |
 | CC-4 | Ha a notchot elhagyom, bezárul, de amíg Claude dolgozik, a becsukott notch **bal oldalán a Claude jele, jobb oldalán mozgó pontok** jelzik a munkát. |
+| CC-6 | **Előzmények:** a chatlista alján „From Claude Code” címmel megjelennek a Claude Code saját munkamenetei (`~/.claude/projects`, a legfrissebb 40). Kattintásra a beszélgetés szövege betöltődik (eszközhívások és belső jegyzetek nélkül), és folytatható: a következő kérdés a munkamenet **másolatát** viszi tovább, az eredeti érintetlen marad. A claude.ai és a Claude appok beszélgetései az Anthropic szerverein vannak, helyben nem olvashatók, ezért nem húzhatók be. |
+| CC-7 | A chatlista (oldalsáv) a beviteli mező melletti gombbal **becsukható és kinyitható**; az állapot megmarad. |
+| CC-8 | **Menüsor-ikon** (Claude jele) ugyanazzal a chattel, a többi menüsor-panel mintájára; a Features fülön kapcsolható. |
 | CC-5 | Amikor megjön a válasz (és a chat nincs a képernyőn), a jelzés eltűnik, és a notch alatt **kis sor lóg le: „Claude answered” + a chat címe**. Ott marad, amíg rá nem viszem az egeret; **hoverre a notch megnő** és a chatet mutatja. |
+
+## 4o. Előnézet hoverre (v0.25)
+
+| # | Követelmény |
+|---|-------------|
+| PV-1 | Beállítás (General): **hoverre csak előnézet**. Bekapcsolva a notch fölé vitt egérre egy kis panel nyílik: az aktuális modul ikonja, neve és egy sor róla (következő esemény, legutóbbi értesítés, utolsó számítás, jegyzet első sora, nyitott emlékeztetők, AI-keret, Claude utolsó válasza). |
+| PV-2 | Beállítás: **hány másodperc hover után nyíljon ki teljesen** (0–5 s, fél másodperces lépésekben; 0 = magától soha). |
+| PV-3 | Beállítás: **kattintásra nyíljon ki teljesen**. A gyorsbillentyűk, a jelvények és a „Claude answered” sor mindig a teljes panelt nyitják. |
+| C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 5. Nyitott kérdések
 
@@ -412,6 +425,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.25** | Előnézet hoverre; Claude Code-előzmények, becsukható oldalsáv és menüsor-ikon a Claude-modulban; „Claude finished” csak a háttérmunka végén; kereső a beállítások applistáiban; appon belül nincs fókuszváltás |
 | **v0.24** | Claude-chat a notchban; rögzítés-gyorsbillentyű; jelvény bal/jobb klikk; appban elintézett értesítések eltűnnek; hívó csak névvel, iMessage-tartalék; Beeper-kulcs fájlban; fókusz-villódzás javítása |
 | **v0.23** | Teendőlista a jegyzetekben; modulonkénti gyorsbillentyűk; „Claude befejezte” jelzés; hívó neve és képe |
 | **v0.22** | Értesítések küldőnként csoportosítva, kattintásra kinyíló csoport válaszmezővel; jelvény-kattintás az app értesítéseit mutatja; hívásfelismerés javítása |

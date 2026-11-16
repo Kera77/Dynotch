@@ -40,6 +40,9 @@ final class AppSettings: ObservableObject {
         static let claudeAlerts = "claudeAlerts"
         static let focusDelay = "focusDelay"
         static let calls = "calls"
+        static let hoverPreview = "hoverPreview"
+        static let previewDelay = "previewDelay"
+        static let previewClick = "previewClick"
     }
 
     private let defaults: UserDefaults
@@ -108,6 +111,28 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(hudEnabled, forKey: Key.hud) }
     }
 
+    static let previewDelayRange: ClosedRange<Double> = 0...5
+
+    /// Hovering the notch shows a small preview first (spec PV-1).
+    @Published var hoverPreview: Bool {
+        didSet { defaults.set(hoverPreview, forKey: Key.hoverPreview) }
+    }
+
+    /// Seconds of hovering until the preview opens fully; 0: never by itself (spec PV-2).
+    @Published var previewDelay: Double {
+        didSet {
+            let range = Self.previewDelayRange
+            let clamped = (min(max(previewDelay, range.lowerBound), range.upperBound) * 2).rounded() / 2
+            if clamped != previewDelay { previewDelay = clamped; return }
+            defaults.set(previewDelay, forKey: Key.previewDelay)
+        }
+    }
+
+    /// A click on the preview opens the panel fully (spec PV-3).
+    @Published var previewOpensOnClick: Bool {
+        didSet { defaults.set(previewOpensOnClick, forKey: Key.previewClick) }
+    }
+
     /// Incoming calls in the notch (spec P-1).
     @Published var callsEnabled: Bool {
         didSet { defaults.set(callsEnabled, forKey: Key.calls) }
@@ -124,7 +149,7 @@ final class AppSettings: ObservableObject {
     }
 
     /// Features with a menu bar icon (spec M-7).
-    static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage]
+    static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage, .claudeChat]
 
     /// Features whose menu bar icon is turned off (they stay in the notch).
     @Published private(set) var hiddenFromMenuBar: Set<FeatureID> {
@@ -209,6 +234,10 @@ final class AppSettings: ObservableObject {
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
+        hoverPreview = defaults.bool(forKey: Key.hoverPreview)
+        let storedPreviewDelay = defaults.object(forKey: Key.previewDelay) as? Double ?? 1.5
+        previewDelay = min(max(storedPreviewDelay, Self.previewDelayRange.lowerBound), Self.previewDelayRange.upperBound)
+        previewOpensOnClick = defaults.object(forKey: Key.previewClick) as? Bool ?? true
         claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true

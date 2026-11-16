@@ -9,10 +9,14 @@ struct BadgeSettingsView: View {
     @State private var installed: [InstalledApp] = []
     @State private var search = ""
 
+    private func matches(_ name: String) -> Bool {
+        search.isEmpty || name.localizedCaseInsensitiveContains(search)
+    }
+
     private var candidates: [InstalledApp] {
         let chosen = Set(service.apps.map(\.bundleID))
         return installed.filter {
-            !chosen.contains($0.bundleID) && (search.isEmpty || $0.name.localizedCaseInsensitiveContains(search))
+            !chosen.contains($0.bundleID) && matches($0.name)
         }
     }
 
@@ -23,20 +27,26 @@ struct BadgeSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.orange)
             }
+            SettingsSearchField(text: $search, prompt: "Search apps")
             List {
                 Section("Next to the notch") {
                     if service.apps.isEmpty {
                         Text("No apps yet. Add one from the list below.")
                             .foregroundStyle(.secondary)
                     }
-                    ForEach(service.apps) { app in
-                        BadgeAppRow(app: app, service: service)
+                    // Reordering works on the whole list, so it is off while searching.
+                    if search.isEmpty {
+                        ForEach(service.apps) { app in
+                            BadgeAppRow(app: app, service: service)
+                        }
+                        .onMove { service.move(from: $0, to: $1) }
+                    } else {
+                        ForEach(service.apps.filter { matches($0.name) }) { app in
+                            BadgeAppRow(app: app, service: service)
+                        }
                     }
-                    .onMove { service.move(from: $0, to: $1) }
                 }
                 Section("Add an app") {
-                    TextField("Search apps", text: $search)
-                        .textFieldStyle(.roundedBorder)
                     ForEach(candidates) { app in
                         HStack(spacing: 8) {
                             Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
@@ -115,5 +125,33 @@ private struct BadgeAppRow: View {
         if panel.runModal() == .OK, let url = panel.url {
             service.importIcon(for: app.bundleID, from: url)
         }
+    }
+}
+
+/// The search field above the app lists in the settings (spec C-5).
+struct SettingsSearchField: View {
+    @Binding var text: String
+    let prompt: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField(prompt, text: $text)
+                .textFieldStyle(.plain)
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear")
+            }
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 26)
+        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.primary.opacity(0.08)))
     }
 }

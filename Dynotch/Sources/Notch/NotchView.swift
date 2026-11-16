@@ -24,6 +24,8 @@ struct NotchView: View {
     var clearNotifications: () -> Void = {}
     /// A right click on an app badge: its unopened notifications (spec B-6).
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
+    /// Opens the whole panel from the preview (spec PV-3).
+    var openFully: () -> Void = {}
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -32,7 +34,7 @@ struct NotchView: View {
     private static let contentTransition: AnyTransition =
         .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
 
-    private var geometry: NotchGeometry { model.geometry }
+    var geometry: NotchGeometry { model.geometry }
 
     /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
     /// taller while one of them is hovered (spec K-8d).
@@ -83,7 +85,7 @@ struct NotchView: View {
 
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
     private var cornerRadius: CGFloat {
-        if model.isExpanded { return 24 }
+        if model.isExpanded { return model.isPreview ? 18 : 24 }
         if hud.display != nil { return 10 }
         if calls.call != nil { return 20 }
         return notifications.peek != nil || labelIndex != nil || shownNotice != nil ? 16 : 10
@@ -151,6 +153,14 @@ struct NotchView: View {
                 )
                 .frame(width: model.openSize.width, height: model.openSize.height)
                 .transition(Self.contentTransition)
+            } else if model.isExpanded, model.isPreview {
+                FeaturePreviewView(
+                    feature: model.currentFeature, preview: featurePreview, notchHeight: geometry.notchSize.height,
+                    hint: settings.previewOpensOnClick ? "Click to open" : nil
+                )
+                .frame(width: model.openSize.width, height: model.openSize.height)
+                .onTapGesture { if settings.previewOpensOnClick { openFully() } }
+                .transition(.opacity)
             } else if model.isExpanded {
                 expandedContent
                     .frame(width: model.openSize.width, height: model.openSize.height)

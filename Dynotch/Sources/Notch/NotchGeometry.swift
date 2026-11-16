@@ -88,6 +88,11 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// The small panel shown on hover in preview mode (spec PV-1).
+    var previewSize: CGSize {
+        CGSize(width: max(notchSize.width + 220, 420), height: notchSize.height + 58)
+    }
+
     /// The Claude chat with a conversation: grows downwards (spec CC-3).
     var chatSize: CGSize {
         CGSize(width: mediumSize.width, height: min(470, settingsSize.height))

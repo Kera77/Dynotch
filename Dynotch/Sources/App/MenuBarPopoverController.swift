@@ -27,6 +27,7 @@ final class MenuBarPopoverController: NSObject {
     private let icon: StatusIcon?
     private var iconObserver: AnyCancellable?
     private let onOpen: (() -> Void)?
+    private let onClose: (() -> Void)?
     private var badgeObserver: AnyCancellable?
     private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
@@ -41,9 +42,11 @@ final class MenuBarPopoverController: NSObject {
         badge: Badge? = nil,
         icon: StatusIcon? = nil,
         onOpen: (() -> Void)? = nil,
+        onClose: (() -> Void)? = nil,
         makeContent: @escaping (MenuBarPanelState) -> AnyView
     ) {
         self.onOpen = onOpen
+        self.onClose = onClose
         self.feature = feature
         self.panelSize = panelSize
         self.settings = settings
@@ -162,6 +165,7 @@ final class MenuBarPopoverController: NSObject {
     }
 
     private func closePanel() {
+        if panel?.isVisible == true { onClose?() }
         panel?.orderOut(nil)
         if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
         outsideClickMonitor = nil

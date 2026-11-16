@@ -23,7 +23,8 @@ final class NotchController {
     private var chatObserver: AnyCancellable?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
-    private let openSettings: () -> Void
+    var previewTask: Task<Void, Never>?
+    let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
 
@@ -43,7 +44,7 @@ final class NotchController {
     /// After the announcement was swiped away the pointer is still on it: no hover details until
     /// it leaves, so only the countdown stays (spec K-8f).
     var suppressIndicatorHover = false
-    private var wasExpanded = false
+    var wasExpanded = false
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
         settings = services.settings
@@ -73,6 +74,7 @@ final class NotchController {
         }
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
+        rootView.openFully = { [weak self] in self?.openFully() }
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
@@ -120,34 +122,6 @@ final class NotchController {
         }
     }
 
-    // MARK: - Settings (spec C-1…C-3)
-
-    private func settingsButtonPressed() {
-        switch settings.settingsPresentation {
-        case .window:
-            collapse()
-            openSettings()
-        case .notch:
-            withAnimation(Self.animation) { model.setShowingSettings(!model.isShowingSettings) }
-        }
-    }
-
-    /// The panel takes keyboard focus only for the settings and the calculator. Opening by
-    /// hover never steals focus from the app being used: then a click into the panel does it.
-    private func updateKeyboardFocus() {
-        guard !callIsShown else { return }
-        let wantsKeyboard = model.wantsKeyboard
-        let openedJustNow = model.isExpanded && !wasExpanded
-        wasExpanded = model.isExpanded
-        guard wantsKeyboard != panel.allowsKey else { return }
-        panel.allowsKey = wantsKeyboard
-        if !wantsKeyboard {
-            panel.resignKey()
-        } else if model.isShowingSettings || !openedJustNow {
-            panel.makeKey()
-        }
-    }
-
     func stop() {
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
@@ -192,7 +166,7 @@ final class NotchController {
         } else if hoverZone.contains(NSEvent.mouseLocation) {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
-            expand()
+            expand(preview: settings.hoverPreview)
         } else {
             updateHoveredIndicator()
         }
@@ -215,7 +189,8 @@ final class NotchController {
         }
     }
 
-    func expand() {
+    /// - Parameter preview: show only the small preview first (spec PV-1).
+    func expand(preview: Bool = false) {
         cancelClose()
         graceUntil = nil
         panel.ignoresMouseEvents = false
@@ -227,6 +202,7 @@ final class NotchController {
         withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
         notifications.clearPeek()
         startHoverTimer()
+        if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }
         showAnswerIfReady()
     }
 
@@ -235,6 +211,8 @@ final class NotchController {
         stopHoverTimer()
         graceUntil = nil
         isHeldOpen = false
+        previewTask?.cancel()
+        previewTask = nil
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         notifications.clearFocus()

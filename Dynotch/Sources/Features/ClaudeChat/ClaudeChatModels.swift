@@ -22,6 +22,12 @@ struct ClaudeChat: Codable, Identifiable, Equatable, Sendable {
     var sessionID: String?
     var messages: [ChatMessage] = []
     var updated = Date()
+    /// The folder the session belongs to (chats taken over from Claude Code, spec CC-6).
+    var workingDirectory: String?
+    /// The Claude Code session this chat was taken over from.
+    var importedFrom: String?
+    /// The next question continues a copy of the session, so the original stays untouched.
+    var needsFork: Bool?
 
     /// The first line of the first question, shortened.
     static func title(for prompt: String) -> String {
@@ -97,14 +103,14 @@ enum ClaudeCLI {
         return path.map { URL(fileURLWithPath: $0) }
     }
 
-    static func arguments(prompt: String, sessionID: String?) -> [String] {
+    static func arguments(prompt: String, sessionID: String?, fork: Bool = false) -> [String] {
         var arguments = [
             "-p", prompt, "--output-format", "stream-json", "--verbose", "--include-partial-messages",
             // A plain conversation: no tools, no extra servers.
             "--tools", "", "--strict-mcp-config",
             "--append-system-prompt", "You are answering in a small chat panel at the Mac's notch. Be concise."
         ]
-        if let sessionID { arguments += ["--resume", sessionID] }
+        if let sessionID { arguments += ["--resume", sessionID] + (fork ? ["--fork-session"] : []) }
         return arguments
     }
 }

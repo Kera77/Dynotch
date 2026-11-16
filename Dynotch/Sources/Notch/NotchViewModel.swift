@@ -11,6 +11,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isShowingSettings = false
     /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
     @Published private(set) var isChatTall = false
+    /// The open panel only shows a preview of the current feature (spec PV-1).
+    @Published private(set) var isPreview = false
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
@@ -39,7 +41,7 @@ final class NotchViewModel: ObservableObject {
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
-        isExpanded && (isShowingNotifications ? notificationsCanReply
+        isExpanded && !isPreview && (isShowingNotifications ? notificationsCanReply
             : isShowingSettings || [.calculator, .notes, .reminders, .notifications, .claudeChat].contains(currentFeature))
     }
 
@@ -47,6 +49,7 @@ final class NotchViewModel: ObservableObject {
     var openSize: CGSize {
         // Room at the bottom for the reply field, or the "open to reply" button.
         if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
+        if isPreview { return geometry.previewSize }
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
@@ -68,6 +71,7 @@ final class NotchViewModel: ObservableObject {
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded, isPinned { isPinned = false }
+        if !expanded, isPreview { isPreview = false }
         isExpanded = expanded
         updateLarge()
     }
@@ -77,19 +81,26 @@ final class NotchViewModel: ObservableObject {
         updateLarge()
     }
 
+    func setPreview(_ preview: Bool) {
+        guard isExpanded, !isShowingNotifications, preview != isPreview else { return }
+        isPreview = preview
+    }
+
     func setChatTall(_ tall: Bool) {
         if tall != isChatTall { isChatTall = tall }
     }
 
     func setShowingSettings(_ showing: Bool) {
         guard isExpanded, showing != isShowingSettings else { return }
+        if isPreview { isPreview = false }
         isShowingSettings = showing
         updateLarge()
     }
 
     func select(_ feature: FeatureID) {
-        // Picking a feature (even the current one) leaves the settings.
+        // Picking a feature (even the current one) leaves the settings and the preview.
         if isShowingSettings { isShowingSettings = false }
+        if isPreview { isPreview = false }
         guard feature != currentFeature else {
             updateLarge()
             return

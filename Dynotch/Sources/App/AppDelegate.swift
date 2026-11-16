@@ -44,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.hud.start()
         services.badges.start()
         services.calls.start()
+        ClaudeHook.upgradeIfNeeded()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
             notices.show(StickyNotice(title: "Claude answered", detail: chat.title, date: Date(), opensChat: true))
@@ -74,6 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let notes = services.notes
         let reminders = services.reminders
         let usage = services.claudeUsage
+        let chat = services.chat
         return [
             MenuBarPopoverController(feature: .calculator, panelSize: NSSize(width: 440, height: 340), settings: settings) {
                 AnyView(CalculatorMenuBarView(store: calculator, state: $0))
@@ -102,6 +104,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ),
                 onOpen: { usage.refreshIfStale() },
                 makeContent: { AnyView(ClaudeUsageMenuBarView(service: usage, state: $0)) }
+            ),
+            MenuBarPopoverController(
+                feature: .claudeChat,
+                panelSize: NSSize(width: 640, height: 470),
+                settings: settings,
+                icon: StatusIcon(changes: chat.objectWillChange, image: { BrandGlyphImage.claude }, toolTip: { "Claude" }),
+                onOpen: { chat.isVisibleInMenuBar = true },
+                onClose: { chat.isVisibleInMenuBar = false },
+                makeContent: { AnyView(ClaudeChatMenuBarView(service: chat, state: $0)) }
             )
         ]
     }

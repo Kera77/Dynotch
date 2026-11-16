@@ -24,7 +24,20 @@ final class NoticeService: ObservableObject {
 
     /// Links other programs open to tell Dynotch something (spec CN-2).
     func handle(_ url: URL) {
-        if let notice = ClaudeHook.notice(from: url, now: Date()) { show(notice) }
+        guard let notice = ClaudeHook.notice(from: url, now: Date()) else { return }
+        guard let transcript = ClaudeHook.transcriptPath(from: url) else {
+            show(notice)
+            return
+        }
+        // Claude also stops while background work is still running; that is not "finished".
+        Task { [weak self] in
+            let pending = await Task.detached { ClaudeTranscript.pendingTasks(inFileAt: transcript) }.value
+            if pending.isEmpty {
+                self?.show(notice)
+            } else {
+                DiagnosticsLog.append("claude-hook", "stopped with \(pending.count) background task(s) running: no notice")
+            }
+        }
     }
 }
 
@@ -33,7 +46,35 @@ final class NoticeService: ObservableObject {
 enum ClaudeHook {
     static let marker = "dynotch://claude-finished"
     /// Opens the link in the background, with the project folder's name.
-    static let command = #"open -g "dynotch://claude-finished?project=$(basename "$PWD" | sed 's/ /%20/g')""#
+    /// Dynotch's own chat runs are skipped; the hook's input (which names the transcript) is kept
+    /// in a temporary file whose name travels in the link.
+    static let command = #"[ -n "$DYNOTCH_CHAT" ] && exit 0; f=$(mktemp "${TMPDIR:-/tmp}/dynotch-stop.XXXXXX") && cat > "$f"; "#
+        + #"open -g "dynotch://claude-finished?project=$(basename "$PWD" | sed 's/ /%20/g')&info=$(basename "$f")""#
+
+    /// The transcript of the session that stopped, from the hook's input file (which is removed).
+    static func transcriptPath(from url: URL) -> String? {
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        guard let name = items.first(where: { $0.name == "info" })?.value,
+              name.hasPrefix("dynotch-stop."), !name.contains("/")
+        else { return nil }
+        for folder in [NSTemporaryDirectory(), "/tmp/"] {
+            let file = URL(fileURLWithPath: folder).appendingPathComponent(name)
+            guard let data = try? Data(contentsOf: file) else { continue }
+            try? FileManager.default.removeItem(at: file)
+            let input = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return input?["transcript_path"] as? String
+        }
+        return nil
+    }
+
+    /// Rewrites an installed hook that still has an older command.
+    static func upgradeIfNeeded() {
+        guard let settings = try? read(), isInstalled(in: settings) else { return }
+        let isCurrent = stopGroups(in: settings).contains { group in
+            (group["hooks"] as? [[String: Any]] ?? []).contains { $0["command"] as? String == command }
+        }
+        if !isCurrent { try? setInstalled(true) }
+    }
 
     static var settingsURL: URL {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
@@ -100,5 +141,36 @@ enum ClaudeHook {
             withJSONObject: settings(current, installed: installed), options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         )
         try data.write(to: url, options: .atomic)
+    }
+}
+
+/// Reads a Claude Code transcript for work that is still running in the background (spec CN-3).
+enum ClaudeTranscript {
+    /// Only the end of the file is read: old, forgotten tasks do not count.
+    static let tailLength = 3_000_000
+
+    static func pendingTasks(inFileAt path: String) -> Set<String> {
+        guard let handle = FileHandle(forReadingAtPath: path) else { return [] }
+        defer { try? handle.close() }
+        let size = (try? handle.seekToEnd()) ?? 0
+        try? handle.seek(toOffset: size > UInt64(tailLength) ? size - UInt64(tailLength) : 0)
+        let data = (try? handle.readToEnd()) ?? Data()
+        return pendingTasks(in: String(decoding: data, as: UTF8.self))
+    }
+
+    /// Background tasks that were started and have neither reported back nor been stopped.
+    static func pendingTasks(in text: String) -> Set<String> {
+        let started = ids(matching: #"running in background with ID: ([A-Za-z0-9_-]+)"#, in: text)
+        let reported = ids(matching: #"<task-id>([A-Za-z0-9_-]+)</task-id>"#, in: text)
+        let stopped = ids(matching: #"TaskStop[^\n]{0,200}?task_id\\?"\s*:\s*\\?"([A-Za-z0-9_-]+)"#, in: text)
+        return started.subtracting(reported).subtracting(stopped)
+    }
+
+    private static func ids(matching pattern: String, in text: String) -> Set<String> {
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let range = NSRange(text.startIndex..., in: text)
+        return Set(regex.matches(in: text, range: range).compactMap { match in
+            Range(match.range(at: 1), in: text).map { String(text[$0]) }
+        })
     }
 }

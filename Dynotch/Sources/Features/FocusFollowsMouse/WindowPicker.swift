@@ -46,6 +46,11 @@ enum WindowPicker {
 
 /// When focus must not follow the pointer (spec F-8).
 enum FocusRules {
+    /// Focus only moves to another app, never between the windows of the active one.
+    static func shouldSwitch(targetPID: pid_t, frontPID: pid_t?) -> Bool {
+        targetPID != frontPID
+    }
+
     static func isDialog(subrole: String) -> Bool {
         ["AXDialog", "AXSystemDialog", "AXSheet"].contains(subrole)
     }

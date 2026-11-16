@@ -5,23 +5,69 @@ struct ClaudeChatFeatureView: View {
     @ObservedObject var service: ClaudeChatService
     let isActive: Bool
 
+    var body: some View {
+        ClaudeChatView(service: service)
+            .padding(.top, 4)
+            .onAppear { service.isVisible = isActive }
+            // The panel's content is removed when it closes, without `isActive` changing first.
+            .onDisappear { service.isVisible = false }
+            .onChange(of: isActive) { _, active in
+                service.isVisible = active
+            }
+    }
+}
+
+/// Content of the Claude menu bar panel (spec CC-8).
+struct ClaudeChatMenuBarView: View {
+    @ObservedObject var service: ClaudeChatService
+    @ObservedObject var state: MenuBarPanelState
+
+    var body: some View {
+        ClaudeChatView(service: service)
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+            .padding(.bottom, 12)
+            .popoverChrome(arrowX: state.arrowX)
+    }
+}
+
+/// The chat itself, shared by the notch and the menu bar panel.
+struct ClaudeChatView: View {
+    @ObservedObject var service: ClaudeChatService
+
     private static let sidebarWidth: CGFloat = 160
 
     var body: some View {
         HStack(spacing: 0) {
-            sidebar
-                .frame(width: Self.sidebarWidth)
-            Rectangle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 1)
+            if service.showsSidebar {
+                sidebar
+                    .frame(width: Self.sidebarWidth)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+                Rectangle()
+                    .fill(Color.white.opacity(0.1))
+                    .frame(width: 1)
+            }
             conversation
-                .padding(.leading, 12)
+                .padding(.leading, service.showsSidebar ? 12 : 0)
         }
-        .padding(.top, 4)
-        .onAppear { service.isVisible = isActive }
-        .onChange(of: isActive) { _, active in
-            service.isVisible = active
+        .clipped()
+        .onAppear { service.refreshCodeSessions() }
+    }
+
+    /// Opens and closes the list of chats (spec CC-7).
+    private var sidebarToggle: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.18)) { service.showsSidebar.toggle() }
+        } label: {
+            Image(systemName: "sidebar.left")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(service.showsSidebar ? 0.9 : 0.6))
+                .frame(width: 30, height: 30)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .help(service.showsSidebar ? "Hide the chats" : "Show the chats")
     }
 
     // MARK: - Chats
@@ -47,10 +93,21 @@ struct ClaudeChatFeatureView: View {
             ScrollView(.vertical) {
                 VStack(spacing: 2) {
                     ForEach(service.chats) { chat in
-                        ChatRow(chat: chat, isSelected: chat.id == service.selectedID, isWorking: chat.id == service.workingID) {
-                            service.select(chat.id)
-                        } delete: {
-                            service.delete(chat.id)
+                        ChatRow(
+                            title: chat.title, isSelected: chat.id == service.selectedID, isWorking: chat.id == service.workingID,
+                            select: { service.select(chat.id) },
+                            delete: { service.delete(chat.id) }
+                        )
+                    }
+                    if !service.codeSessions.isEmpty {
+                        Text("FROM CLAUDE CODE")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.4))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 8)
+                            .padding(.top, 8)
+                        ForEach(service.codeSessions) { session in
+                            ChatRow(title: session.title, isSelected: false, isWorking: false, select: { service.open(session) })
                         }
                     }
                 }
@@ -100,6 +157,7 @@ struct ClaudeChatFeatureView: View {
 
     private var inputRow: some View {
         HStack(spacing: 8) {
+            sidebarToggle
             TextField(service.selected == nil ? "New chat — Enter sends" : "Reply — Enter sends", text: $service.draft)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
@@ -129,24 +187,25 @@ struct ClaudeChatFeatureView: View {
 }
 
 private struct ChatRow: View {
-    let chat: ClaudeChat
+    let title: String
     let isSelected: Bool
     let isWorking: Bool
     let select: () -> Void
-    let delete: () -> Void
+    /// nil: the row cannot be deleted (Claude Code's own sessions).
+    var delete: (() -> Void)?
 
     @State private var isHovered = false
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(chat.title)
+            Text(title)
                 .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.75))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if isWorking {
                 ProgressView().controlSize(.mini)
-            } else if isHovered {
+            } else if isHovered, let delete {
                 Button(action: delete) {
                     Image(systemName: "xmark")
                         .font(.system(size: 8, weight: .bold))

@@ -148,6 +148,25 @@ private struct GeneralSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section {
+                Toggle("Show only a preview on hover", isOn: $settings.hoverPreview)
+                LabeledContent("Open fully after") {
+                    HStack {
+                        Slider(value: $settings.previewDelay, in: AppSettings.previewDelayRange, step: 0.5)
+                            .frame(width: 160)
+                        Text(settings.previewDelay == 0 ? "Never" : "\(settings.previewDelay, specifier: "%.1f") s")
+                            .monospacedDigit()
+                            .frame(width: 48, alignment: .trailing)
+                    }
+                }
+                .disabled(!settings.hoverPreview)
+                Toggle("Click the preview to open fully", isOn: $settings.previewOpensOnClick)
+                    .disabled(!settings.hoverPreview)
+            } footer: {
+                Text("The preview shows one line about the current feature. Shortcuts always open the whole panel.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Volume and brightness next to the notch", isOn: $settings.hudEnabled)
             } footer: {
                 Text("Replaces the macOS volume and brightness overlay (needs Accessibility). Option-Shift: finer steps.")

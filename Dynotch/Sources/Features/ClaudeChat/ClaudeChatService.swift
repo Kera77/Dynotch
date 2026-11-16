@@ -30,8 +30,19 @@ final class ClaudeChatService: ObservableObject {
     @Published var draft = ""
     /// The chat Claude is answering in.
     @Published private(set) var workingID: UUID?
-    /// The chat is on screen; an answer arriving meanwhile needs no notice.
+    /// The chat is on screen in the notch or in the menu bar panel; an answer arriving
+    /// meanwhile needs no notice.
     var isVisible = false
+    var isVisibleInMenuBar = false
+    /// Claude Code's own sessions that were not taken over yet (spec CC-6).
+    @Published private(set) var codeSessions: [ClaudeCodeSession] = []
+    /// The list of earlier chats is shown (spec CC-7).
+    @Published var showsSidebar: Bool {
+        didSet { defaults.set(!showsSidebar, forKey: Self.sidebarKey) }
+    }
+
+    private static let sidebarKey = "claudeChatSidebarHidden"
+    private let defaults: UserDefaults
 
     private let file: URL
     private var process: Process?
@@ -44,8 +55,13 @@ final class ClaudeChatService: ObservableObject {
         return support.appendingPathComponent("Dynotch", isDirectory: true)
     }
 
-    init(file: URL = ClaudeChatService.defaultFolder.appendingPathComponent("claude-chats.json")) {
+    init(
+        file: URL = ClaudeChatService.defaultFolder.appendingPathComponent("claude-chats.json"),
+        defaults: UserDefaults = .standard
+    ) {
         self.file = file
+        self.defaults = defaults
+        showsSidebar = !defaults.bool(forKey: Self.sidebarKey)
         if let data = try? Data(contentsOf: file), let stored = try? JSONDecoder().decode([ClaudeChat].self, from: data) {
             chats = stored.sorted { $0.updated > $1.updated }
         }
@@ -89,6 +105,54 @@ final class ClaudeChatService: ObservableObject {
         if let data = try? JSONEncoder().encode(chats) { try? data.write(to: file, options: .atomic) }
     }
 
+    // MARK: - Claude Code's history (spec CC-6)
+
+    func refreshCodeSessions() {
+        Task { [weak self] in
+            let sessions = await Task.detached { ClaudeCodeHistory.sessions() }.value
+            self?.setCodeSessions(sessions)
+        }
+    }
+
+    func setCodeSessions(_ sessions: [ClaudeCodeSession]) {
+        let taken = Set(chats.compactMap(\.importedFrom))
+        let remaining = sessions.filter { !taken.contains($0.id) }
+        if remaining != codeSessions { codeSessions = remaining }
+    }
+
+    /// Takes a Claude Code session over as a chat: its conversation is shown, and the next
+    /// question continues a copy of it.
+    func open(_ session: ClaudeCodeSession) {
+        if let existing = chats.first(where: { $0.importedFrom == session.id }) {
+            selectedID = existing.id
+            return
+        }
+        var chat = ClaudeChat(title: session.title, sessionID: session.id)
+        chat.workingDirectory = session.workingDirectory
+        chat.importedFrom = session.id
+        chat.needsFork = true
+        chat.updated = session.modified
+        chats.append(chat)
+        chats.sort { $0.updated > $1.updated }
+        selectedID = chat.id
+        codeSessions.removeAll { $0.id == session.id }
+        save()
+        let id = chat.id
+        let file = session.file
+        Task { [weak self] in
+            let messages = await Task.detached { ClaudeCodeHistory.messages(in: file) }.value
+            self?.setImportedMessages(messages, for: id)
+        }
+    }
+
+    func setImportedMessages(_ messages: [ChatMessage], for id: UUID) {
+        // Only while nothing was asked in it yet.
+        update(id) { chat in
+            if chat.messages.isEmpty { chat.messages = messages }
+        }
+        save()
+    }
+
     // MARK: - Asking
 
     /// Sends the draft: starts a chat if none is open, and asks Claude.
@@ -127,17 +191,24 @@ final class ClaudeChatService: ObservableObject {
     }
 
     private func run(_ program: URL, prompt: String, chatID: UUID) {
-        let folder = Self.defaultFolder.appendingPathComponent(ClaudeCLI.folderName, isDirectory: true)
+        let chat = chats.first { $0.id == chatID }
+        var folder = Self.defaultFolder.appendingPathComponent(ClaudeCLI.folderName, isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        // A session taken over from Claude Code can only be continued from its own folder.
+        if let directory = chat?.workingDirectory, FileManager.default.fileExists(atPath: directory) {
+            folder = URL(fileURLWithPath: directory, isDirectory: true)
+        }
 
         let process = Process()
         process.executableURL = program
-        process.arguments = ClaudeCLI.arguments(prompt: prompt, sessionID: chats.first { $0.id == chatID }?.sessionID)
+        process.arguments = ClaudeCLI.arguments(prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true)
         process.currentDirectoryURL = folder
         var environment = ProcessInfo.processInfo.environment
         // The login is looked up by user name.
         environment["USER"] = environment["USER"] ?? NSUserName()
         environment["LOGNAME"] = environment["LOGNAME"] ?? NSUserName()
+        // Tells Dynotch's own Stop hook that this run reports its answer itself.
+        environment["DYNOTCH_CHAT"] = "1"
         process.environment = environment
 
         let output = Pipe()
@@ -201,11 +272,14 @@ final class ClaudeChatService: ObservableObject {
                 if isError || chat.messages[last].text.isEmpty { chat.messages[last].text = text }
                 chat.messages[last].isError = isError
             }
-            if let sessionID, !isError { chat.sessionID = sessionID }
+            if let sessionID, !isError {
+                chat.sessionID = sessionID
+                chat.needsFork = nil
+            }
             chat.updated = Date()
         }
         save()
-        if !isVisible, let chat = chats.first(where: { $0.id == chatID }) { onAnswerReady(chat) }
+        if !isVisible, !isVisibleInMenuBar, let chat = chats.first(where: { $0.id == chatID }) { onAnswerReady(chat) }
     }
 
     func stop() {

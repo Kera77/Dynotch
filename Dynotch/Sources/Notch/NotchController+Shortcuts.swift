@@ -104,3 +104,27 @@ extension NotchController {
         return true
     }
 }
+
+// MARK: - Preview on hover (spec PV-1…PV-3)
+
+extension NotchController {
+    /// The panel shows the preview; after the configured time it opens fully by itself.
+    func startPreview() {
+        model.setPreview(true)
+        previewTask?.cancel()
+        let delay = settings.previewDelay
+        guard delay > 0 else { return }
+        previewTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
+            self?.openFully()
+        }
+    }
+
+    func openFully() {
+        previewTask?.cancel()
+        previewTask = nil
+        guard model.isPreview else { return }
+        withAnimation(Self.animation) { model.setPreview(false) }
+    }
+}

@@ -5,6 +5,7 @@ struct NotificationSettingsView: View {
     @ObservedObject var service: NotificationService
     @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
     @State private var beeperToken = ""
+    @State private var appSearch = ""
     @State private var beeperHasToken = BeeperClient.hasToken
     @State private var beeperStatus = ""
 
@@ -61,7 +62,8 @@ struct NotificationSettingsView: View {
                     Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(service.apps) { app in
+                    SettingsSearchField(text: $appSearch, prompt: "Search apps")
+                    ForEach(service.apps.filter { appSearch.isEmpty || $0.name.localizedCaseInsensitiveContains(appSearch) }) { app in
                         Toggle(isOn: binding(for: app)) {
                             HStack(spacing: 8) {
                                 AppIconView(app: app, size: 18)

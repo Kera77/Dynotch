@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-16
+
+### Added
+- Preview on hover: optionally the notch first shows one line about the current feature, and opens
+  fully after a set time or on a click.
+- Claude: Claude Code's own sessions appear in the chat list and can be continued; the list of
+  chats can be hidden; a menu bar icon with the same chat.
+- Search fields for the app lists in the App badges and Notifications settings.
+
+### Changed
+- "Claude finished" only appears when Claude Code has nothing left running in the background.
+- Focus follows mouse no longer switches between the windows of the active app.
+- The Claude feature has Claude's mark in the settings too.
+
+### Fixed
+- No notice appeared when Claude answered in the chat while the notch was closed.
+- Windows flickered while an app showed a pop-up.
+
 ## [0.24.0] - 2026-11-16
 
 ### Added
