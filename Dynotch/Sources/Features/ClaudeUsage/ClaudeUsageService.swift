@@ -63,7 +63,7 @@ final class ClaudeUsageService: ObservableObject {
 
     /// The limit shown by the menu bar ring: the session, otherwise the fullest one.
     var primary: UsageLimit? {
-        limits.first { $0.id == "five_hour" } ?? limits.max { $0.utilization < $1.utilization }
+        limits.first { $0.title.hasPrefix("Session") } ?? limits.max { $0.utilization < $1.utilization }
     }
 
     var summary: String {
@@ -120,7 +120,8 @@ final class ClaudeUsageService: ObservableObject {
             case .token(let token):
                 do {
                     let (data, status) = try await Self.fetch(endpoint, token: token)
-                    DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + ClaudeUsageParser.structure(of: data))
+                    let shape = ClaudeUsageParser.labels(of: data) + "\n" + ClaudeUsageParser.structure(of: data)
+                    DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + shape)
                     switch status {
                     case 200:
                         apply(try ClaudeUsageParser.limits(from: data))

@@ -24,6 +24,35 @@ struct ClaudeUsageTests {
         #expect(limits[3].resetsAt == nil)
     }
 
+    @Test func parsesTheLimitsList() throws {
+        let json = """
+        {
+          "five_hour": {"utilization": 10, "resets_at": "2026-11-16T14:30:00Z"},
+          "limits": [
+            {"group": "default", "is_active": true, "kind": "seven_day", "percent": 51, "resets_at": "2026-11-17T09:00:00Z",
+             "scope": null, "severity": "normal"},
+            {"group": "fable", "is_active": true, "kind": "seven_day_model", "percent": 79, "resets_at": "2026-11-17T09:00:00Z",
+             "scope": null, "severity": "warning"},
+            {"group": "default", "is_active": true, "kind": "five_hour", "percent": 69, "resets_at": "2026-11-16T14:30:00Z",
+             "scope": null, "severity": "normal"},
+            {"group": "old", "is_active": false, "kind": "seven_day_model", "percent": 5, "resets_at": null,
+             "scope": null, "severity": "normal"}
+          ]
+        }
+        """
+        let limits = try ClaudeUsageParser.limits(from: Data(json.utf8))
+        #expect(limits.map(\.title) == ["Session (5 hr)", "Weekly (7 day)", "Fable limit"])
+        #expect(limits.map(\.utilization) == [69, 51, 79])
+        #expect(limits[2].resetsAt == ClaudeUsageParser.date(from: "2026-11-17T09:00:00Z"))
+    }
+
+    @Test func limitTitles() {
+        #expect(ClaudeUsageParser.title(kind: "five_hour", group: "") == "Session (5 hr)")
+        #expect(ClaudeUsageParser.title(kind: "seven_day", group: "all") == "Weekly (7 day)")
+        #expect(ClaudeUsageParser.title(kind: "seven_day_model", group: "fable") == "Fable limit")
+        #expect(ClaudeUsageParser.title(kind: "model_weekly", group: "claude_opus") == "Claude Opus limit")
+    }
+
     @Test func rejectsNonObjects() {
         #expect(throws: (any Error).self) { try ClaudeUsageParser.limits(from: Data("[1,2]".utf8)) }
     }

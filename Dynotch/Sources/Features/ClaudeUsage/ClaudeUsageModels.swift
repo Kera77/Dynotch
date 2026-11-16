@@ -34,6 +34,48 @@ enum ClaudeUsageParser {
 
     static func limits(from data: Data) throws -> [UsageLimit] {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw InvalidResponse() }
+        // Current responses list every limit (session, weekly, per model) in "limits".
+        if let list = json["limits"] as? [[String: Any]] {
+            let parsed = list.compactMap(limit(fromListEntry:))
+            if !parsed.isEmpty { return parsed.sorted { order(of: $0) < order(of: $1) } }
+        }
+        return legacyLimits(from: json)
+    }
+
+    /// One entry of "limits": {kind, group, percent, resets_at, is_active, severity}.
+    static func limit(fromListEntry entry: [String: Any]) -> UsageLimit? {
+        guard let percent = (entry["percent"] as? NSNumber)?.doubleValue else { return nil }
+        if let active = entry["is_active"] as? Bool, !active { return nil }
+        let kind = entry["kind"] as? String ?? ""
+        let group = entry["group"] as? String ?? ""
+        let id = [kind, group].filter { !$0.isEmpty }.joined(separator: ":")
+        return UsageLimit(
+            id: id.isEmpty ? UUID().uuidString : id,
+            title: title(kind: kind, group: group),
+            utilization: min(max(percent, 0), 100),
+            resetsAt: (entry["resets_at"] as? String).flatMap(date(from:))
+        )
+    }
+
+    /// "Session (5 hr)", "Weekly (7 day)", otherwise the model or group name with "limit".
+    static func title(kind: String, group: String) -> String {
+        let words = (kind + " " + group).lowercased()
+        let isSession = words.contains("five_hour") || words.contains("5h") || words.contains("session")
+        let isWeekly = words.contains("seven_day") || words.contains("7d") || words.contains("week")
+        let name = group.isEmpty ? kind : group
+        let generic: Set<String> = ["", "all", "overall", "default", "total", "session", "weekly", "five_hour", "seven_day"]
+        if generic.contains(name.lowercased()) {
+            if isSession { return "Session (5 hr)" }
+            if isWeekly { return "Weekly (7 day)" }
+        }
+        let pretty = name.split(whereSeparator: { $0 == "_" || $0 == "-" })
+            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+            .joined(separator: " ")
+        return "\(pretty) limit"
+    }
+
+    /// Older responses: "five_hour", "seven_day" and "seven_day_<model>" objects.
+    private static func legacyLimits(from json: [String: Any]) -> [UsageLimit] {
         let limits = json.compactMap { key, value -> UsageLimit? in
             guard !key.contains("oauth"), !key.contains("extra"),
                   let entry = value as? [String: Any],
@@ -47,6 +89,16 @@ enum ClaudeUsageParser {
             )
         }
         return limits.sorted { order(of: $0) < order(of: $1) }
+    }
+
+    /// The labels (not the numbers) of the "limits" entries, for the diagnostics log.
+    static func labels(of data: Data) -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return "" }
+        let limits = (json["limits"] as? [[String: Any]] ?? []).map {
+            "kind=\($0["kind"] as? String ?? "-") group=\($0["group"] as? String ?? "-") "
+                + "active=\($0["is_active"] as? Bool ?? false) severity=\($0["severity"] as? String ?? "-")"
+        }
+        return "limits: " + limits.joined(separator: "; ")
     }
 
     /// Shape of the response for the diagnostics log: keys and value types, no values.
@@ -88,12 +140,11 @@ enum ClaudeUsageParser {
         }
     }
 
+    /// Session first, then weekly, then the rest by name.
     private static func order(of limit: UsageLimit) -> String {
-        switch limit.id {
-        case "five_hour": "0"
-        case "seven_day": "1"
-        default: "2" + limit.title
-        }
+        if limit.id == "five_hour" || limit.title.hasPrefix("Session") { return "0" }
+        if limit.id == "seven_day" || limit.title.hasPrefix("Weekly") { return "1" }
+        return "2" + limit.title
     }
 
     static func date(from text: String) -> Date? {

@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
-## [0.11.1] - 2026-11-16
+## [0.11.2] - 2026-11-16
 
 ### Changed
 - Usage diagnostics log the response's shape (keys and types, no values).
+
+### Fixed
+- Claude usage reads the current "limits" list, so per-model limits (e.g. Fable) appear.
 
 ## [0.11.0] - 2026-11-16
 
