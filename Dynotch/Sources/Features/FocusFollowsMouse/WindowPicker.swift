@@ -1,5 +1,5 @@
-import Foundation
 import CoreGraphics
+import Foundation
 
 /// An on-screen window, from `CGWindowListCopyWindowInfo`.
 struct ScreenWindow: Equatable, Sendable {

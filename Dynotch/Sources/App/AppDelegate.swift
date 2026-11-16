@@ -44,19 +44,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             MenuBarPopoverController(
                 feature: .notes, panelSize: NSSize(width: 680, height: 440), settings: settings,
-                onOpen: { notes.activate() }
-            ) {
-                AnyView(NotesMenuBarView(store: notes, state: $0))
-            },
+                onOpen: { notes.activate() },
+                makeContent: { AnyView(NotesMenuBarView(store: notes, state: $0)) }
+            ),
             MenuBarPopoverController(
                 feature: .reminders,
                 panelSize: NSSize(width: 400, height: 520),
                 settings: settings,
                 badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil },
-                onOpen: { reminders.activate() }
-            ) {
-                AnyView(RemindersMenuBarView(store: reminders, state: $0))
-            }
+                onOpen: { reminders.activate() },
+                makeContent: { AnyView(RemindersMenuBarView(store: reminders, state: $0)) }
+            )
         ]
         menuBarPanels.forEach { $0.start() }
     }

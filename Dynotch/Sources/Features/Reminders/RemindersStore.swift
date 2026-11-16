@@ -157,22 +157,6 @@ final class RemindersStore: ObservableObject {
         }
     }
 
-    private func log(_ message: String) {
-        DiagnosticsLog.append("reminders", "\(message) status=\(EKEventStore.authorizationStatus(for: .reminder).rawValue)")
-    }
-
-    func openPrivacySettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    func openRemindersApp() {
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.reminders") {
-            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
-        }
-    }
-
     private func reload() {
         now = Date()
         guard Self.currentAccess() == .granted else {
@@ -273,10 +257,28 @@ final class RemindersStore: ObservableObject {
         }
         reload()
     }
+}
 
-    // MARK: - Helpers
+// MARK: - Helpers
 
-    private static func currentAccess() -> Access {
+extension RemindersStore {
+    func log(_ message: String) {
+        DiagnosticsLog.append("reminders", "\(message) status=\(EKEventStore.authorizationStatus(for: .reminder).rawValue)")
+    }
+
+    func openPrivacySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    func openRemindersApp() {
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.reminders") {
+            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+        }
+    }
+
+    static func currentAccess() -> Access {
         switch EKEventStore.authorizationStatus(for: .reminder) {
         case .fullAccess, .authorized: .granted
         case .notDetermined: .notDetermined
@@ -284,7 +286,7 @@ final class RemindersStore: ObservableObject {
         }
     }
 
-    nonisolated private static func makeItem(_ reminder: EKReminder) -> ReminderItem {
+    nonisolated static func makeItem(_ reminder: EKReminder) -> ReminderItem {
         let components = reminder.dueDateComponents
         let due = components.flatMap { Calendar.current.date(from: $0) }
         return ReminderItem(
@@ -299,7 +301,7 @@ final class RemindersStore: ObservableObject {
         )
     }
 
-    private static func color(of calendar: EKCalendar) -> CalendarColor {
+    static func color(of calendar: EKCalendar) -> CalendarColor {
         guard let rgb = NSColor(cgColor: calendar.cgColor)?.usingColorSpace(.sRGB) else { return .fallback }
         return CalendarColor(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent)
     }
