@@ -121,10 +121,10 @@ struct NotchView: View {
                     hoveredBadge: model.hoveredBadge,
                     notice: shownNotice,
                     openBadge: { badges.open($0.app) },
-                    showBadgeNotifications: showBadgeNotifications,
                     moveBadge: { id, index in
                         withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
                     },
+                    showBadgeNotifications: showBadgeNotifications,
                     dismiss: { item in
                         withAnimation(Self.quickAnimation) {
                             model.hoveredIndicator = nil
