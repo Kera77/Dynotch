@@ -180,7 +180,7 @@ struct AIMessageContent: View {
     }
 
     /// Headings ("# …") bold; the rest with inline Markdown, line breaks kept.
-    static func formatted(_ paragraph: String) -> AttributedString {
+    nonisolated static func formatted(_ paragraph: String) -> AttributedString {
         let lines = paragraph.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
             let trimmed = line.drop { $0 == " " }
             guard trimmed.hasPrefix("#") else { return String(line) }

@@ -60,7 +60,8 @@ struct ClipboardTrayTests {
         store.add([file, file])
         #expect(store.items.count == 1)
         let kept = try #require(store.trayFiles.first?.url)
-        #expect(kept.path.hasPrefix(home.path))
+        // /var and /private/var are the same folder.
+        #expect(kept.resolvingSymlinksInPath().path.hasPrefix(home.resolvingSymlinksInPath().path))
         #expect(store.step(by: 1) == false)
         #expect(store.step(by: -1) == false)
         store.remove(store.items[0])
