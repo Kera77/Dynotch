@@ -22,9 +22,9 @@ struct MenuBarSpaceTests {
         let edge = MenuBarSpace.occupiedEdge(
             on: external, screens: [main, external], primaryMaxY: main.maxY, notchMinX: 1512 + 1187, snapshot: snapshot
         )
-        #expect(edge == 1512 + 600)
+        #expect(abs((edge ?? 0) - (1512 + 600)) < 0.001)
         let room = MenuBarSpace.room(notchMinX: 1512 + 1187, occupiedEdge: edge)
-        #expect(room == 1187 - 600 - MenuBarSpace.gap)
+        #expect(abs((room ?? 0) - (1187 - 600 - MenuBarSpace.gap)) < 0.001)
         // Nothing left of the notch: no limit.
         let empty = MenuBarSpace.occupiedEdge(
             on: main, screens: [main], primaryMaxY: main.maxY, notchMinX: 663, snapshot: MenuBarSnapshot()
@@ -41,7 +41,7 @@ struct MenuBarSpaceTests {
         let edge = MenuBarSpace.occupiedEdge(
             on: main, screens: [main, external], primaryMaxY: main.maxY, notchMinX: 663, snapshot: snapshot
         )
-        #expect(edge == 530)
+        #expect(abs((edge ?? 0) - 530) < 0.001)
         let other = MenuBarSpace.occupiedEdge(
             on: external, screens: [main, external], primaryMaxY: main.maxY, notchMinX: 2699, snapshot: snapshot
         )
