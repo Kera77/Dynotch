@@ -13,7 +13,9 @@ Személyes használatra készül, Apple aláírás/notarizáció nélkül. A kia
 ### Homebrew
 
 ```bash
-brew install --cask kera77/dynotch/dynotch
+brew tap kera77/dynotch
+brew trust kera77/dynotch          # Homebrew 7: külső tap engedélyezése
+brew install --cask dynotch
 ```
 
 A cask mindig a legfrissebb kiadást telepíti, és leveszi róla a karantén jelzést (az app önaláírt).

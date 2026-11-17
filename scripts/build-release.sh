@@ -53,7 +53,7 @@ ditto -c -k --keepParent "$APP" "$DIST/Dynotch-$VERSION.zip"
 hdiutil create -volname "Dynotch" -srcfolder "$APP" -ov -format UDZO "$DIST/Dynotch-$VERSION.dmg"
 
 # The Homebrew cask downloads the latest release under a fixed name.
-cp "$DIST/Dynotch-$VERSION.zip" "$DIST/Dynotch.zip"
+cp "$DIST/Dynotch-$VERSION.dmg" "$DIST/Dynotch.dmg"
 
 (cd "$DIST" && shasum -a 256 ./* > SHA256SUMS.txt)
 echo "==> Artifacts:"; ls -lh "$DIST"

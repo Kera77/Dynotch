@@ -5,9 +5,10 @@
 ## [0.27.0] - 2026-11-17
 
 ### Added
+- Releases also carry `Dynotch.dmg` under a fixed name, for the Homebrew cask.
 - Automatic updates: Dynotch checks GitHub every 6 hours, verifies the download (checksum,
   version, signature), replaces itself and restarts. Settings › About: on/off and "Check Now".
-- Homebrew: `brew install --cask kera77/dynotch/dynotch`.
+- Homebrew: `brew tap kera77/dynotch && brew trust kera77/dynotch && brew install --cask dynotch`.
 
 ## [0.26.0] - 2026-11-16
 

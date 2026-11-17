@@ -398,7 +398,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | U-1 | Az app indulás után 20 másodperccel, majd **6 óránként** megnézi a legfrissebb GitHub-kiadást. |
 | U-2 | Ha újabb verzió van, letölti a verziószámos zipet, és csak akkor telepíti, ha **az SHA256 egyezik** a kiadás `SHA256SUMS.txt`-jével, a csomagban **a várt verzió** van, és **ugyanaz a tanúsítvány írta alá**, mint a futó appot. |
 | U-3 | Alapból automatikusan telepít: az app kilép, egy háttérfolyamat kicseréli a `/Applications`-beli példányt (hiba esetén visszateszi a régit), és elindítja az újat. Az újraindulás után egy értesítés jelzi az új verziót. *Settings › About*: automatikus telepítés ki/be, „Check Now” / „Install”, állapot. |
-| U-4 | **Homebrew:** `brew install --cask kera77/dynotch/dynotch` (tap: `Kera77/homebrew-dynotch`). A cask mindig a legfrissebb kiadás fix nevű `Dynotch.zip`-jét tölti le, és leveszi a karantén jelzést, mert az app nincs az Apple-nél hitelesítve. A további frissítéseket az app maga végzi (U-1…U-3). |
+| U-4 | **Homebrew:** `brew install --cask kera77/dynotch/dynotch` (tap: `Kera77/homebrew-dynotch`). A cask mindig a legfrissebb kiadás fix nevű `Dynotch.dmg`-jét tölti le (a Homebrew 7 miatt a tapot előbb `brew trust kera77/dynotch`-csal engedélyezni kell), és leveszi a karantén jelzést, mert az app nincs az Apple-nél hitelesítve. A további frissítéseket az app maga végzi (U-1…U-3). |
 
 ## 5. Nyitott kérdések
 
