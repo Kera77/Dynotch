@@ -120,14 +120,22 @@ final class DeviceWatcher: NSObject, ObservableObject {
         AudioOutputs.watchDefault { [weak self] in self?.audioChanged() }
     }
 
-    @objc private func bluetoothConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+    // IOBluetooth calls these on its own queue, not the main one: touching main-actor state here
+    // stopped the app (0.42.1). Only the name crosses over, on the main queue.
+    @objc nonisolated private func bluetoothConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
         device.register(forDisconnectNotification: self, selector: #selector(bluetoothDisconnected(_:device:)))
-        bluetooth(device.name ?? "Bluetooth device", connected: true)
+        let name = device.name ?? "Bluetooth device"
+        DispatchQueue.main.async { [weak self] in
+            MainActor.assumeIsolated { self?.bluetooth(name, connected: true) }
+        }
     }
 
-    @objc private func bluetoothDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
+    @objc nonisolated private func bluetoothDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
         notification.unregister()
-        bluetooth(device.name ?? "Bluetooth device", connected: false)
+        let name = device.name ?? "Bluetooth device"
+        DispatchQueue.main.async { [weak self] in
+            MainActor.assumeIsolated { self?.bluetooth(name, connected: false) }
+        }
     }
 
     private func bluetooth(_ name: String, connected: Bool) {
