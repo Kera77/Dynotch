@@ -1,47 +1,6 @@
 import Combine
 import Foundation
 
-/// Where the settings open (spec C-2).
-enum SettingsPresentation: String, CaseIterable, Sendable {
-    /// Inside the opened notch panel.
-    case notch
-    /// In a separate window.
-    case window
-}
-
-/// The look of the open notch and the menu bar panels (spec D-1).
-enum NotchDesign: String, CaseIterable, Sendable {
-    /// Black, like the notch itself.
-    case black
-    /// Liquid glass (macOS 26 and later; black before).
-    case glass
-    /// Black at the top, turning into glass downwards.
-    case blend
-
-    var title: String {
-        switch self {
-        case .black: "Black"
-        case .glass: "Liquid glass"
-        case .blend: "Black to glass"
-        }
-    }
-}
-
-/// How the notch looks on a display without a physical notch (spec D-7).
-enum ExternalNotchStyle: String, CaseIterable, Sendable {
-    /// Joined to the top edge, like a notch.
-    case notch
-    /// A capsule floating a little below the top edge.
-    case pill
-
-    var title: String {
-        switch self {
-        case .notch: "Notch"
-        case .pill: "Pill"
-        }
-    }
-}
-
 /// User preferences, persisted in UserDefaults (spec G-5).
 @MainActor
 final class AppSettings: ObservableObject {
@@ -334,8 +293,8 @@ final class AppSettings: ObservableObject {
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
         moduleStrip = defaults.object(forKey: Key.moduleStrip) as? Bool ?? true
-        let storedDelay = defaults.object(forKey: Key.moduleStripDelay) as? Double ?? 0.3
-        moduleStripDelay = min(max(storedDelay, Self.moduleStripDelayRange.lowerBound), Self.moduleStripDelayRange.upperBound)
+        let storedStripDelay = defaults.object(forKey: Key.moduleStripDelay) as? Double ?? 0.3
+        moduleStripDelay = min(max(storedStripDelay, Self.moduleStripDelayRange.lowerBound), Self.moduleStripDelayRange.upperBound)
         let storedBand = defaults.object(forKey: Key.moduleStripBand) as? Double ?? 0.125
         moduleStripBand = min(max(storedBand, Self.moduleStripBandRange.lowerBound), Self.moduleStripBandRange.upperBound)
         smartRulesOff = Set((defaults.stringArray(forKey: Key.smartRulesOff) ?? []).compactMap(SmartRule.init(rawValue:)))
@@ -378,8 +337,8 @@ extension AppSettings {
         !smartRulesOff.contains(rule)
     }
 
-    func setSmartRule(_ rule: SmartRule, on: Bool) {
-        if on { smartRulesOff.remove(rule) } else { smartRulesOff.insert(rule) }
+    func setSmartRule(_ rule: SmartRule, enabled: Bool) {
+        if enabled { smartRulesOff.remove(rule) } else { smartRulesOff.insert(rule) }
     }
 
     func isEnabled(_ feature: FeatureID) -> Bool {

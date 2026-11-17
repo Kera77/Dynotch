@@ -101,7 +101,7 @@ struct AppearanceSettingsView: View {
     private var smartSection: some View {
         Section {
             ForEach(SmartRule.allCases, id: \.self) { rule in
-                Toggle(rule.title, isOn: Binding(get: { settings.isSmartRuleOn(rule) }, set: { settings.setSmartRule(rule, on: $0) }))
+                Toggle(rule.title, isOn: Binding(get: { settings.isSmartRuleOn(rule) }, set: { settings.setSmartRule(rule, enabled: $0) }))
             }
         } header: {
             Text("Smart opening")
