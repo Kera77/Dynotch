@@ -10,6 +10,8 @@ final class FocusFollowsMouse {
     private var settingsObserver: AnyCancellable?
     private var lastFocused: CGWindowID?
     private var attempts = FocusRules.Attempts()
+    /// The last mouse button press or release anywhere.
+    private var lastClick = Date.distantPast
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -27,8 +29,14 @@ final class FocusFollowsMouse {
     private func apply() {
         let enabled = settings.focusFollowsMouse && SkyLightFocus.isAvailable
         if enabled, monitor == nil {
-            monitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
-                MainActor.assumeIsolated { self?.pointerMoved() }
+            let clicks: NSEvent.EventTypeMask = [
+                .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp
+            ]
+            monitor = NSEvent.addGlobalMonitorForEvents(matching: clicks.union(.mouseMoved)) { [weak self] event in
+                let isMove = event.type == .mouseMoved
+                MainActor.assumeIsolated {
+                    if isMove { self?.pointerMoved() } else { self?.clicked() }
+                }
             }
             DiagnosticsLog.append("focus", "on (Accessibility: \(AXIsProcessTrusted()))")
         } else if !enabled, let monitor {
@@ -52,10 +60,20 @@ final class FocusFollowsMouse {
         }
     }
 
+    /// A click switches the app itself; focusing at the same moment would send the app a
+    /// second press and release in the middle of the user's own, and its clicks could stop
+    /// working (spec F-10).
+    private func clicked() {
+        pending?.cancel()
+        pending = nil
+        lastClick = Date()
+    }
+
     private func focusWindowUnderPointer() {
-        // Never while dragging or selecting, and never take the keyboard from a Dynotch panel
-        // someone is typing in (spec F-4).
+        // Never while dragging or selecting, right after a click, and never take the keyboard
+        // from a Dynotch panel someone is typing in (spec F-4, F-10).
         guard NSEvent.pressedMouseButtons == 0,
+              Date().timeIntervalSince(lastClick) > FocusRules.quietAfterClick,
               !NSApp.windows.contains(where: { $0.isKeyWindow && $0.isVisible }),
               let point = CGEvent(source: nil)?.location,
               let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)

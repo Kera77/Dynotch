@@ -155,9 +155,8 @@ final class NotchViewModel: ObservableObject {
 
     /// How many feature icons fit left of the notch in the open panel.
     var switcherVisibleCount: Int {
-        // The row's left side, less its margins (14 at the edge, 8 before the notch) and the
-        // tablet menu (spec TB-1).
-        let room = (openSize.width - geometry.notchSize.width) / 2 - 22 - TabletMenu.width - TabletMenu.spacing
+        // The row's left side, less its margins (14 at the edge, 8 before the notch).
+        let room = (openSize.width - geometry.notchSize.width) / 2 - 22
         return FeatureSwitcher.visibleCount(for: room)
     }
 

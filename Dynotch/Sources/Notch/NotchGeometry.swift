@@ -203,12 +203,9 @@ struct NotchGeometry: Equatable, Sendable {
 
 /// Corners of the closed notch when it is rounded like the Dynamic Island (spec N-11).
 enum NotchCorners {
-    /// Taller content (a notification, a call, a meeting's details) keeps this radius.
-    static let tallRadius: CGFloat = 22
-
-    /// One row at notch height gets fully round ends; taller content a softer curve.
-    static func radius(notchHeight: CGFloat, isTall: Bool) -> CGFloat {
-        isTall ? tallRadius : (notchHeight / 2).rounded()
+    /// The resting notch, one row high, gets fully round ends.
+    static func radius(notchHeight: CGFloat) -> CGFloat {
+        (notchHeight / 2).rounded()
     }
 
     /// The capsule's top corners are round too, so it reaches at least `radius` beyond the

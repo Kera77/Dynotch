@@ -5,18 +5,20 @@ import SwiftUI
 extension NotchView {
     var cornerRadius: CGFloat {
         if model.isExpanded { return model.isPreview ? 18 : 24 }
-        let isTall = notifications.peek != nil || labelIndex != nil || shownNotice != nil
-        if settings.roundedNotch {
-            let tall = hud.display == nil && (isTall || calls.call != nil)
-            return NotchCorners.radius(notchHeight: geometry.notchSize.height, isTall: tall)
-        }
+        if isCapsule { return NotchCorners.radius(notchHeight: geometry.notchSize.height) }
         if hud.display != nil { return 10 }
         if calls.call != nil { return 20 }
         return isTall ? 16 : 10
     }
 
-    /// The closed notch is a capsule when rounded (spec N-11); open, its top straightens out.
-    var isCapsule: Bool { settings.roundedNotch && !model.isExpanded }
+    /// A notification, a call or a line hanging below makes the closed notch taller.
+    private var isTall: Bool {
+        notifications.peek != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
+    }
+
+    /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon
+    /// as anything unfolds below it, it straightens out, and back again.
+    var isCapsule: Bool { settings.roundedNotch && !model.isExpanded && !isTall }
 
     var capsule: (width: CGFloat, shift: CGFloat) {
         guard isCapsule else { return (size.width, 0) }

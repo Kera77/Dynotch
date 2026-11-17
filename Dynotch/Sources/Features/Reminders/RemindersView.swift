@@ -239,16 +239,10 @@ private struct TasksSection: View {
                     .font(.system(size: 12))
                     .foregroundStyle(Color.white.opacity(0.35))
             }
-            let tasks = store.tasks
-            if tasks.isEmpty {
-                Text("No open tasks")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.6))
-                    .padding(.vertical, 4)
-            }
-            ForEach(tasks) { item in
+            ForEach(store.tasks) { item in
                 ReminderRow(store: store, item: item, showsList: false)
             }
+            NewTaskRow(store: store)
             if store.showCompleted, !store.recentlyCompleted.isEmpty {
                 Text("Completed (7 days)")
                     .font(.system(size: 11, weight: .semibold))

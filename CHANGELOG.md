@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-11-17
+
+### Added
+- Reminders: a "New task" row at the end of the list adds a task to it with Enter.
+
+### Changed
+- The capsule shape is only for the resting notch: when a notification, a call or a line below
+  unfolds, or the notch opens, it straightens out and rounds again afterwards.
+- The tablet menu moved to the right of the notch, beside "focus follows mouse"; the right-hand
+  buttons are a little narrower so all of them fit beside the notch.
+
+### Fixed
+- Focus follows mouse could, rarely, stop clicks from working inside an app until it was turned
+  off and on: it no longer switches focus during or right after a click.
+
 ## [0.34.0] - 2026-11-17
 
 ### Added

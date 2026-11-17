@@ -48,7 +48,7 @@ struct PinButton: View {
         Button(action: action) {
             Image(systemName: isPinned ? "lock.fill" : "lock.open.fill")
                 .font(.system(size: 12, weight: .semibold))
-                .frame(width: 32, height: 22)
+                .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
                 .foregroundStyle(isPinned ? Self.activeColor : Color.white.opacity(0.45))
                 .contentShape(Rectangle())
         }

@@ -221,7 +221,11 @@ final class RemindersStore: ObservableObject {
     /// Creates a reminder from the quick-add text (spec R-3).
     @discardableResult
     func add(_ text: String) -> Bool {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, access == .granted else { return false }
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard access == .granted else {
+            log("add skipped: access=\(access)")
+            return false
+        }
         let parsed = ReminderParser.parse(
             text, lists: lists, now: Date(), autoToday: autoToday, removeDate: removeParsedDate
         )
@@ -235,13 +239,17 @@ final class RemindersStore: ObservableObject {
                 : [.year, .month, .day]
             reminder.dueDateComponents = Calendar.current.dateComponents(components, from: due)
         }
+        // The list only, never the text.
+        let target = reminder.calendar.map { "\($0.calendarIdentifier) writable=\($0.allowsContentModifications)" } ?? "none"
         do {
             try store.save(reminder, commit: true)
             errorMessage = nil
+            log("added to \(target)")
             reload()
             return true
         } catch {
             errorMessage = "Couldn't save: \(error.localizedDescription)"
+            log("add to \(target) failed: \(error)")
             return false
         }
     }

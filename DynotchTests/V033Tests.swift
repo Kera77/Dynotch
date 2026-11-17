@@ -35,9 +35,8 @@ struct V033Tests {
         #expect(!AppSettings(defaults: defaults).roundedNotch)
     }
 
-    @Test func oneRowGetsRoundEndsTallerContentASofterCurve() {
-        #expect(abs(NotchCorners.radius(notchHeight: 32, isTall: false) - 16) < 0.001)
-        #expect(abs(NotchCorners.radius(notchHeight: 37, isTall: false) - 19) < 0.001)
-        #expect(abs(NotchCorners.radius(notchHeight: 32, isTall: true) - NotchCorners.tallRadius) < 0.001)
+    @Test func oneRowGetsRoundEnds() {
+        #expect(abs(NotchCorners.radius(notchHeight: 32) - 16) < 0.001)
+        #expect(abs(NotchCorners.radius(notchHeight: 37) - 19) < 0.001)
     }
 }

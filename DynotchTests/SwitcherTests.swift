@@ -29,7 +29,7 @@ struct SwitcherTests {
         model.setExpanded(true)
         let visible = model.switcherVisibleCount
         // Never wider than the room left of the notch.
-        let room = (model.openSize.width - model.geometry.notchSize.width) / 2 - 22 - TabletMenu.width - TabletMenu.spacing
+        let room = (model.openSize.width - model.geometry.notchSize.width) / 2 - 22
         #expect(CGFloat(visible) * FeatureSwitcher.step - FeatureSwitcher.spacing + 6 <= room)
         #expect(visible < FeatureID.allCases.count)
     }
