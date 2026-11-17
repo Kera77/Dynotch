@@ -40,6 +40,8 @@ final class NotchController {
     private var graceUntil: Date?
     var swipe = SwipeDetector()
     var dayStepper = DayStepper()
+    /// Swipes over the feature icons move them by one icon per step (spec M-9).
+    var switcherStepper = DayStepper(stepWidth: FeatureSwitcher.step)
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
     /// After the announcement was swiped away the pointer is still on it: no hover details until
@@ -218,7 +220,8 @@ final class NotchController {
         previewTask = nil
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
-        notifications.clearFocus()
+        // Only an open panel ends the filter; the closed panels of other displays leave it.
+        if model.isExpanded { notifications.clearFocus() }
         withAnimation(Self.animation) { model.setExpanded(false) }
     }
 

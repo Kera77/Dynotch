@@ -25,6 +25,9 @@ final class NotchViewModel: ObservableObject {
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
     @Published var hoveredBadge: String?
+    /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
+    @Published private(set) var switcherFirst = 0
+
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 
@@ -120,10 +123,36 @@ final class NotchViewModel: ObservableObject {
         }
     }
 
+    /// How many feature icons fit left of the notch in the open panel.
+    var switcherVisibleCount: Int {
+        // The row's left side, less its margins (14 at the edge, 8 before the notch).
+        let room = (openSize.width - geometry.notchSize.width) / 2 - 22
+        return FeatureSwitcher.visibleCount(for: room)
+    }
+
+    /// Swipes the icons without switching features.
+    func scrollSwitcher(by steps: Int) {
+        let count = settings.activeFeatures.count
+        let next = FeatureSwitcher.clampedFirst(switcherFirst + steps, count: count, visible: switcherVisibleCount)
+        if next != switcherFirst { switcherFirst = next }
+    }
+
+    /// The current feature's icon is in view.
+    func revealCurrentFeature() {
+        let features = settings.activeFeatures
+        guard let index = features.firstIndex(of: currentFeature) else { return }
+        let visible = switcherVisibleCount
+        var first = FeatureSwitcher.clampedFirst(switcherFirst, count: features.count, visible: visible)
+        if index < first { first = index }
+        if index >= first + visible { first = index - visible + 1 }
+        if first != switcherFirst { switcherFirst = first }
+    }
+
     private func updateLarge() {
         let large = isExpanded && !isShowingNotifications && !isShowingSettings
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
+        revealCurrentFeature()
     }
 
     private func bounce(_ direction: NavigationDirection) {

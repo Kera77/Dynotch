@@ -6,6 +6,10 @@ extension NotchController {
 
     func handleScroll(_ event: NSEvent) -> Bool {
         if !model.isExpanded { return handleCollapsedScroll(event) }
+        // Over the feature icons a swipe only moves the icons; a click switches (spec M-9).
+        if !model.isShowingNotifications, switcherZone.contains(NSEvent.mouseLocation) {
+            return scrollSwitcher(event)
+        }
         // The settings scroll on their own; no feature switching there.
         guard !model.isShowingSettings, !model.isShowingNotifications else { return false }
 
@@ -46,5 +50,38 @@ extension NotchController {
             }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
+    }
+
+    /// The feature icons left of the notch in the open panel.
+    var switcherZone: CGRect {
+        let geometry = model.geometry
+        let panel = geometry.rect(for: model.openSize)
+        let side = (panel.width - geometry.notchSize.width) / 2
+        return CGRect(
+            x: panel.minX, y: panel.maxY - geometry.menuBarHeight,
+            width: side, height: geometry.menuBarHeight + NotchGeometry.topEdgeTolerance
+        )
+    }
+
+    private func scrollSwitcher(_ event: NSEvent) -> Bool {
+        let phase: SwipeDetector.Phase
+        if event.phase.contains(.began) {
+            phase = .began
+        } else if event.phase.contains(.changed) {
+            phase = .changed
+        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+            phase = .ended
+        } else {
+            phase = .none
+        }
+        let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
+        let steps = switcherStepper.handle(
+            phase: phase, isMomentum: !event.momentumPhase.isEmpty, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
+        )
+        if steps != 0 {
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { model.scrollSwitcher(by: steps) }
+            Haptics.perform(.dayStep, settings: settings)
+        }
+        return true
     }
 }

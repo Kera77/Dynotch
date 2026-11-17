@@ -155,9 +155,10 @@ extension NotchController {
         }
         notifications.clearPeek()
         setHoveredBadge(nil)
-        expand()
+        // The filter is in place before the panel and the list appear.
         notifications.setFocus(bundleID: badge.app.bundleID, name: badge.app.name, count: BadgeTracker.count(badge.label))
-        withAnimation(Self.animation) { model.select(.notifications) }
+        expand()
+        model.select(.notifications)
     }
 }
 

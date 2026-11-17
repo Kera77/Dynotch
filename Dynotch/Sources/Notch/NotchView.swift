@@ -227,7 +227,9 @@ struct NotchView: View {
         HStack(spacing: 0) {
             FeatureSwitcher(
                 features: settings.activeFeatures,
-                selected: model.isShowingSettings ? nil : model.currentFeature
+                selected: model.isShowingSettings ? nil : model.currentFeature,
+                first: model.switcherFirst,
+                visibleCount: model.switcherVisibleCount
             ) { feature in
                 withAnimation(NotchController.animation) { model.select(feature) }
             } move: { feature, index in

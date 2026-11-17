@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-17
+
+### Fixed
+- On displays with a notch the feature icons ran behind the notch. Now only as many are shown as
+  fit; swiping over them moves them without switching, a click switches.
+- A right click on an app badge could list other apps' notifications until the list changed.
+
 ## [0.27.0] - 2026-11-17
 
 ### Added

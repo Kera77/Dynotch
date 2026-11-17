@@ -7,6 +7,9 @@ import SwiftUI
 struct FeatureSwitcher: View {
     let features: [FeatureID]
     let selected: FeatureID?
+    /// Index of the first feature shown; only `visibleCount` fit beside the notch (spec M-9).
+    var first = 0
+    var visibleCount = Int.max
     let select: (FeatureID) -> Void
     let move: (FeatureID, Int) -> Void
 
@@ -17,6 +20,26 @@ struct FeatureSwitcher: View {
 
     @State private var dragged: FeatureID?
     @State private var dragOffset: CGFloat = 0
+
+    /// How many icons fit in `width`, the room left of the notch.
+    static func visibleCount(for width: CGFloat) -> Int {
+        max(1, Int((width - 6 + spacing) / step))
+    }
+
+    /// The first index shown: `first`, kept so that the window stays full.
+    static func clampedFirst(_ first: Int, count: Int, visible: Int) -> Int {
+        min(max(first, 0), max(count - visible, 0))
+    }
+
+    private var window: Range<Int> {
+        let start = Self.clampedFirst(first, count: features.count, visible: visibleCount)
+        return start..<min(start + visibleCount, features.count)
+    }
+
+    /// The features shown, with their index in `features`.
+    private var shown: [(index: Int, feature: FeatureID)] {
+        window.map { ($0, features[$0]) }
+    }
 
     static func targetIndex(from: Int, offset: CGFloat, count: Int) -> Int {
         min(max(from + Int((offset / step).rounded()), 0), max(count - 1, 0))
@@ -29,16 +52,17 @@ struct FeatureSwitcher: View {
         return 0
     }
 
+    /// Dragging works within the icons shown; positions are counted from the first shown.
     private var target: Int? {
-        guard let dragged, let from = features.firstIndex(of: dragged) else { return nil }
-        return Self.targetIndex(from: from, offset: dragOffset, count: features.count)
+        guard let dragged, let from = shown.firstIndex(where: { $0.feature == dragged }) else { return nil }
+        return Self.targetIndex(from: from, offset: dragOffset, count: shown.count)
     }
 
     var body: some View {
         HStack(spacing: Self.spacing) {
-            ForEach(Array(features.enumerated()), id: \.element) { index, feature in
+            ForEach(shown, id: \.feature) { index, feature in
                 icon(feature)
-                    .offset(x: offset(of: index, feature: feature))
+                    .offset(x: offset(of: index - window.lowerBound, feature: feature))
                     .zIndex(feature == dragged ? 1 : 0)
                     .onTapGesture { select(feature) }
                     .gesture(reorderGesture(for: feature))
@@ -52,7 +76,7 @@ struct FeatureSwitcher: View {
 
     private func offset(of index: Int, feature: FeatureID) -> CGFloat {
         if feature == dragged { return dragOffset }
-        guard let dragged, let from = features.firstIndex(of: dragged), let target else { return 0 }
+        guard let dragged, let from = shown.firstIndex(where: { $0.feature == dragged }), let target else { return 0 }
         return Self.shift(of: index, draggedFrom: from, to: target)
     }
 
@@ -93,14 +117,15 @@ struct FeatureSwitcher: View {
                 dragOffset = value.translation.width
             }
             .onEnded { _ in
-                guard dragged == feature, let from = features.firstIndex(of: feature) else { return }
-                let target = Self.targetIndex(from: from, offset: dragOffset, count: features.count)
+                guard dragged == feature, let from = shown.firstIndex(where: { $0.feature == feature }) else { return }
+                let target = Self.targetIndex(from: from, offset: dragOffset, count: shown.count)
+                let start = window.lowerBound
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
                     dragged = nil
                     dragOffset = 0
-                    if target != from { move(feature, target) }
+                    if target != from { move(feature, start + target) }
                 }
             }
     }

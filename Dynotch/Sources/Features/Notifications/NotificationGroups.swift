@@ -33,6 +33,8 @@ struct NotificationFocus: Equatable, Sendable {
     let appName: String
     let bundleID: String
     var notifications: [AppNotification]
+    /// Changes with every badge click, so the list is built anew.
+    var token = UUID()
 
     /// A badge's app and a notification's app are the same: the same identifier, or the same
     /// name (web apps post under the browser and are attributed by name).

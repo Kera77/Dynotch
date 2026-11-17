@@ -69,6 +69,8 @@ struct NotificationsFeatureView: View {
 
     var body: some View {
         Group { content }
+            // A badge click builds the list anew, with only that app's notifications (spec B-6).
+            .id(service.focus?.token)
             .onChange(of: isActive) { _, active in
                 if active { service.markSeen() }
             }
@@ -96,7 +98,12 @@ struct NotificationsFeatureView: View {
     }
 
     /// What is listed: everything, or one app's unopened notifications (spec B-6).
-    private var shown: [AppNotification] { service.focus?.notifications ?? service.recent }
+    private var shown: [AppNotification] {
+        guard let focus = service.focus else { return service.recent }
+        // Only what is still listed, and only that app's.
+        let ids = Set(focus.notifications.map(\.id))
+        return service.recent.filter { ids.contains($0.id) }
+    }
 
     private var list: some View {
         let groups = NotificationGroup.groups(of: shown)

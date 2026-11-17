@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.27 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.28 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -49,6 +49,7 @@
 | M-8 | **Menüsor-buborék nyitás/zárás:** az ikonra kattintva kinyílik, újabb kattintásra bezáródik. Ha a lakat be van kapcsolva, az ikonra kattintás bezárja a buborékot és feloldja a lakatot; máshova kattintva a lakatolt buborék nyitva marad. |
 | M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
+| M-9 | (v0.28) A felső sorban **csak annyi modulikon látszik, amennyi a notch bal oldalán elfér** (notchos kijelzőn semmi nem kerül a notch mögé). Ha az egér az ikonokon van, a **kétujjas vízszintes swipe csak az ikonokat lépteti** (modult nem vált); **kattintás vált modult**. Ha a modul swipe-pal (a tartalom fölött) vált, az ikonja magától láthatóvá válik. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -445,6 +446,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.28** | A modulikonok elférnek a notch mellett, swipe-pal léptethetők; a jelvény jobb klikkes listája mindig csak az adott app értesítéseit mutatja |
 | **v0.27** | Automatikus frissítés; Homebrew-telepítés |
 | **v0.26** | Akkumulátor-modul és merülésjelzés; minden rendszerértesítés; a „Claude finished” a valódi projektet írja; élesebb körök; fókusz-kapcsoló a menüsorban |
 | **v0.25** | Előnézet hoverre; Claude Code-előzmények, becsukható oldalsáv és menüsor-ikon a Claude-modulban; „Claude finished” csak a háttérmunka végén; kereső a beállítások applistáiban; appon belül nincs fókuszváltás |
