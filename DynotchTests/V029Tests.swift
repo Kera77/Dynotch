@@ -52,6 +52,10 @@ struct V029Tests {
         model.setGathered(false)
         #expect(!model.isGathered)
         #expect(NotchController.gatherTimeout > 1)
+        // The fingers lift ~0.1 s in: the drawing-in still finishes, then it holds briefly.
+        let early = NotchController.unfoldDelay(sinceGatherStarted: 0.1)
+        #expect(abs(early - (NotchController.gatherDuration - 0.1 + NotchController.holdAfterLift)) < 0.0001)
+        #expect(NotchController.unfoldDelay(sinceGatherStarted: 1) == NotchController.holdAfterLift)
     }
 
     /// Spec N-10: only the left/right dock swipe counts, with its phases.

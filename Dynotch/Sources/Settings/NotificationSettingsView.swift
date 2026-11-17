@@ -57,12 +57,11 @@ struct NotificationSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("Apps") {
+            Section {
                 if service.apps.isEmpty {
                     Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
                 } else {
-                    SettingsSearchField(text: $appSearch, prompt: "Search apps")
                     ForEach(service.apps.filter { appSearch.isEmpty || $0.name.localizedCaseInsensitiveContains(appSearch) }) { app in
                         Toggle(isOn: binding(for: app)) {
                             HStack(spacing: 8) {
@@ -71,6 +70,14 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                }
+            } header: {
+                // In the header, not as a row: a text field in a form row did not take clicks.
+                HStack {
+                    Text("Apps")
+                    Spacer()
+                    SettingsSearchField(text: $appSearch, prompt: "Search apps")
+                        .frame(width: 200)
                 }
             }
 

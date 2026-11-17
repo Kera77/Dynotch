@@ -24,6 +24,7 @@ final class NotchController {
     private var chatObserver: AnyCancellable?
     private var spaceObserver: NSObjectProtocol?
     var gatherTask: Task<Void, Never>?
+    var gatherStarted: Date?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
     var previewTask: Task<Void, Never>?
@@ -124,7 +125,7 @@ final class NotchController {
             forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in
             // Only a safety net: the animation follows the swipe itself.
-            MainActor.assumeIsolated { self?.spaceSwipeEnded() }
+            MainActor.assumeIsolated { self?.spaceSwipeLifted() }
         }
         callObserver = calls.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {

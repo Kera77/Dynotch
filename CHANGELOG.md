@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-11-17
+
+### Fixed
+- The Space switch animation did not show: it unfolded as soon as the fingers lifted, about 0.1 s
+  into the swipe. Now the drawing-in always finishes and the notch unfolds while the Spaces slide.
+- The search field in Settings › Notifications could not be clicked.
+
 ## [0.30.0] - 2026-11-17
 
 ### Changed

@@ -56,7 +56,7 @@ final class NotchManager {
         for controller in affected {
             switch phase {
             case .began: controller.spaceSwipeBegan()
-            case .ended: controller.spaceSwipeEnded()
+            case .ended: controller.spaceSwipeLifted()
             case .changed: break
             }
         }
