@@ -4,9 +4,6 @@ import CoreGraphics
 /// The private SidecarCore framework: the iPads that can be a display of this Mac, connecting
 /// and disconnecting them (spec TB-2). Looked up at run time; missing pieces mean "no tablets".
 enum SidecarBridge {
-    /// Called once the system has (dis)connected; nil on success.
-    typealias Completion = @Sendable @convention(block) (NSError?) -> Void
-
     private static let isLoaded = dlopen("/System/Library/PrivateFrameworks/SidecarCore.framework/SidecarCore", RTLD_NOW) != nil
 
     private static var manager: NSObject? {
@@ -34,17 +31,16 @@ enum SidecarBridge {
         return device.value(forKey: "name") as? String ?? "iPad"
     }
 
-    /// - Parameter selectorName: "connectToDevice:completion:" or "disconnectFromDevice:completion:".
+    /// - Parameters:
+    ///   - selectorName: "connectToDevice:completion:" or "disconnectFromDevice:completion:".
+    ///   - completion: called on any queue once the system is done, with the failure's text.
     /// - Returns: false when the framework does not offer it.
-    static func perform(_ selectorName: String, device: NSObject, completion: @escaping Completion) -> Bool {
+    static func perform(_ selectorName: String, device: NSObject, completion: @escaping @Sendable (String?) -> Void) -> Bool {
         guard let manager else { return false }
         let selector = NSSelectorFromString(selectorName)
-        guard manager.responds(to: selector), let method = class_getInstanceMethod(type(of: manager), selector) else {
-            return false
-        }
-        typealias Function = @convention(c) (NSObject, Selector, NSObject, Completion) -> Void
-        let function = unsafeBitCast(method_getImplementation(method), to: Function.self)
-        function(manager, selector, device, completion)
+        guard manager.responds(to: selector) else { return false }
+        let block: @convention(block) (NSError?) -> Void = { error in completion(error?.localizedDescription) }
+        manager.perform(selector, with: device, with: unsafeBitCast(block, to: AnyObject.self))
         return true
     }
 }

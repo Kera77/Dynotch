@@ -19,6 +19,8 @@ final class TabletDisplayService: ObservableObject {
     @Published private(set) var failure: String?
 
     private var screenObserver: NSObjectProtocol?
+    /// Mirror once the iPad being connected is there.
+    private var mirrorsWhenConnected = false
     private static let displayWait: TimeInterval = 6
 
     var connected: Tablet? { tablets.first(where: \.isConnected) }
@@ -44,13 +46,13 @@ final class TabletDisplayService: ObservableObject {
 
     /// Extends the desktop onto the iPad, or mirrors the main display on it.
     func connect(_ tablet: Tablet, mirrored: Bool = false) {
-        run("connectToDevice:completion:", on: tablet) { service in
-            if mirrored { service.waitForDisplay(mirrored: true, deadline: Date().addingTimeInterval(Self.displayWait)) }
-        }
+        mirrorsWhenConnected = mirrored
+        run("connectToDevice:completion:", on: tablet)
     }
 
     func disconnect(_ tablet: Tablet) {
-        run("disconnectFromDevice:completion:", on: tablet) { _ in }
+        mirrorsWhenConnected = false
+        run("disconnectFromDevice:completion:", on: tablet)
     }
 
     func setMirrored(_ mirrored: Bool) {
@@ -69,28 +71,30 @@ final class TabletDisplayService: ObservableObject {
 
     // MARK: - Private
 
-    private func run(_ selector: String, on tablet: Tablet, then: @escaping @MainActor @Sendable (TabletDisplayService) -> Void) {
+    private func run(_ selector: String, on tablet: Tablet) {
         guard pending == nil,
               let device = SidecarBridge.devices("devices").first(where: { SidecarBridge.identifier(of: $0) == tablet.id })
         else { return }
         pending = tablet.id
         failure = nil
-        let started = SidecarBridge.perform(selector, device: device) { [weak self] error in
-            let message = error?.localizedDescription
+        let started = SidecarBridge.perform(selector, device: device) { [weak self] message in
             DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.finish(failure: message, then: then) }
+                MainActor.assumeIsolated { self?.finish(failure: message) }
             }
         }
-        if !started { finish(failure: "This Mac does not offer Sidecar.", then: { _ in }) }
+        if !started { finish(failure: "This Mac does not offer Sidecar.") }
         DiagnosticsLog.append("tablet", "\(selector) started=\(started)")
     }
 
-    private func finish(failure message: String?, then: (TabletDisplayService) -> Void) {
+    private func finish(failure message: String?) {
         pending = nil
         failure = message
         if let message { DiagnosticsLog.append("tablet", "failed: \(message)") }
         refresh()
-        if message == nil { then(self) }
+        if message == nil, mirrorsWhenConnected {
+            mirrorsWhenConnected = false
+            waitForDisplay(mirrored: true, deadline: Date().addingTimeInterval(Self.displayWait))
+        }
     }
 
     /// The iPad's display appears a moment after connecting; mirror it once it is there.

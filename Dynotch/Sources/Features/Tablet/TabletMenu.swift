@@ -31,7 +31,7 @@ struct TabletMenu: View {
         .padding(3)
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
         .help("iPad as a display")
-        .onAppear(perform: service.refresh)
+        .onAppear { service.refresh() }
     }
 
     @ViewBuilder private var menuContent: some View {
@@ -49,7 +49,7 @@ struct TabletMenu: View {
         }
         if let tablet = service.connected {
             Section(tablet.name) {
-                Picker("Use as", selection: Binding(get: { service.isMirrored }, set: service.setMirrored)) {
+                Picker("Use as", selection: Binding(get: { service.isMirrored }, set: { service.setMirrored($0) })) {
                     Text("Extended display").tag(false)
                     Text("Mirror of the main display").tag(true)
                 }
@@ -68,6 +68,6 @@ struct TabletMenu: View {
             Text(failure)
         }
         Divider()
-        Button("Display Settings…", action: service.openDisplaySettings)
+        Button("Display Settings…") { service.openDisplaySettings() }
     }
 }
