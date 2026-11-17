@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.42 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.42.1 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -482,6 +482,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | DV-5 | **Zajszűrés:** ébredés után 30 mp-ig és indításkor nincs értesítés (a rendszer ilyenkor mindent újracsatlakoztat); ugyanarról az eszközről 10 mp-en belüli le-fel csatlakozás egy értesítés; az iPhone/iPad (Continuity, Sidecar) és a Mac saját belső eszközei kimaradnak. |
 | DV-6 | Megjelenési idő: mint az értesítéseké (E-3, beállítható). Nem kerül az értesítéslistába és a jelvényekbe; a hover nem nyitja az értesítéskártyát, hanem az Akkumulátorok modult (ha be van kapcsolva). |
 | DV-7 | *Settings › Devices* (vagy a General fülön): be/ki, kategóriánként (Bluetooth, USB, kijelző, meghajtó, audio) és **lecsatlakozás is** kapcsoló. |
+| DV-8 | (v0.42.1) A Bluetooth-figyeléshez az Info.plist-ben ott a használat leírása (`NSBluetoothAlwaysUsageDescription`); nélküle a macOS indításkor leállította az appot. Első indításkor a macOS engedélyt kér a Bluetooth-hoz. |
 
 ## 4w. Olvasatlan üzenetek a notchban (v0.42)
 
@@ -609,6 +610,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.42.1** | Javítás: a 0.42 indításkor kilépett (hiányzó Bluetooth-leírás) |
 | **v0.42** | AI modul (Claude + ChatGPT), vágólapkezelő, fájltálca, értesítés-fülek, Beeper és Google Chat a notchban, csatlakozó eszközök; a v0.40–0.41 hibáinak javítása |
 | **v0.41** | Modul-ikonsor a notch alsó sávjánál; környezetfüggő nyitás (meeting, emlékeztető, másolt számítás, akkumulátor, AI usage) |
 | **v0.40** | Üveg külön ablakban (nem vált feketére); pill külső kijelzőn; beállítások az első kattintásig; Join a meeting hover-sorában; válasz egy sorra, emoji; nincs App Nap |

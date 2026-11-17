@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.42.0"
+    MARKETING_VERSION: "0.42.1"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -32,6 +32,7 @@ targets:
           - CFBundleURLName: com.peterkereki.Dynotch
             CFBundleURLSchemes: [dynotch]
         NSCalendarsFullAccessUsageDescription: "Dynotch shows your upcoming events in the notch."
+        NSBluetoothAlwaysUsageDescription: "Dynotch shows a notice when a Bluetooth device connects or disconnects, with its battery."
         NSAppleEventsUsageDescription: "Dynotch reads and saves your notes in Notes, and sends a text through Messages when you reply to a call."
         NSContactsUsageDescription: "Dynotch looks up the caller's phone number to send them a text."
         NSRemindersFullAccessUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
