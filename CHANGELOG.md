@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-11-17
+
+### Added
+- Answer a single line of a notification: the arrow on a line quotes it, the answer appears under
+  it and the notch stays open for the next one. Beeper links the answer to that message.
+- An emoji button beside the reply field opens the emoji picker; typed emoticons such as :D or :)
+  become emoji.
+- Settings › Appearance › "Displays without a notch": Notch or Pill.
+- The meeting countdown's hover line has a Join button left of the X.
+
+### Changed
+- Settings opened in the notch stay until the first click outside instead of pinning it.
+- The Reminders menu bar count sits exactly between the icon's two lines.
+
+### Fixed
+- Liquid glass turned nearly black in modules that take typing (and after pinning): the glass
+  now has a window of its own that never takes the keyboard.
+- The first opening after a long idle time lagged: App Nap is off for Dynotch.
+
 ## [0.39.0] - 2026-11-17
 
 ### Added

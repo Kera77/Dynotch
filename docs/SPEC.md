@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.39 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.40 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -38,6 +38,7 @@
 | N-11 | (v0.33) **Lekerekített notch (Dynamic Island-szerű):** a becsukott notch alsó sarkai lekerekednek – egy sornyi tartalomnál (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő) a notch magasságának felével, így a végei teljesen kerekek; magasabb tartalomnál (értesítés, hívás, meeting részletei, lelógó sor) 22 pt-tal. Lenyitáskor a sugár a méretváltozással együtt, ugyanazzal a rugóval áll vissza a panel szokásos (24 pt, előnézetnél 18 pt) sarkára, így a nagy panel „kiegyenesedik”. Ki-be kapcsolható: *Beállítások › General › Rounded notch* (alapból be); kikapcsolva a korábbi sarkok maradnak. (v0.34) **Teljes kapszula:** a felső sarkok is kerekek, ugyanazzal a sugárral. Hogy a felső lekerekítés ne vágjon bele a fizikai notchba, a fekete rész mindkét oldalon legalább egy sugárnyival túlnyúlik a notchon (üresen ezért szélesebb a fizikai notchnál; ha csak az egyik oldalon áll tartalom, a másikon kap ennyi helyet); a tartalom a helyén marad. Lenyitáskor a felső sarkok kiegyenesednek, a panel teteje ismét a képernyő széléhez simul. (v0.35) **Csak az alapállapot kapszula:** az egysoros becsukott notch (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő mellett). Amint bármi lelóg vagy megnő – értesítés, hívás, meeting részletei, lelógó sor, előnézet, lenyitás –, a notch ugyanazzal a rugóval kiegyenesedik (felül szögletes, alul a korábbi sarkok), és utána vissza. |
 | N-12 | (v0.34) **Teljes képernyős appoknál rejtve:** ha az adott kijelzőn egy app ablaka a teljes képernyőt (a menüsor sávját is) lefedi, a becsukott notch mellett **semmi nem látszik** – se jelzők, se jelvények, se értesítések, se lelógó sor (a notch fekete része sem). Csak egy bejövő hívás és a hangerő/fényerő jelenik meg. A notch akkor nyílik le, ha az egér **a képernyő legfelső szélére**, a notch szélességén belülre ér (a szokásos hover-zóna itt nem nyit). Felismerés: másodpercenként és Space-váltáskor az ablakok kereteiből (a tartalmukat nem nézi). Ki-be kapcsolható: *Settings › General › Hide the notch over full-screen apps* (alapból be). |
 | N-13 | (v0.37) **Csak a tartalmas oldal kerek:** *Settings › General › Round only the sides with something shown* (alapból ki; csak a lekerekített notch mellett állítható). Bekapcsolva a kapszula csak azon az oldalon kerek (és nyúlik túl a notchon), ahol a notch mellett valami látszik (jelző, jelvény, hangerő); a másik oldal a notch saját szélét követi (felül szögletes, alul a szokásos kis sarok). Üres notchnál egyik oldal sem kerek. |
+| N-14 | (v0.40) **Nincs lassú első nyitás:** az app kikapcsolja magának az App Nap-et (a macOS a sokáig tétlen háttérappokat lelassítja, és az első hover a felébredésre várt). A gép tétlen alvását nem akadályozza. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -81,7 +82,7 @@
 | C-1b | A beállítások fülei **ikonok**; a fülsor mellett mindig ki van írva a kiválasztott fül neve, hoverre pedig annak a fülnek a neve, amelyik fölött az egér áll. |
 | C-2 | Beállítás: **hol nyíljanak meg a beállítások**. *A notchban* (alapértelmezett): a panel a beállítások méretére nő (520 × 440 pt tartalom a menüsor alatt), és minden beállítás a notchban jelenik meg; a fogaskerékre vagy egy funkció ikonjára kattintva, illetve a panel bezárásakor visszatér a funkciókhoz. *Külön ablakban*: a panel becsukódik, és egy normál macOS ablak nyílik meg ugyanazzal a tartalommal. |
 | C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
-| C-6 | (v0.37) Ha a beállítások a notchban nyílnak meg, a notch **automatikusan rögzül** (kék lakat), így nem csukódik be munka közben. A beállítások bezárásakor (fogaskerék, modulválasztás, bezáródás) a rögzítés feloldódik, ha azt a beállítások kapcsolták be; a kézzel előtte bekapcsolt rögzítés megmarad. |
+| C-6 | (v0.37, v0.40-ben módosítva) Ha a beállítások a notchban nyílnak meg, a notch **nyitva marad az első kattintásig a notchon kívül** (akkor is, ha az egér közben elhagyja), és arra a kattintásra bezáródik. Nem rögzíti (a lakat nem kapcsol be). Modul választásakor vagy a fogaskerékre kattintva a szokásos viselkedés tér vissza. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
 | C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
@@ -181,6 +182,7 @@
 | K-8e | A hover-feliratban **a jobb szélen egy X** gomb elrejti az adott meeting visszaszámlálóját; az a meetinghez többé nem jelenik meg (újraindítás után sem). A többi visszaszámláló gyorsan (0,16 mp) a helyére csúszik, a körvonalukkal együtt. |
 | K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött); ezután csak a visszaszámláló marad, a név akkor sem nyílik ki újra, ha az egér még ott van (csak ha elhagyta és visszatér). Minden meeting egyszer kerül bejelentésre. |
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
+| K-8h | (v0.40) A meeting-visszaszámláló (előjelzés és „folyamatban”) **hover-sorában** a név és az idő mellett, az **X-től balra** a **Join** gomb is ott van, ha a meetingnek van linkje; a meetinget nyitja meg. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 
 ---
@@ -230,6 +232,8 @@
 | E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
 | E-16 | (v0.32) **Saját szabályok forrásonként** (appok, rendszerértesítések, weboldalak): a sor melletti nyíllal lenyíló beállítások – **név** (a notchban és a listákban ez látszik), **macOS-banner** (alapértelmezés / elrejtés / megjelenítés), **válaszmező** (automatikus / mindig / soha). Egyedi szabállyal rendelkező forrásnál egy kis jel látszik. A keresés az oldal címére is szűr. |
 | E-16b | (v0.38) A **válaszmező alapból ki van kapcsolva** minden forrásnál (csevegő appoknál is); csak az a forrás kapja meg, amelynek szabályában „Show” áll. A választó első lehetősége „Default (off)”. |
+| E-17 | (v0.40) **Válasz egy sorra:** ha a forrásnál be van kapcsolva a válaszmező, az értesítéskártya egy-egy üzenetsorára vitt egérnél a sor végén válasz nyíl jelenik meg; rákattintva a mező fölött az idézett sor látszik („Answer this line…”), X-szel visszavonható. Elküldve a válasz kék buborékként a sor alá kerül, a **notch nyitva marad**, és jöhet a következő sor. Beeperen a válasz az adott üzenetre megy (a csevegés utolsó 30 üzenete közül szöveg alapján keresi meg; ha nincs meg, sima üzenet); más appoknál sima üzenetként. Az **egész beszélgetésre** adott válasz Enter után továbbra is bezárja a kártyát. |
+| E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 
@@ -282,7 +286,7 @@
 | R-5 | **Közelgő emlékeztetők** (piros cím): minden lista nyitott emlékeztetője, amely 7 napon belül esedékes vagy lejárt; a lejárt pirosan („Lejárt · tegnap”). Jobbra rendezés: *Határidő*, *Prioritás*, *Cím* (a feladatlistára is vonatkozik). |
 | R-6 | **Feladatok** (a lista színével): a kiválasztott lista nyitott feladatai. A **kör alakú jelölőnégyzetre** kattintva a feladat kipipálódik (kitöltött kör, áthúzott cím), és 0,7 mp múlva **késznek** mentődik az Emlékeztetőkbe, majd eltűnik; addig újra kattintva visszavonható. A szűrő gombbal az elmúlt 7 nap kész feladatai is látszanak, és visszaállíthatók. |
 | R-6b | (v0.35) A feladatlista végén **„New task”** sor: beírva és Entert nyomva a feladat a kiválasztott listába kerül (dátum és „@Lista” felismerése, mint a gyors bevitelnél), a mező utána kész a következőre. A mentés eredménye (a lista azonosítója és írhatósága, a szöveg nélkül) a `reminders.log`-ba kerül. |
-| R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). |
+| R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). (v0.40) A szám függőlegesen pontosan az ikon két sora közé igazodik. |
 | R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
 
 ---
@@ -450,6 +454,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-3 | A design a **lenyitott panelen** (minden modul, beállítások, előnézet, értesítéslista) és a **lelógó értesítésen** látszik. A **becsukott notch fekete marad** (a hardveres notch-csal egybeolvad); lenyitáskor a fekete a nyitás rugójával vált át üvegbe, és vissza. |
 | D-4 | A **menüsor-buborékok** (számológép, jegyzetek, emlékeztetők, AI usage, Claude chat) ugyanazt a designt kapják; a fekete mód a korábbi sötétszürke. |
 | D-5 | Új *Appearance* fül a beállításokban: a design mellett ide kerültek a megjelenést érintő beállítások a General fülről (beállítások megnyitása, lekerekítés, teljes képernyős rejtés, előnézet hoverre). |
+| D-6 | (v0.40) **Az üveg mindig üveg:** a rendszer üvege abban az ablakban, amely a billentyűzetet kapja, majdnem feketén rajzolódik (mérve: a gépelős modulok, a beállítások, rögzítés után kikattintva visszaváltott). Ezért az üveg a notch és a menüsor-buborékok alatt **külön, billentyűzetet és egeret soha nem kapó ablakban** van, ugyanazzal a mérettel és animációval; a tartalom fölötte, átlátszó panelen. |
+| D-7 | (v0.40) *Settings › Appearance › Displays without a notch*: **Notch** (a felső szélhez simul, alapértelmezés) vagy **Pill**: a notch nélküli kijelzőkön a fekete rész 6 pt-tal a felső szél alatt lebeg, minden sarka kerek (nyugalomban teljes kapszula, lenyitva 24 pt). A hover-zóna ennyivel lejjebb ér. |
 
 ## 5. Nyitott kérdések
 
@@ -496,6 +502,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.40** | Üveg külön ablakban (nem vált feketére); pill külső kijelzőn; beállítások az első kattintásig; Join a meeting hover-sorában; válasz egy sorra, emoji; nincs App Nap |
 | **v0.39** | Design-választó (fekete / Liquid Glass / átmenet), Appearance fül; a Telefon app hívás közben a Dockban marad |
 | **v0.38** | Autoraise szoftveres egérmutató mellett is (iPad-kijelző); a válaszmező alapból ki |
 | **v0.37** | Beállítások rögzítve nyílnak; számológép: szöveg a sorban, kék eredmény, azonnali gépelés; autoraise gépelés után is vált; csak a tartalmas oldal kerek (kapcsoló); a tablet menü a notch-csal együtt záródik |

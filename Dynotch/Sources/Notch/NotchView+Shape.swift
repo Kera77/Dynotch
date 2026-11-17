@@ -20,8 +20,14 @@ extension NotchView {
     /// as anything unfolds below it, it straightens out, and back again.
     var isCapsule: Bool { settings.roundedNotch && !model.isExpanded && !isTall }
 
+    /// On a display without a notch, a capsule floating below the top edge (spec D-7).
+    var isPill: Bool { settings.externalStyle == .pill && !geometry.hasPhysicalNotch }
+
+    /// The gap between a pill and the top edge.
+    static var pillGap: CGFloat { 6 }
+
     var capsule: NotchCorners.Capsule {
-        guard isCapsule else { return NotchCorners.Capsule(width: size.width, shift: 0) }
+        guard isCapsule, !isPill else { return NotchCorners.Capsule(width: size.width, shift: 0) }
         return NotchCorners.capsule(
             width: size.width, offset: collapsedOffset, notchWidth: geometry.notchSize.width, radius: cornerRadius,
             onlyWhereShown: settings.roundOnlyWhereShown
@@ -34,6 +40,11 @@ extension NotchView {
         model.isExpanded || notifications.peek != nil
     }
 
+    /// A pill one row high, with or without the rounded-notch setting.
+    private var isRestingPill: Bool {
+        !model.isExpanded && !isTall
+    }
+
     /// Over a full-screen app nothing shows until the pointer reaches the top edge (spec N-12);
     /// a call and the volume or brightness still do.
     var isHiddenForFullScreen: Bool {
@@ -41,6 +52,14 @@ extension NotchView {
     }
 
     var shape: UnevenRoundedRectangle {
+        if isPill {
+            // Round all round: fully at rest, softer when taller or open.
+            let radius = isCapsule || isRestingPill ? size.height / 2 : cornerRadius
+            return UnevenRoundedRectangle(
+                topLeadingRadius: radius, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: radius,
+                style: .continuous
+            )
+        }
         guard isCapsule else {
             return UnevenRoundedRectangle(bottomLeadingRadius: cornerRadius, bottomTrailingRadius: cornerRadius, style: .continuous)
         }

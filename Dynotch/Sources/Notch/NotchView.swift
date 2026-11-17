@@ -19,6 +19,8 @@ struct NotchView: View {
     let shortcuts: ShortcutStore
     let updates: UpdateService
     @ObservedObject var tablets: TabletDisplayService
+    /// The content's window, or the glass window behind it (spec D-6).
+    var layer = DesignLayer.content
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -85,93 +87,98 @@ struct NotchView: View {
         // Content lives inside the black background and is clipped by it, so both grow and
         // shrink together in one animation instead of the content appearing first.
         ZStack(alignment: .top) {
-            if !model.isExpanded, let display = hud.display {
-                // Volume and brightness come first (spec H-1).
-                HUDView(display: display, notchWidth: geometry.notchSize.width)
-                    .frame(height: geometry.notchSize.height)
+            // The glass window draws only the glass (spec D-6).
+            if layer == .content {
+                if !model.isExpanded, let display = hud.display {
+                    // Volume and brightness come first (spec H-1).
+                    HUDView(display: display, notchWidth: geometry.notchSize.width)
+                        .frame(height: geometry.notchSize.height)
+                        .transition(.opacity)
+                } else if !model.isExpanded, let call = calls.call {
+                    CallView(service: calls, call: call, notchHeight: geometry.notchSize.height)
+                        .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
+                        .transition(.opacity)
+                } else if !model.isExpanded, let notification = notifications.peek {
+                    NotificationPeekView(
+                        app: notifications.catalog.app(for: notification.appIdentifier),
+                        content: notifications.content(for: notification),
+                        notchHeight: geometry.notchSize.height,
+                        newCount: notifications.unseen.count
+                    )
+                    .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                     .transition(.opacity)
-            } else if !model.isExpanded, let call = calls.call {
-                CallView(service: calls, call: call, notchHeight: geometry.notchSize.height)
-                    .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
-                    .transition(.opacity)
-            } else if !model.isExpanded, let notification = notifications.peek {
-                NotificationPeekView(
-                    app: notifications.catalog.app(for: notification.appIdentifier),
-                    content: notifications.content(for: notification),
-                    notchHeight: geometry.notchSize.height,
-                    newCount: notifications.unseen.count
-                )
-                .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
-                .transition(.opacity)
-            } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
-                NotchIndicatorView(
-                    items: indicatorItems,
-                    leadTime: calendar.leadTime,
-                    notchSize: geometry.notchSize,
-                    hoveredIndex: labelIndex,
-                    badges: badgeFit.shown,
-                    hiddenBadges: badgeFit.hidden,
-                    hoveredBadge: model.hoveredBadge,
-                    notice: shownNotice,
-                    openBadge: { badges.open($0.app) },
-                    moveBadge: { id, index in
-                        withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
-                    },
-                    showBadgeNotifications: showBadgeNotifications,
-                    dismiss: { item in
-                        withAnimation(Self.quickAnimation) {
-                            model.hoveredIndicator = nil
-                            switch item {
-                            case .meeting(let event): calendar.dismissIndicator(event)
-                            case .usage: claudeUsage.dismissIndicator()
-                            case .working: break
-                            case .battery(let device): battery.dismissWarning(for: device)
+                } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
+                    NotchIndicatorView(
+                        items: indicatorItems,
+                        leadTime: calendar.leadTime,
+                        notchSize: geometry.notchSize,
+                        hoveredIndex: labelIndex,
+                        badges: badgeFit.shown,
+                        hiddenBadges: badgeFit.hidden,
+                        hoveredBadge: model.hoveredBadge,
+                        notice: shownNotice,
+                        openBadge: { badges.open($0.app) },
+                        moveBadge: { id, index in
+                            withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
+                        },
+                        showBadgeNotifications: showBadgeNotifications,
+                        dismiss: { item in
+                            withAnimation(Self.quickAnimation) {
+                                model.hoveredIndicator = nil
+                                switch item {
+                                case .meeting(let event): calendar.dismissIndicator(event)
+                                case .usage: claudeUsage.dismissIndicator()
+                                case .working: break
+                                case .battery(let device): battery.dismissWarning(for: device)
+                                }
                             }
-                        }
-                    }
-                )
-                // Laid out at full size and kept in place while the black area unfolds over it.
-                .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
-                .offset(x: isGathered ? indicatorLayout.horizontalOffset : 0)
-                .blur(radius: isGathered ? 6 : 0)
-                .opacity(isGathered ? 0 : 1)
-                .transition(.opacity)
-            }
+                        },
+                        join: { calendar.join($0) }
+                    )
+                    // Laid out at full size and kept in place while the black area unfolds over it.
+                    .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
+                    .offset(x: isGathered ? indicatorLayout.horizontalOffset : 0)
+                    .blur(radius: isGathered ? 6 : 0)
+                    .opacity(isGathered ? 0 : 1)
+                    .transition(.opacity)
+                }
 
-            if model.isExpanded, model.isShowingNotifications {
-                NotificationStackView(
-                    service: notifications,
-                    notifications: model.notifications,
-                    canReply: model.notificationsCanReply,
-                    notchHeight: geometry.notchSize.height,
-                    close: closeNotifications,
-                    clearAll: clearNotifications
-                )
-                .frame(width: model.openSize.width, height: model.openSize.height)
-                .transition(Self.contentTransition)
-            } else if model.isExpanded, model.isPreview {
-                FeaturePreviewView(
-                    feature: model.currentFeature, preview: featurePreview, notchHeight: geometry.notchSize.height,
-                    hint: settings.previewOpensOnClick ? "Click to open" : nil
-                )
-                .frame(width: model.openSize.width, height: model.openSize.height)
-                .onTapGesture { if settings.previewOpensOnClick { openFully() } }
-                .transition(.opacity)
-            } else if model.isExpanded {
-                expandedContent
+                if model.isExpanded, model.isShowingNotifications {
+                    NotificationStackView(
+                        service: notifications,
+                        notifications: model.notifications,
+                        canReply: model.notificationsCanReply,
+                        notchHeight: geometry.notchSize.height,
+                        close: closeNotifications,
+                        clearAll: clearNotifications
+                    )
                     .frame(width: model.openSize.width, height: model.openSize.height)
                     .transition(Self.contentTransition)
+                } else if model.isExpanded, model.isPreview {
+                    FeaturePreviewView(
+                        feature: model.currentFeature, preview: featurePreview, notchHeight: geometry.notchSize.height,
+                        hint: settings.previewOpensOnClick ? "Click to open" : nil
+                    )
+                    .frame(width: model.openSize.width, height: model.openSize.height)
+                    .onTapGesture { if settings.previewOpensOnClick { openFully() } }
+                    .transition(.opacity)
+                } else if model.isExpanded {
+                    expandedContent
+                        .frame(width: model.openSize.width, height: model.openSize.height)
+                        .transition(Self.contentTransition)
+                }
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
         // The capsule may reach beyond the content (spec N-11); the content stays in place.
         .offset(x: -capsule.shift)
         .frame(width: capsule.width, height: size.height)
-        .background(DesignBackground(design: settings.design, shape: shape, isOpen: showsDesign))
+        .background(DesignBackground(design: settings.design, shape: shape, isOpen: showsDesign, layer: layer))
         .clipShape(shape)
         .offset(x: collapsedOffset + capsule.shift)
         .opacity(isHiddenForFullScreen ? 0 : 1)
         .animation(NotchController.animation, value: isHiddenForFullScreen)
+        .padding(.top, isPill ? Self.pillGap : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
@@ -185,6 +192,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: settings.roundedNotch)
         .animation(NotchController.animation, value: settings.roundOnlyWhereShown)
         .animation(NotchController.animation, value: settings.design)
+        .animation(NotchController.animation, value: settings.externalStyle)
         .environment(\.colorScheme, .dark)
         .environment(\.notchDesign, settings.design)
         .environment(\.pinNotch) { [model] in model.isPinned = true }

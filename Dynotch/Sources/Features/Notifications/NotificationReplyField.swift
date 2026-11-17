@@ -1,10 +1,18 @@
+import AppKit
 import SwiftUI
 
 /// A text field that answers a notification's chat (spec E-11): Enter or the button sends.
+/// It can answer one line of the conversation (spec E-17), offers the emoji picker and turns
+/// typed emoticons into emoji (spec E-18).
 struct NotificationReplyField: View {
     let service: NotificationService
     /// The reply goes to this message's chat.
     let target: AppNotification
+    /// The line answered; nil: the conversation as a whole.
+    var quote: AppNotification?
+    var cancelQuote: () -> Void = {}
+    /// After a reply went out, with its text.
+    var sent: (String) -> Void = { _ in }
 
     @State private var text = ""
     @FocusState private var isFocused: Bool
@@ -18,36 +26,16 @@ struct NotificationReplyField: View {
         case failed(String)
     }
 
+    private static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+
     var body: some View {
-        HStack(spacing: 8) {
-            TextField("Reply to \(service.content(for: target).sender)…", text: $text)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .padding(.horizontal, 10)
-                .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
-                .focused($isFocused)
-                .onSubmit(send)
-                .disabled(status == .sending)
-                // Clicking into the field pins the notch, so it does not close while typing.
-                .onChange(of: isFocused) { _, focused in
-                    if focused { pinNotch() }
-                }
-            Button(action: send) {
-                Group {
-                    switch status {
-                    case .sending: ProgressView().controlSize(.small)
-                    case .sent: Image(systemName: "checkmark")
-                    default: Image(systemName: "paperplane.fill")
-                    }
-                }
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color(red: 0.04, green: 0.52, blue: 1)))
+        VStack(alignment: .leading, spacing: 4) {
+            if let quote { quoteChip(quote) }
+            HStack(spacing: 8) {
+                field
+                emojiButton
+                sendButton
             }
-            .buttonStyle(.plain)
-            .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty || status == .sending)
         }
         .overlay(alignment: .bottomLeading) {
             if let note = statusNote {
@@ -59,6 +47,94 @@ struct NotificationReplyField: View {
                     .offset(y: 13)
             }
         }
+        .onChange(of: quote?.id) { _, line in
+            // Answering a line: straight into the field.
+            if line != nil { isFocused = true }
+        }
+    }
+
+    private var field: some View {
+        TextField(placeholder, text: $text)
+            .textFieldStyle(.plain)
+            .font(.system(size: 13))
+            .padding(.horizontal, 10)
+            .frame(height: 30)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+            .focused($isFocused)
+            .onSubmit(send)
+            .disabled(status == .sending)
+            // Clicking into the field pins the notch, so it does not close while typing.
+            .onChange(of: isFocused) { _, focused in
+                if focused { pinNotch() }
+            }
+            .onChange(of: text) { _, typed in
+                let replaced = Emoticons.replace(in: typed, includingLast: false)
+                if replaced != typed { text = replaced }
+            }
+    }
+
+    private var placeholder: String {
+        quote == nil ? "Reply to \(service.content(for: target).sender)…" : "Answer this line…"
+    }
+
+    /// Hovering opens the system's emoji picker; the emoji goes into the field (spec E-18).
+    private var emojiButton: some View {
+        Button(action: openEmojiPicker) {
+            Image(systemName: "face.smiling")
+                .font(.system(size: 15))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 26, height: 30)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Emoji")
+        .onHover { if $0 { openEmojiPicker() } }
+    }
+
+    private var sendButton: some View {
+        Button(action: send) {
+            Group {
+                switch status {
+                case .sending: ProgressView().controlSize(.small)
+                case .sent: Image(systemName: "checkmark")
+                default: Image(systemName: "paperplane.fill")
+                }
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 30, height: 30)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Self.blue))
+        }
+        .buttonStyle(.plain)
+        .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty || status == .sending)
+    }
+
+    private func quoteChip(_ line: AppNotification) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+                .font(.system(size: 9))
+                .foregroundStyle(Self.blue)
+            Text(service.content(for: line).detail)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.white.opacity(0.6))
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            Button(action: cancelQuote) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.5))
+                    .frame(width: 16, height: 16)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Answer the whole conversation instead")
+        }
+        .padding(.horizontal, 10)
+    }
+
+    private func openEmojiPicker() {
+        isFocused = true
+        DispatchQueue.main.async { NSApp.orderFrontCharacterPalette(nil) }
     }
 
     private var statusNote: (text: String, isError: Bool)? {
@@ -70,14 +146,17 @@ struct NotificationReplyField: View {
     }
 
     private func send() {
-        let reply = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reply = Emoticons.replace(in: text.trimmingCharacters(in: .whitespacesAndNewlines), includingLast: true)
         guard !reply.isEmpty, status != .sending else { return }
         status = .sending
+        let line = quote
+        let quoted = line.map { service.content(for: $0).detail }
         Task {
             do {
-                let note = try await service.reply(to: target, text: reply)
+                let note = try await service.reply(to: line ?? target, text: reply, quoting: quoted)
                 text = ""
                 status = .sent(note)
+                sent(reply)
             } catch {
                 status = .failed("\(error)")
             }

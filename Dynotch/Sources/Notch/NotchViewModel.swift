@@ -21,8 +21,8 @@ final class NotchViewModel: ObservableObject {
     var isShowingNotifications: Bool { !notifications.isEmpty }
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     @Published var isPinned = false
-    /// The pin was set by opening the settings and goes when they close (spec C-6).
-    var pinnedForSettings = false
+    /// The settings keep the panel open until the next click outside it (spec C-6).
+    var holdsForSettings = false
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
@@ -105,7 +105,7 @@ final class NotchViewModel: ObservableObject {
         notifications = expanded ? presented : []
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
-        if !expanded { pinnedForSettings = false }
+        if !expanded { holdsForSettings = false }
         if !expanded, isPinned { isPinned = false }
         if !expanded, isPreview { isPreview = false }
         isExpanded = expanded
@@ -136,10 +136,7 @@ final class NotchViewModel: ObservableObject {
     func select(_ feature: FeatureID) {
         // Picking a feature (even the current one) leaves the settings and the preview.
         if isShowingSettings { isShowingSettings = false }
-        if pinnedForSettings {
-            pinnedForSettings = false
-            isPinned = false
-        }
+        holdsForSettings = false
         if isPreview { isPreview = false }
         guard feature != currentFeature else {
             updateLarge()

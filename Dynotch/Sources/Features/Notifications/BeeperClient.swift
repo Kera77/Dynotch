@@ -9,6 +9,13 @@ struct BeeperChat: Decodable, Equatable, Sendable {
     let lastActivity: String?
 }
 
+/// A message as the Beeper Desktop API returns it (only the fields used).
+struct BeeperMessage: Decodable, Equatable, Sendable {
+    let id: String
+    let text: String?
+    let timestamp: String?
+}
+
 enum BeeperError: Error, Equatable, CustomStringConvertible {
     case noToken
     /// Beeper Desktop is not running or its API is turned off.
@@ -66,12 +73,37 @@ struct BeeperClient: Sendable {
 
     // MARK: - API
 
-    /// Sends `text` to the chat the notification came from, found by its title.
-    func reply(to chatName: String, text: String) async throws {
+    /// Sends `text` to the chat the notification came from, found by its title. With `quoting`,
+    /// as an answer to that message when Beeper still has it (spec E-17).
+    func reply(to chatName: String, text: String, quoting: String? = nil) async throws {
         guard let token = Self.token() else { throw BeeperError.noToken }
         let chats = try await searchChats(chatName, token: token)
         guard let chat = Self.bestMatch(for: chatName, in: chats) else { throw BeeperError.chatNotFound(chatName) }
-        try await send(text, to: chat.id, token: token)
+        var replyTo: String?
+        if let quoting, let messages = try? await recentMessages(in: chat.id, token: token) {
+            replyTo = Self.message(matching: quoting, in: messages)?.id
+        }
+        try await send(text, to: chat.id, replyTo: replyTo, token: token)
+    }
+
+    /// The newest message whose text is the quoted line (the notification may shorten it).
+    static func message(matching quote: String, in messages: [BeeperMessage]) -> BeeperMessage? {
+        let wanted = quote.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !wanted.isEmpty else { return nil }
+        let texts = messages.map { ($0, ($0.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) }
+        return texts.last { $0.1 == wanted }?.0
+            ?? texts.last { !$0.1.isEmpty && ($0.1.hasPrefix(wanted) || wanted.hasPrefix($0.1)) }?.0
+    }
+
+    private func recentMessages(in chatID: String, token: String) async throws -> [BeeperMessage] {
+        struct Page: Decodable { let items: [BeeperMessage] }
+        let data = try await request(path: Self.messagesPath(chatID), query: [URLQueryItem(name: "limit", value: "30")], token: token)
+        // Oldest first, like the notifications.
+        return ((try? JSONDecoder().decode(Page.self, from: data))?.items ?? []).sorted { ($0.timestamp ?? "") < ($1.timestamp ?? "") }
+    }
+
+    private static func messagesPath(_ chatID: String) -> String {
+        "/v1/chats/" + (chatID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(["/"])) ?? chatID) + "/messages"
     }
 
     /// Checks the token against the API (Settings).
@@ -99,10 +131,10 @@ struct BeeperClient: Sendable {
         return (try? JSONDecoder().decode(Page.self, from: data))?.items ?? []
     }
 
-    private func send(_ text: String, to chatID: String, token: String) async throws {
-        let path = "/v1/chats/" + (chatID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(["/"])) ?? chatID)
-            + "/messages"
-        _ = try await request(path: path, method: "POST", body: try JSONEncoder().encode(["text": text]), token: token)
+    private func send(_ text: String, to chatID: String, replyTo: String?, token: String) async throws {
+        var body = ["text": text]
+        if let replyTo { body["replyToMessageID"] = replyTo }
+        _ = try await request(path: Self.messagesPath(chatID), method: "POST", body: try JSONEncoder().encode(body), token: token)
     }
 
     private func request(

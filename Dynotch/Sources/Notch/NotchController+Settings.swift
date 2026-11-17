@@ -12,15 +12,29 @@ extension NotchController {
         case .notch:
             let showing = !model.isShowingSettings
             withAnimation(Self.animation) { model.setShowingSettings(showing) }
-            // The settings keep the notch open while you work in them (spec C-6).
-            if showing, !model.isPinned {
-                model.isPinned = true
-                model.pinnedForSettings = true
-            } else if !showing, model.pinnedForSettings {
-                model.isPinned = false
-                model.pinnedForSettings = false
+            // The settings stay open while you work in them, until a click outside (spec C-6).
+            model.holdsForSettings = showing
+            if showing { watchClicksOutsideSettings() }
+        }
+    }
+
+    /// A click in another app closes the settings that hold the panel open (spec C-6).
+    func watchClicksOutsideSettings() {
+        guard settingsClickMonitor == nil else { return }
+        settingsClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.stopWatchingClicksOutsideSettings()
+                guard self.model.holdsForSettings, self.model.isExpanded else { return }
+                self.model.holdsForSettings = false
+                if !self.model.isPinned { self.collapse() }
             }
         }
+    }
+
+    func stopWatchingClicksOutsideSettings() {
+        if let settingsClickMonitor { NSEvent.removeMonitor(settingsClickMonitor) }
+        settingsClickMonitor = nil
     }
 
     /// The panel takes keyboard focus only for the settings and the calculator. Opening by

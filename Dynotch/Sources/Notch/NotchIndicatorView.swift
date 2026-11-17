@@ -20,6 +20,8 @@ struct NotchIndicatorView: View {
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
     /// Hides an indicator (spec K-8e, CL-6).
     let dismiss: (IndicatorItem) -> Void
+    /// Opens the meeting's link (spec K-8g).
+    var join: (CalendarEvent) -> Void = { _ in }
 
     static let lineWidth: CGFloat = 2
 
@@ -244,6 +246,11 @@ extension NotchIndicatorView {
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer(minLength: 8)
+            // Left of the X, for meetings with a link (spec K-8g).
+            if event.meetingURL != nil {
+                JoinButton(style: .filled) { join(event) }
+                    .help("Join the meeting")
+            }
             dismissButton(for: .meeting(event), help: "Hide this countdown")
         }
         .padding(.horizontal, 12)

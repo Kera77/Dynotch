@@ -27,6 +27,21 @@ enum NotchDesign: String, CaseIterable, Sendable {
     }
 }
 
+/// How the notch looks on a display without a physical notch (spec D-7).
+enum ExternalNotchStyle: String, CaseIterable, Sendable {
+    /// Joined to the top edge, like a notch.
+    case notch
+    /// A capsule floating a little below the top edge.
+    case pill
+
+    var title: String {
+        switch self {
+        case .notch: "Notch"
+        case .pill: "Pill"
+        }
+    }
+}
+
 /// User preferences, persisted in UserDefaults (spec G-5).
 @MainActor
 final class AppSettings: ObservableObject {
@@ -57,6 +72,7 @@ final class AppSettings: ObservableObject {
         static let hideInFullScreen = "hideInFullScreen"
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let design = "design"
+        static let externalStyle = "externalStyle"
         static let keepsPhoneInDock = "keepsPhoneInDock"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
@@ -182,6 +198,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(design.rawValue, forKey: Key.design) }
     }
 
+    /// The look on displays without a physical notch (spec D-7).
+    @Published var externalStyle: ExternalNotchStyle {
+        didSet { defaults.set(externalStyle.rawValue, forKey: Key.externalStyle) }
+    }
+
     /// The Phone or FaceTime app stays hidden while a call rings and lasts (spec P-5).
     @Published var keepsPhoneInDock: Bool {
         didSet { defaults.set(keepsPhoneInDock, forKey: Key.keepsPhoneInDock) }
@@ -285,6 +306,7 @@ final class AppSettings: ObservableObject {
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
+        externalStyle = defaults.string(forKey: Key.externalStyle).flatMap(ExternalNotchStyle.init(rawValue:)) ?? .notch
         keepsPhoneInDock = defaults.object(forKey: Key.keepsPhoneInDock) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true

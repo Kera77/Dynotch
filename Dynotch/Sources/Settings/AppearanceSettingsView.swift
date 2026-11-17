@@ -11,6 +11,10 @@ struct AppearanceSettingsView: View {
                     ForEach(NotchDesign.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Picker("Displays without a notch", selection: $settings.externalStyle) {
+                    ForEach(ExternalNotchStyle.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
             } footer: {
                 Text(designNote)
                     .font(.caption)
@@ -59,7 +63,7 @@ struct AppearanceSettingsView: View {
 
     private var designNote: String {
         var note = "For the open notch, notifications and the menu bar panels; the closed notch stays black like the "
-            + "hardware notch."
+            + "hardware notch. On external displays the notch can also float below the top edge as a pill."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
     }

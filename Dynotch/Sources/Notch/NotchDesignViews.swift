@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // MARK: - Design (spec D-1…D-4)
@@ -38,12 +39,23 @@ struct GlassFill<S: Shape>: View {
     }
 }
 
+/// Which part of the design a window draws. The glass sits in a window of its own that never
+/// takes the keyboard: the system draws glass darker, nearly black, in a window that has it
+/// (spec D-6).
+enum DesignLayer: Sendable {
+    /// The content's window: the black parts.
+    case content
+    /// The window behind it: only the glass.
+    case glass
+}
+
 /// The background of the notch and the menu bar panels in the chosen design. `isOpen` false:
 /// black, like the closed notch, whatever the design (spec D-3).
 struct DesignBackground<S: Shape>: View {
     let design: NotchDesign
     let shape: S
     var isOpen = true
+    var layer = DesignLayer.content
     /// The solid colour of the black design.
     var solid = Color.black
 
@@ -57,16 +69,54 @@ struct DesignBackground<S: Shape>: View {
 
     var body: some View {
         let glass = isOpen && design != .black
-        ZStack {
+        switch layer {
+        case .glass:
             GlassFill(shape: shape)
                 .opacity(glass ? 1 : 0)
-            shape.fill(solid)
-                .opacity(glass ? 0 : 1)
-            if design == .blend {
+        case .content:
+            ZStack {
                 shape.fill(solid)
-                    .mask(Self.blendMask)
-                    .opacity(glass ? 1 : 0)
+                    .opacity(glass ? 0 : 1)
+                if design == .blend {
+                    shape.fill(solid)
+                        .mask(Self.blendMask)
+                        .opacity(glass ? 1 : 0)
+                }
             }
         }
+    }
+}
+
+/// The glass behind a menu bar panel, in the window under it (spec D-4, D-6).
+struct PopoverGlassLayer: View {
+    @ObservedObject var state: MenuBarPanelState
+    @Environment(\.notchDesign) private var design
+
+    var body: some View {
+        DesignBackground(design: design, shape: PopoverShape(arrowX: state.arrowX), layer: .glass)
+            .padding(1)
+    }
+}
+
+/// A window that only shows the glass: never takes the keyboard or the mouse.
+final class GlassPanel: NSPanel {
+    init(level: NSWindow.Level) {
+        super.init(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        self.level = level
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        backgroundColor = .clear
+        isOpaque = false
+        hasShadow = false
+        ignoresMouseEvents = true
+        hidesOnDeactivate = false
+        isReleasedWhenClosed = false
+    }
+
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+
+    // Like the notch panel, it may cover the menu bar.
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+        frameRect
     }
 }

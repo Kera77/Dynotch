@@ -31,6 +31,8 @@ final class NotchController {
     let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
+    /// The glass behind the panel, in a window that never takes the keyboard (spec D-6).
+    let glassPanel: GlassPanel
 
     private var globalMonitor: Any?
     private var scrollMonitor: Any?
@@ -58,6 +60,8 @@ final class NotchController {
     var wasExpanded = false
     /// The question notice whose app was already brought forward (spec CQ-3).
     var activatedQuestion: Date?
+    /// Watches for the click outside that closes the settings (spec C-6).
+    var settingsClickMonitor: Any?
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
         settings = services.settings
@@ -91,6 +95,10 @@ final class NotchController {
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         rootView.openFully = { [weak self] in self?.openFully() }
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
+        var glassView = rootView
+        glassView.layer = .glass
+        glassPanel = GlassPanel(level: panel.level)
+        glassPanel.contentView = NSHostingView(rootView: glassView)
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
@@ -98,9 +106,159 @@ final class NotchController {
         panel.contentView = hosting
     }
 
+    // MARK: - Layout
+
+    /// When the open panel shrinks, the pointer may end up outside it; don't close right away.
+    private func sizeChanged(large: Bool) {
+        graceUntil = !large && model.isExpanded ? Date().addingTimeInterval(Self.shrinkGracePeriod) : nil
+    }
+
+    // MARK: - Hover (spec N-2…N-4)
+
+    /// Area that opens the panel: the notch, or the whole peek while a notification shows.
+    var hoverZone: CGRect {
+        let geometry = model.geometry
+        return reachingDown(notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize))
+    }
+
+    private var keepOpenZone: CGRect {
+        reachingDown(model.geometry.keepOpenZone(for: model.openSize))
+    }
+
+    /// A pill floats a little below the top edge: its zones reach that much further (spec D-7).
+    private func reachingDown(_ zone: CGRect) -> CGRect {
+        let gap = settings.externalStyle == .pill && !model.geometry.hasPhysicalNotch ? NotchView.pillGap : 0
+        return CGRect(x: zone.minX, y: zone.minY - gap, width: zone.width, height: zone.height + gap)
+    }
+
+    private func pointerMoved() {
+        if callIsShown {
+            updateCallInteraction()
+        } else if model.isExpanded {
+            evaluatePointerWhileExpanded()
+        } else if openingZone.contains(NSEvent.mouseLocation) {
+            setHoveredIndicator(nil)
+            setHoveredBadge(nil)
+            expand(preview: settings.hoverPreview)
+        } else if !model.isHiddenForFullScreen {
+            updateHoveredIndicator()
+        }
+    }
+
+    private func evaluatePointerWhileExpanded() {
+        guard model.isExpanded else { return }
+        // While a mouse button is down (e.g. dragging a slider) the panel stays open.
+        let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
+        // The window is larger than the visible panel: let clicks around the panel through.
+        panel.ignoresMouseEvents = !isInside
+        if isInside { isHeldOpen = false }
+        if isInside || model.isPinned || isHeldOpen || model.holdsForSettings {
+            graceUntil = nil
+            cancelClose()
+        } else if let graceUntil, graceUntil > Date() {
+            cancelClose()
+        } else {
+            scheduleClose()
+        }
+    }
+
+    /// - Parameter preview: show only the small preview first (spec PV-1).
+    func expand(preview: Bool = false) {
+        cancelClose()
+        graceUntil = nil
+        panel.ignoresMouseEvents = false
+        calendar.panelDidOpen()
+        Haptics.perform(.open, settings: settings)
+        // Opened from a notification peek: that sender's new messages (spec E-4).
+        let stack = notifications.peek.map(notifications.related(to:)) ?? []
+        let canReply = stack.last.map(notifications.canReply(to:)) ?? false
+        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
+        notifications.clearPeek()
+        startHoverTimer()
+        if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }
+        showAnswerIfReady()
+    }
+
+    func collapse() {
+        cancelClose()
+        stopHoverTimer()
+        graceUntil = nil
+        isHeldOpen = false
+        previewTask?.cancel()
+        previewTask = nil
+        panel.ignoresMouseEvents = true
+        if model.isShowingNotifications { notifications.markSeen(model.notifications) }
+        // Only an open panel ends the filter; the closed panels of other displays leave it.
+        if model.isExpanded { notifications.clearFocus() }
+        OpenMenus.closeAll()
+        stopWatchingClicksOutsideSettings()
+        withAnimation(Self.animation) { model.setExpanded(false) }
+    }
+
+    private func scheduleClose() {
+        guard closeTask == nil else { return }
+        let delay = settings.closeDelay
+        closeTask = Task { [weak self] in
+            if delay > 0 {
+                try? await Task.sleep(for: .seconds(delay))
+            }
+            guard !Task.isCancelled, let self else { return }
+            self.closeTask = nil
+            let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
+            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.holdsForSettings {
+                self.collapse()
+            }
+        }
+    }
+
+    private func cancelClose() {
+        closeTask?.cancel()
+        closeTask = nil
+    }
+
+    /// While open, poll the pointer: mouse-moved events aren't reliably delivered to a
+    /// non-key panel, and polling only runs while the panel is open.
+    func startHoverTimer() {
+        guard hoverTimer == nil else { return }
+        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pointerMoved() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        hoverTimer = timer
+    }
+
+    func stopHoverTimer() {
+        hoverTimer?.invalidate()
+        hoverTimer = nil
+    }
+
+    // MARK: - Local events
+
+    private func handleLocal(_ event: NSEvent) -> Bool {
+        guard event.window === panel else {
+            if event.type == .mouseMoved { pointerMoved() }
+            return false
+        }
+        switch event.type {
+        case .scrollWheel:
+            return handleScroll(event)
+        default:
+            pointerMoved()
+            return false
+        }
+    }
+}
+
+// MARK: - Start and stop
+
+extension NotchController {
     func start() {
-        panel.setFrame(model.geometry.rect(for: model.geometry.windowSize), display: true)
+        let frame = model.geometry.rect(for: model.geometry.windowSize)
+        panel.setFrame(frame, display: true)
+        glassPanel.setFrame(frame, display: true)
+        glassPanel.orderFrontRegardless()
         panel.orderFrontRegardless()
+        panel.addChildWindow(glassPanel, ordered: .below)
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.pointerMoved() }
@@ -164,142 +322,10 @@ final class NotchController {
         closeTask?.cancel()
         stopHoverTimer()
         stopFullScreenChecks()
+        panel.removeChildWindow(glassPanel)
+        glassPanel.orderOut(nil)
+        glassPanel.close()
         panel.orderOut(nil)
         panel.close()
-    }
-
-    // MARK: - Layout
-
-    /// When the open panel shrinks, the pointer may end up outside it; don't close right away.
-    private func sizeChanged(large: Bool) {
-        graceUntil = !large && model.isExpanded ? Date().addingTimeInterval(Self.shrinkGracePeriod) : nil
-    }
-
-    // MARK: - Hover (spec N-2…N-4)
-
-    /// Area that opens the panel: the notch, or the whole peek while a notification shows.
-    var hoverZone: CGRect {
-        let geometry = model.geometry
-        return notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize)
-    }
-
-    private var keepOpenZone: CGRect {
-        model.geometry.keepOpenZone(for: model.openSize)
-    }
-
-    private func pointerMoved() {
-        if callIsShown {
-            updateCallInteraction()
-        } else if model.isExpanded {
-            evaluatePointerWhileExpanded()
-        } else if openingZone.contains(NSEvent.mouseLocation) {
-            setHoveredIndicator(nil)
-            setHoveredBadge(nil)
-            expand(preview: settings.hoverPreview)
-        } else if !model.isHiddenForFullScreen {
-            updateHoveredIndicator()
-        }
-    }
-
-    private func evaluatePointerWhileExpanded() {
-        guard model.isExpanded else { return }
-        // While a mouse button is down (e.g. dragging a slider) the panel stays open.
-        let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
-        // The window is larger than the visible panel: let clicks around the panel through.
-        panel.ignoresMouseEvents = !isInside
-        if isInside { isHeldOpen = false }
-        if isInside || model.isPinned || isHeldOpen {
-            graceUntil = nil
-            cancelClose()
-        } else if let graceUntil, graceUntil > Date() {
-            cancelClose()
-        } else {
-            scheduleClose()
-        }
-    }
-
-    /// - Parameter preview: show only the small preview first (spec PV-1).
-    func expand(preview: Bool = false) {
-        cancelClose()
-        graceUntil = nil
-        panel.ignoresMouseEvents = false
-        calendar.panelDidOpen()
-        Haptics.perform(.open, settings: settings)
-        // Opened from a notification peek: that sender's new messages (spec E-4).
-        let stack = notifications.peek.map(notifications.related(to:)) ?? []
-        let canReply = stack.last.map(notifications.canReply(to:)) ?? false
-        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
-        notifications.clearPeek()
-        startHoverTimer()
-        if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }
-        showAnswerIfReady()
-    }
-
-    func collapse() {
-        cancelClose()
-        stopHoverTimer()
-        graceUntil = nil
-        isHeldOpen = false
-        previewTask?.cancel()
-        previewTask = nil
-        panel.ignoresMouseEvents = true
-        if model.isShowingNotifications { notifications.markSeen(model.notifications) }
-        // Only an open panel ends the filter; the closed panels of other displays leave it.
-        if model.isExpanded { notifications.clearFocus() }
-        OpenMenus.closeAll()
-        withAnimation(Self.animation) { model.setExpanded(false) }
-    }
-
-    private func scheduleClose() {
-        guard closeTask == nil else { return }
-        let delay = settings.closeDelay
-        closeTask = Task { [weak self] in
-            if delay > 0 {
-                try? await Task.sleep(for: .seconds(delay))
-            }
-            guard !Task.isCancelled, let self else { return }
-            self.closeTask = nil
-            let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.model.isPinned, !self.isHeldOpen {
-                self.collapse()
-            }
-        }
-    }
-
-    private func cancelClose() {
-        closeTask?.cancel()
-        closeTask = nil
-    }
-
-    /// While open, poll the pointer: mouse-moved events aren't reliably delivered to a
-    /// non-key panel, and polling only runs while the panel is open.
-    func startHoverTimer() {
-        guard hoverTimer == nil else { return }
-        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.pointerMoved() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        hoverTimer = timer
-    }
-
-    func stopHoverTimer() {
-        hoverTimer?.invalidate()
-        hoverTimer = nil
-    }
-
-    // MARK: - Local events
-
-    private func handleLocal(_ event: NSEvent) -> Bool {
-        guard event.window === panel else {
-            if event.type == .mouseMoved { pointerMoved() }
-            return false
-        }
-        switch event.type {
-        case .scrollWheel:
-            return handleScroll(event)
-        default:
-            pointerMoved()
-            return false
-        }
     }
 }

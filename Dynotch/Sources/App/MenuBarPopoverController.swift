@@ -23,6 +23,12 @@ final class MenuBarPopoverController: NSObject {
     private let panelSize: NSSize
     private let settings: AppSettings
     private let makeContent: (MenuBarPanelState) -> AnyView
+    /// The glass behind the panel, in a window that never takes the keyboard (spec D-6).
+    private lazy var glassPanel: GlassPanel = {
+        let glass = GlassPanel(level: .statusBar)
+        glass.contentView = NSHostingView(rootView: DesignEnvironment(settings: settings, content: PopoverGlassLayer(state: state)))
+        return glass
+    }()
     private let badge: Badge?
     private let icon: StatusIcon?
     private var iconObserver: AnyCancellable?
@@ -88,7 +94,7 @@ final class MenuBarPopoverController: NSObject {
         guard button.title != title else { return }
         button.attributedTitle = NSAttributedString(string: title, attributes: [
             .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
-            .baselineOffset: 1
+            .baselineOffset: 0.5
         ])
     }
 
@@ -151,7 +157,10 @@ final class MenuBarPopoverController: NSObject {
         state.didCopy = false
         let originY = buttonFrame.minY - size.height - 2
         panel.setFrame(NSRect(x: originX, y: originY, width: size.width, height: size.height), display: true)
+        glassPanel.setFrame(panel.frame, display: true)
+        glassPanel.orderFrontRegardless()
         panel.makeKeyAndOrderFront(nil)
+        panel.addChildWindow(glassPanel, ordered: .below)
         onOpen?()
 
         if outsideClickMonitor == nil {
@@ -172,6 +181,8 @@ final class MenuBarPopoverController: NSObject {
 
     private func closePanel() {
         if panel?.isVisible == true { onClose?() }
+        if let panel { panel.removeChildWindow(glassPanel) }
+        glassPanel.orderOut(nil)
         panel?.orderOut(nil)
         if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
         outsideClickMonitor = nil

@@ -30,6 +30,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services: services
     )
     private var notchManager: NotchManager?
+    /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
+    /// app woke up (spec N-14). Idle system sleep is still allowed.
+    private let noNap = ProcessInfo.processInfo.beginActivity(
+        options: [.userInitiatedAllowingIdleSystemSleep], reason: "The notch reacts to the pointer at once"
+    )
     private var hotkeys: HotkeyCenter?
     private var menuBarPanels: [MenuBarPopoverController] = []
     private lazy var focusFollowsMouse = FocusFollowsMouse(settings: settings)

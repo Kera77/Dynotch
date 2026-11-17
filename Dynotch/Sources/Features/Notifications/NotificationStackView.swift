@@ -15,6 +15,18 @@ struct NotificationStackView: View {
     /// The reply goes to the newest message's chat.
     private var replyTarget: AppNotification? { notifications.last }
 
+    /// A line answered on its own (spec E-17).
+    @State private var replyingTo: AppNotification?
+    @State private var hoveredLine: Int64?
+    /// Answers to single lines, shown under them while the card is open.
+    @State private var answers: [Answer] = []
+
+    struct Answer: Identifiable {
+        let id = UUID()
+        let line: Int64
+        let text: String
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
@@ -27,6 +39,10 @@ struct NotificationStackView: View {
                         ForEach(notifications) { notification in
                             message(notification)
                                 .id(notification.id)
+                            ForEach(answers.filter { $0.line == notification.id }) { answer in
+                                answerBubble(answer.text)
+                                    .id(answer.id)
+                            }
                         }
                     }
                     .padding(.leading, 50)
@@ -38,7 +54,20 @@ struct NotificationStackView: View {
                 }
             }
             if canReply, let replyTarget {
-                NotificationReplyField(service: service, target: replyTarget)
+                NotificationReplyField(
+                    service: service, target: replyTarget, quote: replyingTo,
+                    cancelQuote: { replyingTo = nil },
+                    sent: { text in
+                        // A line's answer joins the conversation and the card stays open; an
+                        // answer to the whole conversation closes it (spec E-17).
+                        if let line = replyingTo {
+                            answers.append(Answer(line: line.id, text: text))
+                            replyingTo = nil
+                        } else {
+                            close()
+                        }
+                    }
+                )
                     .padding(.horizontal, 12)
                     .padding(.top, 6)
                     .padding(.bottom, 10)
@@ -108,9 +137,49 @@ struct NotificationStackView: View {
                 .font(.system(size: 10))
                 .monospacedDigit()
                 .foregroundStyle(Color.white.opacity(0.4))
+            if canReply {
+                Button {
+                    replyingTo = notification
+                } label: {
+                    Image(systemName: "arrowshape.turn.up.left.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(replyingTo?.id == notification.id ? Self.blue : Color.white.opacity(0.6))
+                        .frame(width: 18, height: 16)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Answer this line")
+                .opacity(hoveredLine == notification.id || replyingTo?.id == notification.id ? 1 : 0)
+            }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.08)))
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(replyingTo?.id == notification.id ? 0.14 : 0.08))
+        )
+        .onHover { hovering in
+            if hovering {
+                hoveredLine = notification.id
+            } else if hoveredLine == notification.id {
+                hoveredLine = nil
+            }
+        }
+    }
+
+    private static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+
+    /// My answer to a line, on the right like in chat apps.
+    private func answerBubble(_ text: String) -> some View {
+        HStack {
+            Spacer(minLength: 40)
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundStyle(.white)
+                .lineLimit(3)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Self.blue))
+        }
     }
 }
