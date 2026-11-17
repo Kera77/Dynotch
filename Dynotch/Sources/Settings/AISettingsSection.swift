@@ -19,11 +19,19 @@ struct AISettingsSection: View {
                     ForEach(provider.models()) { Text($0.title).tag($0.id) }
                 }
             }
+            Picker("ChatGPT answers", selection: Binding(get: { chat.chatGPTMode }, set: { chat.chatGPTMode = $0 })) {
+                ForEach(ChatGPTMode.allCases, id: \.self) { Text($0.title).tag($0) }
+            }
+            LabeledContent("ChatGPT account") {
+                Button("Sign in to ChatGPT…", action: chat.signInToChatGPT)
+                    .disabled(CodexCLI.locate() == nil)
+            }
         } header: {
             Text("AI")
         } footer: {
             Text("Claude runs through Claude Code, ChatGPT through Codex in the ChatGPT app, each with the account this Mac is "
-                + "signed in with (a subscription or a free account). ⌃⌥A asks a quick question from anywhere; change it under Modules.")
+                + "signed in with. Codex answers in the notch (sign in once with the button, or open Codex in the ChatGPT app); "
+                + "with a free account without Codex choose ChatGPT, which opens chatgpt.com. ⌃⌥A asks from anywhere.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -15,7 +15,7 @@ struct RemindersView: View {
     var pin: PinControl?
 
     static let red = Color(red: 1, green: 0.27, blue: 0.27)
-    static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+    static let blue = Theme.blue
 
     var body: some View {
         Group {
@@ -109,6 +109,7 @@ struct RemindersView: View {
             }
             .buttonStyle(.plain)
             .help("Open in Reminders")
+            .accessibilityLabel("Open in Reminders")
         }
     }
 
@@ -273,7 +274,7 @@ private struct ReminderRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Button {
-                withAnimation(.easeOut(duration: 0.15)) {
+                withAnimation(Motion.quick) {
                     if isChecked { store.uncomplete(item) } else { store.complete(item) }
                 }
             } label: {
@@ -300,9 +301,7 @@ private struct ReminderRow: View {
                         if showsList {
                             Circle().fill(color).frame(width: 5, height: 5)
                         }
-                        Text(due)
-                            .font(.system(size: 11))
-                            .foregroundStyle(item.isOverdue(at: store.now) ? RemindersView.red : Color.white.opacity(0.5))
+                        DuePill(text: due, urgency: ReminderLogic.urgency(of: item, now: store.now), isDone: isChecked)
                     }
                 }
             }
@@ -344,5 +343,31 @@ struct RemindersMenuBarView: View {
         .padding(.top, 12)
         .padding(.bottom, 14)
         .popoverChrome(arrowX: state.arrowX)
+    }
+}
+
+/// The due date as a pill coloured by how near it is (spec R-9).
+struct DuePill: View {
+    let text: String
+    let urgency: DueUrgency?
+    var isDone = false
+
+    private var colour: Color {
+        guard !isDone else { return .white.opacity(0.4) }
+        switch urgency {
+        case .overdue: return Theme.red
+        case .today: return .orange
+        case .tomorrow: return Theme.blue
+        case .later, nil: return .white.opacity(0.55)
+        }
+    }
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(colour)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(Capsule().fill(colour.opacity(0.16)))
     }
 }

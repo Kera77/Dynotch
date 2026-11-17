@@ -38,6 +38,7 @@ final class CallService: ObservableObject {
             MainActor.assumeIsolated { self?.tick() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
     }
 

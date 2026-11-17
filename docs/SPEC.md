@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.42.1 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.43 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -39,6 +39,10 @@
 | N-12 | (v0.34) **Teljes képernyős appoknál rejtve:** ha az adott kijelzőn egy app ablaka a teljes képernyőt (a menüsor sávját is) lefedi, a becsukott notch mellett **semmi nem látszik** – se jelzők, se jelvények, se értesítések, se lelógó sor (a notch fekete része sem). Csak egy bejövő hívás és a hangerő/fényerő jelenik meg. A notch akkor nyílik le, ha az egér **a képernyő legfelső szélére**, a notch szélességén belülre ér (a szokásos hover-zóna itt nem nyit). Felismerés: másodpercenként és Space-váltáskor az ablakok kereteiből (a tartalmukat nem nézi). Ki-be kapcsolható: *Settings › General › Hide the notch over full-screen apps* (alapból be). |
 | N-13 | (v0.37) **Csak a tartalmas oldal kerek:** *Settings › General › Round only the sides with something shown* (alapból ki; csak a lekerekített notch mellett állítható). Bekapcsolva a kapszula csak azon az oldalon kerek (és nyúlik túl a notchon), ahol a notch mellett valami látszik (jelző, jelvény, hangerő); a másik oldal a notch saját szélét követi (felül szögletes, alul a szokásos kis sarok). Üres notchnál egyik oldal sem kerek. |
 | N-14 | (v0.40) **Nincs lassú első nyitás:** az app kikapcsolja magának az App Nap-et (a macOS a sokáig tétlen háttérappokat lelassítja, és az első hover a felébredésre várt). A gép tétlen alvását nem akadályozza. |
+| N-15 | (v0.43) **Billentyűzet a notchban:** Esc becsukja; ←/→ modult vált, ha nem gépelünk és nem a beállítások látszanak; ⌘1–⌘9 a sorrend szerinti modult nyitja. |
+| N-16 | (v0.43) **Gyorsabb notch:** csak a látható modul és a két szomszédja (a swipe-hoz) épül fel; a nagy szolgáltatásokat csak a saját nézeteik figyelik; az időzítők 20% tűréssel futnak (kevesebb ébresztés). |
+| N-17 | (v0.43) Modulváltáskor és egy értesítés bezárása után a tartalom **nem marad homályos**: átúszik és kicsit elmozdul, nem méreteződik. |
+| N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -87,6 +91,9 @@
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
 | C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
+| C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
+| C-8 | (v0.43) **Permissions fül:** minden engedély (Teljes lemezelérés, Accessibility, Naptár, Emlékeztetők, Kontaktok, Bluetooth) egy helyen, mire kell; megadva pipa, különben gomb a Rendszerbeállítások megfelelő oldalára. |
+| C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
 
 ---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
@@ -184,6 +191,7 @@
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-8h | (v0.40) A meeting-visszaszámláló (előjelzés és „folyamatban”) **hover-sorában** a név és az idő mellett, az **X-től balra** a **Join** gomb is ott van, ha a meetingnek van linkje; a meetinget nyitja meg. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
+| K-14 | (v0.43) **Napi idővonal** a napi nézetben: az események színes sávként 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
 
 ---
 
@@ -236,6 +244,10 @@
 | E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. (v0.42) Az emoji-választó a Dynotch saját, **kis ablaka**, mindig **az emoji ikon alá** nyílik (hoverre vagy kattintásra): legutóbb használtak, majd kategóriák (arcok, kezek, szívek, természet, étel, egyéb); megnyitásakor a notch rögzül. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
+| E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
+| E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |
+| E-19 | (v0.43) **Elhalasztás:** jobb klikk egy értesítésen vagy a lista fejlécén: *1 óra múlva*, *ma este (18:00)*, *holnap reggel (9:00)*. Addig eltűnik, utána újra felugrik. |
+| E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 
 ## 4c. Számológép (v0.6)
 
@@ -254,6 +266,11 @@
 | SZ-10 | (v0.37) Megnyitáskor (hoverrel, kattintással, gyorsbillentyűvel vagy a menüsorból) a számológép **azonnal fogadja a gépelést**, nem kell belekattintani: a notch erre a modulra rögtön átveszi a billentyűzetet, a kurzor pedig a szöveg végén **egy új sorban** áll (ha az utolsó sor nem üres, új sor kezdődik). |
 | SZ-11 | (v0.37) **Szöveg a sorban:** a számítás akkor is kiértékelődik, ha szöveg van körülötte: az utolsó kettőspont utáni rész számít, és az első szám előtti, valamint az utolsó szám utáni szavak elhagyhatók (pl. „Asd: 10*10” → 100, „Rent 1200*12 eur” → 14 400). A számok közötti szó továbbra sem számítás. Az eredmény színe a Dynotch szokásos kékje (korábban zöld). |
 | SZ-8 | **Lakat ikon** a notch menüsorában és a menüsor paneljén: alapból szürke, bekattintva **zöld**. Bekattintva a panel **nyitva marad**, akkor is, ha az egér elhagyja (notch), illetve ha máshova kattintasz (menüsor panel). A két lakat független. A notch lakatja a panel bezárásakor (és újraindításkor) kikapcsol. |
+| SZ-12 | (v0.43) **Változók:** `ár = 1200`, a lenti sorokban `ár * 1,27`. A sorok együtt számolódnak. |
+| SZ-13 | (v0.43) **Százalék:** `20% of 340` → 68. |
+| SZ-14 | (v0.43) **Mértékegységek:** `5 km in mi`, `70 kg to lb`, `30 c in f` – hossz, tömeg, hőmérséklet, térfogat, sebesség, adat, idő. Valuta nincs. |
+| SZ-15 | (v0.43) **Összeg:** `total` / `sum` / `összesen` sor az előtte álló sorok (az előző üres sorig) összegét adja. |
+| SZ-16 | (v0.43) Az eredmények a sor alapvonalán ülnek: Enter az utolsó sorban nem csúsztatja lejjebb az utolsó eredményt. |
 
 ---
 
@@ -288,6 +305,7 @@
 | R-6b | (v0.35) A feladatlista végén **„New task”** sor: beírva és Entert nyomva a feladat a kiválasztott listába kerül (dátum és „@Lista” felismerése, mint a gyors bevitelnél), a mező utána kész a következőre. A mentés eredménye (a lista azonosítója és írhatósága, a szöveg nélkül) a `reminders.log`-ba kerül. |
 | R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). (v0.40) A szám függőlegesen pontosan az ikon két sora közé igazodik. (v0.42) A számot az ikonnal együtt rajzolja egy képbe, a számjegyek közepe mérten a két sor közé esik. |
 | R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
+| R-9 | (v0.43) A határidő **színes pill**: lejárt piros, ma narancs, holnap kék, később szürke. |
 
 ---
 
@@ -369,6 +387,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | J-12 | **Teendőlista:** az eszköztár gombja vagy a ⇧⌘L a kijelölt sorokat teendővé alakítja (és vissza). Egy teendő a sor elején álló kör: ○ nyitott, ◉ (narancs) kész; a kész sor szövege halványabb. **Kattintás a körre** kipipálja / visszavonja; a kipipált elem **a lista aljára kerül**, a visszavont a nyitottak végére. Enter új teendőt kezd, üres teendőn Enter kilép a listából. |
 | J-12b | Az Apple Notes a saját (natív) listáit és pipáit más appnak nem adja ki és nem engedi írni, ezért a teendők az Apple Notes-ban ○ / ◉ kezdetű sima sorokként látszanak. A natív listát tartalmazó jegyzet csak olvasható marad, de a **„Make editable”** gombbal a listaelemek nyitott teendővé alakíthatók (a natív pipák állapota nem olvasható ki); az Apple Notes az első módosításkor kapja meg az új formát. |
+| J-13 | (v0.43) **Scratchpad** (a korábbi „New Note” piszkozat): helyben marad, amíg el nem mentjük a Jegyzetekbe. *Paste as Note* a vágólap szövegét hozzáfűzi; bármely appban kijelölt szöveg a *Services › New Dynotch Note* menüből ide kerül, és a notch a jegyzetekkel nyílik meg. |
 
 ## 4l. Gyorsbillentyűk (v0.23)
 
@@ -416,6 +435,10 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BT-1 | Új modul **Batteries**: a Mac és minden csatlakoztatott eszköz (billentyűzet, egér, trackpad, fülhallgató és tokja…) egy-egy sor: ikon, név, százalék, akkujel (zöld, 20% alatt piros, töltés közben villám). |
 | BT-2 | Adatforrás: a Mac saját akkuja a rendszer áramforrás-adataiból; a Magic-eszközök az I/O Registryből (`ioreg`); az AirPods és más Bluetooth-eszközök a rendszerprofilból (`system_profiler`). Frissítés 2 percenként és a modul megnyitásakor. |
 | BT-3 | Ha egy eszköz **20% alá** esik (és nem tölt), a becsukott notch mellett megjelenik: **bal oldalt az eszköz ikonja, jobb oldalt pirossal a töltöttség**. Hoverre a neve és egy **X**; **amíg nem X-elem ki, ott marad**. Kiikszelve csak akkor jön újra, ha az eszközt közben 30% fölé töltötték, majd megint lemerül. |
+| BT-1b | (v0.43) Az eszközöket 5 percenként kérdezi le (a `system_profiler` drága). A sorok szövege és ikonja akkora, mint a többi modulban. |
+| BT-4 | (v0.43) **Előzmény:** eszközönként egy hét töltöttsége a lemezen; egy sorra kattintva lenyílik a grafikon a becsült hátralévő idővel (az elmúlt nap merülése alapján). |
+| BT-5 | (v0.43) **Feltöltve:** értesítés, amikor egy eszköz eléri a 100%-ot. |
+| BT-6 | (v0.43) A becsukott notch melletti alacsony-akku jelzés hover-címkéjén kis grafikon (utolsó 24 óra) és a becsült hátralévő idő. |
 
 ## 4q. Frissítés és telepítés (v0.27)
 
@@ -457,6 +480,11 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-5 | Új *Appearance* fül a beállításokban: a design mellett ide kerültek a megjelenést érintő beállítások a General fülről (beállítások megnyitása, lekerekítés, teljes képernyős rejtés, előnézet hoverre). |
 | D-6 | (v0.40) **Az üveg mindig üveg:** a rendszer üvege abban az ablakban, amely a billentyűzetet kapja, majdnem feketén rajzolódik (mérve: a gépelős modulok, a beállítások, rögzítés után kikattintva visszaváltott). Ezért az üveg a notch és a menüsor-buborékok alatt **külön, billentyűzetet és egeret soha nem kapó ablakban** van, ugyanazzal a mérettel és animációval; a tartalom fölötte, átlátszó panelen. |
 | D-7 | (v0.40) *Settings › Appearance › Displays without a notch*: **Notch** (a felső szélhez simul, alapértelmezés) vagy **Pill**: a notch nélküli kijelzőkön a fekete rész 6 pt-tal a felső szél alatt lebeg, minden sarka kerek (nyugalomban teljes kapszula, lenyitva 24 pt). A hover-zóna ennyivel lejjebb ér. (v0.42) A pill 4 pt-tal a felső szél alatt kezdődik, és **pontosan a menüsor aljánál ér véget** (nyugalomban ennyivel alacsonyabb a notch soránál, a tartalma középen marad). |
+| D-8 | (v0.43) Egy helyen a színek és sarkok (`Theme`): a kék, zöld, piros, a kitöltések és a lekerekítések mindenhol ugyanazok. |
+| D-9 | (v0.43) Három mozgásfajta (`Motion`): rugó a notch nyitásához, gyors a váltásokhoz, rövid a hoverhez. |
+| D-10 | (v0.43) Egyforma **kapszula-választó**: értesítés-fülek, vágólap-fülek, AI-szolgáltató, AI usage, tálca nézete. |
+| D-11 | (v0.43) Egyforma **üres állapot**: ikon, egy mondat és ha van, a teendő gombja (pl. *Open Beeper*). |
+| D-12 | (v0.43) A **menüsor-buborékok** mindig az eredeti fekete designt kapják, Liquid Glass nélkül, a notch designjától függetlenül. Minden ikongombnak van VoiceOver-címkéje. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -466,6 +494,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | MS-2 | A sáv a notch szélességében, alulról a notch magasságának **1/8–1/3 része** (alapból 1/8), a várakozás **0,1–1,0 mp** (alapból 0,3 mp): *Settings › Appearance › Module strip*. A sáv fölötti rész a szokásos módon azonnal lenyitja a notchot (és eltünteti a sort); ha az egér felfelé áthalad a sávon, nem jön elő a sor. (v0.42) A sáv alapból a notch **alsó fele** (1/4–1/2 állítható); az 1/8 túl vékony volt. |
 | MS-3 | Ikonra kattintva a notch **azzal a modullal** nyílik le. |
 | MS-4 | Nincs ikonsor értesítés, hívás, teljes képernyős app alatt (N-12), lenyitott notchnál, vagy ha csak egy modul van bekapcsolva. Pill módban (D-7) a sáv és a sor a pillhez igazodik. |
+| MS-1b | (v0.43) Az ikonok az egér helyéről **úsznak ki** a helyükre, gyors rugóval (nem felülről jönnek). |
+| MS-5 | (v0.43) *Megjelenés › Strip modules*: kiválasztható, mely modulok ikonjai jelenjenek meg a sávban (alapból mind). |
 | SO-1 | **Környezetfüggő nyitás:** ha a notch **hoverrel** nyílik (nem gyorsbillentyűvel és nem az ikonsorból), az első teljesülő szabály modulja nyílik meg az utoljára használt helyett. Az új értesítések (E-4) és a „Claude answered” (CC-5) továbbra is a saját nézetüket nyitják. |
 | SO-2 | Sorrend: 1. **meeting** visszaszámlálás vagy folyamatban → Naptár; 2. **emlékeztető** 15 percen belül esedékes vagy lejárt (időponttal) → Reminders; 3. **az elmúlt 2 percben kimásolt számítás vagy szám** → Számológép, a kifejezés egy új sorba beírva (eredménnyel); 4. **alacsony akkumulátor** → Akkumulátorok; 5. **AI-fogyasztás 90% fölött** → AI usage. Egyébként az utoljára használt modul. |
 | SO-3 | **Egy esemény egyszer:** ugyanaz a meeting, emlékeztető, másolás, eszköz vagy 10%-os fogyasztási lépcső csak egyszer nyitja meg a modulját; ha elváltasz onnan, legközelebb a szokásos modul jön. |
@@ -496,6 +526,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-6 | **Duplikáció nélkül:** ha ugyanarról az üzenetről értesítés is jött, csak egyszer látszik (Beeper: az üzenet szövege és ideje alapján összevonva). |
 | UM-7 | **Beállítás:** *Settings › Notifications*: „Keep unread chats in the notch” forrásonként (Beeper, Google Chat); a lekérdezési gyakoriság 10–60 mp. Csak a csevegések neve, az üzenetek szövege és ideje kerül a memóriába; lemezre és a naplóba nem. |
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
+| UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 
 ## 4x. Beeper a notchban (v0.42)
 
@@ -514,6 +545,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-10 | **Csak kézi küldés:** minden üzenet, reakció és fájl csak a felhasználó kifejezett műveletére megy el (Enter, gomb, ejtés); nincs automatikus, ütemezett vagy tömeges küldés. A Beeper figyelmeztet, hogy a túl sok küldés miatt egy hálózat felfüggesztheti a fiókot. |
 | BP-11 | **Adatok:** a Beeper Desktop API-n (localhost) keresztül; a token a meglévő (E-11). Az üzenetek és képek csak memóriában vannak; a naplóba csak műveletek és hibakódok kerülnek, tartalom nem. Ha a Beeper nem fut, a fül ezt írja ki, és a többi fül változatlanul működik. |
 | BP-12 | **A Beeper jelvényére kattintva** (a notch mellett, B-1) a notch a **Beeper fülön** nyílik le az app megnyitása helyett (ha az Értesítések modul be van kapcsolva; különben marad a régi működés). A jobb klikk (B-6) változatlan. |
+| BP-3b | (v0.43) Ha a csevegésnek nincs saját képe, a másik résztvevő képe látszik; ha neki sincs, monogram (emojit és írásjelet kihagyva). A hálózat jelvénye a **telepített hivatalos app ikonja** (WhatsApp, Messenger, Telegram, Signal, Üzenetek, Slack, Discord…), ha nincs telepítve, a színes jel. A sikertelen képletöltést később újrapróbálja. |
+| BP-4b | (v0.43) A reply és a reakció gomb **fix szélességű** helyen a buborék mellett (hoverre a sor nem változik); egy üzenetre kattintva arra válaszol. A reakciógomb hoverre a gyors reakciókat, kattintásra a teljes emoji-választót nyitja. Beeper nem fut: *Open Beeper* gomb. |
 
 ## 4y. Vágólapkezelő (v0.42)
 
@@ -539,6 +572,10 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
 | FT-8 | **Quick Look:** kijelölt fájlon szóköz megnyitja / bezárja. |
 | FT-9 | A kiválasztott csatolt mappa változásait (más appból hozzáadott / törölt fájl) azonnal mutatja. |
+| FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
+| FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
+| FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
+| FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
 
@@ -564,6 +601,11 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-9 | *Settings › General › AI:* alapértelmezett szolgáltató és szolgáltatónként alapértelmezett modell. |
 | AI-11 | A beszélgetéslistában **keresés** (cím és szöveg) és **kitűzés** (jobb klikk: Pin / Unpin; a kitűzöttek elöl, 📌 jellel); a válaszkész jelzés a szolgáltató nevét írja („ChatGPT answered”). |
 | AI-12 | **Folytatás a Terminálban:** a fejléc gombja a beszélgetést a Claude Code-ban vagy a Codexben folytatja (ugyanaz a munkamenet). |
+| AI-6b | (v0.43) Az AI usage fejlécében *Updated*, *Show at notch* és frissítés gomb ChatGPT-nél is. |
+| AI-13 | (v0.43) Az AI modul ikonja ✨ (sparkles); Claude-nál és ChatGPT-nél mindenhol a telepített hivatalos app ikonja. A bal oldali előzmények csak az aktuális szolgáltatás csevegései. |
+| AI-14 | (v0.43) **Diktálás:** mikrofon gomb a beviteli mező mellett, a macOS diktálását indítja (saját mikrofonengedély nélkül). |
+| AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
+| AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
 
 ## 5. Nyitott kérdések
 
@@ -610,6 +652,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.43** | A 0.42 tesztjén talált hibák javítása; napi idővonal, értesítés-elhalasztás és Fókusz, számológép-változók és mértékegységek, scratchpad, határidő-pillek, akku-előzmény, AI diktálás és kedvencek, ChatGPT-mód; egységes design, Engedélyek fül, gyorsabb notch |
 | **v0.42.1** | Javítás: a 0.42 indításkor kilépett (hiányzó Bluetooth-leírás) |
 | **v0.42** | AI modul (Claude + ChatGPT), vágólapkezelő, fájltálca, értesítés-fülek, Beeper és Google Chat a notchban, csatlakozó eszközök; a v0.40–0.41 hibáinak javítása |
 | **v0.41** | Modul-ikonsor a notch alsó sávjánál; környezetfüggő nyitás (meeting, emlékeztető, másolt számítás, akkumulátor, AI usage) |

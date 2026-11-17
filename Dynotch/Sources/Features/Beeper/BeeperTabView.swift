@@ -27,6 +27,7 @@ struct BeeperComposer: View {
                 }
                 .buttonStyle(.plain)
                 .help("Attach a file")
+                .accessibilityLabel("Attach a file")
                 TextField(editing == nil ? "Message \(chat.name)" : "Edit message", text: $text, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.system(size: 13))
@@ -121,7 +122,10 @@ struct BeeperTabView: View {
             case .noToken:
                 note("Add a Beeper Desktop API token in Settings › Notifications.", symbol: "key")
             case .notRunning:
-                note("Beeper Desktop is not running, or its API is off.", symbol: "bolt.horizontal.circle")
+                EmptyStateView(
+                    symbol: "bolt.horizontal.circle", text: "Beeper Desktop is not running, or its API is off.",
+                    actionTitle: "Open Beeper", action: Self.openBeeper
+                )
             case .failed(let message):
                 note(message, symbol: "exclamationmark.triangle")
             case .idle, .ready:
@@ -157,7 +161,7 @@ struct BeeperTabView: View {
     private var header: some View {
         HStack(spacing: 8) {
             Button {
-                withAnimation(.easeOut(duration: 0.15)) { service.showsChatList.toggle() }
+                withAnimation(Motion.quick) { service.showsChatList.toggle() }
             } label: {
                 Image(systemName: "sidebar.left").foregroundStyle(Color.white.opacity(service.showsChatList ? 0.9 : 0.55))
             }
@@ -166,7 +170,7 @@ struct BeeperTabView: View {
             if !service.showsChatList { chatPicker }
             if let chat = service.selectedChat {
                 if service.showsChatList {
-                    BeeperAvatar(image: service.avatar(chat.imgURL), name: chat.name, network: chat.network, size: 24)
+                    BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
                     Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 }
                 Spacer()
@@ -178,6 +182,7 @@ struct BeeperTabView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Open in Beeper")
+                .accessibilityLabel("Open in Beeper")
             } else {
                 Spacer()
             }
@@ -196,7 +201,7 @@ struct BeeperTabView: View {
         } label: {
             HStack(spacing: 6) {
                 if let chat = service.selectedChat {
-                    BeeperAvatar(image: service.avatar(chat.imgURL), name: chat.name, network: chat.network, size: 22)
+                    BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 22)
                     Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 }
                 Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
@@ -213,12 +218,14 @@ struct BeeperTabView: View {
     }
 
     private func note(_ text: String, symbol: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: symbol).font(.system(size: 22))
-            Text(text).font(.system(size: 12)).multilineTextAlignment(.center)
-        }
-        .foregroundStyle(Color.white.opacity(0.6))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        EmptyStateView(symbol: symbol, text: text)
+    }
+
+    static func openBeeper() {
+        let identifiers = ["com.automattic.beeper.desktop", "com.beeper.beeper-desktop"]
+        let found = identifiers.lazy.compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }
+        guard let url = found.first else { return }
+        NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
     }
 }
 
@@ -248,6 +255,7 @@ struct BeeperReminderMenu: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Remind me about this chat")
+        .accessibilityLabel("Remind me about this chat")
     }
 
     private func remind(at hour: Int, dayOffset: Int) {

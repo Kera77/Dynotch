@@ -15,8 +15,17 @@ struct ClipboardSettingsView: View {
                 LabeledContent("Saved items") {
                     ShortcutRecorder(shortcut: clipboard.savedShortcut) { clipboard.savedShortcut = $0 }
                 }
-                Stepper(value: $clipboard.limit, in: ClipboardStore.limitRange, step: 5) {
-                    LabeledContent("Keep", value: "\(clipboard.limit) items")
+                // Like the calendar's "Show before start" (spec CB-7).
+                LabeledContent("Keep") {
+                    HStack(spacing: 6) {
+                        TextField("", value: $clipboard.limit, format: .number)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 44)
+                        Text("items")
+                            .foregroundStyle(.secondary)
+                        Stepper("", value: $clipboard.limit, in: ClipboardStore.limitRange, step: 5)
+                            .labelsHidden()
+                    }
                 }
             } header: {
                 Text("Clipboard")

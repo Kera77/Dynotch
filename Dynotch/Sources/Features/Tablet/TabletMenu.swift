@@ -21,6 +21,7 @@ struct TabletMenu: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("iPad as a display")
+        .accessibilityLabel("iPad as a display")
         .onAppear { service.refresh() }
     }
 

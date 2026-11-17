@@ -54,6 +54,7 @@ struct NotificationSettingsView: View {
                                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                         }
                         .help("Paste the token from the clipboard")
+                        .accessibilityLabel("Paste the token from the clipboard")
                         Button("Save") {
                             BeeperClient.setToken(beeperToken)
                             beeperToken = ""
@@ -107,6 +108,7 @@ struct NotificationSettingsView: View {
             }
 
             Section {
+                FocusToggle(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
                 LabeledContent("Accessibility") {
                     if accessibilityTrusted {
@@ -140,7 +142,13 @@ struct NotificationSettingsView: View {
         case .running:
             Label("Working", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
         case .noAccess:
-            Button("Grant Full Disk Access…", action: service.openFullDiskAccessSettings)
+            VStack(alignment: .trailing, spacing: 2) {
+                Button("Grant Full Disk Access…", action: service.openFullDiskAccessSettings)
+                // Shown as allowed in System Settings yet refused: macOS needs it switched again.
+                Text("Already on? Switch Dynotch off and on there.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         case .unsupported(let message):
             Label("Can't be read", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
@@ -176,5 +184,14 @@ struct NotificationSettingsView: View {
             get: { service.isEnabled(app) },
             set: { settings.setNotificationApp(app.identifier, enabled: $0) }
         )
+    }
+}
+
+/// During a Focus only the sources allowed in their rules pop up (spec E-20).
+struct FocusToggle: View {
+    @ObservedObject var preferences: NotificationPreferences
+
+    var body: some View {
+        Toggle("During a Focus, pop up only the sources allowed in their rules", isOn: $preferences.respectsFocus)
     }
 }

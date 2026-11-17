@@ -52,6 +52,7 @@ struct FeatureSettingsView: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.tertiary)
                 .help("Drag to reorder")
+                .accessibilityLabel("Drag to reorder")
             Toggle(isOn: binding(for: feature)) {
                 Label {
                     Text(feature.title)
@@ -107,7 +108,7 @@ private struct FeatureDropDelegate: DropDelegate {
               let from = settings.featureOrder.firstIndex(of: dragged),
               let targetIndex = settings.featureOrder.firstIndex(of: target)
         else { return }
-        withAnimation(.easeOut(duration: 0.15)) {
+        withAnimation(Motion.quick) {
             settings.moveFeatures(from: IndexSet(integer: from), to: targetIndex > from ? targetIndex + 1 : targetIndex)
         }
     }

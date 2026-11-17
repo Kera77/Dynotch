@@ -78,6 +78,7 @@ final class CalendarService: ObservableObject {
             MainActor.assumeIsolated { self?.tick() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         tickTimer = timer
 
         settingsObserver = settings.objectWillChange.sink { [weak self] in

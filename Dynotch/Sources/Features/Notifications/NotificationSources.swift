@@ -9,8 +9,10 @@ struct NotificationRule: Codable, Equatable, Sendable {
     var hidesBanner: Bool?
     /// A reply field under the messages; default: none.
     var showsReply: Bool?
+    /// Pops up while a Focus is on (spec E-20); nil: no.
+    var popsUpDuringFocus: Bool?
 
-    var isDefault: Bool { name == nil && hidesBanner == nil && showsReply == nil }
+    var isDefault: Bool { name == nil && hidesBanner == nil && showsReply == nil && popsUpDuringFocus == nil }
 }
 
 /// The websites a browser shows notifications for, and the rules of every source (spec E-15).
@@ -30,8 +32,17 @@ final class NotificationPreferences: ObservableObject {
 
     private let defaults: UserDefaults
 
+    /// Notifications put off until later (spec E-19); kept while Dynotch runs.
+    @Published var snoozed: [SnoozedNotification] = []
+
+    /// During a Focus only the allowed sources pop up (spec E-20).
+    @Published var respectsFocus: Bool {
+        didSet { defaults.set(respectsFocus, forKey: "notificationsRespectFocus") }
+    }
+
     init(defaults: UserDefaults) {
         self.defaults = defaults
+        respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]
         rules = defaults.data(forKey: Self.rulesKey).flatMap { try? JSONDecoder().decode([String: NotificationRule].self, from: $0) } ?? [:]
     }
@@ -162,5 +173,31 @@ extension NotificationService {
         preferences.setRule(rule, for: catalogKey(app.identifier))
         catalog.update(sites: preferences.sites, names: preferences.names)
         objectWillChange.send()
+    }
+}
+
+// MARK: - Snooze and Focus (spec E-19, E-20)
+
+extension NotificationService {
+    /// Takes the notifications out of the list until the chosen time.
+    func snooze(_ notifications: [AppNotification], _ choice: SnoozeChoice) {
+        let until = choice.date(from: Date())
+        let ids = Set(notifications.map(\.id))
+        preferences.snoozed += notifications.map { SnoozedNotification(notification: $0, until: until) }
+        removeFromLists(ids)
+    }
+
+    /// Snoozed notifications whose time has come appear again.
+    func releaseSnoozed(now: Date = Date()) {
+        let due = preferences.snoozed.filter { $0.until <= now }
+        guard !due.isEmpty else { return }
+        preferences.snoozed.removeAll { $0.until <= now }
+        due.forEach { bringBack($0.notification) }
+    }
+
+    /// Whether a notification may pop up now: not while a Focus is on, unless its source may.
+    func popsUp(_ notification: AppNotification) -> Bool {
+        guard preferences.respectsFocus, MacFocus.current() != nil else { return true }
+        return rule(for: catalog.app(for: notification.appIdentifier)).popsUpDuringFocus == true
     }
 }

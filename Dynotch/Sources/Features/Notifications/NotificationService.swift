@@ -15,12 +15,12 @@ final class NotificationService: ObservableObject {
 
     @Published private(set) var status: Status = .disabled
     /// Notifications received since launch, newest first.
-    @Published private(set) var recent: [AppNotification] = []
+    @Published var recent: [AppNotification] = []
     /// Notification currently peeking out of the closed notch.
     @Published private(set) var peek: AppNotification?
     /// Arrived since the user last looked (hover card or Notifications feature), oldest first
     /// (spec E-4).
-    @Published private(set) var unseen: [AppNotification] = []
+    @Published var unseen: [AppNotification] = []
     /// The Notifications feature shows only these: one app's unopened notifications, after a
     /// click on its badge (spec B-6).
     @Published var focus: NotificationFocus?
@@ -42,7 +42,10 @@ final class NotificationService: ObservableObject {
     private var peekTask: Task<Void, Never>?
     private var settingsObserver: AnyCancellable?
 
-    private static let pollInterval: TimeInterval = 1
+    /// The database is watched for writes; this is only the fallback (spec E-1b).
+    private static let pollInterval: TimeInterval = 5
+    private let walWatcher = FolderWatcher()
+    private var walWatchRenewed = Date.distantPast
     private static let openRetryInterval: TimeInterval = 5
     private static let historyLimit = 50
 
@@ -190,6 +193,7 @@ final class NotificationService: ObservableObject {
                 MainActor.assumeIsolated { self?.poll() }
             }
             RunLoop.main.add(timer, forMode: .common)
+            timer.tolerance = timer.timeInterval * 0.2
             pollTimer = timer
             poll()
         } else if !enabled, pollTimer != nil {
@@ -205,6 +209,12 @@ final class NotificationService: ObservableObject {
         guard let database else {
             openDatabaseIfDue()
             return
+        }
+        releaseSnoozed()
+        // Now and then the watch is renewed, in case the log file was replaced.
+        if Date().timeIntervalSince(walWatchRenewed) > 30 {
+            walWatchRenewed = Date()
+            walWatcher.watch(URL(fileURLWithPath: database.path + "-wal"), renew: true) { [weak self] in self?.poll() }
         }
         do {
             let records = try database.records(after: lastSeenID)
@@ -244,6 +254,8 @@ final class NotificationService: ObservableObject {
                 lastSeenID = try opened.maxRecordID()
                 database = opened
                 status = .running
+                // New notifications are written to the write-ahead log: read them at once.
+                walWatcher.watch(URL(fileURLWithPath: path + "-wal")) { [weak self] in self?.poll() }
                 DiagnosticsLog.write("notifications", opened.diagnostics())
                 refreshApps()
                 return
@@ -256,14 +268,6 @@ final class NotificationService: ObservableObject {
             status = newStatus
             DiagnosticsLog.write("notifications", "open failed -> \(newStatus)\n" + failures.joined(separator: "\n"))
         }
-    }
-
-    /// Without Full Disk Access SQLite reports "authorization denied" (or can't see the file).
-    static func failureStatus(for failures: [String]) -> Status {
-        let text = failures.joined(separator: "; ").lowercased()
-        let denied = text.contains("authorization denied") || text.contains("not permitted")
-        let foundElsewhere = failures.contains { !$0.lowercased().contains("unable to open database file") }
-        return denied || !foundElsewhere ? .noAccess : .unsupported(failures.joined(separator: "; "))
     }
 
     private func handle(_ records: [NotificationRecord]) {
@@ -297,7 +301,13 @@ final class NotificationService: ObservableObject {
         showPeek(newest)
     }
 
+    func showPeekAgain(_ notification: AppNotification) {
+        showPeek(notification)
+    }
+
     private func showPeek(_ notification: AppNotification) {
+        // During a Focus it is listed, without popping up (spec E-20).
+        guard popsUp(notification) else { return }
         peekTask?.cancel()
         peek = notification
         let duration = settings.notificationDuration
@@ -323,5 +333,30 @@ extension NotificationService {
         if let url = URL(string: link) {
             NSWorkspace.shared.open(url)
         }
+    }
+}
+
+extension NotificationService {
+    /// Without Full Disk Access SQLite reports "authorization denied" (or can't see the file).
+    static func failureStatus(for failures: [String]) -> Status {
+        let text = failures.joined(separator: "; ").lowercased()
+        let denied = text.contains("authorization denied") || text.contains("not permitted")
+        let foundElsewhere = failures.contains { !$0.lowercased().contains("unable to open database file") }
+        return denied || !foundElsewhere ? .noAccess : .unsupported(failures.joined(separator: "; "))
+    }
+}
+
+extension NotificationService {
+    func removeFromLists(_ ids: Set<Int64>) {
+        recent.removeAll { ids.contains($0.id) }
+        unseen.removeAll { ids.contains($0.id) }
+        if let peek, ids.contains(peek.id) { clearPeek() }
+    }
+
+    /// A snoozed notification comes back: listed, new, popping up.
+    func bringBack(_ notification: AppNotification) {
+        recent = Array(([notification] + recent).prefix(50))
+        unseen.append(notification)
+        showPeekAgain(notification)
     }
 }

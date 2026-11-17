@@ -43,7 +43,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .notes: "note.text"
         case .reminders: "checklist"
         case .claudeUsage: "gauge.with.dots.needle.67percent"
-        case .claudeChat: "sparkle"
+        case .claudeChat: "sparkles"
         case .battery: "battery.75percent"
         case .clipboard: "doc.on.clipboard"
         case .tray: "tray.full"

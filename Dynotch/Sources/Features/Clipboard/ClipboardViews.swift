@@ -53,9 +53,10 @@ struct ClipboardFeatureView: View {
             .scrollIndicators(.never)
             .overlay {
                 if shown.isEmpty {
-                    Text(tab == .history ? "Copied texts and images appear here." : "Save items with the star, or add a text above.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                    EmptyStateView(
+                        symbol: tab == .history ? "doc.on.clipboard" : "star",
+                        text: tab == .history ? "Copied texts and images appear here." : "Save items with the star, or add a text above."
+                    )
                 }
             }
         }
@@ -88,6 +89,7 @@ struct ClipboardFeatureView: View {
             }
             .buttonStyle(.plain)
             .help("Remove")
+            .accessibilityLabel("Remove")
         }
         .font(.system(size: 12))
         .padding(.horizontal, 10)
@@ -99,6 +101,7 @@ struct ClipboardFeatureView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { store.paste(item) }
         }
         .help("Click to paste")
+        .accessibilityLabel("Click to paste")
     }
 }
 
@@ -108,21 +111,7 @@ struct ClipboardTabs: View {
     let select: (ClipboardTab) -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(ClipboardTab.allCases, id: \.self) { tab in
-                Button {
-                    select(tab)
-                } label: {
-                    Text(tab.title)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(tab == selected ? Color.black : Color.white.opacity(0.75))
-                        .padding(.horizontal, 10)
-                        .frame(height: 22)
-                        .background(Capsule().fill(tab == selected ? Color.white : Color.white.opacity(0.1)))
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        CapsulePicker(items: ClipboardTab.allCases, selection: Binding(get: { selected }, set: select), title: \.title)
     }
 }
 
@@ -193,7 +182,7 @@ struct ClipboardPickerView: View {
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .stroke(index == picker.selection ? Color(red: 0.04, green: 0.52, blue: 1) : .clear, lineWidth: 2)
+                                        .stroke(index == picker.selection ? Theme.blue : .clear, lineWidth: 2)
                                 )
                             Text("\(index + 1)")
                                 .font(.system(size: 11, weight: .bold))
@@ -208,7 +197,7 @@ struct ClipboardPickerView: View {
             .scrollIndicators(.never)
             .onChange(of: picker.selection) { _, index in
                 guard picker.items.indices.contains(index) else { return }
-                withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(picker.items[index].id, anchor: .center) }
+                withAnimation(Motion.quick) { proxy.scrollTo(picker.items[index].id, anchor: .center) }
             }
         }
     }

@@ -38,6 +38,9 @@ final class NotchViewModel: ObservableObject {
     /// The modules show under the closed notch (spec MS-1).
     @Published private(set) var isShowingStrip = false
 
+    /// Where the pointer was when the strip came (spec MS-1b).
+    var stripOrigin: CGFloat = 0
+
     func setStripShown(_ shown: Bool) {
         if shown != isShowingStrip { isShowingStrip = shown }
     }

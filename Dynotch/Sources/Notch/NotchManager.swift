@@ -68,6 +68,7 @@ final class NotchManager {
             MainActor.assumeIsolated { self?.measureMenuBar() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         menuBarTimer = timer
         activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main

@@ -47,6 +47,8 @@ struct CalendarCompactView: View {
             .foregroundStyle(Color.white.opacity(0.55))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
+            DayTimelineView(events: events, day: service.selectedDay, now: service.now) { service.join($0) }
+                .padding(.top, 4)
             ScrollViewReader { proxy in
                 ScrollView(.vertical) {
                     VStack(spacing: 8) {

@@ -62,7 +62,25 @@ struct TrayFeatureView: View {
             }
             .buttonStyle(.plain)
             .help("Attach a folder")
+            .accessibilityLabel("Attach a folder")
             Spacer(minLength: 0)
+            // Tiles or a list (spec FT-11).
+            CapsulePicker(items: [false, true], selection: $store.showsList) { $0 ? "List" : "Tiles" }
+        }
+    }
+
+    private func cell(_ url: URL) -> some View {
+        TrayFileCell(url: url, isChosen: chosen == url, isRow: store.showsList) {
+            chosen = url
+            isFocused = true
+        }
+        .contextMenu {
+            Button("Quick Look") { TrayQuickLook.shared.toggle(url) }
+            Button("Open") { NSWorkspace.shared.open(url) }
+            Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            if selected == nil, let item = store.trayFiles.first(where: { $0.url == url })?.item {
+                Button("Remove from Tray") { store.remove(item) }
+            }
         }
     }
 
@@ -84,24 +102,23 @@ struct TrayFeatureView: View {
 
     private var grid: some View {
         ScrollView(.vertical) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 8)], spacing: 10) {
-                ForEach(files, id: \.self) { url in
-                    TrayFileCell(url: url, isChosen: chosen == url) {
-                        chosen = url
-                        isFocused = true
+            Group {
+                if store.showsList {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        ForEach(files, id: \.self) { cell($0) }
                     }
-                        .contextMenu {
-                            Button("Quick Look") { TrayQuickLook.shared.toggle(url) }
-                            Button("Open") { NSWorkspace.shared.open(url) }
-                            Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-                            if selected == nil, let item = store.trayFiles.first(where: { $0.url == url })?.item {
-                                Button("Remove from Tray") { store.remove(item) }
-                            }
-                        }
+                } else {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 8)], spacing: 10) {
+                        ForEach(files, id: \.self) { cell($0) }
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            // Switching between the tray and the folders slides, like the notification tabs (spec FT-10).
+            .id(store.selectedFolder)
+            .transition(.opacity.combined(with: .move(edge: .trailing)))
         }
+        .animation(Motion.quick, value: store.selectedFolder)
         .scrollIndicators(.never)
         .focusable()
         .focusEffectDisabled()
@@ -114,9 +131,10 @@ struct TrayFeatureView: View {
         .onDisappear { TrayQuickLook.shared.close() }
         .overlay {
             if files.isEmpty {
-                Text(selected == nil ? "Drop files on the notch to keep them here." : "This folder is empty.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                EmptyStateView(
+                    symbol: selected == nil ? "tray" : "folder",
+                    text: selected == nil ? "Drop files on the notch to keep them here." : "This folder is empty."
+                )
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
@@ -134,33 +152,50 @@ struct TrayFeatureView: View {
 struct TrayFileCell: View {
     let url: URL
     var isChosen = false
+    /// One line with a small icon (list), or a tile.
+    var isRow = false
     var choose: () -> Void = {}
 
     var body: some View {
-        VStack(spacing: 4) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
-                .resizable()
-                .scaledToFit()
-                .frame(width: 44, height: 44)
-            Text(url.lastPathComponent)
-                .font(.system(size: 10))
-                .foregroundStyle(.white)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .frame(width: 74)
+        content
+            .padding(4)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(isChosen ? 0.16 : 0)))
+            .contentShape(Rectangle())
+            // Dragged out under the name it came with (spec FT-12).
+            .onDrag {
+                let provider = NSItemProvider(contentsOf: url) ?? NSItemProvider()
+                provider.suggestedName = url.lastPathComponent
+                return provider
+            }
+            .onTapGesture(count: 2) { NSWorkspace.shared.open(url) }
+            .onTapGesture(count: 1, perform: choose)
+            .help(url.path)
+    }
+
+    @ViewBuilder private var content: some View {
+        let icon = Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().scaledToFit()
+        if isRow {
+            HStack(spacing: 8) {
+                icon.frame(width: 20, height: 20)
+                Text(url.lastPathComponent).font(.system(size: 12)).foregroundStyle(.white).lineLimit(1)
+                Spacer(minLength: 0)
+            }
+        } else {
+            VStack(spacing: 4) {
+                icon.frame(width: 44, height: 44)
+                Text(url.lastPathComponent)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 74)
+            }
         }
-        .padding(4)
-        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(isChosen ? 0.16 : 0)))
-        .contentShape(Rectangle())
-        .onDrag { NSItemProvider(contentsOf: url) ?? NSItemProvider() }
-        .onTapGesture(count: 2) { NSWorkspace.shared.open(url) }
-        .onTapGesture(count: 1, perform: choose)
-        .help(url.path)
     }
 }
 
-/// Dragging files over the notch (spec FT-1, FT-3): keep them in the tray on the left, send
-/// them with AirDrop on the right (the system's AirDrop window opens).
+/// Dragging files over the notch (spec FT-1, FT-3): AirDrop on the left third, the tray on the
+/// other two thirds, each a rounded section with its icon in the middle.
 struct TrayDropZoneView: View {
     let notchHeight: CGFloat
     let keep: ([URL]) -> Void
@@ -169,43 +204,52 @@ struct TrayDropZoneView: View {
     @State private var overKeep = false
     @State private var overAirDrop = false
 
+    private static let airDropIcon = NSWorkspace.shared.icon(
+        forFile: "/System/Library/CoreServices/Finder.app/Contents/Applications/AirDrop.app"
+    )
+
     var body: some View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
-            HStack(spacing: 12) {
-                target(symbol: "tray.and.arrow.down.fill", title: "Keep in Tray", isOver: overKeep)
-                    .dropDestination(for: URL.self) { urls, _ in
-                        keep(urls)
-                        return true
-                    } isTargeted: { overKeep = $0 }
-                target(symbol: "airplayaudio", title: "AirDrop", isOver: overAirDrop)
+            GeometryReader { geometry in
+                let spacing: CGFloat = 12
+                let third = (geometry.size.width - spacing) / 3
+                HStack(spacing: spacing) {
+                    section(title: "AirDrop", isOver: overAirDrop) {
+                        Image(nsImage: Self.airDropIcon).resizable().scaledToFit().frame(width: 44, height: 44)
+                    }
+                    .frame(width: third)
                     .dropDestination(for: URL.self) { urls, _ in
                         airDrop(urls)
                         return true
                     } isTargeted: { overAirDrop = $0 }
+                    section(title: "Keep in Tray", isOver: overKeep) {
+                        Image(systemName: "tray.and.arrow.down.fill").font(.system(size: 34, weight: .semibold))
+                    }
+                    .frame(width: third * 2)
+                    .dropDestination(for: URL.self) { urls, _ in
+                        keep(urls)
+                        return true
+                    } isTargeted: { overKeep = $0 }
+                }
             }
             .padding(14)
         }
     }
 
-    private func target(symbol: String, title: String, isOver: Bool) -> some View {
+    private func section<Icon: View>(title: String, isOver: Bool, @ViewBuilder icon: () -> Icon) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: symbol)
-                .font(.system(size: 28, weight: .semibold))
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
+            icon()
+            Text(title).font(.system(size: 13, weight: .semibold))
         }
-        .foregroundStyle(.white.opacity(isOver ? 1 : 0.75))
+        .foregroundStyle(.white.opacity(isOver ? 1 : 0.8))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.white.opacity(isOver ? 0.2 : 0.07))
-        )
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.white.opacity(isOver ? 0.2 : 0.08)))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(isOver ? 0.7 : 0.25), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.white.opacity(isOver ? 0.7 : 0.22), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
         )
-        .scaleEffect(isOver ? 1.03 : 1)
-        .animation(.easeOut(duration: 0.12), value: isOver)
+        .scaleEffect(isOver ? 1.02 : 1)
+        .animation(Motion.hover, value: isOver)
     }
 }

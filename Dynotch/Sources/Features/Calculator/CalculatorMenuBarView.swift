@@ -124,6 +124,7 @@ struct CalculatorMenuBarView: View {
             .opacity(resultCount == 0 ? 0.4 : 1)
             .disabled(resultCount == 0)
             .help("Copies every calculation with its result")
+            .accessibilityLabel("Copies every calculation with its result")
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)

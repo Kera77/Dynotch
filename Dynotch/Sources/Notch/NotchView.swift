@@ -18,13 +18,17 @@ struct NotchView: View {
     @ObservedObject var battery: BatteryService
     let shortcuts: ShortcutStore
     let updates: UpdateService
-    @ObservedObject var tablets: TabletDisplayService
+    /// Watched by its own views, not by the whole notch (spec N-16).
+    let tablets: TabletDisplayService
     /// The content's window, or the glass window behind it (spec D-6).
     var layer = DesignLayer.content
     let clipboard: ClipboardStore
-    @ObservedObject var clipboardPicker: ClipboardPicker
-    @ObservedObject var tray: TrayStore
-    @ObservedObject var beeper: BeeperService
+    /// Watched by its own views, not by the whole notch (spec N-16).
+    let clipboardPicker: ClipboardPicker
+    /// Watched by its own views, not by the whole notch (spec N-16).
+    let tray: TrayStore
+    /// Watched by its own views, not by the whole notch (spec N-16).
+    let beeper: BeeperService
     @ObservedObject var devices: DeviceWatcher
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
@@ -45,11 +49,12 @@ struct NotchView: View {
     var sendWithAirDrop: ([URL]) -> Void = { _ in }
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
-    static let quickAnimation = Animation.easeOut(duration: 0.16)
+    static let quickAnimation = Motion.quick
 
-    /// Content scales up from the notch and fades in with the same spring as the background.
+    /// Content fades in and slides down a little with the background. Not scaled: text drawn
+    /// while scaled stayed blurry until the next redraw (spec N-17).
     private static let contentTransition: AnyTransition =
-        .scale(scale: 0.4, anchor: .top).combined(with: .opacity)
+        .opacity.combined(with: .offset(y: -10))
 
     var geometry: NotchGeometry { model.geometry }
 
@@ -157,7 +162,8 @@ struct NotchView: View {
                                 }
                             }
                         },
-                        join: { calendar.join($0) }
+                        join: { calendar.join($0) },
+                        batterySamples: { battery.history.samples[$0] ?? [] }
                     )
                     // Laid out at full size and kept in place while the black area unfolds over it.
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
@@ -209,7 +215,7 @@ struct NotchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .top) {
             if layer == .content, model.isShowingStrip, !model.isExpanded {
-                ModuleStripView(features: settings.activeFeatures, open: openModule)
+                ModuleStripView(features: stripFeatures, origin: model.stripOrigin, open: openModule)
                     .padding(.top, geometry.notchSize.height + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
             }
         }
@@ -266,13 +272,18 @@ struct NotchView: View {
         let index = features.firstIndex(of: model.currentFeature) ?? 0
         let pageWidth = model.openSize.width
         return HStack(spacing: 0) {
-            ForEach(features) { feature in
-                page(for: feature)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 12)
-                    .frame(width: pageWidth)
-                    .frame(maxHeight: .infinity)
-                    .allowsHitTesting(feature == model.currentFeature)
+            ForEach(Array(features.enumerated()), id: \.element) { position, feature in
+                // Only the module shown and its neighbours (for the swipe) are built (spec N-16).
+                if abs(position - index) <= 1 {
+                    page(for: feature)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
+                        .frame(width: pageWidth)
+                        .frame(maxHeight: .infinity)
+                        .allowsHitTesting(feature == model.currentFeature)
+                } else {
+                    Color.clear.frame(width: pageWidth)
+                }
             }
         }
         .frame(width: pageWidth, alignment: .leading)

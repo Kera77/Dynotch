@@ -15,6 +15,7 @@ struct NotificationGroupRow: View {
             header
                 .contentShape(Rectangle())
                 .onTapGesture(perform: toggle)
+                .contextMenu { SnoozeMenu(service: service, notifications: group.notifications) }
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(group.notifications) { message($0) }
@@ -108,5 +109,17 @@ struct NotificationGroupRow: View {
         }
         .buttonStyle(.plain)
         .padding(.leading, 36)
+    }
+}
+
+/// "Remind me later" for notifications (spec E-19).
+struct SnoozeMenu: View {
+    let service: NotificationService
+    let notifications: [AppNotification]
+
+    var body: some View {
+        ForEach(SnoozeChoice.allCases, id: \.self) { choice in
+            Button(choice.title) { service.snooze(notifications, choice) }
+        }
     }
 }

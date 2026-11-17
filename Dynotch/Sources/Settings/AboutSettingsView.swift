@@ -4,6 +4,9 @@ import SwiftUI
 /// Version, updates (spec U-1…U-4) and quitting.
 struct AboutSettingsView: View {
     @ObservedObject var updates: UpdateService
+    let settings: AppSettings
+    let notifications: NotificationService
+    @State private var copied = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -39,10 +42,28 @@ struct AboutSettingsView: View {
             .padding(.top, 14)
             .frame(maxWidth: 360)
 
-            Button("Quit Dynotch") { NSApp.terminate(nil) }
-                .padding(.top, 12)
+            HStack(spacing: 12) {
+                Button(copied ? "Copied ✓" : "Copy Diagnostics", action: copyDiagnostics)
+                    .help("Versions, modules, permissions and the end of the logs, without any content")
+                    .accessibilityLabel("Versions, modules, permissions and the end of the logs, without any content")
+                Button("Quit Dynotch") { NSApp.terminate(nil) }
+            }
+            .padding(.top, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// For troubleshooting (spec C-7).
+    private func copyDiagnostics() {
+        let readable = notifications.status == .running
+        var permissions: [String: Bool] = [:]
+        for permission in Permission.allCases {
+            permissions[permission.title] = permission.isGranted(notificationsReadable: readable) ?? false
+        }
+        let report = DiagnosticsLog.report(enabledModules: settings.activeFeatures.map(\.title), permissions: permissions)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
+        copied = true
     }
 
     private var isBusy: Bool {

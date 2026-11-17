@@ -78,6 +78,7 @@ final class BeeperService: ObservableObject {
             MainActor.assumeIsolated { self?.refresh() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
         refresh()
     }
@@ -88,6 +89,11 @@ final class BeeperService: ObservableObject {
             return
         }
         guard keepsUnread || selectedChatID != nil || state != .idle else { return }
+        // Nothing to ask while Beeper Desktop is not running.
+        guard Self.isBeeperRunning else {
+            state = .notRunning
+            return
+        }
         Task { [weak self] in
             do {
                 let found = try await BeeperAPI.chats()
@@ -230,6 +236,13 @@ final class BeeperService: ObservableObject {
         DiagnosticsLog.append("beeper", "action failed: \((error as? BeeperError).map { "\($0)" } ?? "error")")
     }
 
+    static var isBeeperRunning: Bool {
+        NSWorkspace.shared.runningApplications.contains { ($0.bundleIdentifier ?? "").lowercased().contains("beeper") }
+    }
+
+    /// Pictures kept in memory at most (spec BP-3).
+    static let avatarLimit = 200
+
     // MARK: - Pictures (spec BP-3)
 
     func avatar(_ address: String?) -> NSImage? {
@@ -237,12 +250,29 @@ final class BeeperService: ObservableObject {
         if let image = avatars[address] { return image }
         guard loadingAvatars.insert(address).inserted else { return nil }
         Task { [weak self] in
-            guard let url = try? await BeeperAPI.download(address),
-                  let data = try? Data(contentsOf: url), let image = NSImage(data: data)
-            else { return }
-            self?.avatars[address] = image
+            let url = try? await BeeperAPI.download(address)
+            let image = url.flatMap(Self.image(at:))
+            guard let self else { return }
+            guard let image else {
+                // Tried again on a later look, not never.
+                self.loadingAvatars.remove(address)
+                return
+            }
+            if self.avatars.count >= Self.avatarLimit { self.avatars.removeAll(keepingCapacity: true) }
+            self.avatars[address] = image
         }
         return nil
+    }
+}
+
+extension BeeperService {
+    /// A local file (also a percent-encoded or bare path) or a web address.
+    nonisolated static func image(at url: URL) -> NSImage? {
+        if url.isFileURL || url.scheme == nil {
+            let path = url.isFileURL ? url.path(percentEncoded: false) : url.absoluteString
+            return NSImage(contentsOfFile: path)
+        }
+        return (try? Data(contentsOf: url)).flatMap(NSImage.init(data:))
     }
 }
 

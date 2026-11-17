@@ -9,9 +9,48 @@ enum AIPrompt {
     }
 }
 
-// MARK: - ChatGPT, models, context (spec AI-1…AI-12)
+/// How ChatGPT answers (spec AI-16): through Codex in the notch, or on chatgpt.com, which works
+/// with a free account too.
+enum ChatGPTMode: String, CaseIterable, Sendable {
+    case codex
+    case web
+
+    var title: String {
+        switch self {
+        case .codex: "Codex (in the notch)"
+        case .web: "ChatGPT (opens chatgpt.com)"
+        }
+    }
+}
+
+// MARK: - ChatGPT, models, context (spec AI-1…AI-16)
 
 extension ClaudeChatService {
+    var chatGPTMode: ChatGPTMode {
+        get { defaults.string(forKey: "aiChatGPTMode").flatMap(ChatGPTMode.init(rawValue:)) ?? .codex }
+        set {
+            defaults.set(newValue.rawValue, forKey: "aiChatGPTMode")
+            objectWillChange.send()
+        }
+    }
+
+    /// The question on chatgpt.com, sent there (spec AI-16).
+    func askOnChatGPTWeb(prompt: String, chatID: UUID) {
+        var components = URLComponents(string: "https://chatgpt.com/")
+        components?.queryItems = [URLQueryItem(name: "q", value: prompt)]
+        if let url = components?.url { NSWorkspace.shared.open(url) }
+        finish(chatID, text: "Opened in ChatGPT – the answer is there.", sessionID: nil, isError: false)
+    }
+
+    /// Codex's sign-in with the ChatGPT account, in Terminal; it opens the browser (spec AI-15).
+    func signInToChatGPT() {
+        guard let program = CodexCLI.locate() else { return }
+        let line = Self.quoted(program.path) + " login"
+        let source = "tell application \"Terminal\"\nactivate\ndo script \"\(line.replacingOccurrences(of: "\"", with: "\\\""))\"\nend tell"
+        var error: NSDictionary?
+        NSAppleScript(source: source)?.executeAndReturnError(&error)
+    }
+
     /// ChatGPT through Codex, with the account the Mac is signed in with (spec AI-3).
     func runCodex(prompt: String, files: [URL], chatID: UUID) {
         guard let program = CodexCLI.locate() else {
@@ -184,7 +223,7 @@ extension ClaudeChatService {
         if error != nil { DiagnosticsLog.append("ai", "could not open Terminal") }
     }
 
-    private static func quoted(_ path: String) -> String {
+    static func quoted(_ path: String) -> String {
         "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }

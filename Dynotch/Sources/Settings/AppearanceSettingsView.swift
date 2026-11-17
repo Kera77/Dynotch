@@ -87,6 +87,8 @@ struct AppearanceSettingsView: View {
                 }
             }
             .disabled(!settings.moduleStrip)
+            StripModulesRows(features: settings.activeFeatures)
+                .disabled(!settings.moduleStrip)
         } header: {
             Text("Module strip")
         } footer: {
@@ -118,5 +120,24 @@ struct AppearanceSettingsView: View {
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
+    }
+}
+
+/// Which modules the strip shows (spec MS-5).
+private struct StripModulesRows: View {
+    let features: [FeatureID]
+    @State private var hidden = ModuleStripChoice.hidden
+
+    var body: some View {
+        DisclosureGroup("Modules in the strip") {
+            ForEach(features) { feature in
+                Toggle(isOn: Binding(get: { !hidden.contains(feature) }, set: { shown in
+                    ModuleStripChoice.setShown(feature, shown)
+                    hidden = ModuleStripChoice.hidden
+                })) {
+                    Label(feature.title, systemImage: feature.symbolName)
+                }
+            }
+        }
     }
 }

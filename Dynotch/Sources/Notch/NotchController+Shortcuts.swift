@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 
 // MARK: - Shortcuts (spec SC-1, SC-2)
@@ -146,5 +147,33 @@ extension NotchController {
         previewTask = nil
         guard model.isPreview else { return }
         withAnimation(Self.animation) { model.setPreview(false) }
+    }
+}
+
+// MARK: - Keyboard in the notch (spec N-15)
+
+extension NotchController {
+    /// Esc closes, ⌘1–9 picks a module, ← → step through them (not while typing in a field).
+    func handleKey(_ event: NSEvent) -> Bool {
+        guard model.isExpanded else { return false }
+        let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        let isTyping = panel.firstResponder is NSText
+        switch Int(event.keyCode) {
+        case kVK_Escape where !model.isShowingOverlayPage:
+            collapse()
+            return true
+        case kVK_LeftArrow where flags.isEmpty && !isTyping && !model.isShowingSettings:
+            withAnimation(Self.animation) { model.step(.previous) }
+            return true
+        case kVK_RightArrow where flags.isEmpty && !isTyping && !model.isShowingSettings:
+            withAnimation(Self.animation) { model.step(.next) }
+            return true
+        default:
+            guard flags == .command, let digit = Int(event.charactersIgnoringModifiers ?? ""), (1...9).contains(digit) else { return false }
+            let features = settings.activeFeatures
+            guard features.indices.contains(digit - 1) else { return false }
+            withAnimation(Self.animation) { model.select(features[digit - 1]) }
+            return true
+        }
     }
 }

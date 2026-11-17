@@ -28,7 +28,7 @@ final class MenuBarPopoverController: NSObject {
     /// The glass behind the panel, in a window that never takes the keyboard (spec D-6).
     private lazy var glassPanel: GlassPanel = {
         let glass = GlassPanel(level: .statusBar)
-        glass.contentView = NSHostingView(rootView: DesignEnvironment(settings: settings, content: PopoverGlassLayer(state: state)))
+        glass.contentView = NSHostingView(rootView: PopoverGlassLayer(state: state).environment(\.notchDesign, .black))
         return glass
     }()
     private let badge: Badge?
@@ -208,7 +208,7 @@ final class MenuBarPopoverController: NSObject {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.contentView = FirstMouseHostingView(rootView: DesignEnvironment(settings: settings, content: makeContent(state)))
+        panel.contentView = FirstMouseHostingView(rootView: makeContent(state).environment(\.notchDesign, .black))
         return panel
     }
 }

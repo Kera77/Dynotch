@@ -150,6 +150,7 @@ final class ClipboardPicker: ObservableObject {
             MainActor.assumeIsolated { self?.checkRelease() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         releaseTimer = timer
     }
 

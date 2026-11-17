@@ -13,7 +13,7 @@ struct NotchGeometry: Equatable, Sendable {
     static let largeHeight: CGFloat = 340
     static let minimumMenuBarHeight: CGFloat = 32
     /// Size of the settings content, in its own window and inside the notch alike (spec C-2).
-    static let settingsContentSize = CGSize(width: 520, height: 440)
+    static let settingsContentSize = CGSize(width: 680, height: 440)
     /// Height of the calendar's day strip, directly below the menu bar.
     static let dayStripHeight: CGFloat = 54
     /// How far the hover zones reach above the screen's top edge. The pointer can sit exactly on

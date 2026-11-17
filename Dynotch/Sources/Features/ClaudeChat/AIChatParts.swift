@@ -20,24 +20,12 @@ struct AIChatHeader: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            HStack(spacing: 2) {
-                ForEach(AIProvider.allCases, id: \.self) { provider in
-                    Button {
-                        withAnimation(.easeOut(duration: 0.15)) { service.choose(provider: provider) }
-                    } label: {
-                        Text(provider.title)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(provider == service.shownProvider ? Color.black : Color.white.opacity(0.75))
-                            .padding(.horizontal, 9)
-                            .frame(height: 22)
-                            .background(Capsule().fill(provider == service.shownProvider ? Color.white : .clear))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(2)
-            .background(Capsule().fill(Color.white.opacity(0.1)))
-            modelMenu
+            CapsulePicker(
+                items: AIProvider.allCases,
+                selection: Binding(get: { service.shownProvider }, set: { service.choose(provider: $0) }),
+                title: \.title
+            )
+            if service.shownProvider == .chatgpt { chatGPTModeMenu } else { modelMenu }
             Button {
                 service.thinksHarder.toggle()
             } label: {
@@ -82,6 +70,40 @@ struct AIChatHeader: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Model")
+        .accessibilityLabel("Model")
+    }
+
+    /// Codex in the notch, or chatgpt.com (spec AI-16); Codex's models below.
+    private var chatGPTModeMenu: some View {
+        Menu {
+            ForEach(ChatGPTMode.allCases, id: \.self) { mode in
+                Button(mode.title) { service.chatGPTMode = mode }
+            }
+            if service.chatGPTMode == .codex {
+                Divider()
+                Button("Default model") { service.choose(model: nil) }
+                ForEach(service.shownProvider.models()) { model in
+                    Button(model.title) { service.choose(model: model.id) }
+                }
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Text(chatGPTLabel)
+                    .font(.system(size: 11, weight: .semibold))
+                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+            }
+            .foregroundStyle(Color.white.opacity(0.8))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("How ChatGPT answers")
+    }
+
+    private var chatGPTLabel: String {
+        if service.chatGPTMode == .web { return "chatgpt.com" }
+        return service.shownProvider.models().first { $0.id == service.shownModel }?.title ?? "Codex"
     }
 
     private var templatesMenu: some View {
@@ -111,6 +133,7 @@ struct AIChatHeader: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Templates")
+        .accessibilityLabel("Templates")
     }
 }
 
@@ -192,13 +215,24 @@ struct AIMessageContent: View {
     }
 }
 
-/// Copy and Insert under an answer (spec AI-7).
+/// Star, Copy and Insert under an answer (spec AI-7, AI-15).
 struct AIAnswerActions: View {
     let text: String
+    var isFavorite = false
+    /// Stars the answer (spec AI-15); nil: no star.
+    var toggleFavorite: (() -> Void)?
     @Environment(\.closeNotch) private var closeNotch
 
     var body: some View {
         HStack(spacing: 10) {
+            if let toggleFavorite {
+                Button(action: toggleFavorite) {
+                    Image(systemName: isFavorite ? "star.fill" : "star")
+                        .foregroundStyle(isFavorite ? Color.yellow : Color.white.opacity(0.55))
+                }
+                .help(isFavorite ? "Remove from Favorites" : "Add to Favorites")
+                .accessibilityLabel(isFavorite ? "Remove from Favorites" : "Add to Favorites")
+            }
             Button("Copy") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
@@ -209,6 +243,7 @@ struct AIAnswerActions: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { ClaudeChatService.insert(answer) }
             }
             .help("Paste the answer into the app in front")
+            .accessibilityLabel("Paste the answer into the app in front")
         }
         .buttonStyle(.plain)
         .font(.system(size: 10, weight: .semibold))

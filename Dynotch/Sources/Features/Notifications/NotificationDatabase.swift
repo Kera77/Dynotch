@@ -38,6 +38,26 @@ final class NotificationDatabase {
         handle = connection
         // Opening is lazy; make sure the table is really readable.
         _ = try maxRecordID()
+        try checkLayout()
+    }
+
+    /// The columns Dynotch reads; a macOS update that changes them gives a clear error instead of
+    /// silently missing notifications (spec E-1c).
+    static let neededColumns: [String: Set<String>] = [
+        "record": ["rec_id", "app_id", "data"],
+        "app": ["app_id", "identifier"]
+    ]
+
+    private func checkLayout() throws {
+        for (table, needed) in Self.neededColumns {
+            let columns = Set(try query("PRAGMA table_info(\(table))") { Self.text($0, 1) })
+            let missing = needed.subtracting(columns)
+            guard missing.isEmpty else {
+                throw NotificationDatabaseError(
+                    description: "macOS changed its notification database (\(table) has no \(missing.sorted().joined(separator: ", ")))."
+                )
+            }
+        }
     }
 
     deinit {

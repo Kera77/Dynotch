@@ -106,6 +106,7 @@ struct TrailingControls: View {
             }
             .buttonStyle(.plain)
             .help("Settings")
+            .accessibilityLabel("Settings")
         }
         .padding(3)
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))

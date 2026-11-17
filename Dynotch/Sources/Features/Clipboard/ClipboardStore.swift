@@ -58,6 +58,11 @@ final class ClipboardStore: ObservableObject {
     /// How many copies are kept.
     @Published var limit: Int {
         didSet {
+            // Typed numbers outside the range are brought back into it.
+            guard Self.limitRange.contains(limit) else {
+                limit = min(max(limit, Self.limitRange.lowerBound), Self.limitRange.upperBound)
+                return
+            }
             defaults.set(limit, forKey: Keys.limit)
             history = Array(history.prefix(limit))
             persist()
@@ -115,10 +120,11 @@ final class ClipboardStore: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 0.75, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.poll() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
     }
 

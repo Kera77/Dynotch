@@ -4,13 +4,16 @@ import SwiftUI
 /// icons; a click opens the notch on that module.
 struct ModuleStripView: View {
     let features: [FeatureID]
+    /// Where the pointer was, from the notch's middle: the icons swim out from there (spec MS-1b).
+    var origin: CGFloat = 0
     let open: (FeatureID) -> Void
 
     @State private var hovered: FeatureID?
+    @State private var isOut = false
 
     var body: some View {
         HStack(spacing: NotchGeometry.stripSpacing) {
-            ForEach(features) { feature in
+            ForEach(Array(features.enumerated()), id: \.element) { index, feature in
                 Button {
                     open(feature)
                 } label: {
@@ -26,9 +29,12 @@ struct ModuleStripView: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .offset(x: isOut ? 0 : origin - slotX(index))
+                .scaleEffect(isOut ? 1 : 0.4)
+                .opacity(isOut ? 1 : 0)
                 .help(feature.title)
                 .onHover { inside in
-                    withAnimation(.easeOut(duration: 0.12)) {
+                    withAnimation(Motion.hover) {
                         if inside {
                             hovered = feature
                         } else if hovered == feature {
@@ -38,6 +44,35 @@ struct ModuleStripView: View {
                 }
             }
         }
-        .transition(.move(edge: .top).combined(with: .opacity))
+        .onAppear {
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.82)) { isOut = true }
+        }
+        .transition(.opacity)
+    }
+
+    /// An icon's centre, from the strip's middle.
+    private func slotX(_ index: Int) -> CGFloat {
+        let step = NotchGeometry.stripIconSize + NotchGeometry.stripSpacing
+        return (CGFloat(index) - CGFloat(features.count - 1) / 2) * step
+    }
+}
+
+/// Which modules the strip shows (spec MS-5); all by default.
+enum ModuleStripChoice {
+    private static let key = "moduleStripHidden"
+
+    static var hidden: Set<FeatureID> {
+        Set((UserDefaults.standard.stringArray(forKey: key) ?? []).compactMap(FeatureID.init(rawValue:)))
+    }
+
+    static func setShown(_ feature: FeatureID, _ shown: Bool) {
+        var set = hidden
+        if shown { set.remove(feature) } else { set.insert(feature) }
+        UserDefaults.standard.set(set.map(\.rawValue).sorted(), forKey: key)
+    }
+
+    static func features(from active: [FeatureID]) -> [FeatureID] {
+        let hidden = hidden
+        return active.filter { !hidden.contains($0) }
     }
 }

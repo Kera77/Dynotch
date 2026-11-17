@@ -106,6 +106,7 @@ private struct BadgeAppRow: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             .help("Icon shown next to the notch")
+            .accessibilityLabel("Icon shown next to the notch")
             Button {
                 service.remove(app.bundleID)
             } label: {
@@ -113,6 +114,7 @@ private struct BadgeAppRow: View {
             }
             .buttonStyle(.borderless)
             .help("Remove")
+            .accessibilityLabel("Remove")
         }
     }
 
@@ -149,6 +151,7 @@ struct SettingsSearchField: View {
                 }
                 .buttonStyle(.plain)
                 .help("Clear")
+                .accessibilityLabel("Clear")
             }
         }
         .padding(.horizontal, 8)

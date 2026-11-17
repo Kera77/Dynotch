@@ -36,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services: services
     )
     private var notchManager: NotchManager?
+    private var textService: TextServiceProvider?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -60,6 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
         ClaudeQuestionHook.upgradeIfNeeded()
+        services.battery.onCharged = { [notifications] device in
+            notifications.present(title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier)
+        }
         services.battery.start()
         services.updates.start()
         let notices = services.notices
@@ -74,6 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         manager.start()
         notchManager = manager
         announceUpdate()
+        offerTextService(manager)
 
         // The clipboard works even when its module is not in the notch (spec CB-1).
         services.clipboard.start()
@@ -157,6 +162,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 title: "Dynotch updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
             ))
         }
+    }
+
+    /// "New Dynotch Note" in the Services menu (spec J-13).
+    private func offerTextService(_ manager: NotchManager) {
+        let provider = TextServiceProvider { [weak self, weak manager] text in
+            self?.services.notes.addToScratchpad(text)
+            manager?.open(.notes, pinned: true)
+        }
+        textService = provider
+        NSApp.servicesProvider = provider
+        NSUpdateDynamicServices()
     }
 
     /// dynotch:// links, e.g. from Claude Code's Stop hook (spec CN-2).

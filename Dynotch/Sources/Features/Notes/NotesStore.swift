@@ -230,6 +230,16 @@ final class NotesStore: ObservableObject {
         html.isEmpty ? RichNoteFormat.plain("") : RichNoteFormat.attributed(fromHTML: html)
     }
 
+    /// Text from the clipboard or another app's selection, added to the end of the scratchpad,
+    /// which is then shown (spec J-13).
+    func addToScratchpad(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        draftHTML = Self.appending(trimmed, to: draftHTML)
+        // Showing the scratchpad loads the new text with it.
+        if selection == .draft { content = Self.draftContent(draftHTML) } else { selectDraft() }
+    }
+
     /// Saves the draft as a new note in the selected folder (spec J-4).
     func saveDraftToNotes() {
         guard selection == .draft, let folderID = selectedFolderID,
@@ -365,21 +375,5 @@ extension NotesStore {
         } else {
             access = .failed("\(error)")
         }
-    }
-
-    /// The account's default "Notes" folder, otherwise the first one.
-    nonisolated static func defaultFolder(in folders: [NotesFolder]) -> NotesFolder? {
-        folders.first { ["Notes", "Jegyzetek"].contains($0.name) } ?? folders.first
-    }
-
-    nonisolated static func readOnlyReason(for detail: NoteDetail) -> String? {
-        if detail.locked {
-            return "Locked note: open it in Notes"
-        }
-        if detail.attachments > 0 || NoteHTML.isRich(html: detail.body) {
-            return Checklist.hasOnlyLists(html: detail.body) && detail.attachments == 0
-                ? "Read-only: contains an Apple Notes list" : "Read-only: contains an image, table or link"
-        }
-        return nil
     }
 }

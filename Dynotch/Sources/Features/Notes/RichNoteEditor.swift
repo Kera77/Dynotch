@@ -160,6 +160,7 @@ struct RichNoteToolbar: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Title ⇧⌘T · Heading ⇧⌘H · Subheading ⇧⌘J · Body ⇧⌘B")
+            .accessibilityLabel("Title ⇧⌘T · Heading ⇧⌘H · Subheading ⇧⌘J · Body ⇧⌘B")
 
             Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16)
             button("B", font: .system(size: 13, weight: .bold), help: "Bold ⌘B") { controller.toggle(.bold) }
@@ -178,6 +179,7 @@ struct RichNoteToolbar: View {
             }
             .buttonStyle(.plain)
             .help("To-do list ⇧⌘L · click a circle to check it off")
+            .accessibilityLabel("To-do list ⇧⌘L · click a circle to check it off")
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)

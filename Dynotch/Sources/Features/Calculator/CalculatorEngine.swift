@@ -19,10 +19,8 @@ enum CalculatorEngine {
 
     /// The lines of a text that are calculations, with their results.
     static func results(in text: String) -> [(line: String, result: String)] {
-        text.split(whereSeparator: \.isNewline).compactMap { line in
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            return result(for: trimmed).map { (trimmed, $0) }
-        }
+        let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        return zip(lines, CalculatorSheet.results(for: lines)).compactMap { line, result in result.map { (line, $0) } }
     }
 
     /// Every calculation with its result, one per line: "10*10 = 100".

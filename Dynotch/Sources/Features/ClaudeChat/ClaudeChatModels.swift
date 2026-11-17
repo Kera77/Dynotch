@@ -12,6 +12,8 @@ struct ChatMessage: Codable, Identifiable, Equatable, Sendable {
     var date = Date()
     /// The answer could not be produced; `text` says why.
     var isError = false
+    /// Starred, listed under Favorites (spec AI-15).
+    var isFavorite: Bool?
 }
 
 /// One conversation with Claude in the notch (spec CC-1).

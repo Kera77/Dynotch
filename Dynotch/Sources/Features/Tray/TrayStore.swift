@@ -36,6 +36,11 @@ final class TrayStore: ObservableObject {
         }
     }
 
+    /// The files as a list instead of tiles (spec FT-11).
+    @Published var showsList: Bool {
+        didSet { defaults.set(showsList, forKey: "trayShowsList") }
+    }
+
     static let retentionChoices = [0, 1, 3, 7, 14, 30]
     private static let retentionKey = "trayRetentionDays"
     private let defaults: UserDefaults
@@ -47,6 +52,7 @@ final class TrayStore: ObservableObject {
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
         self.folder = folder ?? support.appendingPathComponent("Dynotch/Tray")
         retentionDays = defaults.object(forKey: Self.retentionKey) as? Int ?? 0
+        showsList = defaults.bool(forKey: "trayShowsList")
         load()
         dropExpired()
     }
@@ -111,10 +117,11 @@ final class TrayStore: ObservableObject {
             || path.contains("/Library/Caches/")
     }
 
+    /// Each copy in a folder of its own, so it keeps its name (spec FT-12).
     private func copyIntoTray(_ url: URL) -> URL? {
-        let files = folder.appendingPathComponent("Files")
+        let files = folder.appendingPathComponent("Files").appendingPathComponent(UUID().uuidString)
         try? FileManager.default.createDirectory(at: files, withIntermediateDirectories: true)
-        let target = Self.freeName(for: url.lastPathComponent, in: files)
+        let target = files.appendingPathComponent(url.lastPathComponent)
         return (try? FileManager.default.copyItem(at: url, to: target)) == nil ? nil : target
     }
 

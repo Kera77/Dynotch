@@ -14,6 +14,7 @@ struct BeeperChatInfo: Decodable, Identifiable, Equatable, Sendable {
     let isArchived: Bool?
     let lastActivity: String?
     let imgURL: String?
+    let participants: BeeperParticipants?
     let reminder: BeeperReminder?
     /// The newest message, for the list.
     let preview: BeeperPreview?
@@ -21,6 +22,25 @@ struct BeeperChatInfo: Decodable, Identifiable, Equatable, Sendable {
     var name: String { title?.isEmpty == false ? title ?? "Chat" : "Chat" }
     var unread: Int { unreadCount ?? 0 }
     var isGroup: Bool { type == "group" }
+
+    /// The chat's picture; a one-to-one chat often has none of its own, then it is the other
+    /// person's (spec BP-3).
+    var pictureURL: String? {
+        if let imgURL, !imgURL.isEmpty { return imgURL }
+        guard !isGroup else { return nil }
+        return participants?.items?.first { $0.isSelf != true && $0.imgURL?.isEmpty == false }?.imgURL
+    }
+}
+
+struct BeeperParticipants: Decodable, Equatable, Sendable {
+    let items: [BeeperParticipant]?
+}
+
+struct BeeperParticipant: Decodable, Equatable, Sendable {
+    let id: String?
+    let fullName: String?
+    let imgURL: String?
+    let isSelf: Bool?
 }
 
 struct BeeperPreview: Decodable, Equatable, Sendable {

@@ -43,9 +43,10 @@ final class FolderWatcher {
     private var source: DispatchSourceFileSystemObject?
     private(set) var watched: URL?
 
-    /// Watches `url` (nil: nothing); `changed` runs on the main thread.
-    func watch(_ url: URL?, changed: @escaping @MainActor () -> Void) {
-        guard url?.standardizedFileURL != watched?.standardizedFileURL else { return }
+    /// Watches `url` (nil: nothing); `changed` runs on the main thread. A file that is replaced
+    /// (deleted or renamed) is watched again on the next call with `renew`.
+    func watch(_ url: URL?, renew: Bool = false, changed: @escaping @MainActor () -> Void) {
+        guard renew || url?.standardizedFileURL != watched?.standardizedFileURL else { return }
         source?.cancel()
         source = nil
         watched = url

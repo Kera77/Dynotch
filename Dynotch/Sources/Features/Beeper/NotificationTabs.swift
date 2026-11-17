@@ -63,31 +63,20 @@ struct NotificationsTabsView: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 4) {
-                ForEach(NotificationsTab.allCases, id: \.self) { item in
-                    Button {
-                        withAnimation(.easeOut(duration: 0.15)) { tab = item }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(item.title)
-                            if item == .beeper, beeper.unreadTotal > 0 {
-                                Text("\(beeper.unreadTotal)").font(.system(size: 9, weight: .bold))
-                                    .padding(.horizontal, 4).background(Capsule().fill(BeeperStyle.blue))
-                            }
-                        }
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(item == tab ? Color.black : Color.white.opacity(0.75))
-                        .padding(.horizontal, 10)
-                        .frame(height: 22)
-                        .background(Capsule().fill(item == tab ? Color.white : Color.white.opacity(0.1)))
-                    }
-                    .buttonStyle(.plain)
+            HStack {
+                CapsulePicker(items: NotificationsTab.allCases, selection: $tab, title: \.title) { item in
+                    item == .beeper ? beeper.unreadTotal : nil
                 }
                 Spacer()
             }
             .padding(.horizontal, 14)
+            // Changing tabs slides, like the tray's folders (spec UM-8).
             content
+                .id(tab)
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
         }
+        .animation(Motion.quick, value: tab)
+        .clipped()
     }
 
     @ViewBuilder private var content: some View {
@@ -98,12 +87,18 @@ struct NotificationsTabsView: View {
                 NotificationsFeatureView(service: service, isActive: isActive)
             }
         case .chats:
-            VStack(spacing: 6) {
-                UnreadChatsSection(beeper: beeper) { open($0) }
-                NotificationsFeatureView(service: service, isActive: isActive) { notification in
-                    ChatSources.isBeeper(notification) || ChatSources.isGoogleChat(notification, catalog: service.catalog)
-                }
-            }
+            // Unread Beeper chats as notification cards, like before Beeper got its own tab;
+            // Beeper's own notifications would be the same messages twice (spec UM-9).
+            let cards = beeper.keepsUnread && beeper.state == .ready && !beeper.unreadChats.isEmpty
+            NotificationsFeatureView(
+                service: service,
+                isActive: isActive,
+                include: { notification in
+                    ChatSources.isGoogleChat(notification, catalog: service.catalog)
+                        || (!cards && ChatSources.isBeeper(notification))
+                },
+                leading: cards ? AnyView(BeeperUnreadCards(beeper: beeper, open: open)) : nil
+            )
         case .beeper:
             BeeperTabView(service: beeper)
         case .googleChat:
@@ -112,7 +107,7 @@ struct NotificationsTabsView: View {
     }
 
     private func open(_ chat: BeeperChatInfo) {
-        withAnimation(.easeOut(duration: 0.15)) { tab = .beeper }
+        withAnimation(Motion.quick) { tab = .beeper }
         beeper.open(chat.id)
     }
 }
@@ -135,7 +130,7 @@ struct UnreadChatsSection: View {
                                 open(chat)
                             } label: {
                                 HStack(spacing: 6) {
-                                    BeeperAvatar(image: beeper.avatar(chat.imgURL), name: chat.name, network: chat.network, size: 24)
+                                    BeeperAvatar(image: beeper.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
                                     VStack(alignment: .leading, spacing: 0) {
                                         Text(chat.name).font(.system(size: 11, weight: .bold)).lineLimit(1)
                                         Text(chat.preview?.text ?? "").font(.system(size: 10)).opacity(0.7).lineLimit(1)
@@ -204,6 +199,7 @@ struct GoogleChatTabView: View {
                         } label: { Image(systemName: "arrow.up.forward.app") }
                             .buttonStyle(.plain)
                             .help("Open Google Chat")
+                            .accessibilityLabel("Open Google Chat")
                     } else {
                         Spacer()
                     }
@@ -214,9 +210,7 @@ struct GoogleChatTabView: View {
                 if let current {
                     conversation(current)
                 } else {
-                    Text("Unread Google Chat messages appear here.")
-                        .font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.55))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    EmptyStateView(symbol: "bubble.left", text: "Unread Google Chat messages appear here.")
                 }
             }
         }

@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Beeper's look (spec BP-2): dark, round pictures with the network's badge, blue unread pills.
 enum BeeperStyle {
-    static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+    static let blue = Theme.blue
     static let incoming = Color.white.opacity(0.12)
     static let listWidth: CGFloat = 240
 
@@ -40,6 +40,36 @@ enum BeeperStyle {
         return found.map { ($0.color, $0.symbol) } ?? (Color.gray, "bubble.left.and.bubble.right.fill")
     }
 
+    /// The network's own app, when installed: its icon is the badge (spec BP-3b).
+    private static let appBundles: [(word: String, bundle: String)] = [
+        ("whatsapp", "net.whatsapp.WhatsApp"), ("messenger", "com.facebook.archon"), ("facebook", "com.facebook.archon"),
+        ("telegram", "ru.keepcoder.Telegram"), ("telegram", "org.telegram.desktop"),
+        ("signal", "org.whispersystems.signal-desktop"), ("imessage", "com.apple.MobileSMS"), ("sms", "com.apple.MobileSMS"),
+        ("slack", "com.tinyspeck.slackmacgap"), ("discord", "com.hnc.Discord"), ("linkedin", "com.linkedin.LinkedIn")
+    ]
+
+    @MainActor private static var iconCache: [String: NSImage] = [:]
+    @MainActor private static var missing: Set<String> = []
+
+    @MainActor static func appIcon(_ network: String?) -> NSImage? {
+        let lowered = (network ?? "").lowercased()
+        guard !lowered.isEmpty else { return nil }
+        if let icon = iconCache[lowered] { return icon }
+        if missing.contains(lowered) { return nil }
+        let url = appBundles
+            .filter { lowered.contains($0.word) }
+            .lazy
+            .compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0.bundle) }
+            .first
+        guard let url else {
+            missing.insert(lowered)
+            return nil
+        }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        iconCache[lowered] = icon
+        return icon
+    }
+
     static func time(_ date: Date?, now: Date = Date()) -> String {
         guard let date else { return "" }
         let calendar = Calendar.current
@@ -59,9 +89,18 @@ struct BeeperAvatar: View {
     let network: String?
     var size: CGFloat = 36
 
-    private var initials: String {
-        let words = name.split(separator: " ").prefix(2)
-        return words.compactMap { $0.first.map(String.init) }.joined().uppercased()
+    private var initials: String { Self.initials(of: name) }
+
+    /// The monogram when there is no picture, like Beeper's: the first letter of the first two
+    /// words, skipping emoji and punctuation; a phone number gives its first digit (spec BP-3).
+    nonisolated static func initials(of name: String) -> String {
+        let words = name.split(whereSeparator: \.isWhitespace).compactMap { word in
+            word.first { $0.isLetter || $0.isNumber }
+        }
+        guard let first = words.first else { return "?" }
+        guard first.isLetter else { return String(first) }
+        let letters = words.filter(\.isLetter).prefix(2)
+        return String(letters).uppercased()
     }
 
     private var colour: Color {
@@ -85,7 +124,13 @@ struct BeeperAvatar: View {
             }
             .frame(width: size, height: size)
             .clipShape(Circle())
-            if network != nil {
+            if let icon = BeeperStyle.appIcon(network) {
+                Image(nsImage: icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.5, height: size * 0.5)
+                    .offset(x: 3, y: 3)
+            } else if network != nil {
                 let style = BeeperStyle.network(network)
                 Image(systemName: style.symbol)
                     .font(.system(size: size * 0.2, weight: .bold))
@@ -121,7 +166,7 @@ struct BeeperChatList: View {
             service.open(chat.id)
         } label: {
             HStack(spacing: 10) {
-                BeeperAvatar(image: service.avatar(chat.imgURL), name: chat.name, network: chat.network)
+                BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text(chat.name)

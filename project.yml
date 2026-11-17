@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.42.1"
+    MARKETING_VERSION: "0.43.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -40,6 +40,13 @@ targets:
         NSCalendarsUsageDescription: "Dynotch shows your upcoming events in the notch."
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
+        NSServices:
+          - NSMenuItem:
+              default: New Dynotch Note
+            NSMessage: makeNote
+            NSPortName: Dynotch
+            NSSendTypes: [NSStringPboardType, public.utf8-plain-text]
+            NSRequiredContext: {}
     entitlements:
       path: Dynotch/Resources/Dynotch.entitlements
       properties:

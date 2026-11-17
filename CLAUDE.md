@@ -5,16 +5,22 @@ XcodeGen `project.yml`). The owner writes in Hungarian: **answer in Hungarian**.
 text is English. Requirements live in `docs/SPEC.md` (Hungarian, numbered rows such as `B-8`,
 `N-10`; check that a number is free before using it), changes in `CHANGELOG.md`.
 
-## No Xcode on this Mac
+## Building and testing locally
 
-Builds and tests only run on GitHub (macos-26 runners). Locally only a rough type check works:
+Xcode is installed (used through `DEVELOPER_DIR`, no `xcode-select`/sudo needed):
 
 ```bash
-swiftc -typecheck -swift-version 6 -target arm64-apple-macos15.0 $(find Dynotch/Sources -name '*.swift') 2>&1 \
-  | grep "error:" | grep -v StateMacro      # @State macro errors are expected locally
+./scripts/check.sh      # swiftlint --strict + xcodebuild test, ~30 s; prints "CHECK lint=… tests=…"
 ```
 
-The CI SDK can differ from the local one (e.g. `CGEventField(rawValue:)` is failable there).
+Run it after every change; the bare `swiftc -typecheck` misses errors (SwiftUI macros, definite
+initialization, actor isolation) that only a real build finds. The GitHub preflight is the last
+step before a release, not the place to find compile errors.
+
+Launch-time crashes are not caught by tests: after installing, check that the app keeps running
+(`pgrep -x Dynotch`) and look in `~/Library/Logs/DiagnosticReports/Dynotch-*.ips`. A new
+privacy-sensitive API (Bluetooth, Speech, camera…) needs its `NS…UsageDescription` in
+`project.yml`, or macOS kills the app at launch (0.42 did).
 
 ## Release order (always)
 

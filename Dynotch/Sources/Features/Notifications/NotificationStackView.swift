@@ -114,6 +114,20 @@ struct NotificationStackView: View {
                 .font(.system(size: 10))
                 .foregroundStyle(Color.white.opacity(0.45))
                 .lineLimit(1)
+            Menu {
+                SnoozeMenu(service: service, notifications: notifications)
+            } label: {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.6))
+                    .frame(width: 22, height: 22)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("Remind me later")
+            .accessibilityLabel("Remind me later")
             NotificationHeaderButton(symbol: "trash", help: "Clear all notifications", action: clearAll)
             NotificationHeaderButton(symbol: "xmark", help: "Close", action: close)
         }
@@ -149,6 +163,7 @@ struct NotificationStackView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Answer this line")
+                .accessibilityLabel("Answer this line")
                 .opacity(hoveredLine == notification.id || replyingTo?.id == notification.id ? 1 : 0)
             }
         }
@@ -167,7 +182,7 @@ struct NotificationStackView: View {
         }
     }
 
-    private static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+    private static let blue = Theme.blue
 
     /// My answer to a line, on the right like in chat apps.
     private func answerBubble(_ text: String) -> some View {

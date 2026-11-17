@@ -5,6 +5,9 @@ struct CalculatorResultRow {
     let text: String
     /// Line rect in the text view's coordinates.
     let lineRect: NSRect
+    /// The line's baseline, in the text view's coordinates: results sit on it, so a line that
+    /// gains its line spacing (a new line after it) does not move them (spec SZ-16).
+    var baseline: CGFloat = 0
 }
 
 /// Plain text editor of the calculator notepad. The results live in `resultsView`, a column
@@ -62,16 +65,22 @@ final class CalculatorTextView: EditingTextView {
         let text = string as NSString
         let origin = textContainerOrigin
         var rows: [CalculatorResultRow] = []
+        var ranges: [NSRange] = []
         var location = 0
         while location < text.length {
             let range = text.paragraphRange(for: NSRange(location: location, length: 0))
             location = NSMaxRange(range)
-            let line = text.substring(with: range).trimmingCharacters(in: .newlines)
-            guard let result = CalculatorEngine.result(for: line) else { continue }
+            ranges.append(range)
+        }
+        // The lines together: variables and totals depend on the lines above (spec SZ-12).
+        let results = CalculatorSheet.results(for: ranges.map { text.substring(with: $0).trimmingCharacters(in: .newlines) })
+        for (range, result) in zip(ranges, results) {
+            guard let result else { continue }
 
             let glyphIndex = layoutManager.glyphIndexForCharacter(at: range.location)
             let lineRect = layoutManager.lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: nil)
-            rows.append(CalculatorResultRow(text: result, lineRect: lineRect.offsetBy(dx: origin.x, dy: origin.y)))
+            let baseline = lineRect.minY + layoutManager.location(forGlyphAt: glyphIndex).y + origin.y
+            rows.append(CalculatorResultRow(text: result, lineRect: lineRect.offsetBy(dx: origin.x, dy: origin.y), baseline: baseline))
         }
         return rows
     }
@@ -102,7 +111,7 @@ final class CalculatorTextView: EditingTextView {
 /// it to the clipboard (spec SZ-9).
 final class CalculatorResultsView: NSView {
     /// The standard blue of Dynotch's controls (spec SZ-11).
-    static let resultColor = NSColor(srgbRed: 0.04, green: 0.52, blue: 1, alpha: 1)
+    static let resultColor = Theme.nsBlue
     private static let copiedText = "Copied ✓"
     private static let trailingPadding: CGFloat = 8
 
@@ -133,9 +142,11 @@ final class CalculatorResultsView: NSView {
             ]
             let text = (isCopied ? Self.copiedText : row.text) as NSString
             let size = text.size(withAttributes: attributes)
+            let font = attributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 14)
+            // On the line's baseline, like the text beside it (flipped: draw(at:) takes the top).
             let point = NSPoint(
                 x: bounds.maxX - Self.trailingPadding - size.width,
-                y: band.minY + (band.height - size.height) / 2
+                y: row.baseline - frame.minY - font.ascender
             )
             text.draw(at: point, withAttributes: attributes)
         }

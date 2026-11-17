@@ -38,8 +38,26 @@ enum ReminderSort: String, CaseIterable, Sendable {
     }
 }
 
+/// How near the due date is: the pill's colour (spec R-9).
+enum DueUrgency: Equatable, Sendable {
+    case overdue
+    case today
+    case tomorrow
+    case later
+}
+
 /// Pure reminder logic: sorting, upcoming, due texts.
 enum ReminderLogic {
+    static func urgency(of item: ReminderItem, now: Date, calendar: Calendar = .current) -> DueUrgency? {
+        guard let due = item.due else { return nil }
+        if item.isOverdue(at: now, calendar: calendar) { return .overdue }
+        if calendar.isDate(due, inSameDayAs: now) { return .today }
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now), calendar.isDate(due, inSameDayAs: tomorrow) {
+            return .tomorrow
+        }
+        return .later
+    }
+
     /// Upcoming: incomplete reminders due before the end of this many days (overdue included).
     static let upcomingDays = 7
 

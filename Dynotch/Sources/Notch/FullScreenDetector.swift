@@ -41,6 +41,7 @@ extension NotchController {
             MainActor.assumeIsolated { self?.checkFullScreen() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         fullScreenTimer = timer
     }
 

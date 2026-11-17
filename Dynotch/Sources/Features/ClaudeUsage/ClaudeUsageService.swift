@@ -19,6 +19,7 @@ final class ClaudeUsageService: ObservableObject {
     @Published private(set) var limits: [UsageLimit] = []
     /// ChatGPT's limits, from Codex's logs (spec AI-6).
     @Published private(set) var gptLimits: [UsageLimit] = []
+    @Published private(set) var gptUpdated: Date?
     @Published private(set) var lastUpdated: Date?
     /// "limit key|10 % step" of the fullest limit when its notch indicator was hidden (spec CL-6).
     @Published private var dismissedIndicator: String? {
@@ -109,6 +110,7 @@ final class ClaudeUsageService: ObservableObject {
                 MainActor.assumeIsolated { self?.refresh() }
             }
             RunLoop.main.add(timer, forMode: .common)
+            timer.tolerance = timer.timeInterval * 0.2
             self.timer = timer
             refresh()
         } else if !enabled, let timer {
@@ -153,6 +155,7 @@ final class ClaudeUsageService: ObservableObject {
         Task { [weak self] in
             let found = await Task.detached { CodexUsage.read() }.value
             if self?.gptLimits != found { self?.gptLimits = found }
+            self?.gptUpdated = Date()
         }
     }
 

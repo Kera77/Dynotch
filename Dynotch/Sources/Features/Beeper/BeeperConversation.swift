@@ -65,9 +65,9 @@ struct BeeperConversation: View {
     }
 
     private func bubbleRow(_ message: BeeperFullMessage, showsSender: Bool) -> some View {
-        HStack(alignment: .bottom, spacing: 6) {
+        HStack(alignment: .center, spacing: 6) {
             if message.mine { Spacer(minLength: 60) }
-            if message.mine, hovered == message.id { reactionBar(message) }
+            if message.mine { actions(message) }
             VStack(alignment: message.mine ? .trailing : .leading, spacing: 2) {
                 if showsSender, let sender = message.senderName {
                     Text(sender)
@@ -75,6 +75,8 @@ struct BeeperConversation: View {
                         .foregroundStyle(Color.white.opacity(0.55))
                 }
                 bubble(message)
+                    // A click on a message answers it (spec BP-4b).
+                    .onTapGesture { replyTo = message }
                 reactions(message)
                 if service.canUndo(message) {
                     Button("Undo") { service.undo(message.id, in: chat.id) }
@@ -83,13 +85,32 @@ struct BeeperConversation: View {
                         .foregroundStyle(BeeperStyle.blue)
                 }
             }
-            if !message.mine, hovered == message.id { reactionBar(message) }
+            if !message.mine { actions(message) }
             if !message.mine { Spacer(minLength: 60) }
         }
         .onHover { inside in
             if inside { hovered = message.id } else if hovered == message.id { hovered = nil }
         }
         .contextMenu { menu(message) }
+    }
+
+    /// Reply and react beside the message, in a place of fixed size so hovering does not move
+    /// anything (spec BP-4b).
+    private func actions(_ message: BeeperFullMessage) -> some View {
+        HStack(spacing: 4) {
+            Button {
+                replyTo = message
+            } label: {
+                Image(systemName: "arrowshape.turn.up.left.fill").font(.system(size: 10))
+            }
+            .buttonStyle(.plain)
+            .help("Reply")
+            .accessibilityLabel("Reply")
+            BeeperReactionButton { emoji in service.react(emoji, to: message, in: chat.id) }
+        }
+        .foregroundStyle(Color.white.opacity(0.7))
+        .frame(width: 44)
+        .opacity(hovered == message.id ? 1 : 0)
     }
 
     private func bubble(_ message: BeeperFullMessage) -> some View {
@@ -134,28 +155,6 @@ struct BeeperConversation: View {
                 }
             }
         }
-    }
-
-    /// The quick reactions on hover (spec BP-4).
-    private func reactionBar(_ message: BeeperFullMessage) -> some View {
-        HStack(spacing: 2) {
-            ForEach(Self.quickReactions, id: \.self) { emoji in
-                Button(emoji) { service.react(emoji, to: message, in: chat.id) }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 13))
-            }
-            Button {
-                replyTo = message
-            } label: {
-                Image(systemName: "arrowshape.turn.up.left.fill").font(.system(size: 10))
-            }
-            .buttonStyle(.plain)
-            .help("Reply")
-        }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-        .background(Capsule().fill(Color.black.opacity(0.6)))
-        .foregroundStyle(.white)
     }
 
     @ViewBuilder private func menu(_ message: BeeperFullMessage) -> some View {
@@ -248,6 +247,62 @@ struct BeeperAttachmentView: View {
         Task {
             guard let url = try? await BeeperAPI.download(address) else { return }
             if url.isFileURL { TrayQuickLook.shared.toggle(url) } else { NSWorkspace.shared.open(url) }
+        }
+    }
+}
+
+/// Hover: the quick reactions; click: every emoji (spec BP-4b).
+struct BeeperReactionButton: View {
+    let react: (String) -> Void
+
+    private enum Panel: Identifiable {
+        case quick
+        case all
+
+        var id: Int { self == .quick ? 0 : 1 }
+    }
+
+    @State private var panel: Panel?
+    @Environment(\.pinNotch) private var pinNotch
+
+    var body: some View {
+        Button {
+            panel = .all
+        } label: {
+            Image(systemName: "face.smiling").font(.system(size: 11))
+        }
+        .buttonStyle(.plain)
+        .help("React")
+        .accessibilityLabel("React")
+        .onHover { if $0, panel == nil { panel = .quick } }
+        .onChange(of: panel?.id) { _, shown in if shown != nil { pinNotch() } }
+        .popover(item: $panel, arrowEdge: .bottom) { shown in
+            switch shown {
+            case .quick:
+                HStack(spacing: 4) {
+                    ForEach(BeeperConversation.quickReactions, id: \.self) { emoji in
+                        Button(emoji) {
+                            react(emoji)
+                            panel = nil
+                        }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 18))
+                    }
+                    Button {
+                        panel = .all
+                    } label: {
+                        Image(systemName: "plus.circle").font(.system(size: 14))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(8)
+            case .all:
+                EmojiGrid { emoji in
+                    react(emoji)
+                    EmojiGrid.remember(emoji)
+                    panel = nil
+                }
+            }
         }
     }
 }

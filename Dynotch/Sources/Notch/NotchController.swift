@@ -5,7 +5,7 @@ import SwiftUI
 /// Owns the notch panel of one display and turns pointer/trackpad input into panel state.
 @MainActor
 final class NotchController {
-    static let animation = Animation.spring(response: 0.38, dampingFraction: 0.82)
+    static let animation = Motion.spring
     /// After the panel shrinks from the large size, the pointer may be outside the smaller
     /// panel; keep it open this long so it doesn't close under the user's hand.
     private static let shrinkGracePeriod: TimeInterval = 2.5
@@ -253,6 +253,7 @@ final class NotchController {
             MainActor.assumeIsolated { self?.pointerMoved() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         hoverTimer = timer
     }
 
@@ -271,6 +272,8 @@ final class NotchController {
         switch event.type {
         case .scrollWheel:
             return handleScroll(event)
+        case .keyDown:
+            return handleKey(event)
         default:
             pointerMoved()
             return false
@@ -297,7 +300,7 @@ extension NotchController {
         scrollMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.scrollWheel]) { [weak self] event in
             MainActor.assumeIsolated { _ = self?.handleCollapsedScroll(event) }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel, .keyDown]) { [weak self] event in
             guard let self else { return event }
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
             return consumed ? nil : event
@@ -314,6 +317,7 @@ extension NotchController {
         startFullScreenChecks()
         OpenMenus.start()
         FileDragWatcher.shared.start()
+        FileDragWatcher.shared.observe { [weak self] in self?.fileDragTick() }
         spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in

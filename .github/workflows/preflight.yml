@@ -17,6 +17,12 @@ jobs:
         with:
           xcode-version: latest-stable
       - run: brew install xcodegen swiftlint
+      - name: Cache the build
+        uses: actions/cache@v4
+        with:
+          path: build/DerivedData
+          key: dd-${{ runner.os }}-${{ hashFiles('project.yml') }}-${{ github.sha }}
+          restore-keys: dd-${{ runner.os }}-${{ hashFiles('project.yml') }}-
       - name: Lint, build and test
         run: |
           lint=pass

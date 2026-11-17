@@ -56,9 +56,10 @@ struct NotificationSourceRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .help("Has its own rules")
+                        .accessibilityLabel("Has its own rules")
                 }
                 Button {
-                    withAnimation(.easeOut(duration: 0.15)) { isOpen.toggle() }
+                    withAnimation(Motion.quick) { isOpen.toggle() }
                 } label: {
                     Image(systemName: isOpen ? "chevron.up" : "chevron.down")
                         .font(.system(size: 10, weight: .semibold))
@@ -92,6 +93,11 @@ struct NotificationSourceRow: View {
                 updated.showsReply = choice.value
                 service.setRule(updated, for: app)
             }
+            Toggle("Pop up during Focus", isOn: Binding(get: { rule.popsUpDuringFocus == true }, set: { allowed in
+                var updated = rule
+                updated.popsUpDuringFocus = allowed ? true : nil
+                service.setRule(updated, for: app)
+            }))
         }
         .font(.callout)
         .padding(.leading, 26)

@@ -7,7 +7,7 @@ extension NotchController {
     /// The strip may show: turned on, nothing else at the notch.
     private var stripAvailable: Bool {
         settings.moduleStrip && !model.isExpanded && notifications.peek == nil && !callIsShown
-            && !model.isHiddenForFullScreen && settings.activeFeatures.count > 1
+            && !model.isHiddenForFullScreen && ModuleStripChoice.features(from: settings.activeFeatures).count > 1
     }
 
     /// The bottom part of the notch where resting shows the strip (spec MS-2).
@@ -18,7 +18,7 @@ extension NotchController {
 
     /// The strip itself, where the pointer may go to pick a module.
     private var stripArea: CGRect {
-        model.geometry.moduleStripRect(count: settings.activeFeatures.count)
+        model.geometry.moduleStripRect(count: ModuleStripChoice.features(from: settings.activeFeatures).count)
             .offsetBy(dx: 0, dy: -pillGap)
             .insetBy(dx: -6, dy: -6)
     }
@@ -49,7 +49,8 @@ extension NotchController {
             self.stripTask = nil
             // Still resting on the band: show the modules.
             guard self.stripAvailable, self.stripBand.contains(NSEvent.mouseLocation) else { return }
-            withAnimation(NotchView.quickAnimation) { self.model.setStripShown(true) }
+            self.model.stripOrigin = NSEvent.mouseLocation.x - self.model.geometry.notchRect.midX
+            self.model.setStripShown(true)
             self.startHoverTimer()
         }
         return true

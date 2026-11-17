@@ -23,12 +23,15 @@ extension NotchView {
     /// On a display without a notch, a capsule floating below the top edge (spec D-7).
     var isPill: Bool { settings.externalStyle == .pill && !geometry.hasPhysicalNotch }
 
-    /// The gap between a pill and the top edge.
-    static var pillGap: CGFloat { 4 }
+    /// The modules the strip shows (spec MS-5).
+    var stripFeatures: [FeatureID] { ModuleStripChoice.features(from: settings.activeFeatures) }
 
-    /// A resting pill ends where the menu bar ends: it is that much shorter than the notch row,
-    /// and its content moves up by half of it to stay centred (spec D-7).
-    var pillTrim: CGFloat { isPill && !model.isExpanded && !isTall ? Self.pillGap : 0 }
+    /// The gap between a pill and the top edge, and between it and the menu bar's bottom.
+    static var pillGap: CGFloat { 3 }
+
+    /// A resting pill sits in the middle of the menu bar, with the same gap above and below: it
+    /// is two gaps shorter than the notch row, its content centred (spec D-7).
+    var pillTrim: CGFloat { isPill && !model.isExpanded && !isTall ? 2 * Self.pillGap : 0 }
 
     var capsule: NotchCorners.Capsule {
         guard isCapsule, !isPill else { return NotchCorners.Capsule(width: size.width, shift: 0) }
@@ -58,10 +61,12 @@ extension NotchView {
 
     var shape: UnevenRoundedRectangle {
         if isPill {
-            // Round all round: fully at rest, softer when taller or open.
+            // Round all round: fully at rest, softer when taller; open, the top corners stay small
+            // so the top row is not cut at its ends.
             let radius = isCapsule || isRestingPill ? (size.height - pillTrim) / 2 : cornerRadius
+            let top = model.isExpanded ? min(radius, 12) : radius
             return UnevenRoundedRectangle(
-                topLeadingRadius: radius, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: radius,
+                topLeadingRadius: top, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: top,
                 style: .continuous
             )
         }

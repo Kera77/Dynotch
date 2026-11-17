@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Shared colors and texts of the calendar views.
 enum CalendarStyle {
-    static let accent = Color(red: 0.04, green: 0.52, blue: 1)
+    static let accent = Theme.blue
     static let weekend = Color(red: 0.86, green: 0.42, blue: 0.4)
     /// Date and time under a meeting's name (spec K-5).
     static let eventTime = Color(red: 0.3, green: 0.62, blue: 1)

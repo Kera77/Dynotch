@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Claude in the notch (spec CC-1…CC-3): the chats on the left, the conversation on the right.
@@ -68,7 +69,7 @@ struct ClaudeChatView: View {
     /// Opens and closes the list of chats (spec CC-7).
     private var sidebarToggle: some View {
         Button {
-            withAnimation(.easeOut(duration: 0.18)) { service.showsSidebar.toggle() }
+            withAnimation(Motion.quick) { service.showsSidebar.toggle() }
         } label: {
             SidebarGlyph()
                 .foregroundStyle(Color.white.opacity(service.showsSidebar ? 0.9 : 0.65))
@@ -96,7 +97,7 @@ struct ClaudeChatView: View {
                 .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.08)))
             ScrollView(.vertical) {
                 VStack(spacing: 2) {
-                    ForEach(service.listedChats(matching: search)) { chat in
+                    ForEach(service.listedChats(matching: search).filter { $0.service == service.shownProvider }) { chat in
                         ChatRow(
                             title: (chat.isPinned == true ? "📌 " : "") + chat.title, isSelected: chat.id == service.selectedID,
                             isWorking: chat.id == service.workingID,
@@ -108,6 +109,7 @@ struct ClaudeChatView: View {
                             Button("Delete", role: .destructive) { service.delete(chat.id) }
                         }
                     }
+                    AIFavoritesSection(service: service)
                     if !service.codeSessions.isEmpty {
                         Text("FROM CLAUDE CODE")
                             .font(.system(size: 9, weight: .bold))
@@ -157,7 +159,9 @@ struct ClaudeChatView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(chat.messages) { message in
                                 let isLast = message.id == chat.messages.last?.id
-                                ChatBubble(message: message, isWriting: service.workingID == chat.id && isLast, provider: chat.service)
+                                ChatBubble(
+                                    message: message, isWriting: service.workingID == chat.id && isLast, provider: chat.service
+                                ) { service.toggleFavorite(message.id, in: chat.id) }
                                     .id(message.id)
                             }
                         }
@@ -199,6 +203,20 @@ struct ClaudeChatView: View {
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
                 .focused($isTyping)
                 .onSubmit { service.send() }
+            // Speaking instead of typing (spec AI-14).
+            Button {
+                isTyping = true
+                DispatchQueue.main.async { ClaudeChatService.startDictation() }
+            } label: {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.75))
+                    .frame(width: 30, height: 30)
+                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+            }
+            .buttonStyle(.plain)
+            .help("Dictate")
+            .accessibilityLabel("Dictate")
             Button {
                 if service.isWorking {
                     service.stop()
@@ -248,6 +266,7 @@ private struct ChatRow: View {
                 }
                 .buttonStyle(.plain)
                 .help("Delete this chat")
+                .accessibilityLabel("Delete this chat")
             }
         }
         .padding(.horizontal, 8)
@@ -263,6 +282,7 @@ private struct ChatBubble: View {
     let message: ChatMessage
     let isWriting: Bool
     var provider = AIProvider.claude
+    var toggleFavorite: (() -> Void)?
 
     var body: some View {
         switch message.role {
@@ -285,7 +305,9 @@ private struct ChatBubble: View {
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
                         AIMessageContent(text: message.text, isError: message.isError)
-                        if !isWriting, !message.isError { AIAnswerActions(text: message.text) }
+                        if !isWriting, !message.isError {
+                            AIAnswerActions(text: message.text, isFavorite: message.isFavorite == true, toggleFavorite: toggleFavorite)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -333,19 +355,35 @@ struct SidebarGlyph: View {
     }
 }
 
-/// Claude's mark or ChatGPT's symbol.
+/// The service's own app icon (from the installed Claude or ChatGPT app), Claude's mark or a
+/// symbol when the app is not installed (spec AI-13).
 struct AIGlyph: View {
     let provider: AIProvider
     var size: CGFloat = 14
 
     var body: some View {
-        switch provider {
-        case .claude:
+        if let icon = provider.appIcon {
+            Image(nsImage: icon).resizable().scaledToFit().frame(width: size + 2, height: size + 2)
+        } else if provider == .claude {
             BrandGlyphView(glyph: .claude, size: size)
-        case .chatgpt:
-            Image(systemName: "circle.hexagongrid.fill")
-                .font(.system(size: size * 0.9, weight: .semibold))
+        } else {
+            Image(systemName: "bubble.left.and.text.bubble.right.fill")
+                .font(.system(size: size * 0.85, weight: .semibold))
                 .foregroundStyle(.white)
         }
+    }
+}
+
+extension AIProvider {
+    var bundleIdentifier: String {
+        switch self {
+        case .claude: "com.anthropic.claudefordesktop"
+        case .chatgpt: "com.openai.chat"
+        }
+    }
+
+    /// The installed app's icon, if the app is there.
+    var appIcon: NSImage? {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier).map { NSWorkspace.shared.icon(forFile: $0.path) }
     }
 }

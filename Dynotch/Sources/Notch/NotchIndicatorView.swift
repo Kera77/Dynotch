@@ -22,6 +22,8 @@ struct NotchIndicatorView: View {
     let dismiss: (IndicatorItem) -> Void
     /// Opens the meeting's link (spec K-8g).
     var join: (CalendarEvent) -> Void = { _ in }
+    /// A device's battery history, drawn small in its hover label (spec BT-6).
+    var batterySamples: (String) -> [BatterySample] = { _ in [] }
 
     static let lineWidth: CGFloat = 2
 
@@ -183,6 +185,17 @@ extension NotchIndicatorView {
                 Text("battery at \(device.level)%")
                     .font(.system(size: 11))
                     .foregroundStyle(BatteryFeatureView.red)
+                let samples = batterySamples(device.id)
+                if samples.count > 1 {
+                    BatterySparkline(samples: samples)
+                        .frame(width: 64, height: 16)
+                }
+                if let left = BatteryHistory.estimate(from: samples) {
+                    Text(BatteryHistory.estimateText(left))
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.white.opacity(0.55))
+                        .lineLimit(1)
+                }
                 Spacer(minLength: 8)
                 dismissButton(for: item, help: "Hide until it has been recharged")
             }
@@ -206,7 +219,7 @@ extension NotchIndicatorView {
             if let symbol = notice.symbol {
                 Image(systemName: symbol)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.04, green: 0.52, blue: 1))
+                    .foregroundStyle(Theme.blue)
             } else {
                 BrandGlyphView(glyph: .claude, size: 14)
             }
@@ -225,6 +238,7 @@ extension NotchIndicatorView {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Color.white.opacity(0.4))
                 .help("Swipe up with two fingers to dismiss")
+                .accessibilityLabel("Swipe up with two fingers to dismiss")
         }
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
@@ -256,6 +270,7 @@ extension NotchIndicatorView {
             if event.meetingURL != nil {
                 JoinButton(style: .filled) { join(event) }
                     .help("Join the meeting")
+                    .accessibilityLabel("Join the meeting")
             }
             dismissButton(for: .meeting(event), help: "Hide this countdown")
         }

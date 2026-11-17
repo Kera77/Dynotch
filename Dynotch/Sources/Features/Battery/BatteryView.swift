@@ -61,23 +61,71 @@ struct BatteryFeatureView: View {
         }
     }
 
+    @State private var expanded: String?
+
     private func row(_ device: BatteryDevice) -> some View {
         let color = device.isLow ? Self.red : Color.white
-        return HStack(spacing: 12) {
-            BatteryDeviceIcon(kind: device.kind, size: 16, color: Color.white.opacity(0.85))
-                .frame(width: 32)
-            Text(device.name)
-                .font(.system(size: 13))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Text("\(device.level)%")
-                .font(.system(size: 13, weight: .medium))
-                .monospacedDigit()
-                .foregroundStyle(color)
-            BatteryGauge(level: device.level, isCharging: device.isCharging, isLow: device.isLow)
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 10) {
+                BatteryDeviceIcon(kind: device.kind, size: 14, color: Color.white.opacity(0.85))
+                    .frame(width: 28)
+                Text(device.name)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Text("\(device.level)%")
+                    .font(.system(size: 12, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(color)
+                BatteryGauge(level: device.level, isCharging: device.isCharging, isLow: device.isLow)
+            }
+            .frame(height: 30)
+            .contentShape(Rectangle())
+            .onTapGesture { withAnimation(Motion.quick) { expanded = expanded == device.id ? nil : device.id } }
+            if expanded == device.id {
+                BatteryChart(samples: service.history.samples[device.id] ?? [])
+                    .padding(.leading, 38)
+                    .padding(.bottom, 6)
+            }
         }
-        .frame(height: 34)
+    }
+}
+
+/// The last week of one device (spec BT-4): a line of its level, and the time left.
+struct BatteryChart: View {
+    let samples: [BatterySample]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if samples.count < 2 {
+                Text("The chart fills in over the next hours.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.5))
+            } else {
+                GeometryReader { geometry in
+                    let start = samples.first?.date ?? Date()
+                    let span = max(Date().timeIntervalSince(start), 1)
+                    Path { path in
+                        for (index, sample) in samples.enumerated() {
+                            let point = CGPoint(
+                                x: sample.date.timeIntervalSince(start) / span * geometry.size.width,
+                                y: (1 - CGFloat(sample.level) / 100) * geometry.size.height
+                            )
+                            if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
+                        }
+                    }
+                    .stroke(Theme.green, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
+                }
+                .frame(height: 44)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.05)))
+                if let left = BatteryHistory.estimate(from: samples) {
+                    Text(BatteryHistory.estimateText(left))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.white.opacity(0.6))
+                }
+            }
+        }
     }
 }
 
@@ -94,7 +142,7 @@ struct BatteryGauge: View {
                     .stroke(Color.white.opacity(0.45), lineWidth: 1)
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(isLow ? BatteryFeatureView.red : BatteryFeatureView.green)
-                    .frame(width: max(2, 20 * CGFloat(level) / 100))
+                    .frame(width: max(2, 18 * CGFloat(level) / 100))
                     .padding(2)
                 if isCharging {
                     Image(systemName: "bolt.fill")
@@ -103,7 +151,7 @@ struct BatteryGauge: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .frame(width: 24, height: 12)
+            .frame(width: 22, height: 11)
             RoundedRectangle(cornerRadius: 1)
                 .fill(Color.white.opacity(0.45))
                 .frame(width: 2, height: 5)

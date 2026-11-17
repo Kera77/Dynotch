@@ -25,7 +25,7 @@ struct NotificationReplyField: View {
         case failed(String)
     }
 
-    private static let blue = Color(red: 0.04, green: 0.52, blue: 1)
+    private static let blue = Theme.blue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -118,6 +118,7 @@ struct NotificationReplyField: View {
             }
             .buttonStyle(.plain)
             .help("Answer the whole conversation instead")
+            .accessibilityLabel("Answer the whole conversation instead")
         }
         .padding(.horizontal, 10)
     }

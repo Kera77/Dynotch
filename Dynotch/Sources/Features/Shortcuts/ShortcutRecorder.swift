@@ -22,6 +22,7 @@ struct ShortcutRecorder: View {
         }
         .buttonStyle(.plain)
         .help("Click, then press the keys (with ⌘, ⌥ or ⌃). Esc cancels, Delete removes the shortcut.")
+        .accessibilityLabel("Click, then press the keys (with ⌘, ⌥ or ⌃). Esc cancels, Delete removes the shortcut.")
         .onDisappear(perform: stopRecording)
     }
 

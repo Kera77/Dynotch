@@ -65,6 +65,8 @@ struct NotificationsFeatureView: View {
     var isActive = false
     /// Which notifications the tab lists (spec UM-8).
     var include: (AppNotification) -> Bool = { _ in true }
+    /// Cards above the notifications, in the same list: the unread Beeper chats (spec UM-9).
+    var leading: AnyView?
 
     /// The group whose messages and reply field are open (spec E-5b).
     @State private var expanded: String?
@@ -81,7 +83,7 @@ struct NotificationsFeatureView: View {
     @ViewBuilder private var content: some View {
         switch service.status {
         case .running:
-            if service.recent.isEmpty, service.focus == nil {
+            if service.recent.isEmpty, service.focus == nil, leading == nil {
                 message(symbol: "bell", text: "No new notifications")
             } else {
                 list
@@ -116,10 +118,11 @@ struct NotificationsFeatureView: View {
             }
             ScrollView(.vertical) {
                 VStack(spacing: 6) {
+                    if service.focus == nil, let leading { leading }
                     ForEach(groups) { group in
                         // A single group is open right away.
                         NotificationGroupRow(service: service, group: group, isExpanded: expanded == group.id || groups.count == 1) {
-                            withAnimation(.easeOut(duration: 0.18)) { expanded = expanded == group.id ? nil : group.id }
+                            withAnimation(Motion.quick) { expanded = expanded == group.id ? nil : group.id }
                         }
                     }
                 }

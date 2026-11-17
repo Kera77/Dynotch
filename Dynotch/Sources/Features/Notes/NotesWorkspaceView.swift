@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Lock control shown in the menu bar panel's bottom bar.
@@ -205,12 +206,13 @@ private struct NotesSidebar: View {
             ScrollView(.vertical) {
                 LazyVStack(alignment: .leading, spacing: 2) {
                     row(
-                        title: "New Note",
-                        subtitle: "draft",
+                        title: "Scratchpad",
+                        subtitle: "kept here until saved",
                         symbol: "square.and.pencil",
                         isSelected: store.selection == .draft,
                         action: store.selectDraft
                     )
+                    clipboardButton
                     ForEach(store.notes) { note in
                         row(
                             title: note.name.isEmpty ? "Untitled note" : note.name,
@@ -226,6 +228,22 @@ private struct NotesSidebar: View {
             .scrollIndicators(.never)
         }
         .padding(.trailing, 8)
+    }
+
+    /// The clipboard's text into the scratchpad (spec J-13).
+    private var clipboardButton: some View {
+        Button {
+            if let text = NSPasteboard.general.string(forType: .string) { store.addToScratchpad(text) }
+        } label: {
+            Label("Paste as Note", systemImage: "doc.on.clipboard")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .padding(.horizontal, 8)
+                .frame(height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Add the clipboard's text to the scratchpad")
     }
 
     private var folderMenu: some View {

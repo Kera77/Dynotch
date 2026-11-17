@@ -8,11 +8,39 @@ final class FileDragWatcher {
 
     private var countAtPress = NSPasteboard(name: .drag).changeCount
     private var monitor: Any?
+    private var timer: Timer?
+    private var observers: [() -> Void] = []
+
+    /// Called while a button is held, a few times a second: a drag sends no mouse events to
+    /// other apps' monitors, so the notches look at the pointer themselves (spec FT-1).
+    func observe(_ tick: @escaping () -> Void) {
+        observers.append(tick)
+    }
 
     func start() {
         guard monitor == nil else { return }
         monitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.countAtPress = NSPasteboard(name: .drag).changeCount }
+            MainActor.assumeIsolated { self?.pressed() }
+        }
+    }
+
+    private func pressed() {
+        countAtPress = NSPasteboard(name: .drag).changeCount
+        guard timer == nil else { return }
+        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
+    private func tick() {
+        observers.forEach { $0() }
+        if NSEvent.pressedMouseButtons & 1 == 0 {
+            timer?.invalidate()
+            timer = nil
+            // Once more after the release, so a drop zone left without a drop closes.
+            observers.forEach { $0() }
         }
     }
 
@@ -57,6 +85,15 @@ extension NotchController {
             return
         }
         service.perform(withItems: urls)
+    }
+
+    /// While a file is dragged: open the drop zone over the notch, or close it when the drag ends.
+    func fileDragTick() {
+        if model.isShowingDropZone {
+            endDropZoneIfDragEnded()
+        } else {
+            _ = handleFileDrag(at: NSEvent.mouseLocation)
+        }
     }
 
     /// The drag left without a drop: the drop zone goes.

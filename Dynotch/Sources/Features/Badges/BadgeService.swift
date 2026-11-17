@@ -59,6 +59,7 @@ final class BadgeService: ObservableObject {
             MainActor.assumeIsolated { self?.refresh() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
         refresh()
     }

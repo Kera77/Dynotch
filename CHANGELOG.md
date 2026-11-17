@@ -2,6 +2,54 @@
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-11-18
+
+### Added
+- Calendar: the day as a timeline, with a "now" line; a click on the next meeting joins it.
+- Notifications: snooze (in an hour, this evening, tomorrow morning) from the right-click menu;
+  no pop-ups while a macOS Focus is on, with an exception per app.
+- Calculator: variables (`price = 1200`), `20% of 340`, units (`5 km in mi`, `30 c in f`) and
+  `total` for the lines above.
+- Notes: the draft is now a Scratchpad; "Paste as Note" adds the clipboard, and any app's
+  selected text goes there with Services › New Dynotch Note.
+- Reminders: due dates as coloured pills (overdue, today, tomorrow, later).
+- Batteries: a week of history per device, with a chart and the estimated time left; a notice
+  when a device is charged; a small chart on the low-battery label beside the notch.
+- AI: dictation, starred answers under Favorites, and a ChatGPT mode: Codex in the notch or
+  chatgpt.com (works with a free account), with "Sign in to ChatGPT…" in Settings.
+- Chats tab: unread Beeper chats as notification cards again, with a reply per message and a
+  reply field.
+- File tray: tiles or a list; the drop area is AirDrop (left third) and Keep in Tray.
+- Settings: a sidebar with search, a Permissions tab, and Copy Diagnostics in About.
+- Choose which modules the strip under the notch shows; its icons swim out from the pointer.
+- Keyboard in the notch: Esc closes, ←/→ change module, ⌘1–⌘9 open one.
+
+### Changed
+- The AI module's icon is sparkles; Claude and ChatGPT show their own app icons everywhere, and
+  the chat list shows the current service's chats.
+- Beeper: reply and reactions in a fixed place beside each message (rows no longer change size
+  on hover); clicking a message replies to it; the reaction button opens the emoji picker.
+- Network badges are the installed apps' own icons.
+- Battery rows use the same text size as the other modules.
+- Menu bar panels always use the original dark design, without Liquid Glass.
+- One set of colours, motion, tab pickers and empty states across the app; VoiceOver labels on
+  icon buttons.
+- Faster and lighter: only the visible module is built, new notifications arrive as soon as
+  they are written, Beeper is not polled while it is closed, devices are read every five
+  minutes, timers may coalesce.
+
+### Fixed
+- Content stayed blurry after closing a notification or changing modules.
+- Beeper chat pictures were missing in one-to-one chats; without one, a monogram is shown.
+- Files dragged out of the tray kept a generated name instead of their own.
+- The drop area over the notch did not appear for drags from Finder.
+- Pill mode: the expanded top row now sits centred, clear of the corners.
+- Calculator: Enter on the last line moved the last result down.
+- Full Disk Access: Settings shows a tick when it is granted, and a hint (switch Dynotch off and
+  on there) when macOS still denies it after an update.
+- ChatGPT's usage header lacked Updated, Show at notch and refresh.
+- Clipboard's Keep setting looks like the calendar's lead time.
+
 ## [0.42.1] - 2026-11-17
 
 ### Fixed

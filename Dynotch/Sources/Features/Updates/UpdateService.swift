@@ -51,6 +51,7 @@ final class UpdateService: ObservableObject {
             MainActor.assumeIsolated { self?.check() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
         // Not during launch.
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in

@@ -187,6 +187,8 @@ final class ClaudeChatService: ObservableObject {
                 return
             }
             run(program, prompt: AIPrompt.withFiles(prompt, files), chatID: id, canRead: !files.isEmpty)
+        case .chatgpt where chatGPTMode == .web:
+            askOnChatGPTWeb(prompt: prompt, chatID: id)
         case .chatgpt:
             runCodex(prompt: prompt, files: files, chatID: id)
         }

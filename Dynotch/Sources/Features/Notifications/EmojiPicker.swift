@@ -21,6 +21,7 @@ struct EmojiButton: View {
         }
         .buttonStyle(.plain)
         .help("Emoji")
+        .accessibilityLabel("Emoji")
         .onHover { if $0 { isOpen = true } }
         // The picker hangs below the notch: keep the notch open meanwhile.
         .onChange(of: isOpen) { _, open in if open { pinNotch() } }

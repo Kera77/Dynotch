@@ -13,7 +13,8 @@ final class BatteryService: ObservableObject {
     private let settings: AppSettings
     private var timer: Timer?
     private var isReading = false
-    private static let interval: TimeInterval = 120
+    /// system_profiler is heavy: every five minutes (spec BT-1b).
+    private static let interval: TimeInterval = 300
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -30,6 +31,7 @@ final class BatteryService: ObservableObject {
             MainActor.assumeIsolated { self?.refresh() }
         }
         RunLoop.main.add(timer, forMode: .common)
+        timer.tolerance = timer.timeInterval * 0.2
         self.timer = timer
         refresh()
     }
@@ -44,7 +46,19 @@ final class BatteryService: ObservableObject {
         }
     }
 
+    /// Levels over the last week (spec BT-4).
+    let history = BatteryHistory()
+    /// Tells when a device finished charging (spec BT-5).
+    var onCharged: (BatteryDevice) -> Void = { _ in }
+
     func apply(_ found: [BatteryDevice]) {
+        // Charging reached full since the last reading.
+        for device in found where device.level >= 100 {
+            if let before = devices.first(where: { $0.id == device.id }), before.level < 100, before.isCharging || device.isCharging {
+                onCharged(device)
+            }
+        }
+        history.record(found)
         if found != devices { devices = found }
         let holding = BatteryRules.dismissedStillHolding(dismissed, devices: found)
         if holding != dismissed { dismissed = holding }
