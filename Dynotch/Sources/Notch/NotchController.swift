@@ -80,6 +80,7 @@ final class NotchController {
         // the visible panel it ignores the mouse (see evaluatePointerWhileExpanded).
         let windowRect = geometry.rect(for: geometry.windowSize)
         panel = NotchPanel(contentRect: windowRect)
+        glassPanel = GlassPanel(level: panel.level)
 
         var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
@@ -97,7 +98,6 @@ final class NotchController {
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         var glassView = rootView
         glassView.layer = .glass
-        glassPanel = GlassPanel(level: panel.level)
         glassPanel.contentView = NSHostingView(rootView: glassView)
         let hosting = FirstMouseHostingView(rootView: rootView)
         hosting.sizingOptions = []
