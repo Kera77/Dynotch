@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 /// A text field that answers a notification's chat (spec E-11): Enter or the button sends.
@@ -77,18 +76,9 @@ struct NotificationReplyField: View {
         quote == nil ? "Reply to \(service.content(for: target).sender)…" : "Answer this line…"
     }
 
-    /// Hovering opens the system's emoji picker; the emoji goes into the field (spec E-18).
+    /// A small picker under the button (spec E-18).
     private var emojiButton: some View {
-        Button(action: openEmojiPicker) {
-            Image(systemName: "face.smiling")
-                .font(.system(size: 15))
-                .foregroundStyle(Color.white.opacity(0.7))
-                .frame(width: 26, height: 30)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help("Emoji")
-        .onHover { if $0 { openEmojiPicker() } }
+        EmojiButton(text: $text)
     }
 
     private var sendButton: some View {
@@ -130,11 +120,6 @@ struct NotificationReplyField: View {
             .help("Answer the whole conversation instead")
         }
         .padding(.horizontal, 10)
-    }
-
-    private func openEmojiPicker() {
-        isFocused = true
-        DispatchQueue.main.async { NSApp.orderFrontCharacterPalette(nil) }
     }
 
     private var statusNote: (text: String, isError: Bool)? {

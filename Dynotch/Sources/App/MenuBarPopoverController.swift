@@ -23,6 +23,8 @@ final class MenuBarPopoverController: NSObject {
     private let panelSize: NSSize
     private let settings: AppSettings
     private let makeContent: (MenuBarPanelState) -> AnyView
+    /// The number drawn into the icon now.
+    private var shownBadge: String?
     /// The glass behind the panel, in a window that never takes the keyboard (spec D-6).
     private lazy var glassPanel: GlassPanel = {
         let glass = GlassPanel(level: .statusBar)
@@ -85,18 +87,23 @@ final class MenuBarPopoverController: NSObject {
         guard let button = statusItem?.button, let icon else { return }
         button.image = icon.image() ?? NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
         button.toolTip = icon.toolTip() ?? feature.title
+        // The number is part of the image: draw it again on the new icon.
+        shownBadge = nil
+        updateBadge()
     }
 
     private func updateBadge() {
         guard let button = statusItem?.button, let badge else { return }
-        // Close to the icon and centred on its height (spec R-7).
+        // Drawn into the icon, its digits centred between the icon's lines (spec R-7).
         let title = badge.value().map { "\($0)" } ?? ""
-        guard button.title != title else { return }
-        button.attributedTitle = NSAttributedString(string: title, attributes: [
-            .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
-            .baselineOffset: 0.5
-        ])
+        guard title != shownBadge else { return }
+        shownBadge = title
+        let base = icon?.image() ?? NSImage(systemSymbolName: feature.symbolName, accessibilityDescription: feature.title)
+        button.title = ""
+        button.image = base.map { BadgeImage.make(icon: $0, text: title) }
     }
+
+
 
     /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
@@ -212,4 +219,34 @@ final class MenuBarPopoverController: NSObject {
 final class MenuBarPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+}
+
+/// A menu bar icon with a number beside it, the digits' middle on the icon's middle (spec R-7).
+enum BadgeImage {
+    static func make(icon: NSImage, text: String) -> NSImage {
+        guard !text.isEmpty else { return icon }
+        let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.black]
+        let textWidth = ceil((text as NSString).size(withAttributes: attributes).width)
+        let gap: CGFloat = 3
+        let height = max(icon.size.height, ceil(font.ascender - font.descender))
+        let size = NSSize(width: icon.size.width + gap + textWidth, height: height)
+        let image = NSImage(size: size, flipped: false) { _ in
+            icon.draw(in: NSRect(x: 0, y: (height - icon.size.height) / 2, width: icon.size.width, height: icon.size.height))
+            // The baseline sits half a cap height below the middle; draw(at:) takes the line's bottom.
+            let baseline = Self.baseline(height: height, capHeight: font.capHeight)
+            (text as NSString).draw(at: NSPoint(x: icon.size.width + gap, y: baseline + font.descender), withAttributes: attributes)
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }
+
+    /// The baseline that puts the digits' middle between the icon's two lines. Measured: the
+    /// cap-height maths leaves the digits 0.4 pt high, and the lines sit 0.4 pt below the middle.
+    static let measuredDrop: CGFloat = 0.8
+
+    static func baseline(height: CGFloat, capHeight: CGFloat) -> CGFloat {
+        (height - capHeight) / 2 - measuredDrop
+    }
 }

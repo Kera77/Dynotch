@@ -63,6 +63,8 @@ struct NotificationsFeatureView: View {
     @ObservedObject var service: NotificationService
     /// Looking at the list counts as having seen the new notifications.
     var isActive = false
+    /// Which notifications the tab lists (spec UM-8).
+    var include: (AppNotification) -> Bool = { _ in true }
 
     /// The group whose messages and reply field are open (spec E-5b).
     @State private var expanded: String?
@@ -99,10 +101,10 @@ struct NotificationsFeatureView: View {
 
     /// What is listed: everything, or one app's unopened notifications (spec B-6).
     private var shown: [AppNotification] {
-        guard let focus = service.focus else { return service.recent }
+        guard let focus = service.focus else { return service.recent.filter(include) }
         // Only what is still listed, and only that app's.
         let ids = Set(focus.notifications.map(\.id))
-        return service.recent.filter { ids.contains($0.id) }
+        return service.recent.filter { ids.contains($0.id) && include($0) }
     }
 
     private var list: some View {

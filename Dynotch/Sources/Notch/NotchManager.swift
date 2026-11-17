@@ -43,6 +43,17 @@ final class NotchManager {
     }
 
     /// The pin shortcut (spec SC-3).
+    /// The clipboard's items while its shortcut is held, on the display under the pointer (spec CB-3).
+    func showClipboardPicker(_ shown: Bool) {
+        let pointer = NSEvent.mouseLocation
+        if shown {
+            let controller = controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+            controller?.showClipboardPicker()
+        } else {
+            controllers.filter(\.model.isShowingClipboardPicker).forEach { $0.hideClipboardPicker() }
+        }
+    }
+
     func togglePin() {
         let pointer = NSEvent.mouseLocation
         let controller = controllers.first { $0.model.isExpanded }

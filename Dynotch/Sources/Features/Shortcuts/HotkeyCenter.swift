@@ -5,7 +5,7 @@ import Combine
 /// Registers the features' shortcuts system-wide (spec SC-1). Carbon hot keys need no permission.
 @MainActor
 final class HotkeyCenter {
-    private static let signature: OSType = 0x4459_4E43 // "DYNC"
+    static let signature: OSType = 0x4459_4E43 // "DYNC"
 
     private let store: ShortcutStore
     private let onFire: (FeatureID) -> Void
@@ -42,6 +42,8 @@ final class HotkeyCenter {
                 MemoryLayout<EventHotKeyID>.size, nil, &hotKey
             )
             guard status == noErr else { return status }
+            // The clipboard's keys have a handler of their own (spec CB-2).
+            guard hotKey.signature == HotkeyCenter.signature else { return OSStatus(eventNotHandledErr) }
             let center = Unmanaged<HotkeyCenter>.fromOpaque(userData).takeUnretainedValue()
             let number = Int(hotKey.id)
             MainActor.assumeIsolated { center.fired(number) }

@@ -84,6 +84,7 @@ struct FixesTests {
         let defaults = UserDefaults(suiteName: name) ?? .standard
         defaults.removePersistentDomain(forName: name)
         let store = ShortcutStore(defaults: defaults)
+        store.set(nil, for: .claudeChat)
         let shortcut = try #require(KeyShortcut.make(keyCode: UInt16(kVK_ANSI_L), flags: [.option], characters: "l"))
         store.set(shortcut, for: .notes)
         store.setPinShortcut(shortcut)

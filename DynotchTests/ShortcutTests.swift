@@ -27,6 +27,9 @@ struct ShortcutTests {
     @Test func aCombinationBelongsToOneFeature() throws {
         let defaults = makeDefaults()
         let store = ShortcutStore(defaults: defaults)
+        // The AI module's quick question comes with ⌃⌥A (spec AI-4); not part of this test.
+        #expect(store.shortcuts == [.claudeChat: .controlOptionA])
+        store.set(nil, for: .claudeChat)
         let shortcut = try #require(KeyShortcut.make(keyCode: UInt16(kVK_ANSI_1), flags: [.option], characters: "1"))
         store.set(shortcut, for: .notes)
         store.set(shortcut, for: .calculator)

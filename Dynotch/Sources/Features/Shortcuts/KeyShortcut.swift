@@ -47,6 +47,7 @@ final class ShortcutStore: ObservableObject {
     private static let pinKey = "shortcutPins"
     private static let pinShortcutKey = "pinShortcut"
     private static let pinnedKey = "shortcutPinnedFeatures"
+    private static let quickAskKey = "aiQuickAskShortcutSet"
 
     @Published private(set) var shortcuts: [FeatureID: KeyShortcut] {
         didSet { save() }
@@ -97,6 +98,15 @@ final class ShortcutStore: ObservableObject {
             pinnedFeatures = defaults.bool(forKey: Self.pinKey) ? Set(FeatureID.allCases) : []
         }
         pinShortcut = defaults.data(forKey: Self.pinShortcutKey).flatMap { try? JSONDecoder().decode(KeyShortcut.self, from: $0) }
+        // A quick question from anywhere (spec AI-4): ⌃⌥A, once, if the module has no shortcut.
+        if !defaults.bool(forKey: Self.quickAskKey) {
+            defaults.set(true, forKey: Self.quickAskKey)
+            if shortcuts[.claudeChat] == nil {
+                shortcuts[.claudeChat] = .controlOptionA
+                // didSet does not run in init.
+                save()
+            }
+        }
     }
 
     private static func same(_ lhs: KeyShortcut, _ rhs: KeyShortcut) -> Bool {
@@ -125,4 +135,9 @@ final class ShortcutStore: ObservableObject {
         let named = Dictionary(uniqueKeysWithValues: shortcuts.map { ($0.key.rawValue, $0.value) })
         if let data = try? JSONEncoder().encode(named) { defaults.set(data, forKey: Self.shortcutsKey) }
     }
+}
+
+extension KeyShortcut {
+    /// ⌃⌥A: the AI module's quick question (spec AI-4).
+    static let controlOptionA = KeyShortcut(keyCode: 0, modifiers: 0x1000 | 0x0800, display: "⌃⌥A")
 }

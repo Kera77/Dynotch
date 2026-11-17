@@ -10,7 +10,10 @@ extension NotchView {
         case .calendar:
             CalendarFeatureView(service: calendar, model: model)
         case .notifications:
-            NotificationsFeatureView(service: notifications, isActive: model.isExpanded && model.currentFeature == .notifications)
+            NotificationsTabsView(
+                service: notifications, beeper: beeper, tab: $model.notificationsTab,
+                isActive: model.isExpanded && model.currentFeature == .notifications
+            )
         case .calculator:
             CalculatorFeatureView(
                 store: calculator, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .calculator
@@ -25,8 +28,21 @@ extension NotchView {
             ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
         case .battery:
             BatteryFeatureView(service: battery, isActive: model.isExpanded && model.currentFeature == .battery)
+        case .clipboard:
+            ClipboardFeatureView(store: clipboard, close: closeNotifications)
+        case .tray:
+            TrayFeatureView(store: tray)
         case .info:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
+        }
+    }
+
+    /// The clipboard's items while its shortcut is held, or the drop zone (spec CB-3, FT-1).
+    @ViewBuilder var overlayPage: some View {
+        if model.isShowingClipboardPicker {
+            ClipboardPickerView(picker: clipboardPicker, store: clipboard, notchHeight: geometry.notchSize.height)
+        } else {
+            TrayDropZoneView(notchHeight: geometry.notchSize.height, keep: keepInTray, airDrop: sendWithAirDrop)
         }
     }
 }

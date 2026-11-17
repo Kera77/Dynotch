@@ -5,6 +5,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     private lazy var notifications = NotificationService(settings: settings)
+    private lazy var clipboard = ClipboardStore()
     private lazy var services = AppServices(
         settings: settings,
         calendar: CalendarService(settings: settings),
@@ -24,7 +25,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         chat: ClaudeChatService(),
         battery: BatteryService(settings: settings),
         updates: UpdateService(),
-        tablets: TabletDisplayService()
+        tablets: TabletDisplayService(),
+        clipboard: clipboard,
+        clipboardPicker: ClipboardPicker(store: clipboard),
+        tray: TrayStore(),
+        beeper: BeeperService(),
+        devices: DeviceWatcher(settings: settings)
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -56,15 +62,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ClaudeQuestionHook.upgradeIfNeeded()
         services.battery.start()
         services.updates.start()
-        if let previous = services.updates.versionUpdatedFrom() {
-            DiagnosticsLog.append("updates", "now running \(AppInfo.version), updated from \(previous)")
-            services.notifications.present(
-                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier
-            )
-        }
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
-            notices.show(StickyNotice(title: "Claude answered", detail: chat.title, date: Date(), opensChat: true))
+            notices.show(StickyNotice(title: "\(chat.service.title) answered", detail: chat.title, date: Date(), opensChat: true))
         }
         NSApp.mainMenu = EditMenu.make()
 
@@ -73,6 +73,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         manager.start()
         notchManager = manager
+        announceUpdate()
+
+        // The clipboard works even when its module is not in the notch (spec CB-1).
+        services.clipboard.start()
+        services.clipboardPicker.present = { [weak manager] shown in manager?.showClipboardPicker(shown) }
+        services.clipboardPicker.start()
+        services.beeper.start()
+        services.devices.start()
 
         let shortcuts = services.shortcuts
         let center = HotkeyCenter(
@@ -132,6 +140,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 makeContent: { AnyView(ClaudeChatMenuBarView(service: chat, state: $0)) }
             )
         ]
+    }
+
+    /// After an update: in the notifications, and under the notch until swiped up (spec U-5).
+    /// Shown once the notch exists, so it really appears.
+    private func announceUpdate() {
+        guard let previous = services.updates.versionUpdatedFrom() else { return }
+        DiagnosticsLog.append("updates", "now running \(AppInfo.version), updated from \(previous)")
+        let notifications = services.notifications
+        let notices = services.notices
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            notifications.present(
+                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier
+            )
+            notices.show(StickyNotice(
+                title: "Dynotch updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
+            ))
+        }
     }
 
     /// dynotch:// links, e.g. from Claude Code's Stop hook (spec CN-2).

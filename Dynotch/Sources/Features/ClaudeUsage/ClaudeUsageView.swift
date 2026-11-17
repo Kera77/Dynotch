@@ -7,7 +7,54 @@ struct ClaudeUsageView: View {
 
     static let blue = Color(red: 0.04, green: 0.52, blue: 1)
 
+    /// Claude or ChatGPT (spec AI-6).
+    @AppStorage("usageProvider") private var provider = AIProvider.claude.rawValue
+
     var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 2) {
+                ForEach(AIProvider.allCases, id: \.self) { item in
+                    Button {
+                        provider = item.rawValue
+                        if item == .chatgpt { service.refreshChatGPT() }
+                    } label: {
+                        Text(item.title)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(item.rawValue == provider ? Color.black : Color.white.opacity(0.75))
+                            .padding(.horizontal, 9)
+                            .frame(height: 22)
+                            .background(Capsule().fill(item.rawValue == provider ? Color.white : .clear))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(2)
+            .background(Capsule().fill(Color.white.opacity(0.1)))
+            if provider == AIProvider.chatgpt.rawValue {
+                chatGPT
+            } else {
+                claude
+            }
+        }
+    }
+
+    private var chatGPT: some View {
+        Group {
+            if service.gptLimits.isEmpty {
+                message("ChatGPT's limits appear after Codex was used once (in the AI module, the Codex app or ChatGPT).")
+            } else {
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(service.gptLimits) { UsageRow(limit: $0) }
+                    }
+                }
+                .scrollIndicators(.never)
+            }
+        }
+        .onAppear { service.refreshChatGPT() }
+    }
+
+    private var claude: some View {
         Group {
             switch service.state {
             case .loaded:

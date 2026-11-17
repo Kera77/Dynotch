@@ -88,6 +88,11 @@ extension NotchView {
         case .battery:
             let lowest = battery.devices.min { $0.level < $1.level }
             detail = lowest.map { "\(battery.devices.count) devices · lowest: \($0.name) \($0.level)%" } ?? "No device found"
+        case .clipboard:
+            detail = FeaturePreview.line(of: clipboard.history.first?.text ?? "", fallback: "Nothing copied yet")
+        case .tray:
+            let count = tray.trayFiles.count
+            detail = count == 0 ? "Drop files on the notch" : "\(count) file\(count == 1 ? "" : "s") in the tray"
         case .home, .info:
             detail = "Hover longer or click to open"
         }

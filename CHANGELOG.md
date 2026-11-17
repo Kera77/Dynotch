@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+## [0.42.0] - 2026-11-17
+
+### Added
+- AI module (was Claude): Claude and ChatGPT side by side. ChatGPT runs through Codex in the
+  ChatGPT app with the account this Mac is signed in with (subscription or free). Choose the
+  service and the model in the header, "Think harder", templates, formatted answers with code
+  blocks, Copy and Insert (pastes into the app in front), the clipboard, the selected text or
+  files as context, search and pins in the chat list, continue a chat in Terminal. ⌃⌥A asks a
+  quick question from anywhere. Default service and models in Settings › General › AI.
+- AI usage: Claude | ChatGPT; ChatGPT's limits come from Codex's own logs. The indicator beside
+  the notch shows whichever is nearer its limit.
+- Clipboard manager: ⌥V pastes the newest item; holding ⌥ shows the items in the notch to choose
+  with the arrows; ⌥⇧V for saved items. Texts and images (e.g. Shottr), saved items, search,
+  password managers' copies are never kept. Settings › Clipboard.
+- File tray: drag files onto the notch to keep them (as references) or send them with AirDrop;
+  attached folders as tabs, swipe between them, drag files out, Quick Look with Space, folders
+  update by themselves, optional expiry.
+- Notifications with tabs: All, Chats, Beeper, Google Chat. Unread Beeper chats stay on top.
+- Beeper tab: Beeper's look with the chat list (can be hidden), reactions, replies, reminders,
+  open in Beeper with the draft, send files, images and attachments, profile pictures, undo for
+  5 seconds, edit and delete; opening a chat marks it read in Beeper too. Only manual sending.
+- Google Chat tab without an API, from the notifications still in Notification Center.
+- Connected devices: a notice under the notch when Bluetooth or USB devices, displays, drives or
+  disk images come or go, with the battery (L / R / Case for AirPods), Eject and Open for drives,
+  "Use for audio" for headphones. Settings › General › Connected devices.
+- A click on Beeper's badge beside the notch opens the notch on the Beeper tab.
+- "Dynotch updated" now pops up under the notch after an update (swipe up to dismiss), besides
+  being listed in the notifications.
+
+### Changed
+- The highlight of the selected icon in the notch's top row (and of the settings tabs) is a
+  capsule, like its background.
+
+### Fixed (reported in 0.41)
+- The module strip appeared only on a very thin band: it now uses the lower half of the notch.
+
+### Fixed (reported in 0.40)
+- Liquid glass shows only when the notch is fully open; notifications, device notices and the
+  preview stay black.
+- The pill on displays without a notch ends exactly where the menu bar ends.
+- The emoji picker is a small one of Dynotch's own, always under the emoji button.
+- The Reminders menu bar count sits exactly between the icon's two lines (drawn into the icon).
+
 ## [0.41.0] - 2026-11-17
 
 ### Added

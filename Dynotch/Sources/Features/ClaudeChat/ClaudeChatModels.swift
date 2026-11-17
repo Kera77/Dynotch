@@ -28,6 +28,14 @@ struct ClaudeChat: Codable, Identifiable, Equatable, Sendable {
     var importedFrom: String?
     /// The next question continues a copy of the session, so the original stays untouched.
     var needsFork: Bool?
+    /// Which service answers (spec AI-1); nil: Claude, as before.
+    var provider: AIProvider?
+    /// The chosen model (spec AI-2); nil: the service's default.
+    var model: String?
+    /// Kept at the top of the list (spec AI-11).
+    var isPinned: Bool?
+
+    var service: AIProvider { provider ?? .claude }
 
     /// The first line of the first question, shortened.
     static func title(for prompt: String) -> String {
@@ -44,6 +52,10 @@ enum ClaudeStream {
         case delta(String)
         /// The run ended: the whole answer (or the error), and the session to resume later.
         case result(text: String, sessionID: String?, isError: Bool)
+        /// The whole answer so far (Codex sends it in pieces, each complete).
+        case replace(String)
+        /// The session to resume later, known before the end (Codex).
+        case session(String)
     }
 
     static func event(fromLine line: String) -> Event? {
@@ -103,13 +115,14 @@ enum ClaudeCLI {
         return path.map { URL(fileURLWithPath: $0) }
     }
 
-    static func arguments(prompt: String, sessionID: String?, fork: Bool = false) -> [String] {
+    static func arguments(prompt: String, sessionID: String?, fork: Bool = false, model: String? = nil, canRead: Bool = false) -> [String] {
         var arguments = [
             "-p", prompt, "--output-format", "stream-json", "--verbose", "--include-partial-messages",
-            // A plain conversation: no tools, no extra servers.
-            "--tools", "", "--strict-mcp-config",
+            // A plain conversation: no tools (only reading attached files), no extra servers.
+            "--tools", canRead ? "Read" : "", "--strict-mcp-config",
             "--append-system-prompt", "You are answering in a small chat panel at the Mac's notch. Be concise."
         ]
+        if let model { arguments += ["--model", model] }
         if let sessionID { arguments += ["--resume", sessionID] + (fork ? ["--fork-session"] : []) }
         return arguments
     }

@@ -17,6 +17,8 @@ final class ClaudeUsageService: ObservableObject {
 
     @Published private(set) var state: State = .idle
     @Published private(set) var limits: [UsageLimit] = []
+    /// ChatGPT's limits, from Codex's logs (spec AI-6).
+    @Published private(set) var gptLimits: [UsageLimit] = []
     @Published private(set) var lastUpdated: Date?
     /// "limit key|10 % step" of the fullest limit when its notch indicator was hidden (spec CL-6).
     @Published private var dismissedIndicator: String? {
@@ -56,14 +58,16 @@ final class ClaudeUsageService: ObservableObject {
     /// What the notch shows (spec CL-6): only the session limit, only from 70 %, and not while
     /// hidden with the X.
     var notchLimits: [UsageLimit]? {
-        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, state == .loaded, let session
-        else { return nil }
+        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible else { return nil }
+        // Claude's session or ChatGPT's fullest limit, whichever is nearer its limit (spec AI-6).
+        let candidates = [state == .loaded ? session : nil, gptLimits.max { $0.utilization < $1.utilization }].compactMap { $0 }
+        guard let nearest = candidates.max(by: { $0.utilization < $1.utilization }) else { return nil }
         // Pinned with the button in the AI Usage view: always shown (spec CL-6b).
-        if settings.claudeSessionPinned { return [session] }
-        guard session.utilization >= UsageAlerts.threshold,
-              !UsageAlerts.isDismissed(session, marker: dismissedIndicator)
+        if settings.claudeSessionPinned { return [nearest] }
+        guard nearest.utilization >= UsageAlerts.threshold,
+              !UsageAlerts.isDismissed(nearest, marker: dismissedIndicator)
         else { return nil }
-        return [session]
+        return [nearest]
     }
 
     var isSessionPinned: Bool { settings.claudeSessionPinned }
@@ -122,6 +126,7 @@ final class ClaudeUsageService: ObservableObject {
     }
 
     func refresh() {
+        refreshChatGPT()
         guard !isRefreshing, let endpoint = Self.endpoint else { return }
         isRefreshing = true
         if limits.isEmpty { state = .loading }
@@ -140,6 +145,14 @@ final class ClaudeUsageService: ObservableObject {
                     state = .failed(error.localizedDescription)
                 }
             }
+        }
+    }
+
+    /// ChatGPT's limits from the newest Codex log (spec AI-6).
+    func refreshChatGPT() {
+        Task { [weak self] in
+            let found = await Task.detached { CodexUsage.read() }.value
+            if self?.gptLimits != found { self?.gptLimits = found }
         }
     }
 

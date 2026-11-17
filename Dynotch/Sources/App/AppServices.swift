@@ -20,4 +20,9 @@ struct AppServices {
     let battery: BatteryService
     let updates: UpdateService
     let tablets: TabletDisplayService
+    let clipboard: ClipboardStore
+    let clipboardPicker: ClipboardPicker
+    let tray: TrayStore
+    let beeper: BeeperService
+    let devices: DeviceWatcher
 }

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.41 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.42 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -46,7 +46,7 @@
 
 | ID | Követelmény |
 |---|---|
-| M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. |
+| M-1 | A kinyitott panel tetején, a notch bal oldalán egy **kapszula alakú ikonsor** mutatja a funkciókat. Az aktív funkció ikonja világosabb, lekerekített hátteret kap. (v0.42) A kiválasztott ikon kiemelése (és a fogaskeréké, valamint a beállítások fülsoráé) **kapszula alakú**, mint a háttér. |
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
 | M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Emlékeztetők* (4e. fejezet), *Claude* (4g. fejezet), *Info* (verzió, kijelző és notch adatai). |
@@ -233,7 +233,7 @@
 | E-16 | (v0.32) **Saját szabályok forrásonként** (appok, rendszerértesítések, weboldalak): a sor melletti nyíllal lenyíló beállítások – **név** (a notchban és a listákban ez látszik), **macOS-banner** (alapértelmezés / elrejtés / megjelenítés), **válaszmező** (automatikus / mindig / soha). Egyedi szabállyal rendelkező forrásnál egy kis jel látszik. A keresés az oldal címére is szűr. |
 | E-16b | (v0.38) A **válaszmező alapból ki van kapcsolva** minden forrásnál (csevegő appoknál is); csak az a forrás kapja meg, amelynek szabályában „Show” áll. A választó első lehetősége „Default (off)”. |
 | E-17 | (v0.40) **Válasz egy sorra:** ha a forrásnál be van kapcsolva a válaszmező, az értesítéskártya egy-egy üzenetsorára vitt egérnél a sor végén válasz nyíl jelenik meg; rákattintva a mező fölött az idézett sor látszik („Answer this line…”), X-szel visszavonható. Elküldve a válasz kék buborékként a sor alá kerül, a **notch nyitva marad**, és jöhet a következő sor. Beeperen a válasz az adott üzenetre megy (a csevegés utolsó 30 üzenete közül szöveg alapján keresi meg; ha nincs meg, sima üzenet); más appoknál sima üzenetként. Az **egész beszélgetésre** adott válasz Enter után továbbra is bezárja a kártyát. |
-| E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. |
+| E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. (v0.42) Az emoji-választó a Dynotch saját, **kis ablaka**, mindig **az emoji ikon alá** nyílik (hoverre vagy kattintásra): legutóbb használtak, majd kategóriák (arcok, kezek, szívek, természet, étel, egyéb); megnyitásakor a notch rögzül. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 
@@ -286,7 +286,7 @@
 | R-5 | **Közelgő emlékeztetők** (piros cím): minden lista nyitott emlékeztetője, amely 7 napon belül esedékes vagy lejárt; a lejárt pirosan („Lejárt · tegnap”). Jobbra rendezés: *Határidő*, *Prioritás*, *Cím* (a feladatlistára is vonatkozik). |
 | R-6 | **Feladatok** (a lista színével): a kiválasztott lista nyitott feladatai. A **kör alakú jelölőnégyzetre** kattintva a feladat kipipálódik (kitöltött kör, áthúzott cím), és 0,7 mp múlva **késznek** mentődik az Emlékeztetőkbe, majd eltűnik; addig újra kattintva visszavonható. A szűrő gombbal az elmúlt 7 nap kész feladatai is látszanak, és visszaállíthatók. |
 | R-6b | (v0.35) A feladatlista végén **„New task”** sor: beírva és Entert nyomva a feladat a kiválasztott listába kerül (dátum és „@Lista” felismerése, mint a gyors bevitelnél), a mező utána kész a következőre. A mentés eredménye (a lista azonosítója és írhatósága, a szöveg nélkül) a `reminders.log`-ba kerül. |
-| R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). (v0.40) A szám függőlegesen pontosan az ikon két sora közé igazodik. |
+| R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). (v0.40) A szám függőlegesen pontosan az ikon két sora közé igazodik. (v0.42) A számot az ikonnal együtt rajzolja egy képbe, a számjegyek közepe mérten a két sor közé esik. |
 | R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
 
 ---
@@ -425,6 +425,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | U-2 | Ha újabb verzió van, letölti a verziószámos zipet, és csak akkor telepíti, ha **az SHA256 egyezik** a kiadás `SHA256SUMS.txt`-jével, a csomagban **a várt verzió** van, és **ugyanaz a tanúsítvány írta alá**, mint a futó appot. |
 | U-3 | Alapból automatikusan telepít: az app kilép, egy háttérfolyamat kicseréli a `/Applications`-beli példányt (hiba esetén visszateszi a régit), és elindítja az újat. Az újraindulás után egy értesítés jelzi az új verziót. *Settings › About*: automatikus telepítés ki/be, „Check Now” / „Install”, állapot. |
 | U-4 | **Homebrew:** `brew install --cask kera77/dynotch/dynotch` (tap: `Kera77/homebrew-dynotch`). A cask mindig a legfrissebb kiadás fix nevű `Dynotch.dmg`-jét tölti le (a Homebrew 7 miatt a tapot előbb `brew trust kera77/dynotch`-csal engedélyezni kell), és leveszi a karantén jelzést, mert az app nincs az Apple-nél hitelesítve. A további frissítéseket az app maga végzi (U-1…U-3). |
+| U-5 | (v0.42) Frissítés után a „**Dynotch updated**” a notch megjelenése után 2 mp-cel **feljön**: lelógó sor a notch alatt (kék frissítés ikon, a verzió, az idő), amely **kétujjas felfelé pöccintésre** tűnik el, és az értesítések között is ott van. Korábban a notch elkészülte előtt jött, ezért csak a listában látszott. |
 
 ## 4r. iPad mint kijelző (v0.34)
 
@@ -451,24 +452,117 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | D-1 | *Settings › Appearance › Design* három móddal: **Black** (az eddigi fekete, alapértelmezés), **Liquid glass** (teljes üveg), **Black to glass** (felül, a notch sorában fekete, lefelé fokozatosan üvegbe vált). |
 | D-2 | Az üveg **sötétre színezett** Liquid Glass (macOS 26-tól a rendszer `glassEffect`-je), így a fehér szövegek és ikonok világos háttér előtt is olvashatók. macOS 26 előtt sötét elmosott anyag helyettesíti. |
-| D-3 | A design a **lenyitott panelen** (minden modul, beállítások, előnézet, értesítéslista) és a **lelógó értesítésen** látszik. A **becsukott notch fekete marad** (a hardveres notch-csal egybeolvad); lenyitáskor a fekete a nyitás rugójával vált át üvegbe, és vissza. |
+| D-3 | A design a **lenyitott panelen** (minden modul, beállítások, előnézet, értesítéslista) és a **lelógó értesítésen** látszik. A **becsukott notch fekete marad** (a hardveres notch-csal egybeolvad); lenyitáskor a fekete a nyitás rugójával vált át üvegbe, és vissza. (v0.42) Csak a **teljesen lenyitott** notch kapja a designt; a lelógó értesítés, az eszköz-értesítés és az előnézet mindig fekete. |
 | D-4 | A **menüsor-buborékok** (számológép, jegyzetek, emlékeztetők, AI usage, Claude chat) ugyanazt a designt kapják; a fekete mód a korábbi sötétszürke. |
 | D-5 | Új *Appearance* fül a beállításokban: a design mellett ide kerültek a megjelenést érintő beállítások a General fülről (beállítások megnyitása, lekerekítés, teljes képernyős rejtés, előnézet hoverre). |
 | D-6 | (v0.40) **Az üveg mindig üveg:** a rendszer üvege abban az ablakban, amely a billentyűzetet kapja, majdnem feketén rajzolódik (mérve: a gépelős modulok, a beállítások, rögzítés után kikattintva visszaváltott). Ezért az üveg a notch és a menüsor-buborékok alatt **külön, billentyűzetet és egeret soha nem kapó ablakban** van, ugyanazzal a mérettel és animációval; a tartalom fölötte, átlátszó panelen. |
-| D-7 | (v0.40) *Settings › Appearance › Displays without a notch*: **Notch** (a felső szélhez simul, alapértelmezés) vagy **Pill**: a notch nélküli kijelzőkön a fekete rész 6 pt-tal a felső szél alatt lebeg, minden sarka kerek (nyugalomban teljes kapszula, lenyitva 24 pt). A hover-zóna ennyivel lejjebb ér. |
+| D-7 | (v0.40) *Settings › Appearance › Displays without a notch*: **Notch** (a felső szélhez simul, alapértelmezés) vagy **Pill**: a notch nélküli kijelzőkön a fekete rész 6 pt-tal a felső szél alatt lebeg, minden sarka kerek (nyugalomban teljes kapszula, lenyitva 24 pt). A hover-zóna ennyivel lejjebb ér. (v0.42) A pill 4 pt-tal a felső szél alatt kezdődik, és **pontosan a menüsor aljánál ér véget** (nyugalomban ennyivel alacsonyabb a notch soránál, a tartalma középen marad). |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
 | # | Követelmény |
 |---|-------------|
 | MS-1 | **Ikonsor a notch alatt:** ha az egér a becsukott notch **alsó sávján** megáll, a notch alá lecsúszik a bekapcsolt modulok ikonsora: áttetsző, elmosott hátterű körök, jól kivehető fehér ikonnal (enyhe árnyék), a notch közepéhez igazítva. Hoverre az ikon kissé nagyobb és világosabb. A sor addig marad, amíg az egér a sávon vagy a soron van. |
-| MS-2 | A sáv a notch szélességében, alulról a notch magasságának **1/8–1/3 része** (alapból 1/8), a várakozás **0,1–1,0 mp** (alapból 0,3 mp): *Settings › Appearance › Module strip*. A sáv fölötti rész a szokásos módon azonnal lenyitja a notchot (és eltünteti a sort); ha az egér felfelé áthalad a sávon, nem jön elő a sor. |
+| MS-2 | A sáv a notch szélességében, alulról a notch magasságának **1/8–1/3 része** (alapból 1/8), a várakozás **0,1–1,0 mp** (alapból 0,3 mp): *Settings › Appearance › Module strip*. A sáv fölötti rész a szokásos módon azonnal lenyitja a notchot (és eltünteti a sort); ha az egér felfelé áthalad a sávon, nem jön elő a sor. (v0.42) A sáv alapból a notch **alsó fele** (1/4–1/2 állítható); az 1/8 túl vékony volt. |
 | MS-3 | Ikonra kattintva a notch **azzal a modullal** nyílik le. |
 | MS-4 | Nincs ikonsor értesítés, hívás, teljes képernyős app alatt (N-12), lenyitott notchnál, vagy ha csak egy modul van bekapcsolva. Pill módban (D-7) a sáv és a sor a pillhez igazodik. |
 | SO-1 | **Környezetfüggő nyitás:** ha a notch **hoverrel** nyílik (nem gyorsbillentyűvel és nem az ikonsorból), az első teljesülő szabály modulja nyílik meg az utoljára használt helyett. Az új értesítések (E-4) és a „Claude answered” (CC-5) továbbra is a saját nézetüket nyitják. |
 | SO-2 | Sorrend: 1. **meeting** visszaszámlálás vagy folyamatban → Naptár; 2. **emlékeztető** 15 percen belül esedékes vagy lejárt (időponttal) → Reminders; 3. **az elmúlt 2 percben kimásolt számítás vagy szám** → Számológép, a kifejezés egy új sorba beírva (eredménnyel); 4. **alacsony akkumulátor** → Akkumulátorok; 5. **AI-fogyasztás 90% fölött** → AI usage. Egyébként az utoljára használt modul. |
 | SO-3 | **Egy esemény egyszer:** ugyanaz a meeting, emlékeztető, másolás, eszköz vagy 10%-os fogyasztási lépcső csak egyszer nyitja meg a modulját; ha elváltasz onnan, legközelebb a szokásos modul jön. |
 | SO-4 | Szabályonként kikapcsolható: *Settings › Appearance › Smart opening* (alapból mind be). A vágólapnak csak a változásszámlálóját figyeli másodpercenként; a tartalmát csak nyitáskor, az elmúlt 2 percben történt másolásnál olvassa. |
+
+## 4v. Csatlakozó eszközök (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| DV-1 | **Csatlakozáskor** a notch alatt lelógó értesítés jelenik meg (mint egy új értesítés, E-3): az eszköz **saját ikonja** (AirPods / AirPods Pro / Max, Magic Keyboard, Magic Mouse, Magic Trackpad, fejhallgató – az akkumulátor-modul ikonjai, BT-2), a neve, az akkumulátor szintje (fülhallgatónál **L / R / Case** külön), jobbra zöld pipa. |
+| DV-2 | **Lecsatlakozáskor** ugyanilyen értesítés szürke ikonnal és „Disconnected” felirattal, jobbra áthúzott kör; az utolsó ismert akkumulátorszinttel. |
+| DV-3 | Figyelt eszközök: **Bluetooth** (IOBluetooth csatlakozási értesítések), **USB** (IOKit: billentyűzet, egér, pendrive, hub), **külső kijelző** (képernyőváltozás; neve és felbontása), **meghajtó** (csatolás / leválasztás; mérete és szabad helye), **audiokimenet** (CoreAudio: ha a hang egy új eszközre vált). A **meghajtóknál** (pendrive, külső lemez, **telepítő lemezképek / DMG**) az értesítésen mindig ott az **Eject** gomb; a DMG-nél ez a telepítés utáni szokásos kidobást váltja ki. |
+| DV-4 | **Gyorsgombok az értesítésen:** pendrive/meghajtó → **Eject** és **Open**; fejhallgató, amely csatlakozott, de nem ő a hangkimenet → **Use for audio**; kijelző → **Displays…** (Kijelzők beállítás). |
+| DV-5 | **Zajszűrés:** ébredés után 30 mp-ig és indításkor nincs értesítés (a rendszer ilyenkor mindent újracsatlakoztat); ugyanarról az eszközről 10 mp-en belüli le-fel csatlakozás egy értesítés; az iPhone/iPad (Continuity, Sidecar) és a Mac saját belső eszközei kimaradnak. |
+| DV-6 | Megjelenési idő: mint az értesítéseké (E-3, beállítható). Nem kerül az értesítéslistába és a jelvényekbe; a hover nem nyitja az értesítéskártyát, hanem az Akkumulátorok modult (ha be van kapcsolva). |
+| DV-7 | *Settings › Devices* (vagy a General fülön): be/ki, kategóriánként (Bluetooth, USB, kijelző, meghajtó, audio) és **lecsatlakozás is** kapcsoló. |
+
+## 4w. Olvasatlan üzenetek a notchban (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| UM-1 | **Cél:** amit a Beeperben vagy a Google Chatben még nem olvastál el (sem az appban, sem a notchban), az **mindig ott van** a notch értesítéseinél, és a notchból válaszolható. A notch nem csak az új értesítésekből dolgozik, hanem az appok olvasatlan állapotából. |
+| UM-2 | **Beeper (Desktop API):** 20 mp-enként (és a notch nyitásakor) lekéri a csevegéseket, amelyeknek `unreadCount > 0`; mindegyikből az utolsó *unreadCount* (legfeljebb 10) üzenetet. Ezek egy-egy **olvasatlan csoportot** alkotnak (a feladó/csevegés neve, ikon, üzenetek), amely addig marad, amíg a Beeper szerint a csevegés olvasatlan. |
+| UM-3 | **Olvasottnak jelölés a Beeperben is:** ha a csoportot a notchban **megnyitod** (a kártya legalább 2 mp-ig látszik), vagy válaszolsz rá, a Dynotch a Beeper API-n olvasottnak jelöli a csevegést (`POST /v1/chats/{chatID}/read`, az utolsó látott üzenetig). Ha a Beeperben olvasod el, a következő lekérdezéskor a notchból is eltűnik. |
+| UM-4 | **Google Chat:** nincs nyilvános API Google-fiók és saját Google Cloud-alkalmazás nélkül, ezért a forrás a macOS Értesítési központ: egy Google Chat-értesítés addig olvasatlan, amíg **benne van az Értesítési központban** (E-13 fordítva: nem tűnik el az idővel, csak ha ott eltűnik – a csevegés megnyitásakor a böngésző/webapp eltávolítja). Válasz a meglévő módon (a csevegés megnyitása és begépelés, E-11b). |
+| UM-5 | **Megjelenés:** a becsukott notch mellett az értesítési jelvény (B-1) mutatja az olvasatlanok **összesített számát**; a notch értesítés-nézetében felül egy „**Unread**” szakasz csevegésenként (legújabb elöl), alatta a korábbi értesítések. Hover/kattintás egy csoportra: a kártya (E-4) az olvasatlan üzenetekkel és a válaszmezővel (E-11, E-17 soronkénti válasz). |
+| UM-6 | **Duplikáció nélkül:** ha ugyanarról az üzenetről értesítés is jött, csak egyszer látszik (Beeper: az üzenet szövege és ideje alapján összevonva). |
+| UM-7 | **Beállítás:** *Settings › Notifications*: „Keep unread chats in the notch” forrásonként (Beeper, Google Chat); a lekérdezési gyakoriság 10–60 mp. Csak a csevegések neve, az üzenetek szövege és ideje kerül a memóriába; lemezre és a naplóba nem. |
+| UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
+
+## 4x. Beeper a notchban (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| BP-1 | **Beeper-fül** (UM-8): **nagyobb panel**, kb. 760 × 420 pt, a Beeper elrendezésével: **balra a csevegések listája** (kb. 240 pt; olvasatlanok elöl, utána a legutóbbi aktivitás szerint), **jobbra a kiválasztott beszélgetés**, alul a válaszmezővel. |
+| BP-1b | A **csevegéslista kikapcsolható**: a fül fejlécének oldalsáv-ikonjával és *Settings › Notifications › Beeper › Show the chat list*; lista nélkül a fejlécben legördülő választó mutatja a csevegéseket (olvasatlanok elöl). |
+| BP-2 | **Design a Beeperét követi:** sötét felület; a listában kerek profilkép, a sarkában a hálózat kis jelvényével (WhatsApp, Messenger, Telegram, Signal, iMessage, Slack…), név, az utolsó üzenet egy sora, idő, olvasatlanságnál vastag név és kék számos pirula; a beszélgetésben a bejövő üzenetek balra szürke, a sajátok jobbra kék buborékban, csoportban a feladó neve a buborék fölött; a reakciók kis pirulaként a buborék alatt (emoji + szám); a válasz-idézet vékony csíkkal a buborék tetején; napelválasztók („Today”, „Yesterday”). |
+| BP-3 | **Profilképek** (7): a csevegés és a feladó képe a Beeperből (`imgURL`, szükség esetén `assets/download`), memóriában gyorsítótárazva; ha nincs kép, monogram színes körben, mint a Beeperben. Az értesítéskártyákon (E-4) is ezek látszanak az app ikonja helyett. |
+| BP-4 | **Reakció egy kattintással** (1): üzenetre vitt egérnél a buborék mellett kis sor: 👍 ❤️ 😂 😮 😢 🙏 és egy „+” az emoji-választóhoz (E-18). Kattintásra elküldi (`POST …/messages/{id}/reactions`), saját reakcióra kattintva visszavonja. Csak ahol a csevegés engedi (`capabilities.allowedReactions`). |
+| BP-5 | **Megnyitás a Beeperben** (2): gomb a beszélgetés fejlécében és jobb klikkre egy üzeneten: a Beeper azon a csevegésen és üzeneten nyílik meg (`POST /v1/focus` `chatID`, `messageID`), a félig megírt válasz **piszkozatként** átkerül (`draftText`). |
+| BP-6 | **Emlékeztető egy csevegésre** (3): a fejlécben harang ikon: „In 1 hour”, „This evening (18:00)”, „Tomorrow 9:00”, „Next week”, „Custom…”, és „Cancel if they reply” kapcsoló (`POST /v1/chats/{id}/reminders`, `dismissOnIncomingMessage`). A beállított emlékeztető a listában kis harangként látszik; törölhető. |
+| BP-7 | **Fájlküldés** (5): fájlt a tálcáról (vagy a Finderből) a beszélgetésre húzva, vagy a válaszmező „+” gombjával: feltölti (`assets/upload`), és egy üzenetben elküldi; a válaszmező szövege a fájl mellé kerül. Üzenetenként **egy fájl**; több fájlnál egymás után, mindegyik külön üzenet – egyenként, kézi jóváhagyással (BP-10). |
+| BP-8 | **Képek és csatolmányok** (6): képek és GIF-ek kicsinyítve a buborékban (kattintásra Quick Look), videónál előnézeti kép és hossz, hangüzenetnél hossz (és átirat, ha a Beeper ad), fájlnál ikon, név, méret; kattintásra megnyílik. |
+| BP-9 | **Szerkesztés és visszavonás** (12): elküldés után 5 mp-ig „Undo” a buborék alatt (törli: `DELETE …/messages/{id}`); saját üzenet jobb klikkre „Edit” (`PUT …/messages/{id}`) és „Delete”, ha a hálózat engedi (`capabilities`). |
+| BP-10 | **Csak kézi küldés:** minden üzenet, reakció és fájl csak a felhasználó kifejezett műveletére megy el (Enter, gomb, ejtés); nincs automatikus, ütemezett vagy tömeges küldés. A Beeper figyelmeztet, hogy a túl sok küldés miatt egy hálózat felfüggesztheti a fiókot. |
+| BP-11 | **Adatok:** a Beeper Desktop API-n (localhost) keresztül; a token a meglévő (E-11). Az üzenetek és képek csak memóriában vannak; a naplóba csak műveletek és hibakódok kerülnek, tartalom nem. Ha a Beeper nem fut, a fül ezt írja ki, és a többi fül változatlanul működik. |
+| BP-12 | **A Beeper jelvényére kattintva** (a notch mellett, B-1) a notch a **Beeper fülön** nyílik le az app megnyitása helyett (ha az Értesítések modul be van kapcsolva; különben marad a régi működés). A jobb klikk (B-6) változatlan. |
+
+## 4y. Vágólapkezelő (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| CB-1 | Új **Clipboard** modul; a vágólapot a modul bekapcsolása nélkül is figyeli, és a gyorsbillentyű akkor is működik. Szöveget és képet (pl. Shottr) tárol, a legújabb elöl, ismétlés nélkül; újraindítás után is megmarad (Application Support, a képek PNG-ként). |
+| CB-2 | Két gyorsbillentyű, módosítható: **⌥V** a vágólap elemeihez, **⌥⇧V** a mentett elemekhez (*Settings › Clipboard*). A magyar kiosztáson az ⌥V a „ karaktert írja; ezt a billentyű elveszi. |
+| CB-3 | **Röviden megnyomva** a legutóbbi elemet illeszti be (⌘V a front appnak). **A módosító nyomva tartásával** 0,25 mp után lenyílik a notch: kártyák egymás mellett, alul számozva; a billentyű újra vagy ←→ léptet, ↑↓ vált a vágólap és a mentett elemek között, ⌥1–9 közvetlenül választ; a módosító felengedése beilleszt, Esc megszakít és összecsuk. Választás közben a nyilakat, számokat és az Esc-et csak a Dynotch kapja. |
+| CB-4 | A modulban „Clipboard / Saved” fülek, keresés, csillag (mentés), törlés, „Clear”; mentett szöveg felvétele; kattintásra beillesztés a front appba. |
+| CB-5 | Képmetszőből (pl. Shottr) másolt kép is elem, kicsinyítve látszik. |
+| CB-6 | A jelszókezelők rejtett/ideiglenes jelölésű másolatai (pl. `org.nspasteboard.ConcealedType`) és a kizárt appok másolatai nem kerülnek be. |
+| CB-7 | Beállítások: a két gyorsbillentyű, a megtartott elemek száma (5–100, alapból 25), kizárt appok. |
+
+## 4z. Fájltálca (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| FT-1 | Fájlt a becsukott notchra húzva lenyílik az ejtési zóna: balra **Keep in Tray**, jobbra **AirDrop**. |
+| FT-2 | A tálca a fájlokra **hivatkozást** tárol (követi, ha áthelyezed); ami ideiglenes helyről jön (böngésző, képmetsző), azt a Dynotch tálcamappájába másolja. |
+| FT-3 | AirDrop: a rendszer megszokott AirDrop-ablaka nyílik meg. |
+| FT-4 | A **Tray** modulban fülek: „Tray” és a „+”-szal csatolt mappák (színes ponttal); swipe-pal is váltható, a végén a következő modulra lép. |
+| FT-5 | Fájlok kihúzhatók bármely appba; mappára vagy a rácsra ejtve **másolás**, ⌥-tal **áthelyezés**; dupla kattintás megnyit; jobb klikk: Quick Look, Open, Show in Finder, Remove. |
+| FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
+| FT-8 | **Quick Look:** kijelölt fájlon szóköz megnyitja / bezárja. |
+| FT-9 | A kiválasztott csatolt mappa változásait (más appból hozzáadott / törölt fájl) azonnal mutatja. |
+
+## 4zz. Google Chat a notchban, API nélkül (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| GC-1 | **Google Chat** fül (UM-8) a Beeperével azonos designnal: balra a beszélgetések, jobbra az üzenetek; a forrás az Értesítési központban még meglévő Google Chat-értesítések (UM-4). |
+| GC-2 | Ami nem érhető el API nélkül, az nincs a felületen: reakció, emlékeztető, fájlküldés, szerkesztés/visszavonás, profilkép (monogram helyette). |
+| GC-3 | Válasz a meglévő módon (a beszélgetés megnyitása és begépelés); a notchból küldött válaszok kék buborékként a beszélgetésben látszanak, amíg a Dynotch fut. |
+| GC-4 | „Open Google Chat” gomb a fejlécben. |
+
+## 4ä. AI modul: Claude és ChatGPT (v0.42)
+
+| # | Követelmény |
+|---|-------------|
+| AI-1 | A Claude modul neve **AI**. Két szolgáltató: **Claude** (a Claude Code-on keresztül, CC-2) és **ChatGPT** (a ChatGPT app **Codex** programján keresztül), mindkettő a Macen bejelentkezett fiókkal – előfizetéssel vagy ingyenes fiókkal; API-kulcs nem kell. A fejléc kapszula-választója (Claude \| ChatGPT) a következő beszélgetés szolgáltatóját adja; egy beszélgetés a sajátjánál marad (másikra váltva új beszélgetés indul). |
+| AI-2 | **Modellválasztó** a fejlécben: Claude-nál Opus / Sonnet / Haiku, ChatGPT-nél a fiókban elérhető modellek (a Codex saját listájából, `~/.codex/models_cache.json`); „Default” a szolgáltató alapértelmezése. **Think harder** kapcsoló (agy ikon): Claude-nál több gondolkodás, ChatGPT-nél magas érvelési szint. |
+| AI-3 | ChatGPT: `codex exec --json` a Dynotch chatmappájában, **csak olvasható** módban (fájlt nem módosíthat), a folytatás ugyanabban a Codex-munkamenetben (`resume`). Ha a Codex nincs meg vagy nincs bejelentkezés, a hiba szövege a chatben látszik. |
+| AI-4 | **Gyorskérdés:** ⌃⌥A (a Modules fülön módosítható) bárhonnan megnyitja az AI modult, a mező rögtön fogadja a gépelést. |
+| AI-5 | **Kontextus:** a mező fölötti sávból a vágólap (szöveg a kérdésbe, kép csatolmányként), a front appban kijelölt szöveg (Accessibility), fájl csatolása (gombbal vagy ráhúzva); a csatolmányok kis címkéként látszanak, X-szel eltávolíthatók. Claude a csatolt fájlokat olvasni tudja (csak a Read eszköz), ChatGPT a képeket közvetlenül kapja. |
+| AI-6 | **Fogyasztás:** az AI usage modulban Claude \| ChatGPT választó; a ChatGPT keretei a Codex naplóiból (`rate_limits`: használt %, ablak, visszaállás), hálózat és bejelentkezési adat nélkül – akkor frissülnek, amikor a Codexet bárhol használják. A notch melletti jelző **amelyik közelebb van a kerethez**, azt mutatja. |
+| AI-7 | **Formázott válasz:** címek félkövéren, félkövér/dőlt/kód/linkek, **kódblokkok** külön dobozban „Copy” gombbal; minden válasz alatt **Copy** és **Insert** (bezárja a notchot és beilleszti a front appba). |
+| AI-8 | **Sablonok** (a fejléc menüjéből): fordítás angolra/magyarra, összefoglalás, udvariasabb átírás, egyszerű magyarázat, helyesírás javítása; a beírt kérdés saját sablonként menthető és törölhető. |
+| AI-9 | *Settings › General › AI:* alapértelmezett szolgáltató és szolgáltatónként alapértelmezett modell. |
+| AI-11 | A beszélgetéslistában **keresés** (cím és szöveg) és **kitűzés** (jobb klikk: Pin / Unpin; a kitűzöttek elöl, 📌 jellel); a válaszkész jelzés a szolgáltató nevét írja („ChatGPT answered”). |
+| AI-12 | **Folytatás a Terminálban:** a fejléc gombja a beszélgetést a Claude Code-ban vagy a Codexben folytatja (ugyanaz a munkamenet). |
 
 ## 5. Nyitott kérdések
 
@@ -515,6 +609,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.42** | AI modul (Claude + ChatGPT), vágólapkezelő, fájltálca, értesítés-fülek, Beeper és Google Chat a notchban, csatlakozó eszközök; a v0.40–0.41 hibáinak javítása |
 | **v0.41** | Modul-ikonsor a notch alsó sávjánál; környezetfüggő nyitás (meeting, emlékeztető, másolt számítás, akkumulátor, AI usage) |
 | **v0.40** | Üveg külön ablakban (nem vált feketére); pill külső kijelzőn; beállítások az első kattintásig; Join a meeting hover-sorában; válasz egy sorra, emoji; nincs App Nap |
 | **v0.39** | Design-választó (fekete / Liquid Glass / átmenet), Appearance fül; a Telefon app hívás közben a Dockban marad |

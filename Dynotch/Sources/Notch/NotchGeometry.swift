@@ -111,7 +111,7 @@ struct NotchGeometry: Equatable, Sendable {
     var windowSize: CGSize {
         CGSize(
             width: max(largeSize.width, settingsSize.width, maxNotificationSize.width),
-            height: max(largeSize.height, settingsSize.height, maxNotificationSize.height, usageSize.height)
+            height: max(largeSize.height, settingsSize.height, maxNotificationSize.height, usageSize.height, chatPanelSize.height)
         )
     }
 
@@ -195,6 +195,11 @@ struct NotchGeometry: Equatable, Sendable {
     }
 
     /// Pointer area that keeps a panel of the given size open: the panel, past the top edge.
+    /// The Beeper and Google Chat tabs: the chat list beside the conversation (spec BP-1).
+    var chatPanelSize: CGSize {
+        CGSize(width: min(max(760, expandedSize.width), max(screenFrame.width - 40, expandedSize.width)), height: 420)
+    }
+
     /// The module strip under the notch (spec MS-1): one round icon per module, centred.
     func moduleStripRect(count: Int) -> CGRect {
         let width = CGFloat(count) * Self.stripIconSize + CGFloat(max(count - 1, 0)) * Self.stripSpacing

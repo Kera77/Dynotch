@@ -203,7 +203,13 @@ extension NotchIndicatorView {
     /// E.g. Claude finished a task: stays until swiped up.
     private func noticeLabel(_ notice: StickyNotice) -> some View {
         HStack(spacing: 7) {
-            BrandGlyphView(glyph: .claude, size: 14)
+            if let symbol = notice.symbol {
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.04, green: 0.52, blue: 1))
+            } else {
+                BrandGlyphView(glyph: .claude, size: 14)
+            }
             Text(notice.title)
                 .font(.system(size: 12, weight: .semibold))
                 // A question waits for an answer (spec CQ-2).

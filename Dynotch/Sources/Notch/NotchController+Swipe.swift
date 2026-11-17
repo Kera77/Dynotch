@@ -33,6 +33,16 @@ extension NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
+            // In the notifications a swipe steps through the tabs first (spec UM-8).
+            if model.currentFeature == .notifications, !gestureSwitchedFeature,
+               withAnimation(Self.animation, { model.stepNotificationsTab(by: direction == .next ? 1 : -1) }) {
+                return true
+            }
+            // In the tray a swipe steps between the tray and the folders first (spec FT-4).
+            if model.currentFeature == .tray, !gestureSwitchedFeature,
+               withAnimation(Self.animation, { tray.step(by: direction == .next ? 1 : -1) }) {
+                return true
+            }
             let before = model.currentFeature
             withAnimation(Self.animation) { model.step(direction) }
             if model.currentFeature != before {

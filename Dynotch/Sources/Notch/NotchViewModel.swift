@@ -42,6 +42,9 @@ final class NotchViewModel: ObservableObject {
         if shown != isShowingStrip { isShowingStrip = shown }
     }
 
+    /// Closes the panel; set by the controller (spec AI-7).
+    var requestCollapse: () -> Void = {}
+
     /// Events that already opened their module by the smart opening (spec SO-3).
     var smartUsed: Set<String> = []
 
@@ -86,15 +89,58 @@ final class NotchViewModel: ObservableObject {
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
-        isExpanded && !isPreview && (isShowingNotifications ? notificationsCanReply
-            : isShowingSettings || [.calculator, .notes, .reminders, .notifications, .claudeChat].contains(currentFeature))
+        guard !isShowingOverlayPage else { return false }
+        return isExpanded && !isPreview && (isShowingNotifications ? notificationsCanReply
+            : isShowingSettings || Self.typingFeatures.contains(currentFeature))
+    }
+
+    /// Modules that take the keyboard (text fields, Space for Quick Look).
+    private static let typingFeatures: Set<FeatureID> = [.calculator, .notes, .reminders, .notifications, .claudeChat, .clipboard, .tray]
+
+    /// The notifications module's tab, kept across launches (spec UM-8).
+    @Published var notificationsTab: NotificationsTab = NotchViewModel.storedTab {
+        didSet { UserDefaults.standard.set(notificationsTab.rawValue, forKey: Self.tabKey) }
+    }
+
+    private static let tabKey = "notificationsTab"
+    private static var storedTab: NotificationsTab {
+        UserDefaults.standard.string(forKey: tabKey).flatMap(NotificationsTab.init(rawValue:)) ?? .all
+    }
+
+    /// Swiping steps through the tabs first (spec UM-8); false at either end.
+    func stepNotificationsTab(by offset: Int) -> Bool {
+        let tabs = NotificationsTab.allCases
+        guard let index = tabs.firstIndex(of: notificationsTab), tabs.indices.contains(index + offset) else { return false }
+        notificationsTab = tabs[index + offset]
+        updateLarge()
+        return true
+    }
+
+    /// The clipboard's items while its shortcut is held (spec CB-3).
+    @Published private(set) var isShowingClipboardPicker = false
+    /// Files are being dragged over the notch (spec FT-1).
+    @Published private(set) var isShowingDropZone = false
+
+    /// A page that replaces the modules for a moment.
+    var isShowingOverlayPage: Bool { isShowingClipboardPicker || isShowingDropZone }
+
+    func setClipboardPicker(_ shown: Bool) {
+        if shown != isShowingClipboardPicker { isShowingClipboardPicker = shown }
+    }
+
+    func setDropZone(_ shown: Bool) {
+        if shown != isShowingDropZone { isShowingDropZone = shown }
     }
 
     /// Size of the panel while it is open.
     var openSize: CGSize {
         // Room at the bottom for the reply field, or the "open to reply" button.
         if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
+        if isShowingOverlayPage {
+            return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
+        }
         if isPreview { return geometry.previewSize }
+        if currentFeature == .notifications, notificationsTab.isWide { return geometry.chatPanelSize }
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
@@ -116,6 +162,8 @@ final class NotchViewModel: ObservableObject {
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded { holdsForSettings = false }
+        if !expanded { isShowingClipboardPicker = false }
+        if !expanded { isShowingDropZone = false }
         if expanded, isShowingStrip { isShowingStrip = false }
         if !expanded, isPinned { isPinned = false }
         if !expanded, isPreview { isPreview = false }

@@ -102,7 +102,7 @@ struct BeeperClient: Sendable {
         return ((try? JSONDecoder().decode(Page.self, from: data))?.items ?? []).sorted { ($0.timestamp ?? "") < ($1.timestamp ?? "") }
     }
 
-    private static func messagesPath(_ chatID: String) -> String {
+    static func messagesPath(_ chatID: String) -> String {
         "/v1/chats/" + (chatID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(["/"])) ?? chatID) + "/messages"
     }
 
@@ -137,8 +137,9 @@ struct BeeperClient: Sendable {
         _ = try await request(path: Self.messagesPath(chatID), method: "POST", body: try JSONEncoder().encode(body), token: token)
     }
 
-    private func request(
-        path: String, query: [URLQueryItem] = [], method: String = "GET", body: Data? = nil, token: String
+    func request(
+        path: String, query: [URLQueryItem] = [], method: String = "GET", body: Data? = nil, token: String,
+        contentType: String = "application/json"
     ) async throws -> Data {
         guard let base = Self.baseURL, var components = URLComponents(url: base, resolvingAgainstBaseURL: false) else {
             throw BeeperError.failed("Invalid URL")
@@ -149,9 +150,9 @@ struct BeeperClient: Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
         request.httpBody = body
-        request.timeoutInterval = 10
+        request.timeoutInterval = body.map { $0.count > 1_000_000 ? 120 : 10 } ?? 10
         let data: Data
         let response: URLResponse
         do {

@@ -12,6 +12,8 @@ struct StickyNotice: Equatable, Sendable {
     var isQuestion = false
     /// The app Claude Code runs in (Terminal, VS Code…), brought forward on hover (spec CQ-3).
     var appIdentifier: String?
+    /// An SF Symbol instead of Claude's mark, e.g. for Dynotch's own update (spec U-5).
+    var symbol: String?
 }
 
 @MainActor

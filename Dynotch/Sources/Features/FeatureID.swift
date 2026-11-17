@@ -11,6 +11,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case claudeUsage
     case claudeChat
     case battery
+    case clipboard
+    case tray
     case info
 
     var id: String { rawValue }
@@ -24,8 +26,10 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .notes: "Notes"
         case .reminders: "Reminders"
         case .claudeUsage: "AI Usage"
-        case .claudeChat: "Claude"
+        case .claudeChat: "AI"
         case .battery: "Batteries"
+        case .clipboard: "Clipboard"
+        case .tray: "Tray"
         case .info: "Info"
         }
     }
@@ -41,6 +45,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .claudeUsage: "gauge.with.dots.needle.67percent"
         case .claudeChat: "sparkle"
         case .battery: "battery.75percent"
+        case .clipboard: "doc.on.clipboard"
+        case .tray: "tray.full"
         case .info: "info.circle.fill"
         }
     }

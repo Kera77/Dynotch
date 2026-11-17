@@ -177,7 +177,7 @@ final class AppSettings: ObservableObject {
     }
 
     static let moduleStripDelayRange: ClosedRange<Double> = 0.1...1
-    static let moduleStripBandRange: ClosedRange<Double> = 0.125...(1.0 / 3)
+    static let moduleStripBandRange: ClosedRange<Double> = 0.25...0.5
 
     /// Rules of the smart opening that are turned off (spec SO-1).
     @Published private(set) var smartRulesOff: Set<SmartRule> {
@@ -295,7 +295,8 @@ final class AppSettings: ObservableObject {
         moduleStrip = defaults.object(forKey: Key.moduleStrip) as? Bool ?? true
         let storedStripDelay = defaults.object(forKey: Key.moduleStripDelay) as? Double ?? 0.3
         moduleStripDelay = min(max(storedStripDelay, Self.moduleStripDelayRange.lowerBound), Self.moduleStripDelayRange.upperBound)
-        let storedBand = defaults.object(forKey: Key.moduleStripBand) as? Double ?? 0.125
+        // The lower half by default (v0.42); a band below a quarter from 0.41 was too thin.
+        let storedBand = (defaults.object(forKey: Key.moduleStripBand) as? Double).flatMap { $0 < 0.25 ? nil : $0 } ?? 0.5
         moduleStripBand = min(max(storedBand, Self.moduleStripBandRange.lowerBound), Self.moduleStripBandRange.upperBound)
         smartRulesOff = Set((defaults.stringArray(forKey: Key.smartRulesOff) ?? []).compactMap(SmartRule.init(rawValue:)))
         externalStyle = defaults.string(forKey: Key.externalStyle).flatMap(ExternalNotchStyle.init(rawValue:)) ?? .notch

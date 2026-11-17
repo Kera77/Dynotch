@@ -8,6 +8,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case calendar
     case notifications
     case badges
+    case clipboard
     case focus
     case about
 
@@ -21,6 +22,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "Calendar"
         case .notifications: "Notifications"
         case .badges: "App badges"
+        case .clipboard: "Clipboard"
         case .focus: "Focus"
         case .about: "About"
         }
@@ -34,6 +36,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .notifications: "bell"
         case .badges: "app.badge"
+        case .clipboard: "doc.on.clipboard"
         case .focus: "cursorarrow.rays"
         case .about: "info.circle"
         }
@@ -47,6 +50,11 @@ struct SettingsView: View {
     let badges: BadgeService
     let shortcuts: ShortcutStore
     let updates: UpdateService
+    let clipboard: ClipboardStore
+    let tray: TrayStore
+    let beeper: BeeperService
+    let devices: DeviceWatcher
+    let chat: ClaudeChatService
 
     @State private var selectedTab = SettingsTab.general
     @State private var hoveredTab: SettingsTab?
@@ -73,7 +81,7 @@ struct SettingsView: View {
                             .frame(width: 38, height: 26)
                             .foregroundStyle(tab == selectedTab ? Color.white : Color.primary.opacity(0.75))
                             .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                Capsule(style: .continuous)
                                     .fill(tab == selectedTab ? Color.accentColor : .clear)
                             )
                             .contentShape(Rectangle())
@@ -105,7 +113,7 @@ struct SettingsView: View {
     @ViewBuilder private var content: some View {
         switch selectedTab {
         case .general:
-            GeneralSettingsView(settings: settings)
+            GeneralSettingsView(settings: settings, devices: devices, chat: chat)
         case .appearance:
             AppearanceSettingsView(settings: settings)
         case .features:
@@ -113,9 +121,11 @@ struct SettingsView: View {
         case .calendar:
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
-            NotificationSettingsView(settings: settings, service: notifications)
+            NotificationSettingsView(settings: settings, service: notifications, beeper: beeper)
         case .badges:
             BadgeSettingsView(service: badges)
+        case .clipboard:
+            ClipboardSettingsView(clipboard: clipboard, tray: tray)
         case .focus:
             FocusSettingsView(settings: settings)
         case .about:
@@ -128,6 +138,8 @@ struct SettingsView: View {
 
 private struct GeneralSettingsView: View {
     @ObservedObject var settings: AppSettings
+    @ObservedObject var devices: DeviceWatcher
+    let chat: ClaudeChatService
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
@@ -164,6 +176,7 @@ private struct GeneralSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            DeviceSettingsSection(devices: devices)
             Section {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
@@ -171,6 +184,7 @@ private struct GeneralSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            AISettingsSection(chat: chat)
             Section {
                 Toggle("AI usage indicator next to the notch", isOn: $settings.claudeRingVisible)
                 Toggle("Notify above 70% (again every 10%)", isOn: $settings.claudeUsageAlerts)

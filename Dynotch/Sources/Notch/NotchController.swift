@@ -16,6 +16,8 @@ final class NotchController {
     let claudeUsage: ClaudeUsageService
     let reminders: RemindersStore
     let calculator: CalculatorStore
+    let tray: TrayStore
+    let devices: DeviceWatcher
     let badges: BadgeService
     let calls: CallService
     private var callObserver: AnyCancellable?
@@ -74,6 +76,8 @@ final class NotchController {
         claudeUsage = services.claudeUsage
         reminders = services.reminders
         calculator = services.calculator
+        tray = services.tray
+        devices = services.devices
         badges = services.badges
         calls = services.calls
         notices = services.notices
@@ -94,7 +98,8 @@ final class NotchController {
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
             notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
-            updates: services.updates, tablets: services.tablets
+            updates: services.updates, tablets: services.tablets, clipboard: services.clipboard,
+            clipboardPicker: services.clipboardPicker, tray: services.tray, beeper: services.beeper, devices: services.devices
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -102,6 +107,10 @@ final class NotchController {
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         rootView.openFully = { [weak self] in self?.openFully() }
         rootView.openModule = { [weak self] in self?.openFromStrip($0) }
+        rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
+        rootView.openBeeper = { [weak self] in self?.openBeeperTab() }
+        model.requestCollapse = { [weak self] in self?.collapse() }
+        rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         var glassView = rootView
         glassView.layer = .glass
@@ -146,6 +155,10 @@ final class NotchController {
             updateCallInteraction()
         } else if model.isExpanded {
             evaluatePointerWhileExpanded()
+        } else if handleDevicePeek(at: NSEvent.mouseLocation) {
+            // A device notice under the notch (spec DV-6).
+        } else if handleFileDrag(at: NSEvent.mouseLocation) {
+            // Files dragged onto the notch (spec FT-1).
         } else if openingZone.contains(NSEvent.mouseLocation) {
             hideStrip()
             setHoveredIndicator(nil)
@@ -160,12 +173,13 @@ final class NotchController {
 
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded else { return }
+        if model.isShowingDropZone { endDropZoneIfDragEnded() }
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
         if isInside { isHeldOpen = false }
-        if isInside || model.isPinned || isHeldOpen || model.holdsForSettings {
+        if isInside || model.isPinned || isHeldOpen || model.holdsForSettings || model.isShowingClipboardPicker {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {
@@ -220,7 +234,7 @@ final class NotchController {
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
             let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.holdsForSettings {
+            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.holdsForSettings, !self.model.isShowingClipboardPicker {
                 self.collapse()
             }
         }
@@ -299,6 +313,7 @@ extension NotchController {
         chatChanged()
         startFullScreenChecks()
         OpenMenus.start()
+        FileDragWatcher.shared.start()
         spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in

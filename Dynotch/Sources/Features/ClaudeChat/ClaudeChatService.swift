@@ -41,11 +41,25 @@ final class ClaudeChatService: ObservableObject {
         didSet { defaults.set(!showsSidebar, forKey: Self.sidebarKey) }
     }
 
+    /// The service new chats use (spec AI-1); the default comes from the settings.
+    @Published var provider: AIProvider {
+        didSet { defaults.set(provider.rawValue, forKey: Self.providerKey) }
+    }
+    /// Answers with more thinking (spec AI-2).
+    @Published var thinksHarder = false
+    /// Files and images going with the next question (spec AI-5).
+    @Published var attachments: [URL] = []
+    /// The session Codex announced before its answer ended.
+    var pendingSessions: [UUID: String] = [:]
+    /// What the program wrote to its error output, for a useful message.
+    var errorOutput: [UUID: String] = [:]
+
+    static let providerKey = "aiDefaultProvider"
     private static let sidebarKey = "claudeChatSidebarHidden"
-    private let defaults: UserDefaults
+    let defaults: UserDefaults
 
     private let file: URL
-    private var process: Process?
+    var process: Process?
     /// Called when an answer is ready while the chat is not on screen (spec CC-5).
     var onAnswerReady: (ClaudeChat) -> Void = { _ in }
 
@@ -62,6 +76,7 @@ final class ClaudeChatService: ObservableObject {
         self.file = file
         self.defaults = defaults
         showsSidebar = !defaults.bool(forKey: Self.sidebarKey)
+        provider = defaults.string(forKey: Self.providerKey).flatMap(AIProvider.init(rawValue:)) ?? .claude
         if let data = try? Data(contentsOf: file), let stored = try? JSONDecoder().decode([ClaudeChat].self, from: data) {
             chats = stored.sorted { $0.updated > $1.updated }
         }
@@ -95,12 +110,12 @@ final class ClaudeChatService: ObservableObject {
         save()
     }
 
-    private func update(_ id: UUID, _ change: (inout ClaudeChat) -> Void) {
+    func update(_ id: UUID, _ change: (inout ClaudeChat) -> Void) {
         guard let index = chats.firstIndex(where: { $0.id == id }) else { return }
         change(&chats[index])
     }
 
-    private func save() {
+    func save() {
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(chats) { try? data.write(to: file, options: .atomic) }
     }
@@ -160,12 +175,21 @@ final class ClaudeChatService: ObservableObject {
         let prompt = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, !isWorking else { return }
         draft = ""
+        let files = attachments
+        attachments = []
         let id = begin(prompt)
-        guard let program = ClaudeCLI.locate() else {
-            finish(id, text: "Claude Code was not found. Install it (or its VS Code extension) and sign in.", sessionID: nil, isError: true)
-            return
+        let service = chats.first { $0.id == id }?.service ?? provider
+        switch service {
+        case .claude:
+            guard let program = ClaudeCLI.locate() else {
+                let missing = "Claude Code was not found. Install it (or its VS Code extension) and sign in."
+                finish(id, text: missing, sessionID: nil, isError: true)
+                return
+            }
+            run(program, prompt: AIPrompt.withFiles(prompt, files), chatID: id, canRead: !files.isEmpty)
+        case .chatgpt:
+            runCodex(prompt: prompt, files: files, chatID: id)
         }
-        run(program, prompt: prompt, chatID: id)
     }
 
     /// Adds the question and an empty answer to the chat, creating the chat if needed.
@@ -174,7 +198,9 @@ final class ClaudeChatService: ObservableObject {
         if let selectedID, chats.contains(where: { $0.id == selectedID }) {
             id = selectedID
         } else {
-            let chat = ClaudeChat(title: ClaudeChat.title(for: prompt))
+            var chat = ClaudeChat(title: ClaudeChat.title(for: prompt))
+            chat.provider = provider
+            chat.model = model(for: provider)
             chats.insert(chat, at: 0)
             id = chat.id
             selectedID = id
@@ -190,57 +216,6 @@ final class ClaudeChatService: ObservableObject {
         return id
     }
 
-    private func run(_ program: URL, prompt: String, chatID: UUID) {
-        let chat = chats.first { $0.id == chatID }
-        var folder = Self.defaultFolder.appendingPathComponent(ClaudeCLI.folderName, isDirectory: true)
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        // A session taken over from Claude Code can only be continued from its own folder.
-        if let directory = chat?.workingDirectory, FileManager.default.fileExists(atPath: directory) {
-            folder = URL(fileURLWithPath: directory, isDirectory: true)
-        }
-
-        let process = Process()
-        process.executableURL = program
-        process.arguments = ClaudeCLI.arguments(prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true)
-        process.currentDirectoryURL = folder
-        var environment = ProcessInfo.processInfo.environment
-        // The login is looked up by user name.
-        environment["USER"] = environment["USER"] ?? NSUserName()
-        environment["LOGNAME"] = environment["LOGNAME"] ?? NSUserName()
-        // Tells Dynotch's own Stop hook that this run reports its answer itself.
-        environment["DYNOTCH_CHAT"] = "1"
-        process.environment = environment
-
-        let output = Pipe()
-        process.standardOutput = output
-        process.standardError = Pipe()
-        process.standardInput = FileHandle.nullDevice
-        let buffer = LineBuffer()
-        let reader = output.fileHandleForReading
-        reader.readabilityHandler = { [weak self] handle in
-            let events = buffer.append(handle.availableData).compactMap(ClaudeStream.event(fromLine:))
-            guard !events.isEmpty else { return }
-            Task { @MainActor in
-                events.forEach { self?.apply($0, to: chatID) }
-            }
-        }
-        process.terminationHandler = { [weak self] finished in
-            let status = finished.terminationStatus
-            reader.readabilityHandler = nil
-            Task { @MainActor in
-                // Let the last output be applied first.
-                try? await Task.sleep(for: .milliseconds(150))
-                self?.ended(chatID, status: status)
-            }
-        }
-        do {
-            try process.run()
-            self.process = process
-        } catch {
-            finish(chatID, text: "Could not start Claude Code: \(error.localizedDescription)", sessionID: nil, isError: true)
-        }
-    }
-
     func apply(_ event: ClaudeStream.Event, to chatID: UUID) {
         switch event {
         case .delta(let text):
@@ -251,14 +226,25 @@ final class ClaudeChatService: ObservableObject {
             }
         case .result(let text, let sessionID, let isError):
             finish(chatID, text: text, sessionID: sessionID, isError: isError)
+        case .replace(let text):
+            guard workingID == chatID else { return }
+            update(chatID) { chat in
+                guard let last = chat.messages.indices.last, chat.messages[last].role == .assistant else { return }
+                chat.messages[last].text = text
+            }
+        case .session(let id):
+            pendingSessions[chatID] = id
         }
     }
 
     /// The program ended without a result line (crashed, or was stopped).
     private func ended(_ chatID: UUID, status: Int32) {
         guard workingID == chatID else { return }
-        let partial = chats.first { $0.id == chatID }?.messages.last?.text ?? ""
-        finish(chatID, text: partial.isEmpty ? "Claude Code ended without an answer (code \(status))." : partial,
+        let chat = chats.first { $0.id == chatID }
+        let partial = chat?.messages.last?.text ?? ""
+        let reason = errorOutput.removeValue(forKey: chatID) ?? "code \(status)"
+        let name = chat?.service == .chatgpt ? "ChatGPT" : "Claude Code"
+        finish(chatID, text: partial.isEmpty ? "\(name) ended without an answer (\(reason))." : partial,
                sessionID: nil, isError: partial.isEmpty)
     }
 
@@ -272,12 +258,14 @@ final class ClaudeChatService: ObservableObject {
                 if isError || chat.messages[last].text.isEmpty { chat.messages[last].text = text }
                 chat.messages[last].isError = isError
             }
-            if let sessionID, !isError {
+            if let sessionID = sessionID ?? pendingSessions[chatID], !isError {
                 chat.sessionID = sessionID
                 chat.needsFork = nil
             }
             chat.updated = Date()
         }
+        pendingSessions[chatID] = nil
+        errorOutput[chatID] = nil
         save()
         if !isVisible, !isVisibleInMenuBar, let chat = chats.first(where: { $0.id == chatID }) { onAnswerReady(chat) }
     }
@@ -287,5 +275,86 @@ final class ClaudeChatService: ObservableObject {
         process?.terminate()
         let partial = chats.first { $0.id == id }?.messages.last?.text ?? ""
         finish(id, text: partial.isEmpty ? "Stopped." : partial, sessionID: nil, isError: false)
+    }
+}
+
+// MARK: - Running Claude Code or Codex
+
+extension ClaudeChatService {
+    func run(_ program: URL, prompt: String, chatID: UUID, canRead: Bool) {
+        let chat = chats.first { $0.id == chatID }
+        var folder = Self.chatFolder
+        // A session taken over from Claude Code can only be continued from its own folder.
+        if let directory = chat?.workingDirectory, FileManager.default.fileExists(atPath: directory) {
+            folder = URL(fileURLWithPath: directory, isDirectory: true)
+        }
+        let arguments = ClaudeCLI.arguments(
+            prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true, model: chat?.model, canRead: canRead
+        )
+        // More thinking (spec AI-2).
+        let extra = thinksHarder ? ["MAX_THINKING_TOKENS": "16000"] : [:]
+        launch(program, arguments: arguments, folder: folder, environment: extra, chatID: chatID, parse: ClaudeStream.event(fromLine:))
+    }
+
+    /// The folder the chats run in.
+    static var chatFolder: URL {
+        let folder = defaultFolder.appendingPathComponent(ClaudeCLI.folderName, isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder
+    }
+
+    /// Runs Claude Code or Codex and feeds its lines to the chat.
+    func launch(
+        _ program: URL, arguments: [String], folder: URL, environment extra: [String: String], chatID: UUID,
+        parse: @escaping @Sendable (String) -> ClaudeStream.Event?
+    ) {
+        let process = Process()
+        process.executableURL = program
+        process.arguments = arguments
+        process.currentDirectoryURL = folder
+        var environment = ProcessInfo.processInfo.environment.merging(extra) { $1 }
+        // The login is looked up by user name.
+        environment["USER"] = environment["USER"] ?? NSUserName()
+        environment["LOGNAME"] = environment["LOGNAME"] ?? NSUserName()
+        // Tells Dynotch's own Stop hook that this run reports its answer itself.
+        environment["DYNOTCH_CHAT"] = "1"
+        process.environment = environment
+
+        let output = Pipe()
+        let errors = Pipe()
+        process.standardOutput = output
+        process.standardError = errors
+        process.standardInput = FileHandle.nullDevice
+        let buffer = LineBuffer()
+        let errorBuffer = LineBuffer()
+        errors.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let lines = errorBuffer.append(handle.availableData)
+            guard let last = lines.last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) else { return }
+            Task { @MainActor in self?.errorOutput[chatID] = String(last.prefix(300)) }
+        }
+        let reader = output.fileHandleForReading
+        reader.readabilityHandler = { [weak self] handle in
+            let events = buffer.append(handle.availableData).compactMap(parse)
+            guard !events.isEmpty else { return }
+            Task { @MainActor in
+                events.forEach { self?.apply($0, to: chatID) }
+            }
+        }
+        process.terminationHandler = { [weak self] finished in
+            let status = finished.terminationStatus
+            reader.readabilityHandler = nil
+            errors.fileHandleForReading.readabilityHandler = nil
+            Task { @MainActor in
+                // Let the last output be applied first.
+                try? await Task.sleep(for: .milliseconds(150))
+                self?.ended(chatID, status: status)
+            }
+        }
+        do {
+            try process.run()
+            self.process = process
+        } catch {
+            finish(chatID, text: "Could not start it: \(error.localizedDescription)", sessionID: nil, isError: true)
+        }
     }
 }

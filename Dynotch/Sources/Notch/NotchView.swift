@@ -21,6 +21,11 @@ struct NotchView: View {
     @ObservedObject var tablets: TabletDisplayService
     /// The content's window, or the glass window behind it (spec D-6).
     var layer = DesignLayer.content
+    let clipboard: ClipboardStore
+    @ObservedObject var clipboardPicker: ClipboardPicker
+    @ObservedObject var tray: TrayStore
+    @ObservedObject var beeper: BeeperService
+    @ObservedObject var devices: DeviceWatcher
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -33,6 +38,11 @@ struct NotchView: View {
     var openFully: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
+    /// Opens the notch on the Beeper tab (spec BP-12).
+    var openBeeper: () -> Void = {}
+    /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
+    var keepInTray: ([URL]) -> Void = { _ in }
+    var sendWithAirDrop: ([URL]) -> Void = { _ in }
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -63,7 +73,8 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     var collapsedOffset: CGFloat {
-        guard !model.isExpanded, notifications.peek == nil, hud.display == nil, calls.call == nil, !isGathered else { return 0 }
+        guard !model.isExpanded, notifications.peek == nil, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered
+        else { return 0 }
         return indicatorLayout.horizontalOffset
     }
 
@@ -109,6 +120,10 @@ struct NotchView: View {
                     )
                     .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                     .transition(.opacity)
+                } else if !model.isExpanded, let event = devices.current {
+                    DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
+                        .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
+                        .transition(.opacity)
                 } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
                     NotchIndicatorView(
                         items: indicatorItems,
@@ -119,7 +134,14 @@ struct NotchView: View {
                         hiddenBadges: badgeFit.hidden,
                         hoveredBadge: model.hoveredBadge,
                         notice: shownNotice,
-                        openBadge: { badges.open($0.app) },
+                        openBadge: { badge in
+                            // Beeper's badge opens its chats in the notch (spec BP-12).
+                            if badge.app.bundleID.lowercased().contains("beeper"), settings.isEnabled(.notifications) {
+                                openBeeper()
+                            } else {
+                                badges.open(badge.app)
+                            }
+                        },
                         moveBadge: { id, index in
                             withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
                         },
@@ -145,7 +167,9 @@ struct NotchView: View {
                     .transition(.opacity)
                 }
 
-                if model.isExpanded, model.isShowingNotifications {
+                if model.isExpanded, model.isShowingOverlayPage {
+                    overlayPage.frame(width: model.openSize.width, height: model.openSize.height).transition(.opacity)
+                } else if model.isExpanded, model.isShowingNotifications {
                     NotificationStackView(
                         service: notifications,
                         notifications: model.notifications,
@@ -171,10 +195,11 @@ struct NotchView: View {
                 }
             }
         }
-        .frame(width: size.width, height: size.height, alignment: .top)
+        .offset(y: -pillTrim / 2)
+        .frame(width: size.width, height: size.height - pillTrim, alignment: .top)
         // The capsule may reach beyond the content (spec N-11); the content stays in place.
         .offset(x: -capsule.shift)
-        .frame(width: capsule.width, height: size.height)
+        .frame(width: capsule.width, height: size.height - pillTrim)
         .background(DesignBackground(design: settings.design, shape: shape, isOpen: showsDesign, layer: layer))
         .clipShape(shape)
         .offset(x: collapsedOffset + capsule.shift)
@@ -189,11 +214,13 @@ struct NotchView: View {
             }
         }
         .animation(Self.quickAnimation, value: model.isShowingStrip)
+        .animation(NotchController.animation, value: model.notificationsTab)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
         .animation(NotchController.animation, value: badgeFit.hidden)
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
+        .animation(NotchController.animation, value: devices.current?.id)
         .animation(Self.quickAnimation, value: hud.display != nil)
         .animation(NotchController.animation, value: calls.call != nil)
         .animation(NotchController.animation, value: notices.notice)
@@ -205,6 +232,7 @@ struct NotchView: View {
         .environment(\.colorScheme, .dark)
         .environment(\.notchDesign, settings.design)
         .environment(\.pinNotch) { [model] in model.isPinned = true }
+        .environment(\.closeNotch) { [model] in model.requestCollapse() }
     }
 
     private var expandedContent: some View {
@@ -213,7 +241,8 @@ struct NotchView: View {
             if model.isShowingSettings {
                 SettingsView(
                     settings: settings, calendar: calendar, notifications: notifications,
-                    badges: badges, shortcuts: shortcuts, updates: updates
+                    badges: badges, shortcuts: shortcuts, updates: updates, clipboard: clipboard, tray: tray, beeper: beeper,
+                    devices: devices, chat: chat
                 )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -225,47 +254,6 @@ struct NotchView: View {
                     .transition(.opacity)
             }
         }
-    }
-
-    // MARK: - Menu bar (spec M-1…M-5)
-
-    private var sideWidth: CGFloat {
-        (model.openSize.width - geometry.notchSize.width) / 2
-    }
-
-    private var menuBar: some View {
-        HStack(spacing: 0) {
-            FeatureSwitcher(
-                features: settings.activeFeatures,
-                selected: model.isShowingSettings ? nil : model.currentFeature,
-                first: model.switcherFirst,
-                visibleCount: model.switcherVisibleCount
-            ) { feature in
-                withAnimation(NotchController.animation) { model.select(feature) }
-            } move: { feature, index in
-                settings.moveActiveFeature(feature, toActiveIndex: index)
-            }
-            .padding(.leading, 14)
-            .frame(width: sideWidth, alignment: .leading)
-
-            Color.clear.frame(width: geometry.notchSize.width)
-
-            // Right side of the notch: settings; later also status (volume/brightness HUD).
-            TrailingControls(
-                tablets: tablets,
-                followsMouse: settings.focusFollowsMouse,
-                toggleFollowsMouse: { settings.focusFollowsMouse.toggle() },
-                isKeyboardLocked: keyboardLock.isLocked,
-                toggleKeyboardLock: { keyboardLock.toggle() },
-                isPinned: model.isPinned,
-                isShowingSettings: model.isShowingSettings,
-                togglePin: { model.isPinned.toggle() },
-                toggleSettings: toggleSettings
-            )
-            .padding(.trailing, 14)
-                .frame(width: sideWidth, alignment: .trailing)
-        }
-        .frame(height: geometry.menuBarHeight)
     }
 
     // MARK: - Content
@@ -312,81 +300,12 @@ extension NotchView {
             return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
-        if notifications.peek != nil { return geometry.peekSize }
+        if notifications.peek != nil || devices.current != nil { return geometry.peekSize }
         let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)
         }
         return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelHeight)
-    }
-}
-
-/// Lock and gear on the right of the panel's top row (spec C-1, SZ-8).
-/// Sizes of the controls right of the notch: five buttons fit beside even the smallest panel.
-enum TrailingControlsMetrics {
-    static let buttonWidth: CGFloat = 30
-    static let buttonCount = 5
-    static let spacing: CGFloat = 2
-    /// The capsule's padding and the margin at the panel's edge.
-    static let insets: CGFloat = 2 * 3 + 14
-
-    static var width: CGFloat {
-        CGFloat(buttonCount) * buttonWidth + CGFloat(buttonCount - 1) * spacing + insets
-    }
-}
-
-private struct TrailingControls: View {
-    @ObservedObject var tablets: TabletDisplayService
-    let followsMouse: Bool
-    let toggleFollowsMouse: () -> Void
-    let isKeyboardLocked: Bool
-    let toggleKeyboardLock: () -> Void
-    let isPinned: Bool
-    let isShowingSettings: Bool
-    let togglePin: () -> Void
-    let toggleSettings: () -> Void
-
-    var body: some View {
-        HStack(spacing: TrailingControlsMetrics.spacing) {
-            // An iPad as a display (spec TB-1).
-            TabletMenu(service: tablets)
-            // Focus follows mouse on and off (spec F-9): blue while on.
-            Button(action: toggleFollowsMouse) {
-                Image(systemName: "arrow.up.square.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                    .foregroundStyle(followsMouse ? ClaudeUsageView.blue : Color.white.opacity(0.45))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help(followsMouse ? "Focus follows the mouse: click to turn off" : "Focus follows the mouse is off: click to turn on")
-            // Blocks the keyboard for cleaning (spec KL-1): grey when off, blue when on.
-            Button(action: toggleKeyboardLock) {
-                Image(systemName: "keyboard.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                    .foregroundStyle(isKeyboardLocked ? ClaudeUsageView.blue : Color.white.opacity(0.45))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help(isKeyboardLocked ? "Keyboard is locked: click to unlock" : "Lock the keyboard (for cleaning)")
-            PinButton(isPinned: isPinned, action: togglePin)
-            Button(action: toggleSettings) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                    .foregroundStyle(isShowingSettings ? Color.white : Color.white.opacity(0.7))
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(isShowingSettings ? Color.white.opacity(0.22) : .clear)
-                    )
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help("Settings")
-        }
-        .padding(3)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
     }
 }

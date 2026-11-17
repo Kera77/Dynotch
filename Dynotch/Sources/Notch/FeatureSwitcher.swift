@@ -96,7 +96,7 @@ struct FeatureSwitcher: View {
             .frame(width: Self.itemWidth, height: 22)
             .foregroundStyle(color)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                Capsule(style: .continuous)
                     .fill(isDragged ? Color.white.opacity(0.32) : (isSelected ? Color.white.opacity(0.22) : .clear))
             )
             .scaleEffect(isDragged ? 1.12 : 1)

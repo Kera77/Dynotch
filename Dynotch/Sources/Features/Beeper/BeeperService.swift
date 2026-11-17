@@ -1,0 +1,255 @@
+import AppKit
+import Combine
+
+/// The Beeper tab and the unread chats (spec UM-2, UM-3, BP-1…BP-11): chats and messages from
+/// the Beeper Desktop API, kept in memory only.
+@MainActor
+final class BeeperService: ObservableObject {
+    enum State: Equatable {
+        case idle
+        case ready
+        case noToken
+        case notRunning
+        case failed(String)
+    }
+
+    @Published private(set) var state = State.idle
+    @Published private(set) var chats: [BeeperChatInfo] = []
+    @Published var selectedChatID: String?
+    @Published private(set) var messages: [String: [BeeperFullMessage]] = [:]
+    /// Messages I just sent that can still be taken back, until the time (spec BP-9).
+    @Published private(set) var undoable: [String: Date] = [:]
+    @Published private(set) var avatars: [String: NSImage] = [:]
+    @Published private(set) var actionError: String?
+
+    /// The chat list beside the conversation (spec BP-1b).
+    @Published var showsChatList: Bool {
+        didSet { defaults.set(showsChatList, forKey: Self.listKey) }
+    }
+
+    /// Keep unread Beeper chats in the notch (spec UM-7).
+    @Published var keepsUnread: Bool {
+        didSet {
+            defaults.set(keepsUnread, forKey: Self.unreadKey)
+            if keepsUnread { start() }
+        }
+    }
+
+    static let undoTime: TimeInterval = 5
+    private static let pollInterval: TimeInterval = 20
+    private static let readAfter: Duration = .seconds(2)
+    private static let listKey = "beeperShowsChatList"
+    private static let unreadKey = "beeperKeepsUnread"
+
+    private let defaults: UserDefaults
+    private var timer: Timer?
+    private var loadingAvatars: Set<String> = []
+    private var readTask: Task<Void, Never>?
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        showsChatList = defaults.object(forKey: Self.listKey) as? Bool ?? true
+        keepsUnread = defaults.object(forKey: Self.unreadKey) as? Bool ?? true
+    }
+
+    var unreadChats: [BeeperChatInfo] {
+        chats.filter { $0.unread > 0 && $0.isMuted != true }
+    }
+
+    var unreadTotal: Int { unreadChats.reduce(0) { $0 + $1.unread } }
+
+    /// Unread first, then the most recent (spec BP-1).
+    var sortedChats: [BeeperChatInfo] {
+        chats.sorted { lhs, rhs in
+            if (lhs.unread > 0) != (rhs.unread > 0) { return lhs.unread > 0 }
+            return (lhs.lastActivity ?? "") > (rhs.lastActivity ?? "")
+        }
+    }
+
+    var selectedChat: BeeperChatInfo? {
+        chats.first { $0.id == selectedChatID }
+    }
+
+    // MARK: - Loading
+
+    func start() {
+        guard timer == nil else { return }
+        let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refresh() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+        refresh()
+    }
+
+    func refresh() {
+        guard BeeperClient.hasToken else {
+            state = .noToken
+            return
+        }
+        guard keepsUnread || selectedChatID != nil || state != .idle else { return }
+        Task { [weak self] in
+            do {
+                let found = try await BeeperAPI.chats()
+                guard let self else { return }
+                if found != self.chats { self.chats = found }
+                self.state = .ready
+                if let chat = self.selectedChatID { self.loadMessages(chat) }
+            } catch let error as BeeperError {
+                self?.state = error == .unreachable ? .notRunning : (error == .noToken ? .noToken : .failed(error.description))
+            } catch {
+                self?.state = .failed("\(error)")
+            }
+        }
+    }
+
+    func loadMessages(_ chatID: String) {
+        Task { [weak self] in
+            guard let found = try? await BeeperAPI.messages(in: chatID), let self else { return }
+            if self.messages[chatID] != found { self.messages[chatID] = found }
+        }
+    }
+
+    /// Shows a chat; looking at it for two seconds marks it read in Beeper too (spec UM-3).
+    func open(_ chatID: String) {
+        selectedChatID = chatID
+        loadMessages(chatID)
+        readTask?.cancel()
+        readTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.readAfter)
+            guard let self, !Task.isCancelled, self.selectedChatID == chatID else { return }
+            self.markRead(chatID)
+        }
+    }
+
+    /// The tab or the notch went away: no reading in the background.
+    func stopReading() {
+        readTask?.cancel()
+        readTask = nil
+    }
+
+    func markRead(_ chatID: String) {
+        guard chats.first(where: { $0.id == chatID })?.unread ?? 0 > 0 else { return }
+        let last = messages[chatID]?.last?.id
+        Task { [weak self] in
+            do {
+                try await BeeperAPI.markRead(chatID, through: last)
+                self?.refresh()
+            } catch {
+                self?.report(error)
+            }
+        }
+    }
+
+    // MARK: - Actions, always on the user's own action (spec BP-10)
+
+    func send(_ text: String, to chatID: String, replyTo: String? = nil, file: URL? = nil) async -> Bool {
+        do {
+            let upload = try await file.asyncMap(BeeperAPI.upload)
+            let pending = try await BeeperAPI.send(text, to: chatID, replyTo: replyTo, upload: upload)
+            if let pending { undoable[pending] = Date().addingTimeInterval(Self.undoTime) }
+            actionError = nil
+            DiagnosticsLog.append("beeper", "sent\(file == nil ? "" : " with a file")")
+            try? await Task.sleep(for: .milliseconds(800))
+            loadMessages(chatID)
+            markRead(chatID)
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    /// "Undo" within five seconds of sending (spec BP-9).
+    func undo(_ messageID: String, in chatID: String) {
+        undoable[messageID] = nil
+        perform(chatID) { try await BeeperAPI.delete(messageID, in: chatID) }
+    }
+
+    func canUndo(_ message: BeeperFullMessage) -> Bool {
+        guard message.mine else { return false }
+        if let until = undoable[message.id] { return until > Date() }
+        // The sent message may come back under its final id: the newest of mine, just sent.
+        guard let sent = message.date else { return false }
+        return Date().timeIntervalSince(sent) < Self.undoTime && undoable.values.contains { $0 > Date() }
+    }
+
+    func delete(_ messageID: String, in chatID: String) {
+        perform(chatID) { try await BeeperAPI.delete(messageID, in: chatID) }
+    }
+
+    func edit(_ messageID: String, in chatID: String, text: String) {
+        perform(chatID) { try await BeeperAPI.edit(messageID, in: chatID, text: text) }
+    }
+
+    func react(_ key: String, to message: BeeperFullMessage, in chatID: String) {
+        let mine = message.reactions?.contains { $0.reactionKey == key && $0.participantID == myID(in: chatID) } ?? false
+        perform(chatID) { try await BeeperAPI.react(key, to: message.id, in: chatID, remove: mine) }
+    }
+
+    func remind(_ chatID: String, at date: Date?, cancelOnReply: Bool) {
+        Task { [weak self] in
+            do {
+                try await BeeperAPI.setReminder(chatID, at: date, cancelOnReply: cancelOnReply)
+                self?.refresh()
+            } catch {
+                self?.report(error)
+            }
+        }
+    }
+
+    func openInBeeper(_ chatID: String, messageID: String? = nil, draft: String? = nil) {
+        Task { [weak self] in
+            do {
+                try await BeeperAPI.focus(chatID: chatID, messageID: messageID, draft: draft)
+            } catch {
+                self?.report(error)
+            }
+        }
+    }
+
+    /// My own id in a chat: the sender of my messages there.
+    private func myID(in chatID: String) -> String? {
+        messages[chatID]?.first { $0.mine }?.senderID
+    }
+
+    private func perform(_ chatID: String, _ action: @escaping @Sendable () async throws -> Void) {
+        Task { [weak self] in
+            do {
+                try await action()
+                try? await Task.sleep(for: .milliseconds(500))
+                self?.loadMessages(chatID)
+            } catch {
+                self?.report(error)
+            }
+        }
+    }
+
+    private func report(_ error: Error) {
+        actionError = (error as? BeeperError)?.description ?? "\(error)"
+        DiagnosticsLog.append("beeper", "action failed: \((error as? BeeperError).map { "\($0)" } ?? "error")")
+    }
+
+    // MARK: - Pictures (spec BP-3)
+
+    func avatar(_ address: String?) -> NSImage? {
+        guard let address, !address.isEmpty else { return nil }
+        if let image = avatars[address] { return image }
+        guard loadingAvatars.insert(address).inserted else { return nil }
+        Task { [weak self] in
+            guard let url = try? await BeeperAPI.download(address),
+                  let data = try? Data(contentsOf: url), let image = NSImage(data: data)
+            else { return }
+            self?.avatars[address] = image
+        }
+        return nil
+    }
+}
+
+extension Optional {
+    /// Maps with an async throwing function.
+    func asyncMap<T>(_ transform: (Wrapped) async throws -> T) async rethrows -> T? {
+        guard let value = self else { return nil }
+        return try await transform(value)
+    }
+}

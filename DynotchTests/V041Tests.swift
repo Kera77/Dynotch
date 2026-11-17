@@ -59,7 +59,7 @@ struct V041Tests {
         let settings = AppSettings(defaults: defaults)
         #expect(settings.moduleStrip)
         #expect(abs(settings.moduleStripDelay - 0.3) < 0.001)
-        #expect(abs(settings.moduleStripBand - 0.125) < 0.001)
+        #expect(abs(settings.moduleStripBand - 0.5) < 0.001)
         #expect(SmartRule.allCases.allSatisfy(settings.isSmartRuleOn))
         settings.setSmartRule(.usage, enabled: false)
         #expect(!AppSettings(defaults: defaults).isSmartRuleOn(.usage))

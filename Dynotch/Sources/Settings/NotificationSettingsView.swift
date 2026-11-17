@@ -3,6 +3,7 @@ import SwiftUI
 struct NotificationSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var service: NotificationService
+    @ObservedObject var beeper: BeeperService
     @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
     @State private var beeperToken = ""
     @State private var appSearch = ""
@@ -62,6 +63,7 @@ struct NotificationSettingsView: View {
                         .disabled(beeperToken.isEmpty)
                     }
                 }
+                BeeperSettingsRows(beeper: beeper)
                 if !beeperStatus.isEmpty {
                     Text(beeperStatus)
                         .font(.caption)

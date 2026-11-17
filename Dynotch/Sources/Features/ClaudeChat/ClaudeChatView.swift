@@ -35,6 +35,9 @@ struct ClaudeChatMenuBarView: View {
 struct ClaudeChatView: View {
     @ObservedObject var service: ClaudeChatService
 
+    @State private var search = ""
+    @FocusState private var isTyping: Bool
+
     private static let sidebarWidth: CGFloat = 160
 
     var body: some View {
@@ -51,7 +54,15 @@ struct ClaudeChatView: View {
                 .padding(.leading, service.showsSidebar ? 12 : 0)
         }
         .clipped()
-        .onAppear { service.refreshCodeSessions() }
+        .onAppear {
+            service.refreshCodeSessions()
+            // Opened (also by its shortcut): ready to type (spec AI-4).
+            DispatchQueue.main.async { isTyping = true }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            service.attachments += urls
+            return true
+        }
     }
 
     /// Opens and closes the list of chats (spec CC-7).
@@ -77,14 +88,25 @@ struct ClaudeChatView: View {
                 newChatButton
                 sidebarToggle
             }
+            TextField("Search", text: $search)
+                .textFieldStyle(.plain)
+                .font(.system(size: 11))
+                .padding(.horizontal, 8)
+                .frame(height: 22)
+                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.08)))
             ScrollView(.vertical) {
                 VStack(spacing: 2) {
-                    ForEach(service.chats) { chat in
+                    ForEach(service.listedChats(matching: search)) { chat in
                         ChatRow(
-                            title: chat.title, isSelected: chat.id == service.selectedID, isWorking: chat.id == service.workingID,
+                            title: (chat.isPinned == true ? "📌 " : "") + chat.title, isSelected: chat.id == service.selectedID,
+                            isWorking: chat.id == service.workingID,
                             select: { service.select(chat.id) },
                             delete: { service.delete(chat.id) }
                         )
+                        .contextMenu {
+                            Button(chat.isPinned == true ? "Unpin" : "Pin") { service.togglePin(chat.id) }
+                            Button("Delete", role: .destructive) { service.delete(chat.id) }
+                        }
                     }
                     if !service.codeSessions.isEmpty {
                         Text("FROM CLAUDE CODE")
@@ -128,13 +150,14 @@ struct ClaudeChatView: View {
 
     private var conversation: some View {
         VStack(spacing: 8) {
+            AIChatHeader(service: service)
             if let chat = service.selected, !chat.messages.isEmpty {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(chat.messages) { message in
                                 let isLast = message.id == chat.messages.last?.id
-                                ChatBubble(message: message, isWriting: service.workingID == chat.id && isLast)
+                                ChatBubble(message: message, isWriting: service.workingID == chat.id && isLast, provider: chat.service)
                                     .id(message.id)
                             }
                         }
@@ -151,13 +174,14 @@ struct ClaudeChatView: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    BrandGlyphView(glyph: .claude, size: 26)
-                    Text("Ask Claude anything")
+                    AIGlyph(provider: service.provider, size: 26)
+                    Text("Ask \(service.provider.title) anything")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.6))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            AIContextBar(service: service)
             inputRow
         }
     }
@@ -173,6 +197,7 @@ struct ClaudeChatView: View {
                 .padding(.horizontal, 10)
                 .frame(height: 30)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                .focused($isTyping)
                 .onSubmit { service.send() }
             Button {
                 if service.isWorking {
@@ -237,6 +262,7 @@ private struct ChatRow: View {
 private struct ChatBubble: View {
     let message: ChatMessage
     let isWriting: Bool
+    var provider = AIProvider.claude
 
     var body: some View {
         switch message.role {
@@ -251,18 +277,17 @@ private struct ChatBubble: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
         case .assistant:
             HStack(alignment: .top, spacing: 8) {
-                BrandGlyphView(glyph: .claude, size: 14)
+                AIGlyph(provider: provider, size: 14)
                     .padding(.top, 2)
                 if message.text.isEmpty, isWriting {
                     WorkingDots()
                         .frame(height: 16)
                 } else {
-                    Text(Self.formatted(message.text))
-                        .font(.system(size: 13))
-                        .foregroundStyle(message.isError ? Color(red: 1, green: 0.5, blue: 0.45) : Color.white.opacity(0.92))
-                        .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        AIMessageContent(text: message.text, isError: message.isError)
+                        if !isWriting, !message.isError { AIAnswerActions(text: message.text) }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
@@ -305,5 +330,22 @@ struct SidebarGlyph: View {
                 .padding(.leading, 3.5)
         }
         .frame(width: 16, height: 12)
+    }
+}
+
+/// Claude's mark or ChatGPT's symbol.
+struct AIGlyph: View {
+    let provider: AIProvider
+    var size: CGFloat = 14
+
+    var body: some View {
+        switch provider {
+        case .claude:
+            BrandGlyphView(glyph: .claude, size: size)
+        case .chatgpt:
+            Image(systemName: "circle.hexagongrid.fill")
+                .font(.system(size: size * 0.9, weight: .semibold))
+                .foregroundStyle(.white)
+        }
     }
 }

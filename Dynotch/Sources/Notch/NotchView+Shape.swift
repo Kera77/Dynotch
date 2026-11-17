@@ -13,7 +13,7 @@ extension NotchView {
 
     /// A notification, a call or a line hanging below makes the closed notch taller.
     private var isTall: Bool {
-        notifications.peek != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
+        notifications.peek != nil || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
     }
 
     /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon
@@ -24,7 +24,11 @@ extension NotchView {
     var isPill: Bool { settings.externalStyle == .pill && !geometry.hasPhysicalNotch }
 
     /// The gap between a pill and the top edge.
-    static var pillGap: CGFloat { 6 }
+    static var pillGap: CGFloat { 4 }
+
+    /// A resting pill ends where the menu bar ends: it is that much shorter than the notch row,
+    /// and its content moves up by half of it to stay centred (spec D-7).
+    var pillTrim: CGFloat { isPill && !model.isExpanded && !isTall ? Self.pillGap : 0 }
 
     var capsule: NotchCorners.Capsule {
         guard isCapsule, !isPill else { return NotchCorners.Capsule(width: size.width, shift: 0) }
@@ -37,7 +41,8 @@ extension NotchView {
     /// The chosen design shows on the open panel and on a notification; the closed notch stays
     /// black like the hardware (spec D-3).
     var showsDesign: Bool {
-        model.isExpanded || notifications.peek != nil
+        // Only the fully opened notch: notifications, device notices and the preview stay black.
+        model.isExpanded && !model.isPreview
     }
 
     /// A pill one row high, with or without the rounded-notch setting.
@@ -54,7 +59,7 @@ extension NotchView {
     var shape: UnevenRoundedRectangle {
         if isPill {
             // Round all round: fully at rest, softer when taller or open.
-            let radius = isCapsule || isRestingPill ? size.height / 2 : cornerRadius
+            let radius = isCapsule || isRestingPill ? (size.height - pillTrim) / 2 : cornerRadius
             return UnevenRoundedRectangle(
                 topLeadingRadius: radius, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: radius,
                 style: .continuous
