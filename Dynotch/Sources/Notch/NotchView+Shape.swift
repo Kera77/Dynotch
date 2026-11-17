@@ -28,6 +28,12 @@ extension NotchView {
         )
     }
 
+    /// The chosen design shows on the open panel and on a notification; the closed notch stays
+    /// black like the hardware (spec D-3).
+    var showsDesign: Bool {
+        model.isExpanded || notifications.peek != nil
+    }
+
     /// Over a full-screen app nothing shows until the pointer reaches the top edge (spec N-12);
     /// a call and the volume or brightness still do.
     var isHiddenForFullScreen: Bool {

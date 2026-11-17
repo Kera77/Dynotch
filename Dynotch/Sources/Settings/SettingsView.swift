@@ -3,6 +3,7 @@ import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case appearance
     case features
     case calendar
     case notifications
@@ -15,6 +16,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: "General"
+        case .appearance: "Appearance"
         case .features: "Modules"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
@@ -27,6 +29,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var symbolName: String {
         switch self {
         case .general: "gearshape"
+        case .appearance: "paintpalette"
         case .features: "square.grid.2x2"
         case .calendar: "calendar"
         case .notifications: "bell"
@@ -103,6 +106,8 @@ struct SettingsView: View {
         switch selectedTab {
         case .general:
             GeneralSettingsView(settings: settings)
+        case .appearance:
+            AppearanceSettingsView(settings: settings)
         case .features:
             FeatureSettingsView(settings: settings, shortcuts: shortcuts)
         case .calendar:
@@ -143,43 +148,6 @@ private struct GeneralSettingsView: View {
                 }
             }
             Section {
-                Picker("Open settings", selection: $settings.settingsPresentation) {
-                    Text("In the notch").tag(SettingsPresentation.notch)
-                    Text("In a window").tag(SettingsPresentation.window)
-                }
-                .pickerStyle(.segmented)
-            }
-            Section {
-                Toggle("Rounded notch, like the Dynamic Island", isOn: $settings.roundedNotch)
-                Toggle("Round only the sides with something shown", isOn: $settings.roundOnlyWhereShown)
-                    .disabled(!settings.roundedNotch)
-                Toggle("Hide the notch over full-screen apps", isOn: $settings.hideInFullScreen)
-            } footer: {
-                Text("Rounded: the closed notch is a capsule that straightens out as it opens. Hidden: nothing shows "
-                    + "beside the notch, not even notifications; move the pointer to the very top edge to open it.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Section {
-                Toggle("Show only a preview on hover", isOn: $settings.hoverPreview)
-                LabeledContent("Open fully after") {
-                    HStack {
-                        Slider(value: $settings.previewDelay, in: AppSettings.previewDelayRange, step: 0.5)
-                            .frame(width: 160)
-                        Text(settings.previewDelay == 0 ? "Never" : "\(settings.previewDelay, specifier: "%.1f") s")
-                            .monospacedDigit()
-                            .frame(width: 48, alignment: .trailing)
-                    }
-                }
-                .disabled(!settings.hoverPreview)
-                Toggle("Click the preview to open fully", isOn: $settings.previewOpensOnClick)
-                    .disabled(!settings.hoverPreview)
-            } footer: {
-                Text("The preview shows one line about the current feature. Shortcuts always open the whole panel.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Section {
                 Toggle("Volume and brightness next to the notch", isOn: $settings.hudEnabled)
             } footer: {
                 Text("Replaces the macOS volume and brightness overlay (needs Accessibility). Option-Shift: finer steps.")
@@ -188,6 +156,8 @@ private struct GeneralSettingsView: View {
             }
             Section {
                 Toggle("Incoming calls in the notch", isOn: $settings.callsEnabled)
+                Toggle("Keep the Phone app in the Dock during calls", isOn: $settings.keepsPhoneInDock)
+                    .disabled(!settings.callsEnabled)
             } footer: {
                 Text("Answer, decline or reply with a text. Uses the macOS call banner (needs Accessibility); "
                     + "texting uses Messages and Contacts.")

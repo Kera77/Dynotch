@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.38 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.39 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -129,7 +129,8 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11) · Rejtés teljes képernyős appoknál (N-12) · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · HUD · Hívások (Telefon app a Dockban, P-5) · Haptika · AI usage · Claude-jelzések · Bezárási késleltetés (0–3 s) |
+| **Megjelenés** (v0.39) | Design (D-1) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11), csak a tartalmas oldal (N-13) · Rejtés teljes képernyős appoknál (N-12) · Előnézet hoverre (PV) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
@@ -356,6 +357,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | P-2 | **Felvétel** (zöld) és **elutasítás** (piros) gomb: a macOS-banner megfelelő gombját nyomja meg. A hívás végén (felvétel, elutasítás, a hívó leteszi) a kártya eltűnik. |
 | P-3 | Harmadik gomb: **üzenet**. Kattintásra beviteli mező jelenik meg; **Enterre** SMS-t (ha nincs SMS-továbbítás, iMessage-et) küld a hívónak a Messages appon keresztül, majd elutasítja a hívást. A számot a banner szövegéből, név esetén a Névjegyekből veszi (engedély kell). |
 | P-4 | Hívás közben a kártya elsőbbséget élvez a notch többi jelzésével szemben; a notch hoverre nem nyílik le. |
+| P-5 | (v0.39) **A Telefon app a Dockban marad:** amíg a hívás cseng, és utána, amíg tart (a csengés végétől 5 mp-ig, majd amíg az alapértelmezett mikrofont valami használja), a Telefon / FaceTime app minden magától jövő előugrását elrejti (mint a ⌘H; az ikon a Dockban marad). Ha közben egy másik appban kattintasz (pl. a Dock-ikonjára), és az app előjön, a hívás végéig békén hagyja. *Settings › General › Keep the Phone app in the Dock during calls* (alapból be). |
 
 ## 4k. Teendőlista a jegyzetekben (v0.23)
 
@@ -439,6 +441,16 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CQ-3 | Ha az egér a sorra ér, az az app kerül előtérbe, amelyben a Claude Code fut (Terminál, VS Code…), kérdésenként egyszer. |
 | CQ-4 | Működés: *Settings › General › Tell me when Claude Code asks a question* hookokat ír a `~/.claude/settings.json`-ba (biztonsági másolattal, a többi app hookjai megmaradnak): `PreToolUse` (csak AskUserQuestion) és `Notification` → `dynotch://claude-asks` (a hook bemenete egy ideiglenes fájlban, az app azonosítója a `__CFBundleIdentifier` változóból); `PostToolUse`, `UserPromptSubmit`, `Stop` → csak ha nyitott kérdés van, `dynotch://claude-answered`. A naplóba csak a sor típusa és az app kerül, a kérdés szövege nem. Kikapcsolva a hookok törlődnek. |
 
+## 4t. Design (v0.39)
+
+| # | Követelmény |
+|---|-------------|
+| D-1 | *Settings › Appearance › Design* három móddal: **Black** (az eddigi fekete, alapértelmezés), **Liquid glass** (teljes üveg), **Black to glass** (felül, a notch sorában fekete, lefelé fokozatosan üvegbe vált). |
+| D-2 | Az üveg **sötétre színezett** Liquid Glass (macOS 26-tól a rendszer `glassEffect`-je), így a fehér szövegek és ikonok világos háttér előtt is olvashatók. macOS 26 előtt sötét elmosott anyag helyettesíti. |
+| D-3 | A design a **lenyitott panelen** (minden modul, beállítások, előnézet, értesítéslista) és a **lelógó értesítésen** látszik. A **becsukott notch fekete marad** (a hardveres notch-csal egybeolvad); lenyitáskor a fekete a nyitás rugójával vált át üvegbe, és vissza. |
+| D-4 | A **menüsor-buborékok** (számológép, jegyzetek, emlékeztetők, AI usage, Claude chat) ugyanazt a designt kapják; a fekete mód a korábbi sötétszürke. |
+| D-5 | Új *Appearance* fül a beállításokban: a design mellett ide kerültek a megjelenést érintő beállítások a General fülről (beállítások megnyitása, lekerekítés, teljes képernyős rejtés, előnézet hoverre). |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -484,6 +496,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.39** | Design-választó (fekete / Liquid Glass / átmenet), Appearance fül; a Telefon app hívás közben a Dockban marad |
 | **v0.38** | Autoraise szoftveres egérmutató mellett is (iPad-kijelző); a válaszmező alapból ki |
 | **v0.37** | Beállítások rögzítve nyílnak; számológép: szöveg a sorban, kék eredmény, azonnali gépelés; autoraise gépelés után is vált; csak a tartalmas oldal kerek (kapcsoló); a tablet menü a notch-csal együtt záródik |
 | **v0.36.1** | Az autoraise korábbi működése visszaáll; naplózza, ha nem vált |

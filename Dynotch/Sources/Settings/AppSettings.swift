@@ -9,6 +9,24 @@ enum SettingsPresentation: String, CaseIterable, Sendable {
     case window
 }
 
+/// The look of the open notch and the menu bar panels (spec D-1).
+enum NotchDesign: String, CaseIterable, Sendable {
+    /// Black, like the notch itself.
+    case black
+    /// Liquid glass (macOS 26 and later; black before).
+    case glass
+    /// Black at the top, turning into glass downwards.
+    case blend
+
+    var title: String {
+        switch self {
+        case .black: "Black"
+        case .glass: "Liquid glass"
+        case .blend: "Black to glass"
+        }
+    }
+}
+
 /// User preferences, persisted in UserDefaults (spec G-5).
 @MainActor
 final class AppSettings: ObservableObject {
@@ -38,6 +56,8 @@ final class AppSettings: ObservableObject {
         static let roundedNotch = "roundedNotch"
         static let hideInFullScreen = "hideInFullScreen"
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
+        static let design = "design"
+        static let keepsPhoneInDock = "keepsPhoneInDock"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
@@ -157,6 +177,16 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
     }
 
+    /// The look of the open notch and the menu bar panels (spec D-1).
+    @Published var design: NotchDesign {
+        didSet { defaults.set(design.rawValue, forKey: Key.design) }
+    }
+
+    /// The Phone or FaceTime app stays hidden while a call rings and lasts (spec P-5).
+    @Published var keepsPhoneInDock: Bool {
+        didSet { defaults.set(keepsPhoneInDock, forKey: Key.keepsPhoneInDock) }
+    }
+
     /// Only the sides of the notch with something beside them are round (spec N-13).
     @Published var roundOnlyWhereShown: Bool {
         didSet { defaults.set(roundOnlyWhereShown, forKey: Key.roundOnlyWhereShown) }
@@ -254,6 +284,8 @@ final class AppSettings: ObservableObject {
         roundedNotch = defaults.object(forKey: Key.roundedNotch) as? Bool ?? true
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
+        design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
+        keepsPhoneInDock = defaults.object(forKey: Key.keepsPhoneInDock) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)
@@ -282,6 +314,11 @@ final class AppSettings: ObservableObject {
         return activeFeatures.first ?? .home
     }
 
+}
+
+// MARK: - Features and notification sources
+
+extension AppSettings {
     func isEnabled(_ feature: FeatureID) -> Bool {
         enabledFeatures.contains(feature)
     }

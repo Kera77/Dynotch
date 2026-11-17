@@ -192,7 +192,7 @@ final class MenuBarPopoverController: NSObject {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.contentView = FirstMouseHostingView(rootView: makeContent(state))
+        panel.contentView = FirstMouseHostingView(rootView: DesignEnvironment(settings: settings, content: makeContent(state)))
         return panel
     }
 }

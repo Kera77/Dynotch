@@ -43,12 +43,24 @@ struct PopoverShape: Shape {
 }
 
 extension View {
-    /// Dark rounded popover with an arrow on top, as used by the menu bar panels.
+    /// Dark rounded popover with an arrow on top, as used by the menu bar panels; black or glass
+    /// as the design says (spec D-4).
     func popoverChrome(arrowX: CGFloat) -> some View {
-        self
+        modifier(PopoverChrome(arrowX: arrowX))
+    }
+}
+
+private struct PopoverChrome: ViewModifier {
+    let arrowX: CGFloat
+    @Environment(\.notchDesign) private var design
+
+    func body(content: Content) -> some View {
+        content
             .padding(.top, PopoverShape.arrowHeight)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(PopoverShape(arrowX: arrowX).fill(Color(red: 0.145, green: 0.145, blue: 0.15)))
+            .background(
+                DesignBackground(design: design, shape: PopoverShape(arrowX: arrowX), solid: Color(red: 0.145, green: 0.145, blue: 0.15))
+            )
             .overlay(PopoverShape(arrowX: arrowX).stroke(Color.white.opacity(0.14), lineWidth: 1))
             .padding(1)
             .environment(\.colorScheme, .dark)

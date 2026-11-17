@@ -25,6 +25,7 @@ final class CallService: ObservableObject {
     private var watched: [pid_t: Int] = [:]
     private var loggedOwners: Set<String> = []
     private var loggedLabels: Set<String> = []
+    private lazy var phoneHider = PhoneAppHider(settings: settings)
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -45,6 +46,7 @@ final class CallService: ObservableObject {
             if call != nil { end() }
             return
         }
+        phoneHider.update(isRinging: call != nil)
         let windows = CallBannerScanner.topWindows()
         for window in windows where Self.mayShowCalls(window.pid) {
             let isNew = !knownWindows.contains(window.id)
@@ -101,6 +103,7 @@ final class CallService: ObservableObject {
             misses = 0
             if call == nil {
                 DiagnosticsLog.append("calls", "call banner found; buttons: \(CallBannerScanner.labels(in: found.pid))")
+                phoneHider.update(isRinging: true)
             }
             if call?.caller != found.caller { lookUpContact(for: found.caller) }
             if call != found { call = found }

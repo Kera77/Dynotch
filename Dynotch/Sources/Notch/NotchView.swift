@@ -167,7 +167,7 @@ struct NotchView: View {
         // The capsule may reach beyond the content (spec N-11); the content stays in place.
         .offset(x: -capsule.shift)
         .frame(width: capsule.width, height: size.height)
-        .background(.black)
+        .background(DesignBackground(design: settings.design, shape: shape, isOpen: showsDesign))
         .clipShape(shape)
         .offset(x: collapsedOffset + capsule.shift)
         .opacity(isHiddenForFullScreen ? 0 : 1)
@@ -184,7 +184,9 @@ struct NotchView: View {
         .animation(Self.quickAnimation, value: calls.isComposing)
         .animation(NotchController.animation, value: settings.roundedNotch)
         .animation(NotchController.animation, value: settings.roundOnlyWhereShown)
+        .animation(NotchController.animation, value: settings.design)
         .environment(\.colorScheme, .dark)
+        .environment(\.notchDesign, settings.design)
         .environment(\.pinNotch) { [model] in model.isPinned = true }
     }
 

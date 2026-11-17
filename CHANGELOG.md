@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-11-17
+
+### Added
+- Settings › Appearance with a design choice: Black, Liquid glass, or Black to glass. It applies
+  to the open notch, notifications and the menu bar panels; the closed notch stays black.
+  Liquid glass needs macOS 26 (a dark blur before).
+- The Phone or FaceTime app no longer jumps to the front while a call rings and lasts; it stays
+  in the Dock (Settings › General, on by default).
+
+### Changed
+- The settings about how Dynotch looks moved from General to the new Appearance tab.
+
 ## [0.38.0] - 2026-11-17
 
 ### Changed
