@@ -35,6 +35,7 @@ final class AppSettings: ObservableObject {
         static let claudeRing = "claudeRing"
         static let hiddenFromMenuBar = "hiddenFromMenuBar"
         static let haptics = "haptics"
+        static let roundedNotch = "roundedNotch"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
@@ -149,6 +150,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
     }
 
+    /// The closed notch has round ends like the Dynamic Island (spec N-11).
+    @Published var roundedNotch: Bool {
+        didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
+    }
+
     /// Features with a menu bar icon (spec M-7).
     static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage, .claudeChat]
 
@@ -233,6 +239,7 @@ final class AppSettings: ObservableObject {
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
+        roundedNotch = defaults.object(forKey: Key.roundedNotch) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)

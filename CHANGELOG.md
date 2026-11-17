@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-11-17
+
+### Added
+- Rounded notch: the closed notch gets round ends like the Dynamic Island, with or without
+  anything beside it, and straightens out as it opens. Settings › General (on by default).
+
+### Fixed
+- The search field in Settings › Notifications still could not be clicked. It now stands above
+  the form and filters both apps and websites; the text fields inside the form take a click too.
+- Websites a browser (e.g. Zen) showed notifications for before 0.32 were not split out: their
+  notifications still in Notification Center now add them under Settings › Notifications › Websites.
+
 ## [0.32.0] - 2026-11-17
 
 ### Added

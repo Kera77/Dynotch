@@ -149,6 +149,13 @@ private struct GeneralSettingsView: View {
                 .pickerStyle(.segmented)
             }
             Section {
+                Toggle("Rounded notch, like the Dynamic Island", isOn: $settings.roundedNotch)
+            } footer: {
+                Text("The closed notch gets round ends; it straightens out as it opens.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Show only a preview on hover", isOn: $settings.hoverPreview)
                 LabeledContent("Open fully after") {
                     HStack {

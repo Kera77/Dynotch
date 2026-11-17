@@ -193,3 +193,14 @@ struct NotchGeometry: Equatable, Sendable {
         return CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + Self.topEdgeTolerance)
     }
 }
+
+/// Corners of the closed notch when it is rounded like the Dynamic Island (spec N-11).
+enum NotchCorners {
+    /// Taller content (a notification, a call, a meeting's details) keeps this radius.
+    static let tallRadius: CGFloat = 22
+
+    /// One row at notch height gets fully round ends; taller content a softer curve.
+    static func radius(notchHeight: CGFloat, isTall: Bool) -> CGFloat {
+        isTall ? tallRadius : (notchHeight / 2).rounded()
+    }
+}

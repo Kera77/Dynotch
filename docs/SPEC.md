@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.32 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.33 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -35,6 +35,7 @@
 | N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
 | N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
 | N-10 | **Space-váltás (v0.30):** amikor a kétujjas/háromujjas Space-váltó swipe **elindul**, a becsukott notch mellett álló jelzők **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik); a behúzódás mindig végigér (0,16 s); az ujj felemelése után (ami kb. 0,1 s-mal a swipe indulása után történik, miközben a Space-ek még kb. 0,4 s-ig csúsznak) rövid kitartás, majd gyors rugóval **szétnyílnak**, így mire a csúszás megáll, a notch már normál állapotban van. (v0.31: időzítés javítva, korábban a túl korai szétnyílás miatt nem látszott.) A swipe-ot a rendszer Dock-vezérlő eseményéből ismeri fel (csak figyel, nem módosítja); ha a vége elveszne, 2,5 s után vagy a Space-váltáskor magától szétnyílik. Külön Space-ekkel rendelkező kijelzőknél csak az egér alatti kijelzőn. „Mozgás csökkentése” esetén nincs animáció. |
+| N-11 | (v0.33) **Lekerekített notch (Dynamic Island-szerű):** a becsukott notch alsó sarkai lekerekednek – egy sornyi tartalomnál (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő) a notch magasságának felével, így a végei teljesen kerekek; magasabb tartalomnál (értesítés, hívás, meeting részletei, lelógó sor) 22 pt-tal. Lenyitáskor a sugár a méretváltozással együtt, ugyanazzal a rugóval áll vissza a panel szokásos (24 pt, előnézetnél 18 pt) sarkára, így a nagy panel „kiegyenesedik”. Ki-be kapcsolható: *Beállítások › General › Rounded notch* (alapból be); kikapcsolva a korábbi sarkok maradnak. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -80,7 +81,7 @@
 | C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
-| C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). |
+| C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
 
 ---|---|
@@ -125,7 +126,7 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11) · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
@@ -222,6 +223,7 @@
 | E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
 | E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
 | E-15 | (v0.32) **Weboldalak külön forrásként:** ha egy böngésző (pl. Zen) olyan oldal értesítését mutatja, amelyhez nincs telepített webapp, az oldal **saját forrás** lesz (pl. „Google Calendar”), a böngésző ikonjával; az első értesítésével magától megjelenik a Beállítások › Notifications **Websites** szakaszában. Alapból úgy van be- vagy kikapcsolva, mint a böngésző, kivéve a Gmailt és a Google Chatet (alapból be). Megnyitáskor az oldalt nyitja meg abban a böngészőben. |
+| E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
 | E-16 | (v0.32) **Saját szabályok forrásonként** (appok, rendszerértesítések, weboldalak): a sor melletti nyíllal lenyíló beállítások – **név** (a notchban és a listákban ez látszik), **macOS-banner** (alapértelmezés / elrejtés / megjelenítés), **válaszmező** (automatikus / mindig / soha). Egyedi szabállyal rendelkező forrásnál egy kis jel látszik. A keresés az oldal címére is szűr. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
@@ -453,6 +455,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.33** | Lekerekített, Dynamic Island-szerű notch (kapcsolható); a Notifications fül keresője az űrlap fölé került; a böngészők korábbi értesítéseinek oldalai is külön forrásként jelennek meg |
 | **v0.32** | Weboldalanként külön értesítésforrás (Zen); szabályok forrásonként (név, banner, válaszmező) |
 | **v0.31** | A Space-animáció időzítése; a Notifications fül keresője kattintható; a jelvények nem takarják a menüsort („‹ +N”, hoverre kinyílik) |
 | **v0.30** | A Space-váltás animációja a swipe-pal együtt indul és ér véget |

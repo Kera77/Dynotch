@@ -81,9 +81,14 @@ struct NotchView: View {
     private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
     private var cornerRadius: CGFloat {
         if model.isExpanded { return model.isPreview ? 18 : 24 }
+        let isTall = notifications.peek != nil || labelIndex != nil || shownNotice != nil
+        if settings.roundedNotch {
+            let tall = hud.display == nil && (isTall || calls.call != nil)
+            return NotchCorners.radius(notchHeight: geometry.notchSize.height, isTall: tall)
+        }
         if hud.display != nil { return 10 }
         if calls.call != nil { return 20 }
-        return notifications.peek != nil || labelIndex != nil || shownNotice != nil ? 16 : 10
+        return isTall ? 16 : 10
     }
 
     var body: some View {
@@ -182,6 +187,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: calls.call != nil)
         .animation(NotchController.animation, value: notices.notice)
         .animation(Self.quickAnimation, value: calls.isComposing)
+        .animation(NotchController.animation, value: settings.roundedNotch)
         .environment(\.colorScheme, .dark)
         .environment(\.pinNotch) { [model] in model.isPinned = true }
     }

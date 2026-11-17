@@ -68,6 +68,21 @@ final class NotificationDatabase {
         Set(try query("SELECT rec_id FROM record WHERE rec_id >= ?", argument: lowest) { sqlite3_column_int64($0, 0) })
     }
 
+    /// Sites of the browser notifications still in Notification Center, with their browser
+    /// (spec E-15). Only the address is looked at, never the text.
+    func browserSites(limit: Int64 = 500) throws -> [(browser: String, site: String)] {
+        let sql = """
+        SELECT a.identifier, r.data FROM record r JOIN app a ON a.app_id = r.app_id
+        ORDER BY r.rec_id DESC LIMIT ?
+        """
+        return try query(sql, argument: limit) { (Self.text($0, 0), Self.blob($0, 1)) }
+            .filter { WebNotificationSource.isShared($0.0) }
+            .compactMap { identifier, data in
+                let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any]
+                return plist.flatMap(WebNotificationSource.site(in:)).map { (browser: identifier, site: $0) }
+            }
+    }
+
     func appIdentifiers() throws -> [String] {
         try query("SELECT identifier FROM app") { Self.text($0, 0) }
     }

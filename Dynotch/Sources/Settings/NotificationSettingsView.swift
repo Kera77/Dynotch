@@ -10,6 +10,24 @@ struct NotificationSettingsView: View {
     @State private var beeperStatus = ""
 
     var body: some View {
+        // The search stands above the form: inside it (as a row or in a section header) the
+        // field did not take clicks in the notch panel.
+        VStack(spacing: 0) {
+            SettingsSearchField(text: $appSearch, prompt: "Search apps and websites")
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+            form
+        }
+        .onAppear {
+            service.refreshApps()
+            accessibilityTrusted = NativeBannerDismisser.isTrusted
+        }
+        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
+            accessibilityTrusted = NativeBannerDismisser.isTrusted
+        }
+    }
+
+    private var form: some View {
         Form {
             Section {
                 LabeledContent("Status") { statusView }
@@ -28,6 +46,7 @@ struct NotificationSettingsView: View {
                 LabeledContent("Beeper Desktop API") {
                     HStack {
                         SecureField(beeperHasToken ? "Token saved" : "Paste token", text: $beeperToken)
+                            .focusOnClick()
                             .frame(width: 160)
                         Button("Paste") {
                             beeperToken = NSPasteboard.general.string(forType: .string)?
@@ -67,13 +86,7 @@ struct NotificationSettingsView: View {
                     }
                 }
             } header: {
-                // In the header, not as a row: a text field in a form row did not take clicks.
-                HStack {
-                    Text("Apps")
-                    Spacer()
-                    SettingsSearchField(text: $appSearch, prompt: "Search apps")
-                        .frame(width: 200)
-                }
+                Text("Apps")
             }
 
             if !service.siteApps.isEmpty {
@@ -118,13 +131,6 @@ struct NotificationSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear {
-            service.refreshApps()
-            accessibilityTrusted = NativeBannerDismisser.isTrusted
-        }
-        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
-            accessibilityTrusted = NativeBannerDismisser.isTrusted
-        }
     }
 
     @ViewBuilder private var statusView: some View {

@@ -139,6 +139,7 @@ struct SettingsSearchField: View {
                 .foregroundStyle(.secondary)
             TextField(prompt, text: $text)
                 .textFieldStyle(.plain)
+                .focusOnClick()
             if !text.isEmpty {
                 Button {
                     text = ""
@@ -153,5 +154,23 @@ struct SettingsSearchField: View {
         .padding(.horizontal, 8)
         .frame(height: 26)
         .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.primary.opacity(0.08)))
+    }
+}
+
+/// A click focuses the text field even where the form around it would keep the click for itself
+/// (spec C-5b).
+private struct FocusOnClick: ViewModifier {
+    @FocusState private var isFocused: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .focused($isFocused)
+            .simultaneousGesture(TapGesture().onEnded { isFocused = true })
+    }
+}
+
+extension View {
+    func focusOnClick() -> some View {
+        modifier(FocusOnClick())
     }
 }

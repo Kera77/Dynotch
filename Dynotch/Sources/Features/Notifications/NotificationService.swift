@@ -55,6 +55,8 @@ final class NotificationService: ObservableObject {
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     self.catalog.update(sites: self.preferences.sites, names: self.preferences.names)
+                    // The settings list the websites; a new one shows up there at once.
+                    self.objectWillChange.send()
                 }
             }
         }
@@ -158,6 +160,7 @@ final class NotificationService: ObservableObject {
             .filter { $0.url != nil && !$0.isSystem && $0.identifier.lowercased() != "com.apple.safari.webapp" }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         apps = [catalog.app(for: NotificationApp.systemGroupID)] + found
+        if let sites = try? database?.browserSites() { registerSites(sites) }
     }
 
     /// Notifications posted under a shared Safari identifier are attributed to the web app of

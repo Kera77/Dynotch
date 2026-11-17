@@ -127,6 +127,16 @@ extension NotificationService {
         return notification.with(appIdentifier: WebNotificationSource.siteIdentifier(site))
     }
 
+    /// Websites from notifications that came before Dynotch knew about sites (still in
+    /// Notification Center) are listed right away, not only with their next one (spec E-15).
+    func registerSites(_ found: [(browser: String, site: String)]) {
+        let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
+        for (browser, site) in found
+        where WebNotificationSource.resolvedIdentifier(browser, site: site, apps: pairs) == browser {
+            preferences.register(site: site, browser: browser)
+        }
+    }
+
     /// Whether the macOS banner of this source's notifications is closed.
     func hidesBanner(for identifier: String) -> Bool {
         preferences.rule(for: catalogKey(identifier)).hidesBanner ?? settings.hideNativeBanners

@@ -66,7 +66,7 @@ struct NotificationSourceRow: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .help("Rules for \\(app.name)")
+                .help("Rules for \(app.name)")
             }
             if isOpen { options }
         }
@@ -76,6 +76,7 @@ struct NotificationSourceRow: View {
         VStack(alignment: .leading, spacing: 6) {
             LabeledContent("Name") {
                 TextField(app.name, text: $name)
+                    .focusOnClick()
                     .frame(width: 180)
                     .onSubmit(saveName)
                     .onAppear { name = rule.name ?? "" }
