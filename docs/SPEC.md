@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.29 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.30 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -34,7 +34,7 @@
 | N-7 | A panel csak akkor kapja meg a billentyűzetfókuszt, ha szükséges, így nem veszi el a fókuszt az aktív apptól (non-activating panel). |
 | N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
 | N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
-| N-10 | (v0.29) **Space-váltás:** amikor az egér alatti kijelzőn Space-t váltok, a becsukott notch mellett álló jelzők egy pillanatra **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik), majd **rugós mozgással szétnyílnak** és élesednek, mintha a notch az új Space-szel együtt érkezett volna. A „Mozgás csökkentése” akadálymentességi beállításnál nincs animáció. |
+| N-10 | **Space-váltás (v0.30):** amikor a kétujjas/háromujjas Space-váltó swipe **elindul**, a becsukott notch mellett álló jelzők **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik); amikor az ujj **felemelkedik**, gyors rugóval **szétnyílnak**, így mire a Space-ek csúszása megáll, a notch már normál állapotban van. A swipe-ot a rendszer Dock-vezérlő eseményéből ismeri fel (csak figyel, nem módosítja); ha a vége elveszne, 2,5 s után vagy a Space-váltáskor magától szétnyílik. Külön Space-ekkel rendelkező kijelzőknél csak az egér alatti kijelzőn. „Mozgás csökkentése” esetén nincs animáció. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -449,6 +449,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.30** | A Space-váltás animációja a swipe-pal együtt indul és ér véget |
 | **v0.29** | Space-váltás animáció; értesítésre válaszoláskor rögzül a notch; Modules fül húzható sorokkal; Pin csak gyorsbillentyűvel |
 | **v0.28** | A modulikonok elférnek a notch mellett, swipe-pal léptethetők; a jelvény jobb klikkes listája mindig csak az adott app értesítéseit mutatja |
 | **v0.27** | Automatikus frissítés; Homebrew-telepítés |

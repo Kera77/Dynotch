@@ -34,24 +34,30 @@ extension NotchController {
 // MARK: - Space switch (spec N-10)
 
 extension NotchController {
-    /// How long everything is drawn into the notch before it unfolds.
-    static let gatherDuration: TimeInterval = 0.16
-    /// The unfolding: a soft spring with a hint of overshoot.
-    static let unfoldAnimation = Animation.spring(response: 0.62, dampingFraction: 0.74)
+    /// Drawing in, as the swipe starts.
+    static let gatherAnimation = Animation.easeOut(duration: 0.18)
+    /// Unfolding as the fingers lift: over before the Spaces stop sliding.
+    static let unfoldAnimation = Animation.spring(response: 0.32, dampingFraction: 0.86)
+    /// If the end of the swipe is missed, the notch unfolds by itself after this long.
+    static let gatherTimeout: TimeInterval = 2.5
 
-    /// After a Space switch on this display, whatever stands beside the closed notch is drawn in
-    /// and unfolds again, as if the notch had come along with the new Space.
-    func spaceDidChange() {
-        let screen = model.geometry.screenFrame
-        guard screen.contains(NSEvent.mouseLocation), !model.isExpanded, !callIsShown,
-              !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        else { return }
-        withAnimation(.easeIn(duration: Self.gatherDuration)) { model.setGathered(true) }
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.gatherDuration + 0.02) { [weak self] in
-            MainActor.assumeIsolated {
-                guard let self else { return }
-                withAnimation(Self.unfoldAnimation) { self.model.setGathered(false) }
-            }
+    /// The Space-switching swipe started: whatever stands beside the closed notch is drawn in.
+    func spaceSwipeBegan() {
+        guard !model.isExpanded, !callIsShown, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        withAnimation(Self.gatherAnimation) { model.setGathered(true) }
+        gatherTask?.cancel()
+        gatherTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.gatherTimeout))
+            guard !Task.isCancelled else { return }
+            self?.spaceSwipeEnded()
         }
+    }
+
+    /// The fingers lifted (or the Space changed): it unfolds again.
+    func spaceSwipeEnded() {
+        gatherTask?.cancel()
+        gatherTask = nil
+        guard model.isGathered else { return }
+        withAnimation(Self.unfoldAnimation) { model.setGathered(false) }
     }
 }

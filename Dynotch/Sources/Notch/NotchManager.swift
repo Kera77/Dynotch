@@ -8,6 +8,7 @@ final class NotchManager {
     private var controllers: [NotchController] = []
     private var screenObserver: NSObjectProtocol?
     private var signature = ""
+    private var spaceSwipes: SpaceSwipeMonitor?
 
     init(services: AppServices, openSettings: @escaping () -> Void) {
         self.services = services
@@ -16,6 +17,11 @@ final class NotchManager {
 
     func start() {
         rebuildIfNeeded()
+        let monitor = SpaceSwipeMonitor { [weak self] phase in
+            self?.spaceSwipe(phase)
+        }
+        monitor.start()
+        spaceSwipes = monitor
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
@@ -38,6 +44,22 @@ final class NotchManager {
         let controller = controllers.first { $0.model.isExpanded }
             ?? controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
         controller?.togglePin()
+    }
+
+    /// The swipe moves the Spaces of the display under the pointer, or of every display when
+    /// they share their Spaces.
+    private func spaceSwipe(_ phase: SpaceSwipe.Phase) {
+        let pointer = NSEvent.mouseLocation
+        let affected = NSScreen.screensHaveSeparateSpaces
+            ? controllers.filter { $0.model.geometry.screenFrame.contains(pointer) }
+            : controllers
+        for controller in affected {
+            switch phase {
+            case .began: controller.spaceSwipeBegan()
+            case .ended: controller.spaceSwipeEnded()
+            case .changed: break
+            }
+        }
     }
 
     private func rebuildIfNeeded() {

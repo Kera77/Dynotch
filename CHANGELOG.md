@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-11-17
+
+### Changed
+- The Space switch animation follows the swipe: the indicators are drawn into the notch as the
+  swipe starts and have unfolded by the time the Spaces stop sliding, instead of animating afterwards.
+
 ## [0.29.0] - 2026-11-17
 
 ### Added
