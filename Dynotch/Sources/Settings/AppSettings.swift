@@ -45,7 +45,8 @@ final class AppSettings: ObservableObject {
         static let previewClick = "previewClick"
     }
 
-    private let defaults: UserDefaults
+    /// Also used by the other stores, so tests can give everything one private domain.
+    let defaults: UserDefaults
 
     /// Seconds the panel stays open after the pointer leaves it (spec N-4, N-5).
     @Published var closeDelay: Double {

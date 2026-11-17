@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-11-17
+
+### Added
+- Notifications a browser (e.g. Zen) shows for websites are split by site: each site is its own
+  source under Settings › Notifications › Websites and appears with its first notification.
+- Rules per source (app, system notices or website): name, macOS banner (default / hide / show)
+  and reply field (automatic / show / hide).
+- CLAUDE.md with the project's workflow for future sessions.
+
 ## [0.31.0] - 2026-11-17
 
 ### Fixed

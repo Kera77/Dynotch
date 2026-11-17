@@ -8,6 +8,15 @@ struct NotificationApp: Identifiable {
     let icon: NSImage?
     /// A notice of macOS itself: all of them are switched together as "System Settings".
     var isSystem = false
+    /// The website this source stands for, if it is one (spec E-15).
+    var site: String?
+
+    func renamed(_ name: String) -> NotificationApp {
+        var copy = NotificationApp(identifier: identifier, name: name, url: url, icon: icon)
+        copy.isSystem = isSystem
+        copy.site = site
+        return copy
+    }
 
     var id: String { identifier }
     var kind: NotificationKind { NotificationKind.detect(appName: name) }
@@ -52,9 +61,39 @@ struct NotificationApp: Identifiable {
 @MainActor
 final class NotificationAppCatalog {
     private var cache: [String: NotificationApp] = [:]
+    /// Site → browser, for the sources of websites (spec E-15).
+    private var sites: [String: String] = [:]
+    /// Names the user gave sources.
+    private var names: [String: String] = [:]
+
+    func update(sites: [String: String], names: [String: String]) {
+        guard sites != self.sites || names != self.names else { return }
+        self.sites = sites
+        self.names = names
+        cache.removeAll()
+    }
 
     func app(for identifier: String) -> NotificationApp {
         if let cached = cache[identifier] { return cached }
+        var app = WebNotificationSource.site(fromIdentifier: identifier).map { siteApp(identifier: identifier, site: $0) }
+            ?? installedApp(for: identifier)
+        if let name = names[identifier] { app = app.renamed(name) }
+        cache[identifier] = app
+        return app
+    }
+
+    /// A website's notifications, shown with its browser's icon.
+    private func siteApp(identifier: String, site: String) -> NotificationApp {
+        let browser = sites[site].flatMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }
+        var app = NotificationApp(
+            identifier: identifier, name: WebNotificationSource.displayName(forSite: site),
+            url: browser, icon: browser.map { NSWorkspace.shared.icon(forFile: $0.path) }
+        )
+        app.site = site
+        return app
+    }
+
+    private func installedApp(for identifier: String) -> NotificationApp {
         // System notices have no app of their own: show them as System Settings.
         let ownURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier)
         let isSystem = NotificationApp.isSystem(identifier: identifier, hasApplication: ownURL != nil)
@@ -70,12 +109,17 @@ final class NotificationAppCatalog {
             icon: url.map { NSWorkspace.shared.icon(forFile: $0.path) }
         )
         app.isSystem = isSystem
-        cache[identifier] = app
         return app
     }
 
+    /// Opens the app, or a website in the browser that showed its notifications.
     func open(_ identifier: String) {
-        guard let url = app(for: identifier).url else { return }
+        let app = app(for: identifier)
+        guard let url = app.url else { return }
+        if let site = app.site, let page = URL(string: "https://\(site)") {
+            NSWorkspace.shared.open([page], withApplicationAt: url, configuration: NSWorkspace.OpenConfiguration())
+            return
+        }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
     }
 }

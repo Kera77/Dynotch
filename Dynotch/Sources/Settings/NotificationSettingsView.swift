@@ -62,13 +62,8 @@ struct NotificationSettingsView: View {
                     Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(service.apps.filter { appSearch.isEmpty || $0.name.localizedCaseInsensitiveContains(appSearch) }) { app in
-                        Toggle(isOn: binding(for: app)) {
-                            HStack(spacing: 8) {
-                                AppIconView(app: app, size: 18)
-                                Text(app.name)
-                            }
-                        }
+                    ForEach(service.apps.filter(matchesSearch)) { app in
+                        NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
                     }
                 }
             } header: {
@@ -78,6 +73,21 @@ struct NotificationSettingsView: View {
                     Spacer()
                     SettingsSearchField(text: $appSearch, prompt: "Search apps")
                         .frame(width: 200)
+                }
+            }
+
+            if !service.siteApps.isEmpty {
+                Section {
+                    ForEach(service.siteApps.filter(matchesSearch)) { app in
+                        NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
+                    }
+                } header: {
+                    Text("Websites")
+                } footer: {
+                    Text("Notifications a browser shows for a website without its own web app, one row per site. "
+                        + "A site appears here with its first notification.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -146,6 +156,11 @@ struct NotificationSettingsView: View {
                 beeperStatus = "\(error)"
             }
         }
+    }
+
+    private func matchesSearch(_ app: NotificationApp) -> Bool {
+        appSearch.isEmpty || app.name.localizedCaseInsensitiveContains(appSearch)
+            || (app.site?.localizedCaseInsensitiveContains(appSearch) ?? false)
     }
 
     private func binding(for app: NotificationApp) -> Binding<Bool> {

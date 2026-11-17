@@ -28,9 +28,12 @@ final class NotificationService: ObservableObject {
     @Published private(set) var apps: [NotificationApp] = []
 
     let catalog = NotificationAppCatalog()
+    /// The websites seen and every source's rules (spec E-15).
+    let preferences: NotificationPreferences
+    private var preferencesObserver: AnyCancellable?
     private let bannerDismisser = NativeBannerDismisser()
 
-    private let settings: AppSettings
+    let settings: AppSettings
     private var database: NotificationDatabase?
     private var lastSeenID: Int64 = 0
     private var pollTimer: Timer?
@@ -45,6 +48,16 @@ final class NotificationService: ObservableObject {
 
     init(settings: AppSettings) {
         self.settings = settings
+        preferences = NotificationPreferences(defaults: settings.defaults)
+        catalog.update(sites: preferences.sites, names: preferences.names)
+        preferencesObserver = preferences.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.catalog.update(sites: self.preferences.sites, names: self.preferences.names)
+                }
+            }
+        }
     }
 
     func start() {
@@ -59,12 +72,6 @@ final class NotificationService: ObservableObject {
     func content(for notification: AppNotification) -> NotificationContent {
         let app = catalog.app(for: notification.appIdentifier)
         return NotificationPresenter.content(for: notification, appName: app.name, kind: app.kind)
-    }
-
-    func isEnabled(_ app: NotificationApp) -> Bool {
-        // Every system notice follows the one "System Settings" switch (spec E-2c).
-        let key = app.isSystem ? NotificationApp.systemGroupID : app.identifier
-        return settings.isNotificationAppEnabled(key, default: app.isDefaultEnabled)
     }
 
     /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
@@ -116,12 +123,6 @@ final class NotificationService: ObservableObject {
     nonisolated static func sameConversation(_ lhs: AppNotification, _ rhs: AppNotification) -> Bool {
         lhs.appIdentifier == rhs.appIdentifier
             && lhs.title.trimmingCharacters(in: .whitespaces).lowercased() == rhs.title.trimmingCharacters(in: .whitespaces).lowercased()
-    }
-
-    /// Whether the card gets a reply field (spec E-11): chats, not mail or system notices.
-    func canReply(to notification: AppNotification) -> Bool {
-        let app = catalog.app(for: notification.appIdentifier)
-        return app.kind == .message && !app.isSystem
     }
 
     /// Sends a reply: Beeper through its API, other chats by typing into the conversation.
@@ -270,7 +271,7 @@ final class NotificationService: ObservableObject {
                 DiagnosticsLog.append("notification-records", "#\(record.id) app=\(record.appIdentifier) unparsed")
                 continue
             }
-            let notification = resolve(parsed)
+            let notification = attribute(parsed)
             let enabled = isEnabled(catalog.app(for: notification.appIdentifier))
             // Identifiers and site only, never the notification's text.
             DiagnosticsLog.append(
@@ -282,7 +283,7 @@ final class NotificationService: ObservableObject {
             )
             if enabled {
                 incoming.append(notification)
-                if settings.hideNativeBanners { bannerDismisser.dismiss(notification) }
+                if hidesBanner(for: notification.appIdentifier) { bannerDismisser.dismiss(notification) }
             }
         }
         guard let newest = incoming.last else { return }

@@ -1,0 +1,117 @@
+import SwiftUI
+
+/// One source of notifications in the settings: on or off, and its own rules (spec E-15).
+struct NotificationSourceRow: View {
+    let app: NotificationApp
+    @ObservedObject var service: NotificationService
+    let isOn: Binding<Bool>
+
+    @State private var isOpen = false
+    @State private var name = ""
+
+    /// Default, on or off.
+    enum Choice: String, CaseIterable, Identifiable {
+        case automatic
+        case on
+        case off
+
+        var id: String { rawValue }
+
+        init(_ value: Bool?) {
+            switch value {
+            case .some(true): self = .on
+            case .some(false): self = .off
+            case .none: self = .automatic
+            }
+        }
+
+        var value: Bool? {
+            switch self {
+            case .automatic: nil
+            case .on: true
+            case .off: false
+            }
+        }
+    }
+
+    private var rule: NotificationRule { service.rule(for: app) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Toggle(isOn: isOn) {
+                    HStack(spacing: 8) {
+                        AppIconView(app: app, size: 18)
+                        Text(app.name)
+                        if let site = app.site, WebNotificationSource.displayName(forSite: site) != site {
+                            Text(site)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Spacer()
+                if !rule.isDefault {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .help("Has its own rules")
+                }
+                Button {
+                    withAnimation(.easeOut(duration: 0.15)) { isOpen.toggle() }
+                } label: {
+                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .help("Rules for \\(app.name)")
+            }
+            if isOpen { options }
+        }
+    }
+
+    private var options: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent("Name") {
+                TextField(app.name, text: $name)
+                    .frame(width: 180)
+                    .onSubmit(saveName)
+                    .onAppear { name = rule.name ?? "" }
+                    .onChange(of: name) { _, _ in saveName() }
+            }
+            picker("macOS banner", value: rule.hidesBanner, labels: ["Default", "Hide", "Show"]) { choice in
+                var updated = rule
+                updated.hidesBanner = choice.value
+                service.setRule(updated, for: app)
+            }
+            picker("Reply field", value: rule.showsReply, labels: ["Automatic", "Show", "Hide"]) { choice in
+                var updated = rule
+                updated.showsReply = choice.value
+                service.setRule(updated, for: app)
+            }
+        }
+        .font(.callout)
+        .padding(.leading, 26)
+        .disabled(!isOn.wrappedValue)
+    }
+
+    private func picker(
+        _ title: String, value: Bool?, labels: [String], set: @escaping (Choice) -> Void
+    ) -> some View {
+        Picker(title, selection: Binding(get: { Choice(value) }, set: set)) {
+            ForEach(Array(Choice.allCases.enumerated()), id: \.element) { index, choice in
+                Text(labels[index]).tag(choice)
+            }
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 320)
+    }
+
+    private func saveName() {
+        var updated = rule
+        updated.name = name
+        service.setRule(updated, for: app)
+    }
+}
