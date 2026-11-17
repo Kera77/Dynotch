@@ -26,12 +26,18 @@ enum ClaudeQuestionHook {
 
     /// Hook event → (matcher, command). Asking: a question tool or a notification; answered:
     /// the next tool run, a new prompt or the end of the turn.
-    static let hooks: [(event: String, matcher: String?, command: String)] = [
-        ("PreToolUse", "AskUserQuestion", askCommand),
-        ("Notification", nil, askCommand),
-        ("PostToolUse", nil, answeredCommand),
-        ("UserPromptSubmit", nil, answeredCommand),
-        ("Stop", nil, answeredCommand)
+    struct Hook: Sendable {
+        let event: String
+        var matcher: String?
+        let command: String
+    }
+
+    static let hooks: [Hook] = [
+        Hook(event: "PreToolUse", matcher: "AskUserQuestion", command: askCommand),
+        Hook(event: "Notification", command: askCommand),
+        Hook(event: "PostToolUse", command: answeredCommand),
+        Hook(event: "UserPromptSubmit", command: answeredCommand),
+        Hook(event: "Stop", command: answeredCommand)
     ]
 
     // MARK: - Links
