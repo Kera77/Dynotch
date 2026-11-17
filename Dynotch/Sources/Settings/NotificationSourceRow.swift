@@ -12,15 +12,15 @@ struct NotificationSourceRow: View {
     /// Default, on or off.
     enum Choice: String, CaseIterable, Identifiable {
         case automatic
-        case on
-        case off
+        case enabled
+        case disabled
 
         var id: String { rawValue }
 
         init(_ value: Bool?) {
             switch value {
-            case .some(true): self = .on
-            case .some(false): self = .off
+            case .some(true): self = .enabled
+            case .some(false): self = .disabled
             case .none: self = .automatic
             }
         }
@@ -28,8 +28,8 @@ struct NotificationSourceRow: View {
         var value: Bool? {
             switch self {
             case .automatic: nil
-            case .on: true
-            case .off: false
+            case .enabled: true
+            case .disabled: false
             }
         }
     }
