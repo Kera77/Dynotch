@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.43.1] - 2026-11-18
+
+### Fixed
+- The app could quit when a Bluetooth device connected or disconnected.
+- Notifications asked for Full Disk Access although it was granted: local test builds with the
+  same identifier could take the switch in System Settings. The notch now says what to do when
+  access is on but still denied.
+
 ## [0.43.0] - 2026-11-18
 
 ### Added
