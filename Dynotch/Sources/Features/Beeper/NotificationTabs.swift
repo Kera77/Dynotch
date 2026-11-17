@@ -22,7 +22,7 @@ enum NotificationsTab: String, CaseIterable, Sendable {
 
 @MainActor
 enum ChatSources {
-    static func isBeeper(_ notification: AppNotification) -> Bool {
+    nonisolated static func isBeeper(_ notification: AppNotification) -> Bool {
         notification.appIdentifier.lowercased().contains("beeper")
     }
 
