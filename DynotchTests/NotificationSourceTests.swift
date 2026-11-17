@@ -55,8 +55,11 @@ struct NotificationSourceTests {
         let service = makeService()
         _ = service.attribute(zen(site: "chat.google.com"))
         let chat = service.catalog.app(for: "web:chat.google.com")
-        #expect(service.canReply(to: zen(site: "chat.google.com").with(appIdentifier: chat.identifier)))
+        // No reply field unless the rule asks for one (spec E-16b).
+        #expect(!service.canReply(to: zen(site: "chat.google.com").with(appIdentifier: chat.identifier)))
         #expect(service.hidesBanner(for: chat.identifier) == service.settings.hideNativeBanners)
+        service.setRule(NotificationRule(showsReply: true), for: chat)
+        #expect(service.canReply(to: zen(site: "chat.google.com").with(appIdentifier: chat.identifier)))
 
         service.setRule(NotificationRule(name: "  Work chat ", hidesBanner: false, showsReply: false), for: chat)
         #expect(service.catalog.app(for: chat.identifier).name == "Work chat")

@@ -165,8 +165,8 @@ struct NotificationTests {
         service.present(title: "A", body: "1", appIdentifier: "com.automattic.beeper.desktop")
         service.present(title: "B", body: "2", appIdentifier: "com.apple.btmnotificationagent")
         #expect(service.unseen.map(\.title) == ["A", "B"])
-        #expect(service.canReply(to: service.unseen[0]))
-        // System notices get no reply field.
+        // The reply field is off by default, for chats and system notices alike (spec E-16b).
+        #expect(!service.canReply(to: service.unseen[0]))
         #expect(!service.canReply(to: service.unseen[1]))
         service.markSeen()
         #expect(service.unseen.isEmpty)

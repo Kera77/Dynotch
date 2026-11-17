@@ -20,11 +20,16 @@ enum WindowPicker {
     /// windows are looked through, since they are mostly transparent.
     static func window(at point: CGPoint, in windows: [ScreenWindow], ownPID: pid_t) -> ScreenWindow? {
         for window in windows where window.bounds.contains(point) && window.alpha > 0.01 {
-            if window.pid == ownPID { continue }
+            // The pointer itself: drawn as a window whenever macOS draws it in software (e.g.
+            // while an iPad is a display), always right under the pointer (spec F-12).
+            if window.pid == ownPID || window.layer >= cursorLayer { continue }
             return window.layer == 0 ? window : nil
         }
         return nil
     }
+
+    /// `kCGCursorWindowLevel`.
+    static let cursorLayer = Int(CGWindowLevelForKey(.cursorWindow))
 
     /// Parses the dictionaries `CGWindowListCopyWindowInfo` returns (front to back).
     static func screenWindows(from info: [[String: Any]]) -> [ScreenWindow] {

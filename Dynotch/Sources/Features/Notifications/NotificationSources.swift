@@ -7,7 +7,7 @@ struct NotificationRule: Codable, Equatable, Sendable {
     var name: String?
     /// Close the macOS banner; default: the general setting.
     var hidesBanner: Bool?
-    /// A reply field under the messages; default: for chat apps.
+    /// A reply field under the messages; default: none.
     var showsReply: Bool?
 
     var isDefault: Bool { name == nil && hidesBanner == nil && showsReply == nil }
@@ -109,11 +109,11 @@ extension NotificationService {
         return settings.isNotificationAppEnabled(key, default: fallback)
     }
 
-    /// Whether the card gets a reply field (spec E-11): chats, not mail or system notices.
+    /// Whether the card gets a reply field (spec E-11): off unless the source's rule shows it
+    /// (spec E-16b).
     func canReply(to notification: AppNotification) -> Bool {
         let app = catalog.app(for: notification.appIdentifier)
-        if let showsReply = rule(for: app).showsReply { return showsReply }
-        return app.kind == .message && !app.isSystem
+        return rule(for: app).showsReply ?? false
     }
 
     /// Notifications of a site get their own source: the installed web app if there is one,

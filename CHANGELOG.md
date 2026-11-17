@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-11-17
+
+### Changed
+- Notifications have no reply field by default; turn it on per source (rule "Reply field: Show").
+
+### Fixed
+- Focus follows mouse did nothing while macOS drew the pointer in software (e.g. with an iPad as
+  a display): the pointer's own window counted as the window under it.
+
 ## [0.37.0] - 2026-11-17
 
 ### Added

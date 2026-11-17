@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.37 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.38 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -228,6 +228,7 @@
 | E-15 | (v0.32) **Weboldalak külön forrásként:** ha egy böngésző (pl. Zen) olyan oldal értesítését mutatja, amelyhez nincs telepített webapp, az oldal **saját forrás** lesz (pl. „Google Calendar”), a böngésző ikonjával; az első értesítésével magától megjelenik a Beállítások › Notifications **Websites** szakaszában. Alapból úgy van be- vagy kikapcsolva, mint a böngésző, kivéve a Gmailt és a Google Chatet (alapból be). Megnyitáskor az oldalt nyitja meg abban a böngészőben. |
 | E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
 | E-16 | (v0.32) **Saját szabályok forrásonként** (appok, rendszerértesítések, weboldalak): a sor melletti nyíllal lenyíló beállítások – **név** (a notchban és a listákban ez látszik), **macOS-banner** (alapértelmezés / elrejtés / megjelenítés), **válaszmező** (automatikus / mindig / soha). Egyedi szabállyal rendelkező forrásnál egy kis jel látszik. A keresés az oldal címére is szűr. |
+| E-16b | (v0.38) A **válaszmező alapból ki van kapcsolva** minden forrásnál (csevegő appoknál is); csak az a forrás kapja meg, amelynek szabályában „Show” áll. A választó első lehetősége „Default (off)”. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 
@@ -302,6 +303,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-9 | (v0.26) A lenyitott notch jobb felső sorában, a billentyűzetzár mellett **felfelé nyíl ikonú kapcsoló**: be- és kikapcsolja a funkciót (bekapcsolva kék). |
 | F-10 | (v0.35, **v0.36.1-ben visszavonva**) A kattintás körüli szünet (lenyomáskor a függő váltás megszakítása, utána 0,5 mp szünet) után a fókusz alig követte az egeret, ezért a korábbi működés állt vissza. Helyette a `focus.log` rögzíti, miért marad el egy váltás (Dynotch-ablaké a billentyűzet; az ablak kétszer sem tartotta meg a fókuszt; a WindowServer elutasította), okonként legfeljebb percenként egyszer, app- és ablaknevek nélkül. |
 | F-11 | (v0.37) A notch panelje bezárás után is „billentyűzetet fogadónak” jelezte magát (nem aktiválja az appot, így semmi nem veszi el tőle ezt az állapotot), ezért gépelés után (beállítások, számológép, jegyzet) a fókusz sokáig nem követte az egeret, főleg kijelzők közötti váltáskor. A notch panelje mostantól csak akkor számít, amikor nyitva van és valóban kéri a billentyűzetet. |
+| F-12 | (v0.38) **A szoftveresen rajzolt egérmutató nem akadály:** amikor a macOS szoftveresen rajzolja a mutatót (pl. amíg egy iPad kijelzőként csatlakozik), az egy saját ablak a mutató alatt, a legfelső szinten. Ezt (és a fölötte lévő szinteket) a választás átnézi; korábban emiatt a fókusz egyáltalán nem követte az egeret. |
 
 ---
 
@@ -482,6 +484,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.38** | Autoraise szoftveres egérmutató mellett is (iPad-kijelző); a válaszmező alapból ki |
 | **v0.37** | Beállítások rögzítve nyílnak; számológép: szöveg a sorban, kék eredmény, azonnali gépelés; autoraise gépelés után is vált; csak a tartalmas oldal kerek (kapcsoló); a tablet menü a notch-csal együtt záródik |
 | **v0.36.1** | Az autoraise korábbi működése visszaáll; naplózza, ha nem vált |
 | **v0.36** | Jelzés a notch alatt, ha a Claude Code kérdez vagy engedélyre vár (terminál, VS Code); válaszra eltűnik |

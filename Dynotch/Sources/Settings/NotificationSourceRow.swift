@@ -87,7 +87,7 @@ struct NotificationSourceRow: View {
                 updated.hidesBanner = choice.value
                 service.setRule(updated, for: app)
             }
-            picker("Reply field", value: rule.showsReply, labels: ["Automatic", "Show", "Hide"]) { choice in
+            picker("Reply field", value: rule.showsReply, labels: ["Default (off)", "Show", "Hide"]) { choice in
                 var updated = rule
                 updated.showsReply = choice.value
                 service.setRule(updated, for: app)
