@@ -10,6 +10,8 @@ struct NotchIndicatorView: View {
     let hoveredIndex: Int?
     /// Apps with unread notifications, at the far left (spec B-4).
     var badges: [BadgeItem] = []
+    /// Badges behind the "+" (spec B-8).
+    var hiddenBadges = 0
     var hoveredBadge: String?
     /// Written under the row while no indicator's details are open (spec CN-1).
     var notice: StickyNotice?
@@ -21,7 +23,7 @@ struct NotchIndicatorView: View {
 
     static let lineWidth: CGFloat = 2
 
-    private var layout: IndicatorLayout { IndicatorLayout(items: items, badges: badges) }
+    private var layout: IndicatorLayout { IndicatorLayout(items: items, badges: badges, overflow: hiddenBadges > 0) }
 
     private var meetings: [CalendarEvent] {
         items.compactMap { if case .meeting(let event) = $0 { event } else { nil } }
@@ -53,13 +55,17 @@ struct NotchIndicatorView: View {
     private func leftSide(now: Date) -> some View {
         if layout.leftWidth > 0 {
             HStack(spacing: 0) {
+                if hiddenBadges > 0 {
+                    OverflowChip(count: hiddenBadges)
+                    if !badges.isEmpty { Color.clear.frame(width: IndicatorLayout.badgeSpacing) }
+                }
                 if !badges.isEmpty {
                     NotchBadgesView(
                         badges: badges, hoveredID: hoveredBadge, now: now, open: openBadge,
                         showNotifications: showBadgeNotifications, move: moveBadge
                     )
                 }
-                if !badges.isEmpty, !layout.iconSlots.isEmpty {
+                if !badges.isEmpty || hiddenBadges > 0, !layout.iconSlots.isEmpty {
                     Rectangle()
                         .fill(Color.white.opacity(0.22))
                         .frame(width: 1, height: 12)
@@ -307,5 +313,25 @@ extension NotchIndicatorView {
         case .high: Color(red: 1, green: 0.62, blue: 0.1)
         case .critical: Color(red: 1, green: 0.3, blue: 0.3)
         }
+    }
+}
+
+/// "‹ +3": more badges than fit beside the menu bar; hovering shows them (spec B-8).
+private struct OverflowChip: View {
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 8, weight: .bold))
+            Text("+\(count)")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+        }
+        .foregroundStyle(Color.white.opacity(0.85))
+        .frame(width: IndicatorLayout.overflowChipWidth, height: IndicatorLayout.capsuleHeight)
+        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.14)))
+        .frame(height: IndicatorLayout.iconHeight)
+        .help("\(count) more app\(count == 1 ? "" : "s") with notifications")
     }
 }

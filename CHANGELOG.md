@@ -9,6 +9,11 @@
   into the swipe. Now the drawing-in always finishes and the notch unfolds while the Spaces slide.
 - The search field in Settings › Notifications could not be clicked.
 
+### Added
+- App badges no longer cover the menu bar: Dynotch measures where the active app's menus (and
+  status items) end left of the notch; badges that do not fit wait behind a "‹ +N" that unfolds
+  them on hover.
+
 ## [0.30.0] - 2026-11-17
 
 ### Changed

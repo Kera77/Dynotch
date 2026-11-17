@@ -46,8 +46,14 @@ struct NotchView: View {
         )
     }
 
+    /// The badges that fit beside the menu bar, and how many wait behind the "+" (spec B-8).
+    private var badgeFit: BadgeFit {
+        BadgeFit.make(badges: badges.visible, items: indicatorItems, room: model.badgeRoom, unfolded: model.badgesUnfolded)
+    }
+
     private var indicatorLayout: IndicatorLayout {
-        IndicatorLayout(items: indicatorItems, badges: badges.visible)
+        let fit = badgeFit
+        return IndicatorLayout(items: indicatorItems, badges: fit.shown, overflow: fit.hidden > 0)
     }
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
@@ -108,7 +114,8 @@ struct NotchView: View {
                     leadTime: calendar.leadTime,
                     notchSize: geometry.notchSize,
                     hoveredIndex: labelIndex,
-                    badges: badges.visible,
+                    badges: badgeFit.shown,
+                    hiddenBadges: badgeFit.hidden,
                     hoveredBadge: model.hoveredBadge,
                     notice: shownNotice,
                     openBadge: { badges.open($0.app) },
@@ -168,6 +175,7 @@ struct NotchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
+        .animation(NotchController.animation, value: badgeFit.hidden)
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .animation(Self.quickAnimation, value: hud.display != nil)

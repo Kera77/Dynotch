@@ -118,6 +118,9 @@ struct IndicatorLayout: Equatable {
     let iconSlots: [Int]
     /// Width of each app badge at the far left, from left to right (spec B-4).
     let badgeWidths: [CGFloat]
+    /// The "+" for badges that do not fit beside the menu bar, at the very left (spec B-8).
+    let overflowWidth: CGFloat
+    static let overflowChipWidth: CGFloat = 34
 
     /// Number of places on the right.
     var count: Int { slotWidths.count }
@@ -126,20 +129,27 @@ struct IndicatorLayout: Equatable {
         self.init(slotWidths: Array(repeating: Self.slotWidth, count: max(count, 0)), iconSlots: iconSlots)
     }
 
-    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil, badgeWidths: [CGFloat] = []) {
+    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil, badgeWidths: [CGFloat] = [], overflow: Bool = false) {
         self.slotWidths = slotWidths
         self.iconSlots = slotWidths.isEmpty ? [] : (iconSlots ?? [0])
         self.badgeWidths = badgeWidths
+        self.overflowWidth = overflow ? Self.overflowChipWidth : 0
     }
 
-    init(items: [IndicatorItem], badges: [BadgeItem] = []) {
+    init(items: [IndicatorItem], badges: [BadgeItem] = [], overflow: Bool = false) {
         self.init(
             slotWidths: items.map(\.slotWidth), iconSlots: IndicatorItem.iconSlots(for: items),
-            badgeWidths: badges.map(\.width)
+            badgeWidths: badges.map(\.width), overflow: overflow
         )
     }
 
-    var isEmpty: Bool { count < 1 && badgeWidths.isEmpty }
+    var isEmpty: Bool { count < 1 && badgeWidths.isEmpty && overflowWidth == 0 }
+
+    /// The "+" and the space after it, before the first badge.
+    private var overflowSpan: CGFloat {
+        guard overflowWidth > 0 else { return 0 }
+        return overflowWidth + (badgeWidths.isEmpty ? 0 : Self.badgeSpacing)
+    }
 
     /// The icons next to the notch, without margins.
     var iconsWidth: CGFloat {
@@ -154,11 +164,11 @@ struct IndicatorLayout: Equatable {
         return badgeWidths.reduce(0, +) + CGFloat(badgeWidths.count - 1) * Self.badgeSpacing
     }
 
-    private var hasSeparator: Bool { !iconSlots.isEmpty && !badgeWidths.isEmpty }
+    private var hasSeparator: Bool { !iconSlots.isEmpty && (!badgeWidths.isEmpty || overflowWidth > 0) }
 
     /// Left of the notch: the app badges, a thin line, then the icons.
     var leftWidth: CGFloat {
-        let content = iconsWidth + badgesWidth + (hasSeparator ? Self.separatorWidth : 0)
+        let content = iconsWidth + overflowSpan + badgesWidth + (hasSeparator ? Self.separatorWidth : 0)
         return content > 0 ? content + 2 * Self.padding : 0
     }
 
@@ -224,7 +234,7 @@ struct IndicatorLayout: Equatable {
     /// Horizontal extent of app badge `index` (0 = leftmost).
     func badgeRange(_ index: Int, notchRect: CGRect) -> ClosedRange<CGFloat> {
         let before = badgeWidths.prefix(index).reduce(0, +) + CGFloat(index) * Self.badgeSpacing
-        let start = notchRect.minX - leftWidth + Self.padding + before
+        let start = notchRect.minX - leftWidth + Self.padding + overflowSpan + before
         return start...(start + badgeWidths[index])
     }
 
@@ -236,5 +246,18 @@ struct IndicatorLayout: Equatable {
             let range = badgeRange($0, notchRect: notchRect)
             return point.x >= range.lowerBound - margin && point.x <= range.upperBound + margin
         }
+    }
+
+    /// Horizontal extent of the "+", if there is one.
+    func overflowRange(notchRect: CGRect) -> ClosedRange<CGFloat>? {
+        guard overflowWidth > 0 else { return nil }
+        let start = notchRect.minX - leftWidth + Self.padding
+        return start...(start + overflowWidth)
+    }
+
+    /// Everything left of the notch (badges, "+", icons), for hover.
+    func leftRange(notchRect: CGRect) -> ClosedRange<CGFloat>? {
+        guard leftWidth > 0 else { return nil }
+        return (notchRect.minX - leftWidth)...notchRect.minX
     }
 }

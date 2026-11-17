@@ -33,6 +33,21 @@ final class NotchViewModel: ObservableObject {
         if gathered != isGathered { isGathered = gathered }
     }
 
+    /// Room left of the notch before the menu bar's own items; nil: no limit (spec B-8).
+    @Published private(set) var badgeRoom: CGFloat?
+    /// The badges behind the "+" are shown, while the pointer is on them.
+    @Published private(set) var badgesUnfolded = false
+
+    func setBadgeRoom(_ room: CGFloat?) {
+        // Small changes (a clock ticking in the menu bar) do not move the badges.
+        if let room, let current = badgeRoom, abs(room - current) < 2 { return }
+        if room != badgeRoom { badgeRoom = room }
+    }
+
+    func setBadgesUnfolded(_ unfolded: Bool) {
+        if unfolded != badgesUnfolded { badgesUnfolded = unfolded }
+    }
+
     /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
     @Published private(set) var switcherFirst = 0
 

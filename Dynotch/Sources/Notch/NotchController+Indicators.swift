@@ -11,8 +11,9 @@ extension NotchController {
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings
         )
-        let shownBadges = badges.visible
-        let layout = IndicatorLayout(items: items, badges: shownBadges)
+        let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
+        let shownBadges = fit.shown
+        let layout = IndicatorLayout(items: items, badges: shownBadges, overflow: fit.hidden > 0)
         let point = NSEvent.mouseLocation
         if notifications.peek == nil, opensAnswer(at: point, layout: layout) { return }
         guard !layout.isEmpty, notifications.peek == nil else {
@@ -21,6 +22,7 @@ extension NotchController {
             return
         }
         let geometry = model.geometry
+        if unfoldBadgesIfNeeded(at: point, layout: layout, hidden: fit.hidden) { return }
         // A badge being clicked or dragged stays the hovered one.
         if model.hoveredBadge != nil, NSEvent.pressedMouseButtons != 0 { return }
         let badge = layout.badge(at: point, notchRect: geometry.notchRect).map { shownBadges[$0].id }
@@ -66,9 +68,31 @@ extension NotchController {
         updateCollapsedInteraction()
     }
 
+    /// The "+" unfolds the hidden badges while the pointer is on it; they fold back when the
+    /// pointer leaves the row left of the notch (spec B-8).
+    /// - Returns: true if the badges just unfolded (the layout changes with it).
+    func unfoldBadgesIfNeeded(at point: CGPoint, layout: IndicatorLayout, hidden: Int) -> Bool {
+        let notch = model.geometry.notchRect
+        let inRow = point.y >= notch.minY && point.y <= notch.maxY + NotchGeometry.topEdgeTolerance
+        if hidden > 0, inRow, let chip = layout.overflowRange(notchRect: notch), chip.contains(point.x) {
+            withAnimation(Self.animation) { model.setBadgesUnfolded(true) }
+            updateCollapsedInteraction()
+            return true
+        }
+        if model.badgesUnfolded {
+            let onBadges = inRow && (layout.leftRange(notchRect: notch).map { ($0.lowerBound - 6)...$0.upperBound } ?? 0...0)
+                .contains(point.x)
+            if !onBadges, NSEvent.pressedMouseButtons == 0 {
+                withAnimation(Self.animation) { model.setBadgesUnfolded(false) }
+                updateCollapsedInteraction()
+            }
+        }
+        return false
+    }
+
     private func updateCollapsedInteraction() {
         guard !model.isExpanded else { return }
-        let isActive = model.hoveredIndicator != nil || model.hoveredBadge != nil
+        let isActive = model.hoveredIndicator != nil || model.hoveredBadge != nil || model.badgesUnfolded
         panel.ignoresMouseEvents = !isActive
         if isActive {
             startHoverTimer()
@@ -159,6 +183,21 @@ extension NotchController {
         notifications.setFocus(bundleID: badge.app.bundleID, name: badge.app.name, count: BadgeTracker.count(badge.label))
         expand()
         model.select(.notifications)
+    }
+}
+
+// MARK: - Menu bar room (spec B-8)
+
+extension NotchController {
+    /// How much room the menu bar leaves left of this display's notch.
+    func applyMenuBar(_ snapshot: MenuBarSnapshot) {
+        let screens = NSScreen.screens.map(\.frame)
+        let primaryMaxY = NSScreen.screens.first?.frame.maxY ?? model.geometry.screenFrame.maxY
+        let notch = model.geometry.notchRect
+        let edge = MenuBarSpace.occupiedEdge(
+            on: model.geometry.screenFrame, screens: screens, primaryMaxY: primaryMaxY, notchMinX: notch.minX, snapshot: snapshot
+        )
+        withAnimation(Self.animation) { model.setBadgeRoom(MenuBarSpace.room(notchMinX: notch.minX, occupiedEdge: edge)) }
     }
 }
 
