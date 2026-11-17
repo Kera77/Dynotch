@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.33 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.34 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -35,7 +35,8 @@
 | N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
 | N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
 | N-10 | **Space-váltás (v0.30):** amikor a kétujjas/háromujjas Space-váltó swipe **elindul**, a becsukott notch mellett álló jelzők **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik); a behúzódás mindig végigér (0,16 s); az ujj felemelése után (ami kb. 0,1 s-mal a swipe indulása után történik, miközben a Space-ek még kb. 0,4 s-ig csúsznak) rövid kitartás, majd gyors rugóval **szétnyílnak**, így mire a csúszás megáll, a notch már normál állapotban van. (v0.31: időzítés javítva, korábban a túl korai szétnyílás miatt nem látszott.) A swipe-ot a rendszer Dock-vezérlő eseményéből ismeri fel (csak figyel, nem módosítja); ha a vége elveszne, 2,5 s után vagy a Space-váltáskor magától szétnyílik. Külön Space-ekkel rendelkező kijelzőknél csak az egér alatti kijelzőn. „Mozgás csökkentése” esetén nincs animáció. |
-| N-11 | (v0.33) **Lekerekített notch (Dynamic Island-szerű):** a becsukott notch alsó sarkai lekerekednek – egy sornyi tartalomnál (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő) a notch magasságának felével, így a végei teljesen kerekek; magasabb tartalomnál (értesítés, hívás, meeting részletei, lelógó sor) 22 pt-tal. Lenyitáskor a sugár a méretváltozással együtt, ugyanazzal a rugóval áll vissza a panel szokásos (24 pt, előnézetnél 18 pt) sarkára, így a nagy panel „kiegyenesedik”. Ki-be kapcsolható: *Beállítások › General › Rounded notch* (alapból be); kikapcsolva a korábbi sarkok maradnak. |
+| N-11 | (v0.33) **Lekerekített notch (Dynamic Island-szerű):** a becsukott notch alsó sarkai lekerekednek – egy sornyi tartalomnál (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő) a notch magasságának felével, így a végei teljesen kerekek; magasabb tartalomnál (értesítés, hívás, meeting részletei, lelógó sor) 22 pt-tal. Lenyitáskor a sugár a méretváltozással együtt, ugyanazzal a rugóval áll vissza a panel szokásos (24 pt, előnézetnél 18 pt) sarkára, így a nagy panel „kiegyenesedik”. Ki-be kapcsolható: *Beállítások › General › Rounded notch* (alapból be); kikapcsolva a korábbi sarkok maradnak. (v0.34) **Teljes kapszula:** a felső sarkok is kerekek, ugyanazzal a sugárral. Hogy a felső lekerekítés ne vágjon bele a fizikai notchba, a fekete rész mindkét oldalon legalább egy sugárnyival túlnyúlik a notchon (üresen ezért szélesebb a fizikai notchnál; ha csak az egyik oldalon áll tartalom, a másikon kap ennyi helyet); a tartalom a helyén marad. Lenyitáskor a felső sarkok kiegyenesednek, a panel teteje ismét a képernyő széléhez simul. |
+| N-12 | (v0.34) **Teljes képernyős appoknál rejtve:** ha az adott kijelzőn egy app ablaka a teljes képernyőt (a menüsor sávját is) lefedi, a becsukott notch mellett **semmi nem látszik** – se jelzők, se jelvények, se értesítések, se lelógó sor (a notch fekete része sem). Csak egy bejövő hívás és a hangerő/fényerő jelenik meg. A notch akkor nyílik le, ha az egér **a képernyő legfelső szélére**, a notch szélességén belülre ér (a szokásos hover-zóna itt nem nyit). Felismerés: másodpercenként és Space-váltáskor az ablakok kereteiből (a tartalmukat nem nézi). Ki-be kapcsolható: *Settings › General › Hide the notch over full-screen apps* (alapból be). |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -126,7 +127,7 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11) · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · Fókusz követi az egeret, várakozás (0–500 ms) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11) · Rejtés teljes képernyős appoknál (N-12) · Bezárási késleltetés (0–3 s) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
 | **Naptár** | Hozzáférés állapota és engedélyezés · Közelgő esemény jelzése be/ki · Előjelzési idő (1–30 perc) |
@@ -410,6 +411,15 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | U-3 | Alapból automatikusan telepít: az app kilép, egy háttérfolyamat kicseréli a `/Applications`-beli példányt (hiba esetén visszateszi a régit), és elindítja az újat. Az újraindulás után egy értesítés jelzi az új verziót. *Settings › About*: automatikus telepítés ki/be, „Check Now” / „Install”, állapot. |
 | U-4 | **Homebrew:** `brew install --cask kera77/dynotch/dynotch` (tap: `Kera77/homebrew-dynotch`). A cask mindig a legfrissebb kiadás fix nevű `Dynotch.dmg`-jét tölti le (a Homebrew 7 miatt a tapot előbb `brew trust kera77/dynotch`-csal engedélyezni kell), és leveszi a karantén jelzést, mert az app nincs az Apple-nél hitelesítve. A további frissítéseket az app maga végzi (U-1…U-3). |
 
+## 4r. iPad mint kijelző (v0.34)
+
+| # | Követelmény |
+|---|-------------|
+| TB-1 | A kinyitott panel felső sorában, a funkcióikonok **bal oldalán** egy tablet ikon (lefelé mutató nyíllal) nyit egy menüt, a macOS Kijelzők beállításainak „+” menüjéhez hasonlóan. Az ikon kék, amíg egy iPad kijelzőként csatlakozik. A funkcióikonok ennyivel kevesebb helyet kapnak (M-9). |
+| TB-2 | **Mirror or extend to:** a közelben lévő, kijelzőként használható iPadek (Sidecar) pipával; kattintásra csatlakozik (kiterjesztett kijelzőként), pipásra kattintva lecsatlakozik. Nem csatlakozott iPadhez „Mirror to …” sor is van: csatlakozik és rögtön tükröz. Ha nincs iPad: „No iPad nearby”. |
+| TB-3 | Csatlakozott iPadnél a menü saját szakaszában: **Extended display / Mirror of the main display** (választó) és **Disconnect**. A tükrözés a fő kijelzőt mutatja az iPaden. |
+| TB-4 | A menü alján **Display Settings…** nyitja a macOS Kijelzők beállításait – ott érhető el az AirPlay-kijelző (pl. TV) és a billentyűzet/egér összekapcsolása (Universal Control), mert ezeket egy nem Apple által aláírt app nem tudja vezérelni. Hiba esetén az oka a menüben látszik. Megvalósítás: a privát `SidecarCore` (`SidecarDisplayManager`) és a CoreGraphics tükrözés. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -455,6 +465,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.34** | Kapszula alakú notch; rejtés teljes képernyős appoknál (felső szélre nyílik); iPad mint kijelző a felső sor menüjéből |
 | **v0.33** | Lekerekített, Dynamic Island-szerű notch (kapcsolható); a Notifications fül keresője az űrlap fölé került; a böngészők korábbi értesítéseinek oldalai is külön forrásként jelennek meg |
 | **v0.32** | Weboldalanként külön értesítésforrás (Zen); szabályok forrásonként (név, banner, válaszmező) |
 | **v0.31** | A Space-animáció időzítése; a Notifications fül keresője kattintható; a jelvények nem takarják a menüsort („‹ +N”, hoverre kinyílik) |

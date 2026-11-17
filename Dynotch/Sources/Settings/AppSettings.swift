@@ -36,6 +36,7 @@ final class AppSettings: ObservableObject {
         static let hiddenFromMenuBar = "hiddenFromMenuBar"
         static let haptics = "haptics"
         static let roundedNotch = "roundedNotch"
+        static let hideInFullScreen = "hideInFullScreen"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
@@ -155,6 +156,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
     }
 
+    /// Over a full-screen app the closed notch is hidden (spec N-12).
+    @Published var hideInFullScreen: Bool {
+        didSet { defaults.set(hideInFullScreen, forKey: Key.hideInFullScreen) }
+    }
+
     /// Features with a menu bar icon (spec M-7).
     static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage, .claudeChat]
 
@@ -240,6 +246,7 @@ final class AppSettings: ObservableObject {
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         roundedNotch = defaults.object(forKey: Key.roundedNotch) as? Bool ?? true
+        hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)

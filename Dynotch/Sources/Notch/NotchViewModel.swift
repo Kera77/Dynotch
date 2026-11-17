@@ -33,6 +33,13 @@ final class NotchViewModel: ObservableObject {
         if gathered != isGathered { isGathered = gathered }
     }
 
+    /// A full-screen app is in front on this display: the closed notch is hidden (spec N-12).
+    @Published private(set) var isHiddenForFullScreen = false
+
+    func setHiddenForFullScreen(_ hidden: Bool) {
+        if hidden != isHiddenForFullScreen { isHiddenForFullScreen = hidden }
+    }
+
     /// Room left of the notch before the menu bar's own items; nil: no limit (spec B-8).
     @Published private(set) var badgeRoom: CGFloat?
     /// The badges behind the "+" are shown, while the pointer is on them.
@@ -148,8 +155,9 @@ final class NotchViewModel: ObservableObject {
 
     /// How many feature icons fit left of the notch in the open panel.
     var switcherVisibleCount: Int {
-        // The row's left side, less its margins (14 at the edge, 8 before the notch).
-        let room = (openSize.width - geometry.notchSize.width) / 2 - 22
+        // The row's left side, less its margins (14 at the edge, 8 before the notch) and the
+        // tablet menu (spec TB-1).
+        let room = (openSize.width - geometry.notchSize.width) / 2 - 22 - TabletMenu.width - TabletMenu.spacing
         return FeatureSwitcher.visibleCount(for: room)
     }
 

@@ -23,7 +23,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         notices: NoticeService(),
         chat: ClaudeChatService(),
         battery: BatteryService(settings: settings),
-        updates: UpdateService()
+        updates: UpdateService(),
+        tablets: TabletDisplayService()
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services

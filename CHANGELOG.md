@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-11-17
+
+### Added
+- A tablet menu left of the feature icons: connect a nearby iPad as an extended display or a
+  mirror, switch between the two, disconnect, or open the Displays settings.
+- Over a full-screen app the closed notch is hidden, notifications included; moving the pointer
+  to the very top edge within the notch's width opens it. Settings › General (on by default).
+
+### Changed
+- The rounded notch is a full capsule: its top corners are round too, and it reaches a little
+  beyond the physical notch so the rounding shows. It still straightens out as it opens.
+
 ## [0.33.0] - 2026-11-17
 
 ### Added

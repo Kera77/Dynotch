@@ -39,6 +39,7 @@ final class NotchController {
     private var sizeObserver: AnyCancellable?
     private var settingsObserver: AnyCancellable?
     private var hoverTimer: Timer?
+    var fullScreenTimer: Timer?
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     var swipe = SwipeDetector()
@@ -80,7 +81,7 @@ final class NotchController {
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
             notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
-            updates: services.updates
+            updates: services.updates, tablets: services.tablets
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
@@ -121,11 +122,15 @@ final class NotchController {
             }
         }
         chatChanged()
+        startFullScreenChecks()
         spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in
             // Only a safety net: the animation follows the swipe itself.
-            MainActor.assumeIsolated { self?.spaceSwipeLifted() }
+            MainActor.assumeIsolated {
+                self?.spaceSwipeLifted()
+                self?.checkFullScreen()
+            }
         }
         callObserver = calls.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
@@ -155,6 +160,7 @@ final class NotchController {
         settingsObserver = nil
         closeTask?.cancel()
         stopHoverTimer()
+        stopFullScreenChecks()
         panel.orderOut(nil)
         panel.close()
     }
@@ -169,7 +175,7 @@ final class NotchController {
     // MARK: - Hover (spec N-2…N-4)
 
     /// Area that opens the panel: the notch, or the whole peek while a notification shows.
-    private var hoverZone: CGRect {
+    var hoverZone: CGRect {
         let geometry = model.geometry
         return notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize)
     }
@@ -183,11 +189,11 @@ final class NotchController {
             updateCallInteraction()
         } else if model.isExpanded {
             evaluatePointerWhileExpanded()
-        } else if hoverZone.contains(NSEvent.mouseLocation) {
+        } else if openingZone.contains(NSEvent.mouseLocation) {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             expand(preview: settings.hoverPreview)
-        } else {
+        } else if !model.isHiddenForFullScreen {
             updateHoveredIndicator()
         }
     }

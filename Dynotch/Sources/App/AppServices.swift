@@ -19,4 +19,5 @@ struct AppServices {
     let chat: ClaudeChatService
     let battery: BatteryService
     let updates: UpdateService
+    let tablets: TabletDisplayService
 }

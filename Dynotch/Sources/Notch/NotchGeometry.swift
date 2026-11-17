@@ -150,6 +150,13 @@ struct NotchGeometry: Equatable, Sendable {
     }
 
     /// Pointer area that opens the panel (spec N-2): the notch, slightly widened, past the top edge.
+    /// Over a full-screen app the notch is hidden; the pointer at the very top edge, within
+    /// the notch's width, opens it (spec N-12).
+    var topEdgeZone: CGRect {
+        let rect = notchRect
+        return CGRect(x: rect.minX, y: screenFrame.maxY - 3, width: rect.width, height: 3 + Self.topEdgeTolerance)
+    }
+
     var hoverZone: CGRect {
         let rect = notchRect
         return CGRect(
@@ -202,5 +209,18 @@ enum NotchCorners {
     /// One row at notch height gets fully round ends; taller content a softer curve.
     static func radius(notchHeight: CGFloat, isTall: Bool) -> CGFloat {
         isTall ? tallRadius : (notchHeight / 2).rounded()
+    }
+
+    /// The capsule's top corners are round too, so it reaches at least `radius` beyond the
+    /// notch on both sides: otherwise the rounding would cut into the physical notch.
+    /// - Parameters:
+    ///   - width: the black area's width, centred on the notch moved by `offset`.
+    /// - Returns: the capsule's width and how far its centre moves from the black area's.
+    static func capsule(
+        width: CGFloat, offset: CGFloat, notchWidth: CGFloat, radius: CGFloat
+    ) -> (width: CGFloat, shift: CGFloat) {
+        let left = max((width - notchWidth) / 2 - offset, radius)
+        let right = max((width - notchWidth) / 2 + offset, radius)
+        return (notchWidth + left + right, (right - left) / 2 - offset)
     }
 }

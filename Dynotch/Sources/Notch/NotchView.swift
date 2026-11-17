@@ -18,6 +18,7 @@ struct NotchView: View {
     @ObservedObject var battery: BatteryService
     let shortcuts: ShortcutStore
     let updates: UpdateService
+    @ObservedObject var tablets: TabletDisplayService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -57,16 +58,16 @@ struct NotchView: View {
     }
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
-    private var collapsedOffset: CGFloat {
+    var collapsedOffset: CGFloat {
         guard !model.isExpanded, notifications.peek == nil, hud.display == nil, calls.call == nil, !isGathered else { return 0 }
         return indicatorLayout.horizontalOffset
     }
 
     /// A sticky notice is written under the notch unless an indicator's details are open there.
-    private var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
+    var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
 
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
-    private var labelIndex: Int? {
+    var labelIndex: Int? {
         if let hoveredIndicator { return hoveredIndicator }
         guard let announcement = calendar.announcement else { return nil }
         return indicatorItems.firstIndex { item in
@@ -78,18 +79,7 @@ struct NotchView: View {
         model.hoveredIndicator.flatMap { indicatorItems.indices.contains($0) ? $0 : nil }
     }
 
-    private var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
-    private var cornerRadius: CGFloat {
-        if model.isExpanded { return model.isPreview ? 18 : 24 }
-        let isTall = notifications.peek != nil || labelIndex != nil || shownNotice != nil
-        if settings.roundedNotch {
-            let tall = hud.display == nil && (isTall || calls.call != nil)
-            return NotchCorners.radius(notchHeight: geometry.notchSize.height, isTall: tall)
-        }
-        if hud.display != nil { return 10 }
-        if calls.call != nil { return 20 }
-        return isTall ? 16 : 10
-    }
+    var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }
 
     var body: some View {
         // Content lives inside the black background and is clipped by it, so both grow and
@@ -174,9 +164,14 @@ struct NotchView: View {
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
+        // The capsule may reach beyond the content (spec N-11); the content stays in place.
+        .offset(x: -capsule.shift)
+        .frame(width: capsule.width, height: size.height)
         .background(.black)
         .clipShape(shape)
-        .offset(x: collapsedOffset)
+        .offset(x: collapsedOffset + capsule.shift)
+        .opacity(isHiddenForFullScreen ? 0 : 1)
+        .animation(NotchController.animation, value: isHiddenForFullScreen)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
@@ -190,14 +185,6 @@ struct NotchView: View {
         .animation(NotchController.animation, value: settings.roundedNotch)
         .environment(\.colorScheme, .dark)
         .environment(\.pinNotch) { [model] in model.isPinned = true }
-    }
-
-    private var shape: UnevenRoundedRectangle {
-        UnevenRoundedRectangle(
-            bottomLeadingRadius: cornerRadius,
-            bottomTrailingRadius: cornerRadius,
-            style: .continuous
-        )
     }
 
     private var expandedContent: some View {
@@ -228,6 +215,8 @@ struct NotchView: View {
 
     private var menuBar: some View {
         HStack(spacing: 0) {
+            TabletMenu(service: tablets)
+                .padding(.trailing, TabletMenu.spacing)
             FeatureSwitcher(
                 features: settings.activeFeatures,
                 selected: model.isShowingSettings ? nil : model.currentFeature,
