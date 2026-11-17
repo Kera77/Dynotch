@@ -74,11 +74,12 @@ enum OpenMenus {
         let center = NotificationCenter.default
         observers = [
             center.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { note in
-                let menu = note.object as? NSMenu
+                // Delivered on the main queue, where the menu lives.
+                nonisolated(unsafe) let menu = note.object as? NSMenu
                 MainActor.assumeIsolated { if let menu { menus.append(menu) } }
             },
             center.addObserver(forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main) { note in
-                let menu = note.object as? NSMenu
+                nonisolated(unsafe) let menu = note.object as? NSMenu
                 MainActor.assumeIsolated { menus.removeAll { $0 === menu } }
             }
         ]
