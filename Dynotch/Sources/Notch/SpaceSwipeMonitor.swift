@@ -13,10 +13,11 @@ enum SpaceSwipe {
     /// Event type of dock control events (CGSEventType 30) and of gestures (29).
     static let dockControlType: UInt32 = 30
     static let gestureType: UInt32 = 29
-    static let hidTypeField = CGEventField(rawValue: 110)
-    static let motionField = CGEventField(rawValue: 123)
-    static let progressField = CGEventField(rawValue: 124)
-    static let phaseField = CGEventField(rawValue: 132)
+    /// Undocumented fields; nil if this macOS does not know them.
+    static let hidTypeField: CGEventField? = CGEventField(rawValue: 110)
+    static let motionField: CGEventField? = CGEventField(rawValue: 123)
+    static let progressField: CGEventField? = CGEventField(rawValue: 124)
+    static let phaseField: CGEventField? = CGEventField(rawValue: 132)
     /// kIOHIDEventTypeDockSwipe
     static let dockSwipeHIDType: Int64 = 23
     /// Left or right, as opposed to up (Mission Control) or down (App Exposé).
@@ -81,9 +82,12 @@ final class SpaceSwipeMonitor {
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return
         }
-        let hidType = event.getIntegerValueField(SpaceSwipe.hidTypeField)
-        let motion = event.getIntegerValueField(SpaceSwipe.motionField)
-        let rawPhase = event.getIntegerValueField(SpaceSwipe.phaseField)
+        guard let hidField = SpaceSwipe.hidTypeField, let motionField = SpaceSwipe.motionField,
+              let phaseField = SpaceSwipe.phaseField
+        else { return }
+        let hidType = event.getIntegerValueField(hidField)
+        let motion = event.getIntegerValueField(motionField)
+        let rawPhase = event.getIntegerValueField(phaseField)
         log(type: type, hidType: hidType, motion: motion, rawPhase: rawPhase, event: event)
         guard SpaceSwipe.isSpaceSwipe(type: type.rawValue, hidType: hidType, motion: motion),
               let phase = SpaceSwipe.phase(fromRaw: rawPhase)
@@ -110,7 +114,7 @@ final class SpaceSwipeMonitor {
     private func log(type: CGEventType, hidType: Int64, motion: Int64, rawPhase: Int64, event: CGEvent) {
         guard type.rawValue == SpaceSwipe.dockControlType, logged < 40 else { return }
         logged += 1
-        let progress = event.getDoubleValueField(SpaceSwipe.progressField)
+        let progress = SpaceSwipe.progressField.map { event.getDoubleValueField($0) } ?? -1
         DiagnosticsLog.append(
             "spaces",
             "dock event: hid=\(hidType) motion=\(motion) phase=\(rawPhase) progress=\(String(format: "%.2f", progress))"
