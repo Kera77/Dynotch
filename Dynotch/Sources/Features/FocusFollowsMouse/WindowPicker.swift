@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import Foundation
 
@@ -47,6 +48,15 @@ enum WindowPicker {
 /// When focus must not follow the pointer (spec F-8).
 enum FocusRules {
     /// Focus only moves to another app, never between the windows of the active one.
+    /// A Dynotch window someone may be typing in. The notch panel keeps reporting itself as
+    /// key after it closed (it never activates the app, so nothing takes that from it); it only
+    /// counts while it asks for the keyboard (spec F-4, F-11).
+    @MainActor
+    static func takesKeyboard(_ window: NSWindow) -> Bool {
+        guard window.isKeyWindow, window.isVisible else { return false }
+        return (window as? NotchPanel)?.allowsKey ?? true
+    }
+
     static func shouldSwitch(targetPID: pid_t, frontPID: pid_t?) -> Bool {
         targetPID != frontPID
     }

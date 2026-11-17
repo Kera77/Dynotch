@@ -12,7 +12,9 @@ extension NotchView {
         case .notifications:
             NotificationsFeatureView(service: notifications, isActive: model.isExpanded && model.currentFeature == .notifications)
         case .calculator:
-            CalculatorFeatureView(store: calculator)
+            CalculatorFeatureView(
+                store: calculator, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .calculator
+            )
         case .notes:
             NotesFeatureView(store: notes, isActive: model.isExpanded && model.currentFeature == .notes)
         case .reminders:

@@ -11,7 +11,7 @@ enum CalculatorEngine {
     /// Formatted result of a line, or nil if the line is not a calculation
     /// (plain text, a lone number, or an incomplete expression).
     static func result(for line: String) -> String? {
-        guard let tokens = tokenize(line), tokens.count > 1 else { return nil }
+        guard let tokens = tokenize(String(expressionPart(of: line))), tokens.count > 1 else { return nil }
         var parser = Parser(tokens: tokens)
         guard let value = parser.parseAll(), value.isFinite else { return nil }
         return format(value)
@@ -33,7 +33,7 @@ enum CalculatorEngine {
     }
 
     static func evaluate(_ line: String) -> Double? {
-        guard let tokens = tokenize(line) else { return nil }
+        guard let tokens = tokenize(String(expressionPart(of: line))) else { return nil }
         var parser = Parser(tokens: tokens)
         guard let value = parser.parseAll(), value.isFinite else { return nil }
         return value
@@ -57,6 +57,19 @@ enum CalculatorEngine {
         var output = String(grouped.reversed())
         if parts.count > 1 { output += "," + parts[1] }
         return rounded < 0 ? "-" + output : output
+    }
+
+    /// The calculation in a line that also has words (spec SZ-11): after the last ":", without
+    /// the words before the first number and after the last one: "Rent: 1200*12 eur" →
+    /// "1200*12". Words between the numbers still make it no calculation.
+    static func expressionPart(of line: String) -> Substring {
+        var part = Substring(line)
+        if let colon = part.lastIndex(of: ":") { part = part[part.index(after: colon)...] }
+        guard let first = part.firstIndex(where: { isDigit($0) || "(-−.,".contains($0) }),
+              let last = part.lastIndex(where: { isDigit($0) || ")%".contains($0) }),
+              first <= last
+        else { return "" }
+        return part[first...last]
     }
 
     // MARK: - Tokenizer

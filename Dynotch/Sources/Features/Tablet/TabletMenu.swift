@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Tablet button in the panel's top row, beside "focus follows mouse": its menu connects an iPad as a display,
@@ -12,11 +13,6 @@ struct TabletMenu: View {
             Image(systemName: "ipad.landscape")
                 .font(.system(size: 12, weight: .semibold))
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .overlay(alignment: .bottomTrailing) {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 6, weight: .bold))
-                        .offset(x: -3, y: -2)
-                }
                 .foregroundStyle(service.connected != nil ? ClaudeUsageView.blue : Color.white.opacity(0.45))
                 .contentShape(Rectangle())
         }
@@ -63,5 +59,34 @@ struct TabletMenu: View {
         }
         Divider()
         Button("Display Settings…") { service.openDisplaySettings() }
+    }
+}
+
+/// The menus Dynotch has open (the tablet menu, list pickers…): when the notch closes under
+/// them they close too, instead of staying on screen until the next click (spec TB-5).
+@MainActor
+enum OpenMenus {
+    private static var menus: [NSMenu] = []
+    private static var observers: [NSObjectProtocol] = []
+
+    static func start() {
+        guard observers.isEmpty else { return }
+        let center = NotificationCenter.default
+        observers = [
+            center.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { note in
+                let menu = note.object as? NSMenu
+                MainActor.assumeIsolated { if let menu { menus.append(menu) } }
+            },
+            center.addObserver(forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main) { note in
+                let menu = note.object as? NSMenu
+                MainActor.assumeIsolated { menus.removeAll { $0 === menu } }
+            }
+        ]
+    }
+
+    static func closeAll() {
+        let open = menus
+        menus = []
+        open.forEach { $0.cancelTracking() }
     }
 }

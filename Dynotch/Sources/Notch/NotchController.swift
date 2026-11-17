@@ -125,6 +125,7 @@ final class NotchController {
         }
         chatChanged()
         startFullScreenChecks()
+        OpenMenus.start()
         spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -245,6 +246,7 @@ final class NotchController {
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         // Only an open panel ends the filter; the closed panels of other displays leave it.
         if model.isExpanded { notifications.clearFocus() }
+        OpenMenus.closeAll()
         withAnimation(Self.animation) { model.setExpanded(false) }
     }
 

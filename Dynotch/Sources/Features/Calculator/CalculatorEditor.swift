@@ -3,6 +3,8 @@ import SwiftUI
 /// The calculator notepad: type calculations on the left, results appear on the right.
 struct CalculatorEditor: NSViewRepresentable {
     @Binding var text: String
+    /// Shown and ready for typing: the caret goes to a new line (spec SZ-10).
+    var isActive = true
 
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text)
@@ -16,6 +18,11 @@ struct CalculatorEditor: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         context.coordinator.text = $text
+        if isActive, !context.coordinator.wasActive, let textView = scrollView.documentView as? CalculatorTextView {
+            // After this update, once the view is in its window.
+            DispatchQueue.main.async { textView.focusForTyping() }
+        }
+        context.coordinator.wasActive = isActive
         // Another editor (other display, menu bar panel) changed the shared text.
         guard let textView = scrollView.documentView as? CalculatorTextView, textView.string != text else { return }
         textView.string = text
@@ -24,6 +31,7 @@ struct CalculatorEditor: NSViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
+        var wasActive = false
 
         init(text: Binding<String>) {
             self.text = text
@@ -60,9 +68,10 @@ struct PinButton: View {
 /// Calculator feature in the notch.
 struct CalculatorFeatureView: View {
     @ObservedObject var store: CalculatorStore
+    var isActive = false
 
     var body: some View {
-        CalculatorEditor(text: $store.text)
+        CalculatorEditor(text: $store.text, isActive: isActive)
             .padding(.top, 4)
     }
 }

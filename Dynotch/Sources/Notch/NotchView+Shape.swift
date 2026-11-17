@@ -20,10 +20,11 @@ extension NotchView {
     /// as anything unfolds below it, it straightens out, and back again.
     var isCapsule: Bool { settings.roundedNotch && !model.isExpanded && !isTall }
 
-    var capsule: (width: CGFloat, shift: CGFloat) {
-        guard isCapsule else { return (size.width, 0) }
+    var capsule: NotchCorners.Capsule {
+        guard isCapsule else { return NotchCorners.Capsule(width: size.width, shift: 0) }
         return NotchCorners.capsule(
-            width: size.width, offset: collapsedOffset, notchWidth: geometry.notchSize.width, radius: cornerRadius
+            width: size.width, offset: collapsedOffset, notchWidth: geometry.notchSize.width, radius: cornerRadius,
+            onlyWhereShown: settings.roundOnlyWhereShown
         )
     }
 
@@ -34,13 +35,22 @@ extension NotchView {
     }
 
     var shape: UnevenRoundedRectangle {
-        let top = isCapsule ? cornerRadius : 0
+        guard isCapsule else {
+            return UnevenRoundedRectangle(bottomLeadingRadius: cornerRadius, bottomTrailingRadius: cornerRadius, style: .continuous)
+        }
+        // A side that is not round keeps the resting notch's small corner (spec N-13).
+        let outline = capsule
+        let leading = outline.roundsLeading ? cornerRadius : 0
+        let trailing = outline.roundsTrailing ? cornerRadius : 0
         return UnevenRoundedRectangle(
-            topLeadingRadius: top,
-            bottomLeadingRadius: cornerRadius,
-            bottomTrailingRadius: cornerRadius,
-            topTrailingRadius: top,
+            topLeadingRadius: leading,
+            bottomLeadingRadius: outline.roundsLeading ? cornerRadius : Self.restingRadius,
+            bottomTrailingRadius: outline.roundsTrailing ? cornerRadius : Self.restingRadius,
+            topTrailingRadius: trailing,
             style: .continuous
         )
     }
+
+    /// The bottom corners of the closed notch when it is not rounded.
+    static var restingRadius: CGFloat { 10 }
 }

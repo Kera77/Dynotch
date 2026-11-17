@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.36.1 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.37 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -37,6 +37,7 @@
 | N-10 | **Space-váltás (v0.30):** amikor a kétujjas/háromujjas Space-váltó swipe **elindul**, a becsukott notch mellett álló jelzők **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik); a behúzódás mindig végigér (0,16 s); az ujj felemelése után (ami kb. 0,1 s-mal a swipe indulása után történik, miközben a Space-ek még kb. 0,4 s-ig csúsznak) rövid kitartás, majd gyors rugóval **szétnyílnak**, így mire a csúszás megáll, a notch már normál állapotban van. (v0.31: időzítés javítva, korábban a túl korai szétnyílás miatt nem látszott.) A swipe-ot a rendszer Dock-vezérlő eseményéből ismeri fel (csak figyel, nem módosítja); ha a vége elveszne, 2,5 s után vagy a Space-váltáskor magától szétnyílik. Külön Space-ekkel rendelkező kijelzőknél csak az egér alatti kijelzőn. „Mozgás csökkentése” esetén nincs animáció. |
 | N-11 | (v0.33) **Lekerekített notch (Dynamic Island-szerű):** a becsukott notch alsó sarkai lekerekednek – egy sornyi tartalomnál (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő) a notch magasságának felével, így a végei teljesen kerekek; magasabb tartalomnál (értesítés, hívás, meeting részletei, lelógó sor) 22 pt-tal. Lenyitáskor a sugár a méretváltozással együtt, ugyanazzal a rugóval áll vissza a panel szokásos (24 pt, előnézetnél 18 pt) sarkára, így a nagy panel „kiegyenesedik”. Ki-be kapcsolható: *Beállítások › General › Rounded notch* (alapból be); kikapcsolva a korábbi sarkok maradnak. (v0.34) **Teljes kapszula:** a felső sarkok is kerekek, ugyanazzal a sugárral. Hogy a felső lekerekítés ne vágjon bele a fizikai notchba, a fekete rész mindkét oldalon legalább egy sugárnyival túlnyúlik a notchon (üresen ezért szélesebb a fizikai notchnál; ha csak az egyik oldalon áll tartalom, a másikon kap ennyi helyet); a tartalom a helyén marad. Lenyitáskor a felső sarkok kiegyenesednek, a panel teteje ismét a képernyő széléhez simul. (v0.35) **Csak az alapállapot kapszula:** az egysoros becsukott notch (üresen, jelzőkkel, jelvényekkel, hangerő/fényerő mellett). Amint bármi lelóg vagy megnő – értesítés, hívás, meeting részletei, lelógó sor, előnézet, lenyitás –, a notch ugyanazzal a rugóval kiegyenesedik (felül szögletes, alul a korábbi sarkok), és utána vissza. |
 | N-12 | (v0.34) **Teljes képernyős appoknál rejtve:** ha az adott kijelzőn egy app ablaka a teljes képernyőt (a menüsor sávját is) lefedi, a becsukott notch mellett **semmi nem látszik** – se jelzők, se jelvények, se értesítések, se lelógó sor (a notch fekete része sem). Csak egy bejövő hívás és a hangerő/fényerő jelenik meg. A notch akkor nyílik le, ha az egér **a képernyő legfelső szélére**, a notch szélességén belülre ér (a szokásos hover-zóna itt nem nyit). Felismerés: másodpercenként és Space-váltáskor az ablakok kereteiből (a tartalmukat nem nézi). Ki-be kapcsolható: *Settings › General › Hide the notch over full-screen apps* (alapból be). |
+| N-13 | (v0.37) **Csak a tartalmas oldal kerek:** *Settings › General › Round only the sides with something shown* (alapból ki; csak a lekerekített notch mellett állítható). Bekapcsolva a kapszula csak azon az oldalon kerek (és nyúlik túl a notchon), ahol a notch mellett valami látszik (jelző, jelvény, hangerő); a másik oldal a notch saját szélét követi (felül szögletes, alul a szokásos kis sarok). Üres notchnál egyik oldal sem kerek. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -80,6 +81,7 @@
 | C-1b | A beállítások fülei **ikonok**; a fülsor mellett mindig ki van írva a kiválasztott fül neve, hoverre pedig annak a fülnek a neve, amelyik fölött az egér áll. |
 | C-2 | Beállítás: **hol nyíljanak meg a beállítások**. *A notchban* (alapértelmezett): a panel a beállítások méretére nő (520 × 440 pt tartalom a menüsor alatt), és minden beállítás a notchban jelenik meg; a fogaskerékre vagy egy funkció ikonjára kattintva, illetve a panel bezárásakor visszatér a funkciókhoz. *Külön ablakban*: a panel becsukódik, és egy normál macOS ablak nyílik meg ugyanazzal a tartalommal. |
 | C-3 | Amíg a beállítások a notchban látszanak, a swipe nem vált funkciót, és a panel lenyomott egérgomb mellett (például csúszka húzásakor) nem csukódik be. |
+| C-6 | (v0.37) Ha a beállítások a notchban nyílnak meg, a notch **automatikusan rögzül** (kék lakat), így nem csukódik be munka közben. A beállítások bezárásakor (fogaskerék, modulválasztás, bezáródás) a rögzítés feloldódik, ha azt a beállítások kapcsolták be; a kézzel előtte bekapcsolt rögzítés megmarad. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
 | C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
@@ -243,6 +245,8 @@
 | SZ-6c | A szövegmezőben működnek a szokásos billentyűparancsok (⌘C, ⌘X, ⌘V, ⌘A, ⌘Z, ⇧⌘Z), a notchban is. A beillesztés mindig sima szöveg. |
 | SZ-7 | A menüsor panelje megkapja a billentyűzetet, de nem aktiválja a Dynotch-ot (az addig használt app ablaka elöl marad). |
 | SZ-9 | **Másolás:** egy eredményre kattintva az a vágólapra kerül (ezres tagolás nélkül, például `1524,5`), és a sorban egy pillanatra „Másolva ✓” jelenik meg. Az eredmények fölött az egérmutató kézre vált. |
+| SZ-10 | (v0.37) Megnyitáskor (hoverrel, kattintással, gyorsbillentyűvel vagy a menüsorból) a számológép **azonnal fogadja a gépelést**, nem kell belekattintani: a notch erre a modulra rögtön átveszi a billentyűzetet, a kurzor pedig a szöveg végén **egy új sorban** áll (ha az utolsó sor nem üres, új sor kezdődik). |
+| SZ-11 | (v0.37) **Szöveg a sorban:** a számítás akkor is kiértékelődik, ha szöveg van körülötte: az utolsó kettőspont utáni rész számít, és az első szám előtti, valamint az utolsó szám utáni szavak elhagyhatók (pl. „Asd: 10*10” → 100, „Rent 1200*12 eur” → 14 400). A számok közötti szó továbbra sem számítás. Az eredmény színe a Dynotch szokásos kékje (korábban zöld). |
 | SZ-8 | **Lakat ikon** a notch menüsorában és a menüsor paneljén: alapból szürke, bekattintva **zöld**. Bekattintva a panel **nyitva marad**, akkor is, ha az egér elhagyja (notch), illetve ha máshova kattintasz (menüsor panel). A két lakat független. A notch lakatja a panel bezárásakor (és újraindításkor) kikapcsol. |
 
 ---
@@ -297,6 +301,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-8 | (v0.25) **Az aktív alkalmazáson belül a fókusz nem vált ablakot** (az app maga dönti el, melyik ablaka aktív), csak másik alkalmazásra. Így a párbeszédablakok és felugró ablakok nem villódznak. Ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. |
 | F-9 | (v0.26) A lenyitott notch jobb felső sorában, a billentyűzetzár mellett **felfelé nyíl ikonú kapcsoló**: be- és kikapcsolja a funkciót (bekapcsolva kék). |
 | F-10 | (v0.35, **v0.36.1-ben visszavonva**) A kattintás körüli szünet (lenyomáskor a függő váltás megszakítása, utána 0,5 mp szünet) után a fókusz alig követte az egeret, ezért a korábbi működés állt vissza. Helyette a `focus.log` rögzíti, miért marad el egy váltás (Dynotch-ablaké a billentyűzet; az ablak kétszer sem tartotta meg a fókuszt; a WindowServer elutasította), okonként legfeljebb percenként egyszer, app- és ablaknevek nélkül. |
+| F-11 | (v0.37) A notch panelje bezárás után is „billentyűzetet fogadónak” jelezte magát (nem aktiválja az appot, így semmi nem veszi el tőle ezt az állapotot), ezért gépelés után (beállítások, számológép, jegyzet) a fókusz sokáig nem követte az egeret, főleg kijelzők közötti váltáskor. A notch panelje mostantól csak akkor számít, amikor nyitva van és valóban kéri a billentyűzetet. |
 
 ---
 
@@ -421,6 +426,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-2 | **Mirror or extend to:** a közelben lévő, kijelzőként használható iPadek (Sidecar) pipával; kattintásra csatlakozik (kiterjesztett kijelzőként), pipásra kattintva lecsatlakozik. Nem csatlakozott iPadhez „Mirror to …” sor is van: csatlakozik és rögtön tükröz. Ha nincs iPad: „No iPad nearby”. |
 | TB-3 | Csatlakozott iPadnél a menü saját szakaszában: **Extended display / Mirror of the main display** (választó) és **Disconnect**. A tükrözés a fő kijelzőt mutatja az iPaden. |
 | TB-4 | A menü alján **Display Settings…** nyitja a macOS Kijelzők beállításait – ott érhető el az AirPlay-kijelző (pl. TV) és a billentyűzet/egér összekapcsolása (Universal Control), mert ezeket egy nem Apple által aláírt app nem tudja vezérelni. Hiba esetén az oka a menüben látszik. Megvalósítás: a privát `SidecarCore` (`SidecarDisplayManager`) és a CoreGraphics tükrözés. |
+| TB-5 | (v0.37) A tablet ikon mellől elmaradt a kis lefelé nyíl. Ha a notch bezáródik, a nyitva maradt menü (a tablet menü és a notch többi menüje) is bezáródik, nem marad a képernyőn a következő kattintásig. |
 
 ## 4s. Claude kérdez (v0.36)
 
@@ -476,6 +482,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.37** | Beállítások rögzítve nyílnak; számológép: szöveg a sorban, kék eredmény, azonnali gépelés; autoraise gépelés után is vált; csak a tartalmas oldal kerek (kapcsoló); a tablet menü a notch-csal együtt záródik |
 | **v0.36.1** | Az autoraise korábbi működése visszaáll; naplózza, ha nem vált |
 | **v0.36** | Jelzés a notch alatt, ha a Claude Code kérdez vagy engedélyre vár (terminál, VS Code); válaszra eltűnik |
 | **v0.35** | A notch csak alapállapotban kapszula; tablet menü jobbra, a gombok elférnek; „New task” sor az Emlékeztetőkben; autoraise kattintás közben nem vált |

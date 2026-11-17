@@ -76,16 +76,33 @@ final class CalculatorTextView: EditingTextView {
         return rows
     }
 
+    /// Ready to type: the keyboard goes here and the caret waits on a new line at the end
+    /// (spec SZ-10).
+    func focusForTyping() {
+        guard let window else { return }
+        window.makeFirstResponder(self)
+        if !string.isEmpty, !string.hasSuffix("\n"), let storage = textStorage {
+            let end = NSRange(location: storage.length, length: 0)
+            if shouldChangeText(in: end, replacementString: "\n") {
+                storage.replaceCharacters(in: end, with: NSAttributedString(string: "\n", attributes: typingAttributes))
+                didChangeText()
+            }
+        }
+        setSelectedRange(NSRange(location: (string as NSString).length, length: 0))
+        scrollRangeToVisible(selectedRange())
+    }
+
     private func refreshResults() {
         resultsView.needsDisplay = true
         window?.invalidateCursorRects(for: resultsView)
     }
 }
 
-/// The result column: green results, right-aligned on their lines. Clicking a result copies
+/// The result column: blue results, right-aligned on their lines. Clicking a result copies
 /// it to the clipboard (spec SZ-9).
 final class CalculatorResultsView: NSView {
-    static let resultColor = NSColor(srgbRed: 0.25, green: 0.86, blue: 0.45, alpha: 1)
+    /// The standard blue of Dynotch's controls (spec SZ-11).
+    static let resultColor = NSColor(srgbRed: 0.04, green: 0.52, blue: 1, alpha: 1)
     private static let copiedText = "Copied ✓"
     private static let trailingPadding: CGFloat = 8
 

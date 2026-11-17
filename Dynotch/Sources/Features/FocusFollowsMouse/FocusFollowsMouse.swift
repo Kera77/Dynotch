@@ -58,7 +58,7 @@ final class FocusFollowsMouse {
         // Never while dragging or selecting, and never take the keyboard from a Dynotch panel
         // someone is typing in (spec F-4).
         guard NSEvent.pressedMouseButtons == 0 else { return }
-        if let window = NSApp.windows.first(where: { $0.isKeyWindow && $0.isVisible }) {
+        if let window = NSApp.windows.first(where: FocusRules.takesKeyboard) {
             logSkip("a Dynotch window has the keyboard (\(type(of: window)))")
             return
         }

@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-11-17
+
+### Added
+- Settings › General › "Round only the sides with something shown": only a side of the notch
+  with something beside it is round.
+- The calculator works out lines with words around the calculation ("Asd: 10*10"). Its results
+  are blue.
+
+### Changed
+- Settings opened in the notch pin it; closing them unpins it again.
+- The calculator takes typing as soon as it opens (hover, shortcut or menu bar), on a new line.
+- The tablet icon has no arrow any more.
+
+### Fixed
+- After typing in the notch, focus follows mouse often did not switch (e.g. between the external
+  and the built-in display): the closed notch panel still counted as one taking the keyboard.
+- A menu opened in the notch stayed on screen after the notch closed.
+
 ## [0.36.1] - 2026-11-17
 
 ### Fixed

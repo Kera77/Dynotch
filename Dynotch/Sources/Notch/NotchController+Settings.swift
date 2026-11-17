@@ -10,7 +10,16 @@ extension NotchController {
             collapse()
             openSettings()
         case .notch:
-            withAnimation(Self.animation) { model.setShowingSettings(!model.isShowingSettings) }
+            let showing = !model.isShowingSettings
+            withAnimation(Self.animation) { model.setShowingSettings(showing) }
+            // The settings keep the notch open while you work in them (spec C-6).
+            if showing, !model.isPinned {
+                model.isPinned = true
+                model.pinnedForSettings = true
+            } else if !showing, model.pinnedForSettings {
+                model.isPinned = false
+                model.pinnedForSettings = false
+            }
         }
     }
 
@@ -25,7 +34,8 @@ extension NotchController {
         panel.allowsKey = wantsKeyboard
         if !wantsKeyboard {
             panel.resignKey()
-        } else if model.isShowingSettings || !openedJustNow {
+        } else if model.isShowingSettings || !openedJustNow || model.currentFeature == .calculator {
+            // The calculator takes typing right away, even when opened by hover (spec SZ-10).
             panel.makeKey()
         }
     }

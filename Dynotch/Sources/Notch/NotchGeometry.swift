@@ -208,16 +208,31 @@ enum NotchCorners {
         (notchHeight / 2).rounded()
     }
 
-    /// The capsule's top corners are round too, so it reaches at least `radius` beyond the
-    /// notch on both sides: otherwise the rounding would cut into the physical notch.
-    /// - Parameters:
-    ///   - width: the black area's width, centred on the notch moved by `offset`.
-    /// - Returns: the capsule's width and how far its centre moves from the black area's.
+    /// The closed notch's outline in its resting state (spec N-11, N-13).
+    struct Capsule: Equatable {
+        var width: CGFloat
+        /// How far its centre moves from the black area's.
+        var shift: CGFloat
+        var roundsLeading = true
+        var roundsTrailing = true
+    }
+
+    /// Round sides reach at least `radius` beyond the notch, so the rounding never cuts into the
+    /// physical notch. With `onlyWhereShown`, only a side with something beside the notch is
+    /// round; the other keeps the notch's own edge.
+    /// - Parameter width: the black area's width, centred on the notch moved by `offset`.
     static func capsule(
-        width: CGFloat, offset: CGFloat, notchWidth: CGFloat, radius: CGFloat
-    ) -> (width: CGFloat, shift: CGFloat) {
-        let left = max((width - notchWidth) / 2 - offset, radius)
-        let right = max((width - notchWidth) / 2 + offset, radius)
-        return (notchWidth + left + right, (right - left) / 2 - offset)
+        width: CGFloat, offset: CGFloat, notchWidth: CGFloat, radius: CGFloat, onlyWhereShown: Bool = false
+    ) -> Capsule {
+        let leftContent = (width - notchWidth) / 2 - offset
+        let rightContent = (width - notchWidth) / 2 + offset
+        let roundsLeft = !onlyWhereShown || leftContent > 0.5
+        let roundsRight = !onlyWhereShown || rightContent > 0.5
+        let left = roundsLeft ? max(leftContent, radius) : max(leftContent, 0)
+        let right = roundsRight ? max(rightContent, radius) : max(rightContent, 0)
+        return Capsule(
+            width: notchWidth + left + right, shift: (right - left) / 2 - offset,
+            roundsLeading: roundsLeft, roundsTrailing: roundsRight
+        )
     }
 }

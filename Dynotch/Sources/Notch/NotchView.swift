@@ -183,6 +183,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: notices.notice)
         .animation(Self.quickAnimation, value: calls.isComposing)
         .animation(NotchController.animation, value: settings.roundedNotch)
+        .animation(NotchController.animation, value: settings.roundOnlyWhereShown)
         .environment(\.colorScheme, .dark)
         .environment(\.pinNotch) { [model] in model.isPinned = true }
     }

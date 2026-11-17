@@ -37,6 +37,7 @@ final class AppSettings: ObservableObject {
         static let haptics = "haptics"
         static let roundedNotch = "roundedNotch"
         static let hideInFullScreen = "hideInFullScreen"
+        static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
         static let claudeAlerts = "claudeAlerts"
@@ -156,6 +157,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
     }
 
+    /// Only the sides of the notch with something beside them are round (spec N-13).
+    @Published var roundOnlyWhereShown: Bool {
+        didSet { defaults.set(roundOnlyWhereShown, forKey: Key.roundOnlyWhereShown) }
+    }
+
     /// Over a full-screen app the closed notch is hidden (spec N-12).
     @Published var hideInFullScreen: Bool {
         didSet { defaults.set(hideInFullScreen, forKey: Key.hideInFullScreen) }
@@ -247,6 +253,7 @@ final class AppSettings: ObservableObject {
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         roundedNotch = defaults.object(forKey: Key.roundedNotch) as? Bool ?? true
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
+        roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)

@@ -151,6 +151,8 @@ private struct GeneralSettingsView: View {
             }
             Section {
                 Toggle("Rounded notch, like the Dynamic Island", isOn: $settings.roundedNotch)
+                Toggle("Round only the sides with something shown", isOn: $settings.roundOnlyWhereShown)
+                    .disabled(!settings.roundedNotch)
                 Toggle("Hide the notch over full-screen apps", isOn: $settings.hideInFullScreen)
             } footer: {
                 Text("Rounded: the closed notch is a capsule that straightens out as it opens. Hidden: nothing shows "
