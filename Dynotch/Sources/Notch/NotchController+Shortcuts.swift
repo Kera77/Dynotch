@@ -103,6 +103,17 @@ extension NotchController {
         withAnimation(Self.animation) { model.select(.claudeChat) }
     }
 
+    /// Hovering a question of Claude Code brings the app it runs in forward, once (spec CQ-3).
+    func bringsAskerForward(at point: CGPoint, layout: IndicatorLayout) -> Bool {
+        guard let notice = notices.notice, notice.isQuestion, let app = notice.appIdentifier,
+              model.hoveredIndicator == nil, calendar.announcement == nil, noticeArea(for: layout).contains(point)
+        else { return false }
+        guard activatedQuestion != notice.date else { return true }
+        activatedQuestion = notice.date
+        NSRunningApplication.runningApplications(withBundleIdentifier: app).first?.activate()
+        return true
+    }
+
     /// Hovering the "Claude answered" line opens the chat.
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
         guard notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,

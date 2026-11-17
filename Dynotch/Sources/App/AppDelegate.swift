@@ -48,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.badges.start()
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
+        ClaudeQuestionHook.upgradeIfNeeded()
         services.battery.start()
         services.updates.start()
         if let previous = services.updates.versionUpdatedFrom() {

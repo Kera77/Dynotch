@@ -15,7 +15,9 @@ extension NotchController {
         let shownBadges = fit.shown
         let layout = IndicatorLayout(items: items, badges: shownBadges, overflow: fit.hidden > 0)
         let point = NSEvent.mouseLocation
-        if notifications.peek == nil, opensAnswer(at: point, layout: layout) { return }
+        if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
+            return
+        }
         guard !layout.isEmpty, notifications.peek == nil else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)

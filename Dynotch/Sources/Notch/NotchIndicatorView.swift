@@ -204,7 +204,8 @@ extension NotchIndicatorView {
             BrandGlyphView(glyph: .claude, size: 14)
             Text(notice.title)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
+                // A question waits for an answer (spec CQ-2).
+                .foregroundStyle(notice.isQuestion ? Color(red: 1, green: 0.62, blue: 0.1) : .white)
                 .lineLimit(1)
             Text([notice.detail, notice.date.formatted(date: .omitted, time: .shortened)].filter { !$0.isEmpty }.joined(separator: " · "))
                 .font(.system(size: 11))

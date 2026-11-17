@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-11-17
+
+### Added
+- A line under the notch when Claude Code asks a question or waits for a permission, in the
+  terminal or in VS Code. It goes once answered; hovering it brings that app forward.
+  Settings › General › "Tell me when Claude Code asks a question".
+
 ## [0.35.0] - 2026-11-17
 
 ### Added

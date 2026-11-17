@@ -126,6 +126,7 @@ private struct GeneralSettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
+    @State private var questionHook = ClaudeQuestionHook.isInstalled()
     @State private var claudeHookError: String?
 
     var body: some View {
@@ -213,14 +214,19 @@ private struct GeneralSettingsView: View {
                     .onChange(of: claudeHook) { _, enabled in
                         setClaudeHook(enabled)
                     }
+                Toggle("Tell me when Claude Code asks a question", isOn: $questionHook)
+                    .onChange(of: questionHook) { _, enabled in
+                        setQuestionHook(enabled)
+                    }
                 if let claudeHookError {
                     Text(claudeHookError)
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
             } footer: {
-                Text("Adds a Stop hook to ~/.claude/settings.json (a backup is kept). The notice stays under the notch "
-                    + "until you swipe it up with two fingers.")
+                Text("Adds hooks to ~/.claude/settings.json (a backup is kept), in the terminal and in VS Code alike. "
+                    + "\"Finished\" stays under the notch until you swipe it up; a question or permission request goes once "
+                    + "answered, and hovering it brings the app forward.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -257,6 +263,17 @@ private struct GeneralSettingsView: View {
         } catch {
             claudeHookError = "Couldn't change ~/.claude/settings.json: \(error.localizedDescription)"
             claudeHook = ClaudeHook.isInstalled()
+        }
+    }
+
+    private func setQuestionHook(_ enabled: Bool) {
+        guard enabled != ClaudeQuestionHook.isInstalled() else { return }
+        do {
+            try ClaudeQuestionHook.setInstalled(enabled)
+            claudeHookError = nil
+        } catch {
+            claudeHookError = "Couldn't change ~/.claude/settings.json: \(error.localizedDescription)"
+            questionHook = ClaudeQuestionHook.isInstalled()
         }
     }
 

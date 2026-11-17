@@ -8,6 +8,10 @@ struct StickyNotice: Equatable, Sendable {
     let date: Date
     /// Hovering it opens the Claude chat (spec CC-5).
     var opensChat = false
+    /// Claude Code waits for an answer: the notice goes when it is answered (spec CQ-1).
+    var isQuestion = false
+    /// The app Claude Code runs in (Terminal, VS Code…), brought forward on hover (spec CQ-3).
+    var appIdentifier: String?
 }
 
 @MainActor
@@ -24,6 +28,18 @@ final class NoticeService: ObservableObject {
 
     /// Links other programs open to tell Dynotch something (spec CN-2).
     func handle(_ url: URL) {
+        switch ClaudeQuestionHook.event(from: url, now: Date()) {
+        case .asks(let question):
+            show(question)
+            return
+        case .answered:
+            if notice?.isQuestion == true { dismiss() }
+            return
+        case .ignored:
+            return
+        case nil:
+            break
+        }
         guard let notice = ClaudeHook.notice(from: url, now: Date()) else { return }
         guard let transcript = ClaudeHook.transcriptPath(from: url) else {
             show(notice)
@@ -121,7 +137,7 @@ enum ClaudeHook {
 
     struct InvalidSettings: Error {}
 
-    private static func read() throws -> [String: Any] {
+    static func read() throws -> [String: Any] {
         guard let data = try? Data(contentsOf: settingsURL) else { return [:] }
         guard let settings = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw InvalidSettings() }
         return settings
@@ -133,7 +149,11 @@ enum ClaudeHook {
 
     /// Adds or removes the hook in ~/.claude/settings.json; the first change keeps a backup.
     static func setInstalled(_ installed: Bool) throws {
-        let current = try read()
+        try write(settings(try read(), installed: installed))
+    }
+
+    /// Writes ~/.claude/settings.json; the first change keeps a backup.
+    static func write(_ settings: [String: Any]) throws {
         let url = settingsURL
         let backup = url.deletingLastPathComponent().appendingPathComponent("settings.json.dynotch-backup")
         if FileManager.default.fileExists(atPath: url.path), !FileManager.default.fileExists(atPath: backup.path) {
@@ -141,7 +161,7 @@ enum ClaudeHook {
         }
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let data = try JSONSerialization.data(
-            withJSONObject: settings(current, installed: installed), options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+            withJSONObject: settings, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         )
         try data.write(to: url, options: .atomic)
     }

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.35 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.36 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -422,6 +422,15 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-3 | Csatlakozott iPadnél a menü saját szakaszában: **Extended display / Mirror of the main display** (választó) és **Disconnect**. A tükrözés a fő kijelzőt mutatja az iPaden. |
 | TB-4 | A menü alján **Display Settings…** nyitja a macOS Kijelzők beállításait – ott érhető el az AirPlay-kijelző (pl. TV) és a billentyűzet/egér összekapcsolása (Universal Control), mert ezeket egy nem Apple által aláírt app nem tudja vezérelni. Hiba esetén az oka a menüben látszik. Megvalósítás: a privát `SidecarCore` (`SidecarDisplayManager`) és a CoreGraphics tükrözés. |
 
+## 4s. Claude kérdez (v0.36)
+
+| # | Követelmény |
+|---|-------------|
+| CQ-1 | Ha a Claude Code (terminálban, a VS Code-bővítményben vagy a Claude app Code részében) **kérdést tesz fel** (AskUserQuestion), vagy **engedélyre vár** (pl. parancs futtatása), a becsukott notch alatt megjelenik egy sor: Claude-ikon, narancs „Claude asks” / „Claude needs you”, a kérdés (több kérdésnél „(+N)”) vagy az engedélykérés szövege, és az időpont. A „waiting for your input” (tétlen) értesítés nem jelenik meg; arra a „Claude finished” (CN-1) való. A Dynotch saját chatje nem váltja ki. |
+| CQ-2 | A sor **magától eltűnik**, amint a kérdésre válasz jött: a következő eszközfutáskor, új promptnál vagy a kör végén. Kétujjas felfelé swipe-pal korábban is eltüntethető. A „Claude finished” sort a válasz nem tünteti el. |
+| CQ-3 | Ha az egér a sorra ér, az az app kerül előtérbe, amelyben a Claude Code fut (Terminál, VS Code…), kérdésenként egyszer. |
+| CQ-4 | Működés: *Settings › General › Tell me when Claude Code asks a question* hookokat ír a `~/.claude/settings.json`-ba (biztonsági másolattal, a többi app hookjai megmaradnak): `PreToolUse` (csak AskUserQuestion) és `Notification` → `dynotch://claude-asks` (a hook bemenete egy ideiglenes fájlban, az app azonosítója a `__CFBundleIdentifier` változóból); `PostToolUse`, `UserPromptSubmit`, `Stop` → csak ha nyitott kérdés van, `dynotch://claude-answered`. A naplóba csak a sor típusa és az app kerül, a kérdés szövege nem. Kikapcsolva a hookok törlődnek. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -467,6 +476,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.36** | Jelzés a notch alatt, ha a Claude Code kérdez vagy engedélyre vár (terminál, VS Code); válaszra eltűnik |
 | **v0.35** | A notch csak alapállapotban kapszula; tablet menü jobbra, a gombok elférnek; „New task” sor az Emlékeztetőkben; autoraise kattintás közben nem vált |
 | **v0.34** | Kapszula alakú notch; rejtés teljes képernyős appoknál (felső szélre nyílik); iPad mint kijelző a felső sor menüjéből |
 | **v0.33** | Lekerekített, Dynamic Island-szerű notch (kapcsolható); a Notifications fül keresője az űrlap fölé került; a böngészők korábbi értesítéseinek oldalai is külön forrásként jelennek meg |

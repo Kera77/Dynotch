@@ -56,6 +56,8 @@ final class NotchController {
     /// it leaves, so only the countdown stays (spec K-8f).
     var suppressIndicatorHover = false
     var wasExpanded = false
+    /// The question notice whose app was already brought forward (spec CQ-3).
+    var activatedQuestion: Date?
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
         settings = services.settings
