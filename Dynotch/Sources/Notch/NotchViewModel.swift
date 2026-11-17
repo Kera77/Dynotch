@@ -26,7 +26,7 @@ final class NotchViewModel: ObservableObject {
     /// App badge beside the closed notch under the pointer (spec B-6).
     @Published var hoveredBadge: String?
     /// Right after a Space switch everything beside the closed notch is drawn in, then unfolds
-    /// again (spec N-8).
+    /// again (spec N-10).
     @Published private(set) var isGathered = false
 
     func setGathered(_ gathered: Bool) {

@@ -105,10 +105,10 @@ private struct FeatureDropDelegate: DropDelegate {
     func dropEntered(info: DropInfo) {
         guard let dragged, dragged != target,
               let from = settings.featureOrder.firstIndex(of: dragged),
-              let to = settings.featureOrder.firstIndex(of: target)
+              let targetIndex = settings.featureOrder.firstIndex(of: target)
         else { return }
         withAnimation(.easeOut(duration: 0.15)) {
-            settings.moveFeatures(from: IndexSet(integer: from), to: to > from ? to + 1 : to)
+            settings.moveFeatures(from: IndexSet(integer: from), to: targetIndex > from ? targetIndex + 1 : targetIndex)
         }
     }
 

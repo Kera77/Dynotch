@@ -274,7 +274,7 @@ struct NotchView: View {
 // MARK: - Closed size
 
 extension NotchView {
-    /// Right after a Space switch: drawn into the notch, then unfolding (spec N-8).
+    /// Right after a Space switch: drawn into the notch, then unfolding (spec N-10).
     private var isGathered: Bool {
         model.isGathered && !model.isExpanded && hud.display == nil && calls.call == nil && notifications.peek == nil
     }

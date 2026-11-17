@@ -34,7 +34,7 @@
 | N-7 | A panel csak akkor kapja meg a billentyűzetfókuszt, ha szükséges, így nem veszi el a fókuszt az aktív apptól (non-activating panel). |
 | N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
 | N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
-| N-8 | (v0.29) **Space-váltás:** amikor az egér alatti kijelzőn Space-t váltok, a becsukott notch mellett álló jelzők egy pillanatra **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik), majd **rugós mozgással szétnyílnak** és élesednek, mintha a notch az új Space-szel együtt érkezett volna. A „Mozgás csökkentése” akadálymentességi beállításnál nincs animáció. |
+| N-10 | (v0.29) **Space-váltás:** amikor az egér alatti kijelzőn Space-t váltok, a becsukott notch mellett álló jelzők egy pillanatra **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik), majd **rugós mozgással szétnyílnak** és élesednek, mintha a notch az új Space-szel együtt érkezett volna. A „Mozgás csökkentése” akadálymentességi beállításnál nincs animáció. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 

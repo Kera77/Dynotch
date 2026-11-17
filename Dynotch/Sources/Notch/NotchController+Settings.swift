@@ -31,7 +31,7 @@ extension NotchController {
     }
 }
 
-// MARK: - Space switch (spec N-8)
+// MARK: - Space switch (spec N-10)
 
 extension NotchController {
     /// How long everything is drawn into the notch before it unfolds.
