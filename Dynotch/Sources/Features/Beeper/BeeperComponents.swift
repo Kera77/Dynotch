@@ -7,22 +7,25 @@ enum BeeperStyle {
     static let incoming = Color.white.opacity(0.12)
     static let listWidth: CGFloat = 240
 
-    /// A colour and an SF Symbol per network; no brand logos.
+    /// Words in the network's name → its colour and an SF Symbol; no brand logos.
+    private static let networks: [(words: [String], color: Color, symbol: String)] = [
+        (["whatsapp"], Color(red: 0.15, green: 0.83, blue: 0.4), "phone.fill"),
+        (["messenger", "facebook"], Color(red: 0.0, green: 0.52, blue: 1), "bolt.fill"),
+        (["instagram"], Color(red: 0.88, green: 0.19, blue: 0.42), "camera.fill"),
+        (["telegram"], Color(red: 0.16, green: 0.63, blue: 0.89), "paperplane.fill"),
+        (["signal"], Color(red: 0.23, green: 0.46, blue: 0.94), "bubble.left.fill"),
+        (["imessage", "sms"], Color(red: 0.2, green: 0.78, blue: 0.35), "message.fill"),
+        (["slack"], Color(red: 0.38, green: 0.15, blue: 0.4), "number"),
+        (["discord"], Color(red: 0.35, green: 0.4, blue: 0.95), "gamecontroller.fill"),
+        (["linkedin"], Color(red: 0.04, green: 0.4, blue: 0.76), "briefcase.fill"),
+        (["google"], Color(red: 0.1, green: 0.62, blue: 0.35), "bubble.left.fill"),
+        (["twitter"], Color.black, "xmark")
+    ]
+
     static func network(_ name: String?) -> (color: Color, symbol: String) {
-        switch (name ?? "").lowercased() {
-        case let net where net.contains("whatsapp"): (Color(red: 0.15, green: 0.83, blue: 0.4), "phone.fill")
-        case let net where net.contains("messenger") || net.contains("facebook"): (Color(red: 0.0, green: 0.52, blue: 1), "bolt.fill")
-        case let net where net.contains("instagram"): (Color(red: 0.88, green: 0.19, blue: 0.42), "camera.fill")
-        case let net where net.contains("telegram"): (Color(red: 0.16, green: 0.63, blue: 0.89), "paperplane.fill")
-        case let net where net.contains("signal"): (Color(red: 0.23, green: 0.46, blue: 0.94), "bubble.left.fill")
-        case let net where net.contains("imessage") || net.contains("sms"): (Color(red: 0.2, green: 0.78, blue: 0.35), "message.fill")
-        case let net where net.contains("slack"): (Color(red: 0.38, green: 0.15, blue: 0.4), "number")
-        case let net where net.contains("discord"): (Color(red: 0.35, green: 0.4, blue: 0.95), "gamecontroller.fill")
-        case let net where net.contains("linkedin"): (Color(red: 0.04, green: 0.4, blue: 0.76), "briefcase.fill")
-        case let net where net.contains("google"): (Color(red: 0.1, green: 0.62, blue: 0.35), "bubble.left.fill")
-        case let net where net.contains("twitter") || net == "x": (Color.black, "xmark")
-        default: (Color.gray, "bubble.left.and.bubble.right.fill")
-        }
+        let lowered = (name ?? "").lowercased()
+        let found = networks.first { entry in entry.words.contains { lowered.contains($0) } }
+        return found.map { ($0.color, $0.symbol) } ?? (Color.gray, "bubble.left.and.bubble.right.fill")
     }
 
     static func time(_ date: Date?, now: Date = Date()) -> String {

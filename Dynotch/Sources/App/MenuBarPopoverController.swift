@@ -103,8 +103,6 @@ final class MenuBarPopoverController: NSObject {
         button.image = base.map { BadgeImage.make(icon: $0, text: title) }
     }
 
-
-
     /// The icon is shown only while the feature is enabled.
     private func updateStatusItem() {
         updateIcon()

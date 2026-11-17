@@ -20,6 +20,7 @@ enum NotificationsTab: String, CaseIterable, Sendable {
     var isWide: Bool { self == .beeper || self == .googleChat }
 }
 
+@MainActor
 enum ChatSources {
     static func isBeeper(_ notification: AppNotification) -> Bool {
         notification.appIdentifier.lowercased().contains("beeper")
@@ -272,9 +273,9 @@ struct GoogleChatTabView: View {
             }
             .scrollIndicators(.never)
             if let last = current.messages.last {
-                NotificationReplyField(service: service, target: last) { text in
+                NotificationReplyField(service: service, target: last, sent: { text in
                     replies.add(text, to: current.name)
-                }
+                })
                 .padding(.horizontal, 10)
                 .padding(.bottom, 14)
             }

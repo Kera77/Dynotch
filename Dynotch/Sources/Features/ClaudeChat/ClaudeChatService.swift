@@ -291,9 +291,7 @@ extension ClaudeChatService {
         let arguments = ClaudeCLI.arguments(
             prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true, model: chat?.model, canRead: canRead
         )
-        // More thinking (spec AI-2).
-        let extra = thinksHarder ? ["MAX_THINKING_TOKENS": "16000"] : [:]
-        launch(program, arguments: arguments, folder: folder, environment: extra, chatID: chatID, parse: ClaudeStream.event(fromLine:))
+        launch(program, arguments: arguments, folder: folder, chatID: chatID, parse: ClaudeStream.event(fromLine:))
     }
 
     /// The folder the chats run in.
@@ -305,9 +303,10 @@ extension ClaudeChatService {
 
     /// Runs Claude Code or Codex and feeds its lines to the chat.
     func launch(
-        _ program: URL, arguments: [String], folder: URL, environment extra: [String: String], chatID: UUID,
-        parse: @escaping @Sendable (String) -> ClaudeStream.Event?
+        _ program: URL, arguments: [String], folder: URL, chatID: UUID, parse: @escaping @Sendable (String) -> ClaudeStream.Event?
     ) {
+        // More thinking for Claude (spec AI-2); Codex gets it as an argument.
+        let extra = thinksHarder && chats.first(where: { $0.id == chatID })?.service == .claude ? ["MAX_THINKING_TOKENS": "16000"] : [:]
         let process = Process()
         process.executableURL = program
         process.arguments = arguments

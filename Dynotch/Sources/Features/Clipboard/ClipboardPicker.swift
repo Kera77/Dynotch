@@ -26,7 +26,7 @@ final class ClipboardPicker: ObservableObject {
     private var observer: AnyCancellable?
 
     private enum Action: UInt32 {
-        case history = 1, saved, left, right, up, down, cancel, cancelPlain
+        case history = 1, saved, left, right, tabUp, tabDown, cancel, cancelPlain
         case digit1 = 11, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9
     }
 
@@ -62,7 +62,7 @@ final class ClipboardPicker: ObservableObject {
 
     private func registerTemporary(modifiers: UInt32) {
         var keys: [(Int, Action)] = [
-            (kVK_LeftArrow, .left), (kVK_RightArrow, .right), (kVK_UpArrow, .up), (kVK_DownArrow, .down), (kVK_Escape, .cancel)
+            (kVK_LeftArrow, .left), (kVK_RightArrow, .right), (kVK_UpArrow, .tabUp), (kVK_DownArrow, .tabDown), (kVK_Escape, .cancel)
         ]
         let digits = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5, kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
         for (index, key) in digits.enumerated() {
@@ -128,7 +128,7 @@ final class ClipboardPicker: ObservableObject {
             }
         case .left: move(by: -1)
         case .right: move(by: 1)
-        case .up, .down:
+        case .tabUp, .tabDown:
             tab = tab == .history ? .saved : .history
             selection = 0
         case .cancel, .cancelPlain: finish(paste: false)

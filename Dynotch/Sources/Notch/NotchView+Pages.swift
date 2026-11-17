@@ -28,11 +28,19 @@ extension NotchView {
             ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
         case .battery:
             BatteryFeatureView(service: battery, isActive: model.isExpanded && model.currentFeature == .battery)
+        case .clipboard, .tray, .info:
+            morePage(for: feature)
+        }
+    }
+
+    @ViewBuilder
+    private func morePage(for feature: FeatureID) -> some View {
+        switch feature {
         case .clipboard:
             ClipboardFeatureView(store: clipboard, close: closeNotifications)
         case .tray:
             TrayFeatureView(store: tray)
-        case .info:
+        default:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }
     }

@@ -232,21 +232,14 @@ enum BeeperAPI {
 }
 
 enum MIMEType {
+    private static let byExtension: [String: String] = [
+        "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif", "heic": "image/heic",
+        "mp4": "video/mp4", "m4v": "video/mp4", "mov": "video/quicktime", "mp3": "audio/mpeg", "m4a": "audio/mp4",
+        "pdf": "application/pdf", "txt": "text/plain", "zip": "application/zip"
+    ]
+
     static func of(_ url: URL) -> String {
-        switch url.pathExtension.lowercased() {
-        case "png": "image/png"
-        case "jpg", "jpeg": "image/jpeg"
-        case "gif": "image/gif"
-        case "heic": "image/heic"
-        case "mp4", "m4v": "video/mp4"
-        case "mov": "video/quicktime"
-        case "mp3": "audio/mpeg"
-        case "m4a": "audio/mp4"
-        case "pdf": "application/pdf"
-        case "txt": "text/plain"
-        case "zip": "application/zip"
-        default: "application/octet-stream"
-        }
+        byExtension[url.pathExtension.lowercased()] ?? "application/octet-stream"
     }
 
     static func kind(of mime: String) -> String {

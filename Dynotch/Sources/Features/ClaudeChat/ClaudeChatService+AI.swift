@@ -26,7 +26,7 @@ extension ClaudeChatService {
             thinksHarder: thinksHarder, images: images
         )
         launch(
-            program, arguments: arguments, folder: Self.chatFolder, environment: [:], chatID: chatID,
+            program, arguments: arguments, folder: Self.chatFolder, chatID: chatID,
             parse: CodexStream.event(fromLine:)
         )
     }
