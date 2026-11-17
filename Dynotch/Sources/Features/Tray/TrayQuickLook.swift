@@ -31,7 +31,8 @@ final class TrayQuickLook: NSObject, QLPreviewPanelDataSource {
     }
 
     nonisolated func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> (any QLPreviewItem)! {
-        MainActor.assumeIsolated { urls.indices.contains(index) ? urls[index] as NSURL : nil }
+        let url: URL? = MainActor.assumeIsolated { urls.indices.contains(index) ? urls[index] : nil }
+        return url.map { $0 as NSURL }
     }
 }
 

@@ -8,18 +8,30 @@ enum BeeperStyle {
     static let listWidth: CGFloat = 240
 
     /// Words in the network's name → its colour and an SF Symbol; no brand logos.
-    private static let networks: [(words: [String], color: Color, symbol: String)] = [
-        (["whatsapp"], Color(red: 0.15, green: 0.83, blue: 0.4), "phone.fill"),
-        (["messenger", "facebook"], Color(red: 0.0, green: 0.52, blue: 1), "bolt.fill"),
-        (["instagram"], Color(red: 0.88, green: 0.19, blue: 0.42), "camera.fill"),
-        (["telegram"], Color(red: 0.16, green: 0.63, blue: 0.89), "paperplane.fill"),
-        (["signal"], Color(red: 0.23, green: 0.46, blue: 0.94), "bubble.left.fill"),
-        (["imessage", "sms"], Color(red: 0.2, green: 0.78, blue: 0.35), "message.fill"),
-        (["slack"], Color(red: 0.38, green: 0.15, blue: 0.4), "number"),
-        (["discord"], Color(red: 0.35, green: 0.4, blue: 0.95), "gamecontroller.fill"),
-        (["linkedin"], Color(red: 0.04, green: 0.4, blue: 0.76), "briefcase.fill"),
-        (["google"], Color(red: 0.1, green: 0.62, blue: 0.35), "bubble.left.fill"),
-        (["twitter"], Color.black, "xmark")
+    private struct NetworkLook {
+        let words: [String]
+        let color: Color
+        let symbol: String
+
+        init(_ words: [String], _ color: Color, _ symbol: String) {
+            self.words = words
+            self.color = color
+            self.symbol = symbol
+        }
+    }
+
+    private static let networks: [NetworkLook] = [
+        NetworkLook(["whatsapp"], Color(red: 0.15, green: 0.83, blue: 0.4), "phone.fill"),
+        NetworkLook(["messenger", "facebook"], Color(red: 0.0, green: 0.52, blue: 1), "bolt.fill"),
+        NetworkLook(["instagram"], Color(red: 0.88, green: 0.19, blue: 0.42), "camera.fill"),
+        NetworkLook(["telegram"], Color(red: 0.16, green: 0.63, blue: 0.89), "paperplane.fill"),
+        NetworkLook(["signal"], Color(red: 0.23, green: 0.46, blue: 0.94), "bubble.left.fill"),
+        NetworkLook(["imessage", "sms"], Color(red: 0.2, green: 0.78, blue: 0.35), "message.fill"),
+        NetworkLook(["slack"], Color(red: 0.38, green: 0.15, blue: 0.4), "number"),
+        NetworkLook(["discord"], Color(red: 0.35, green: 0.4, blue: 0.95), "gamecontroller.fill"),
+        NetworkLook(["linkedin"], Color(red: 0.04, green: 0.4, blue: 0.76), "briefcase.fill"),
+        NetworkLook(["google"], Color(red: 0.1, green: 0.62, blue: 0.35), "bubble.left.fill"),
+        NetworkLook(["twitter"], Color.black, "xmark")
     ]
 
     static func network(_ name: String?) -> (color: Color, symbol: String) {
