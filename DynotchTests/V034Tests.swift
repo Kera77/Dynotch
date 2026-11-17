@@ -1,5 +1,5 @@
-@testable import Dynotch
 import CoreGraphics
+@testable import Dynotch
 import Foundation
 import Testing
 

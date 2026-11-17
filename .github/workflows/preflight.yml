@@ -36,5 +36,6 @@ jobs:
           echo "::endgroup::"
           echo "::group::Build and test findings"
           grep -E "error:|✘|Test run with|\*\* TEST" test.log | sort -u || true
+          if [ "$tests" = fail ]; then grep -E -i "failed|crash|Undefined|ld:|signal|exception|Testing" test.log | tail -40 || true; tail -40 test.log; fi
           echo "::endgroup::"
           echo "PREFLIGHT_RESULT sha=$GITHUB_SHA lint=$lint tests=$tests"
