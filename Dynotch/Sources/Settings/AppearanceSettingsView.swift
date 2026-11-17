@@ -57,8 +57,60 @@ struct AppearanceSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            stripSection
+            smartSection
         }
         .formStyle(.grouped)
+    }
+
+    /// The modules under the notch (spec MS-1…MS-4).
+    private var stripSection: some View {
+        Section {
+            Toggle("Show the modules when resting at the notch's bottom edge", isOn: $settings.moduleStrip)
+            LabeledContent("Show after") {
+                HStack {
+                    Slider(value: $settings.moduleStripDelay, in: AppSettings.moduleStripDelayRange, step: 0.05)
+                        .frame(width: 160)
+                    Text("\(settings.moduleStripDelay, specifier: "%.2f") s")
+                        .monospacedDigit()
+                        .frame(width: 48, alignment: .trailing)
+                }
+            }
+            .disabled(!settings.moduleStrip)
+            LabeledContent("Bottom edge") {
+                HStack {
+                    Slider(value: $settings.moduleStripBand, in: AppSettings.moduleStripBandRange)
+                        .frame(width: 160)
+                    Text("1/\(Int((1 / settings.moduleStripBand).rounded()))")
+                        .monospacedDigit()
+                        .frame(width: 48, alignment: .trailing)
+                }
+            }
+            .disabled(!settings.moduleStrip)
+        } header: {
+            Text("Module strip")
+        } footer: {
+            Text("Rest the pointer on the bottom part of the notch and the modules appear under it; click one to open it. "
+                + "Moving higher opens the notch as before.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Which module opening by hover shows (spec SO-1…SO-4).
+    private var smartSection: some View {
+        Section {
+            ForEach(SmartRule.allCases, id: \.self) { rule in
+                Toggle(rule.title, isOn: Binding(get: { settings.isSmartRuleOn(rule) }, set: { settings.setSmartRule(rule, on: $0) }))
+            }
+        } header: {
+            Text("Smart opening")
+        } footer: {
+            Text("Opening by hover shows the first module that fits, in this order; otherwise the last one used. "
+                + "Each event does it once. Shortcuts and the module strip always open what you pick.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     private var designNote: String {

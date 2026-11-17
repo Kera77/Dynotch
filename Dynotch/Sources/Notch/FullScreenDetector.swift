@@ -51,6 +51,8 @@ extension NotchController {
 
     /// Hides the closed notch while a full-screen app is in front on this display (spec N-12).
     func checkFullScreen() {
+        // The same tick notes copies, for the smart opening (spec SO-2).
+        ClipboardWatcher.shared.poll()
         guard settings.hideInFullScreen else {
             model.setHiddenForFullScreen(false)
             return
@@ -70,6 +72,11 @@ extension NotchController {
 
     /// The area that opens the closed notch: over a full-screen app only the top edge.
     var openingZone: CGRect {
-        model.isHiddenForFullScreen ? model.geometry.topEdgeZone : hoverZone
+        if model.isHiddenForFullScreen { return model.geometry.topEdgeZone }
+        // With the module strip, the notch's bottom edge shows the strip instead (spec MS-2).
+        guard settings.moduleStrip, notifications.peek == nil else { return hoverZone }
+        let zone = hoverZone
+        let bandTop = stripBand.maxY
+        return CGRect(x: zone.minX, y: bandTop, width: zone.width, height: max(zone.maxY - bandTop, 0))
     }
 }

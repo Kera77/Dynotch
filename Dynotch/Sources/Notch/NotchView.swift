@@ -31,6 +31,8 @@ struct NotchView: View {
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
     /// Opens the whole panel from the preview (spec PV-3).
     var openFully: () -> Void = {}
+    /// A module picked in the strip under the closed notch (spec MS-3).
+    var openModule: (FeatureID) -> Void = { _ in }
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Animation.easeOut(duration: 0.16)
@@ -180,6 +182,13 @@ struct NotchView: View {
         .animation(NotchController.animation, value: isHiddenForFullScreen)
         .padding(.top, isPill ? Self.pillGap : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay(alignment: .top) {
+            if layer == .content, model.isShowingStrip, !model.isExpanded {
+                ModuleStripView(features: settings.activeFeatures, open: openModule)
+                    .padding(.top, geometry.notchSize.height + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
+            }
+        }
+        .animation(Self.quickAnimation, value: model.isShowingStrip)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })
         .animation(NotchController.animation, value: badgeFit.hidden)

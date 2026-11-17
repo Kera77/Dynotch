@@ -195,6 +195,19 @@ struct NotchGeometry: Equatable, Sendable {
     }
 
     /// Pointer area that keeps a panel of the given size open: the panel, past the top edge.
+    /// The module strip under the notch (spec MS-1): one round icon per module, centred.
+    func moduleStripRect(count: Int) -> CGRect {
+        let width = CGFloat(count) * Self.stripIconSize + CGFloat(max(count - 1, 0)) * Self.stripSpacing
+        return CGRect(
+            x: notchRect.midX - width / 2, y: notchRect.minY - Self.stripGap - Self.stripIconSize,
+            width: width, height: Self.stripIconSize
+        )
+    }
+
+    static let stripIconSize: CGFloat = 34
+    static let stripSpacing: CGFloat = 8
+    static let stripGap: CGFloat = 6
+
     func keepOpenZone(for size: CGSize) -> CGRect {
         let rect = rect(for: size)
         return CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + Self.topEdgeTolerance)

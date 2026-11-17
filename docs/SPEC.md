@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.40 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.41 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -457,6 +457,19 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-6 | (v0.40) **Az üveg mindig üveg:** a rendszer üvege abban az ablakban, amely a billentyűzetet kapja, majdnem feketén rajzolódik (mérve: a gépelős modulok, a beállítások, rögzítés után kikattintva visszaváltott). Ezért az üveg a notch és a menüsor-buborékok alatt **külön, billentyűzetet és egeret soha nem kapó ablakban** van, ugyanazzal a mérettel és animációval; a tartalom fölötte, átlátszó panelen. |
 | D-7 | (v0.40) *Settings › Appearance › Displays without a notch*: **Notch** (a felső szélhez simul, alapértelmezés) vagy **Pill**: a notch nélküli kijelzőkön a fekete rész 6 pt-tal a felső szél alatt lebeg, minden sarka kerek (nyugalomban teljes kapszula, lenyitva 24 pt). A hover-zóna ennyivel lejjebb ér. |
 
+## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
+
+| # | Követelmény |
+|---|-------------|
+| MS-1 | **Ikonsor a notch alatt:** ha az egér a becsukott notch **alsó sávján** megáll, a notch alá lecsúszik a bekapcsolt modulok ikonsora: áttetsző, elmosott hátterű körök, jól kivehető fehér ikonnal (enyhe árnyék), a notch közepéhez igazítva. Hoverre az ikon kissé nagyobb és világosabb. A sor addig marad, amíg az egér a sávon vagy a soron van. |
+| MS-2 | A sáv a notch szélességében, alulról a notch magasságának **1/8–1/3 része** (alapból 1/8), a várakozás **0,1–1,0 mp** (alapból 0,3 mp): *Settings › Appearance › Module strip*. A sáv fölötti rész a szokásos módon azonnal lenyitja a notchot (és eltünteti a sort); ha az egér felfelé áthalad a sávon, nem jön elő a sor. |
+| MS-3 | Ikonra kattintva a notch **azzal a modullal** nyílik le. |
+| MS-4 | Nincs ikonsor értesítés, hívás, teljes képernyős app alatt (N-12), lenyitott notchnál, vagy ha csak egy modul van bekapcsolva. Pill módban (D-7) a sáv és a sor a pillhez igazodik. |
+| SO-1 | **Környezetfüggő nyitás:** ha a notch **hoverrel** nyílik (nem gyorsbillentyűvel és nem az ikonsorból), az első teljesülő szabály modulja nyílik meg az utoljára használt helyett. Az új értesítések (E-4) és a „Claude answered” (CC-5) továbbra is a saját nézetüket nyitják. |
+| SO-2 | Sorrend: 1. **meeting** visszaszámlálás vagy folyamatban → Naptár; 2. **emlékeztető** 15 percen belül esedékes vagy lejárt (időponttal) → Reminders; 3. **az elmúlt 2 percben kimásolt számítás vagy szám** → Számológép, a kifejezés egy új sorba beírva (eredménnyel); 4. **alacsony akkumulátor** → Akkumulátorok; 5. **AI-fogyasztás 90% fölött** → AI usage. Egyébként az utoljára használt modul. |
+| SO-3 | **Egy esemény egyszer:** ugyanaz a meeting, emlékeztető, másolás, eszköz vagy 10%-os fogyasztási lépcső csak egyszer nyitja meg a modulját; ha elváltasz onnan, legközelebb a szokásos modul jön. |
+| SO-4 | Szabályonként kikapcsolható: *Settings › Appearance › Smart opening* (alapból mind be). A vágólapnak csak a változásszámlálóját figyeli másodpercenként; a tartalmát csak nyitáskor, az elmúlt 2 percben történt másolásnál olvassa. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -502,6 +515,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.41** | Modul-ikonsor a notch alsó sávjánál; környezetfüggő nyitás (meeting, emlékeztető, másolt számítás, akkumulátor, AI usage) |
 | **v0.40** | Üveg külön ablakban (nem vált feketére); pill külső kijelzőn; beállítások az első kattintásig; Join a meeting hover-sorában; válasz egy sorra, emoji; nincs App Nap |
 | **v0.39** | Design-választó (fekete / Liquid Glass / átmenet), Appearance fül; a Telefon app hívás közben a Dockban marad |
 | **v0.38** | Autoraise szoftveres egérmutató mellett is (iPad-kijelző); a válaszmező alapból ki |

@@ -73,6 +73,10 @@ final class AppSettings: ObservableObject {
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let design = "design"
         static let externalStyle = "externalStyle"
+        static let moduleStrip = "moduleStrip"
+        static let moduleStripDelay = "moduleStripDelay"
+        static let moduleStripBand = "moduleStripBand"
+        static let smartRulesOff = "smartRulesOff"
         static let keepsPhoneInDock = "keepsPhoneInDock"
         static let hud = "hud"
         static let claudeSessionPinned = "claudeSessionPinned"
@@ -198,6 +202,29 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(design.rawValue, forKey: Key.design) }
     }
 
+    /// Resting the pointer at the notch's bottom edge shows the modules under it (spec MS-1).
+    @Published var moduleStrip: Bool {
+        didSet { defaults.set(moduleStrip, forKey: Key.moduleStrip) }
+    }
+
+    /// How long the pointer rests at the bottom edge before the modules show (spec MS-2).
+    @Published var moduleStripDelay: Double {
+        didSet { defaults.set(moduleStripDelay, forKey: Key.moduleStripDelay) }
+    }
+
+    /// The share of the notch's height, from the bottom, that shows the modules (spec MS-2).
+    @Published var moduleStripBand: Double {
+        didSet { defaults.set(moduleStripBand, forKey: Key.moduleStripBand) }
+    }
+
+    static let moduleStripDelayRange: ClosedRange<Double> = 0.1...1
+    static let moduleStripBandRange: ClosedRange<Double> = 0.125...(1.0 / 3)
+
+    /// Rules of the smart opening that are turned off (spec SO-1).
+    @Published private(set) var smartRulesOff: Set<SmartRule> {
+        didSet { defaults.set(smartRulesOff.map(\.rawValue).sorted(), forKey: Key.smartRulesOff) }
+    }
+
     /// The look on displays without a physical notch (spec D-7).
     @Published var externalStyle: ExternalNotchStyle {
         didSet { defaults.set(externalStyle.rawValue, forKey: Key.externalStyle) }
@@ -306,6 +333,12 @@ final class AppSettings: ObservableObject {
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
+        moduleStrip = defaults.object(forKey: Key.moduleStrip) as? Bool ?? true
+        let storedDelay = defaults.object(forKey: Key.moduleStripDelay) as? Double ?? 0.3
+        moduleStripDelay = min(max(storedDelay, Self.moduleStripDelayRange.lowerBound), Self.moduleStripDelayRange.upperBound)
+        let storedBand = defaults.object(forKey: Key.moduleStripBand) as? Double ?? 0.125
+        moduleStripBand = min(max(storedBand, Self.moduleStripBandRange.lowerBound), Self.moduleStripBandRange.upperBound)
+        smartRulesOff = Set((defaults.stringArray(forKey: Key.smartRulesOff) ?? []).compactMap(SmartRule.init(rawValue:)))
         externalStyle = defaults.string(forKey: Key.externalStyle).flatMap(ExternalNotchStyle.init(rawValue:)) ?? .notch
         keepsPhoneInDock = defaults.object(forKey: Key.keepsPhoneInDock) as? Bool ?? true
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
@@ -341,6 +374,14 @@ final class AppSettings: ObservableObject {
 // MARK: - Features and notification sources
 
 extension AppSettings {
+    func isSmartRuleOn(_ rule: SmartRule) -> Bool {
+        !smartRulesOff.contains(rule)
+    }
+
+    func setSmartRule(_ rule: SmartRule, on: Bool) {
+        if on { smartRulesOff.remove(rule) } else { smartRulesOff.insert(rule) }
+    }
+
     func isEnabled(_ feature: FeatureID) -> Bool {
         enabledFeatures.contains(feature)
     }

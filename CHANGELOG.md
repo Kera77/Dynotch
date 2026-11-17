@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-11-17
+
+### Added
+- Module strip: rest the pointer on the bottom part of the notch and the modules appear under it
+  as see-through blurred circles; click one to open the notch on it. Delay (0.1–1 s) and the
+  height of the bottom part (1/8–1/3) are in Settings › Appearance.
+- Smart opening: opening by hover shows the module the moment calls for – a meeting starting or
+  on, a reminder due within 15 minutes, a calculation just copied (typed into the calculator), a
+  low battery, AI usage above 90%. Each event does it once; every rule can be turned off.
+
 ## [0.40.0] - 2026-11-17
 
 ### Added

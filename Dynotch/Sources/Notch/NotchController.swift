@@ -14,6 +14,8 @@ final class NotchController {
     let calendar: CalendarService
     let notifications: NotificationService
     let claudeUsage: ClaudeUsageService
+    let reminders: RemindersStore
+    let calculator: CalculatorStore
     let badges: BadgeService
     let calls: CallService
     private var callObserver: AnyCancellable?
@@ -62,12 +64,16 @@ final class NotchController {
     var activatedQuestion: Date?
     /// Watches for the click outside that closes the settings (spec C-6).
     var settingsClickMonitor: Any?
+    /// Waits for the pointer to rest on the notch's bottom edge (spec MS-2).
+    var stripTask: Task<Void, Never>?
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
         settings = services.settings
         calendar = services.calendar
         notifications = services.notifications
         claudeUsage = services.claudeUsage
+        reminders = services.reminders
+        calculator = services.calculator
         badges = services.badges
         calls = services.calls
         notices = services.notices
@@ -95,6 +101,7 @@ final class NotchController {
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         rootView.openFully = { [weak self] in self?.openFully() }
+        rootView.openModule = { [weak self] in self?.openFromStrip($0) }
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         var glassView = rootView
         glassView.layer = .glass
@@ -126,9 +133,12 @@ final class NotchController {
     }
 
     /// A pill floats a little below the top edge: its zones reach that much further (spec D-7).
+    var pillGap: CGFloat {
+        settings.externalStyle == .pill && !model.geometry.hasPhysicalNotch ? NotchView.pillGap : 0
+    }
+
     private func reachingDown(_ zone: CGRect) -> CGRect {
-        let gap = settings.externalStyle == .pill && !model.geometry.hasPhysicalNotch ? NotchView.pillGap : 0
-        return CGRect(x: zone.minX, y: zone.minY - gap, width: zone.width, height: zone.height + gap)
+        CGRect(x: zone.minX, y: zone.minY - pillGap, width: zone.width, height: zone.height + pillGap)
     }
 
     private func pointerMoved() {
@@ -137,9 +147,12 @@ final class NotchController {
         } else if model.isExpanded {
             evaluatePointerWhileExpanded()
         } else if openingZone.contains(NSEvent.mouseLocation) {
+            hideStrip()
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
-            expand(preview: settings.hoverPreview)
+            expand(preview: settings.hoverPreview, smart: true)
+        } else if handleStrip(at: NSEvent.mouseLocation) {
+            // On the module strip or the band that shows it (spec MS-1).
         } else if !model.isHiddenForFullScreen {
             updateHoveredIndicator()
         }
@@ -163,7 +176,8 @@ final class NotchController {
     }
 
     /// - Parameter preview: show only the small preview first (spec PV-1).
-    func expand(preview: Bool = false) {
+    ///   - smart: opened by hover: the module may follow what is going on (spec SO-1).
+    func expand(preview: Bool = false, smart: Bool = false) {
         cancelClose()
         graceUntil = nil
         panel.ignoresMouseEvents = false
@@ -172,6 +186,7 @@ final class NotchController {
         // Opened from a notification peek: that sender's new messages (spec E-4).
         let stack = notifications.peek.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
+        if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
         withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
         notifications.clearPeek()
         startHoverTimer()

@@ -35,6 +35,16 @@ final class NotchViewModel: ObservableObject {
         if gathered != isGathered { isGathered = gathered }
     }
 
+    /// The modules show under the closed notch (spec MS-1).
+    @Published private(set) var isShowingStrip = false
+
+    func setStripShown(_ shown: Bool) {
+        if shown != isShowingStrip { isShowingStrip = shown }
+    }
+
+    /// Events that already opened their module by the smart opening (spec SO-3).
+    var smartUsed: Set<String> = []
+
     /// A full-screen app is in front on this display: the closed notch is hidden (spec N-12).
     @Published private(set) var isHiddenForFullScreen = false
 
@@ -106,6 +116,7 @@ final class NotchViewModel: ObservableObject {
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded { holdsForSettings = false }
+        if expanded, isShowingStrip { isShowingStrip = false }
         if !expanded, isPinned { isPinned = false }
         if !expanded, isPreview { isPreview = false }
         isExpanded = expanded
