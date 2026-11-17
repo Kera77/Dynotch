@@ -30,3 +30,28 @@ extension NotchController {
         }
     }
 }
+
+// MARK: - Space switch (spec N-8)
+
+extension NotchController {
+    /// How long everything is drawn into the notch before it unfolds.
+    static let gatherDuration: TimeInterval = 0.16
+    /// The unfolding: a soft spring with a hint of overshoot.
+    static let unfoldAnimation = Animation.spring(response: 0.62, dampingFraction: 0.74)
+
+    /// After a Space switch on this display, whatever stands beside the closed notch is drawn in
+    /// and unfolds again, as if the notch had come along with the new Space.
+    func spaceDidChange() {
+        let screen = model.geometry.screenFrame
+        guard screen.contains(NSEvent.mouseLocation), !model.isExpanded, !callIsShown,
+              !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        else { return }
+        withAnimation(.easeIn(duration: Self.gatherDuration)) { model.setGathered(true) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.gatherDuration + 0.02) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                withAnimation(Self.unfoldAnimation) { self.model.setGathered(false) }
+            }
+        }
+    }
+}

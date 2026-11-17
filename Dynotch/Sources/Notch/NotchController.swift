@@ -22,6 +22,7 @@ final class NotchController {
     let chat: ClaudeChatService
     let battery: BatteryService
     private var chatObserver: AnyCancellable?
+    private var spaceObserver: NSObjectProtocol?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
     var previewTask: Task<Void, Never>?
@@ -118,6 +119,11 @@ final class NotchController {
             }
         }
         chatChanged()
+        spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.spaceDidChange() }
+        }
         callObserver = calls.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
                 MainActor.assumeIsolated { self?.callChanged() }
@@ -141,6 +147,8 @@ final class NotchController {
         sizeObserver = nil
         callObserver = nil
         chatObserver = nil
+        if let spaceObserver { NSWorkspace.shared.notificationCenter.removeObserver(spaceObserver) }
+        spaceObserver = nil
         settingsObserver = nil
         closeTask?.cancel()
         stopHoverTimer()

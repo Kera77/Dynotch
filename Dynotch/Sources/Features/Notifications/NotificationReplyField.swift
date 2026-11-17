@@ -7,6 +7,8 @@ struct NotificationReplyField: View {
     let target: AppNotification
 
     @State private var text = ""
+    @FocusState private var isFocused: Bool
+    @Environment(\.pinNotch) private var pinNotch
     @State private var status: Status = .idle
 
     enum Status: Equatable {
@@ -24,8 +26,13 @@ struct NotificationReplyField: View {
                 .padding(.horizontal, 10)
                 .frame(height: 30)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                .focused($isFocused)
                 .onSubmit(send)
                 .disabled(status == .sending)
+                // Clicking into the field pins the notch, so it does not close while typing.
+                .onChange(of: isFocused) { _, focused in
+                    if focused { pinNotch() }
+                }
             Button(action: send) {
                 Group {
                     switch status {

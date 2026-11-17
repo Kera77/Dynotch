@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-17
+
+### Added
+- Switching Spaces: whatever stands beside the closed notch is drawn into it and unfolds again
+  with a soft spring (off with Reduce Motion).
+
+### Changed
+- Settings › Features is now "Modules"; rows can be dragged to reorder them.
+- Clicking into a notification's reply field pins the notch, so it stays open while typing.
+- "Pin" is unticked for modules without a shortcut.
+
 ## [0.28.0] - 2026-11-17
 
 ### Fixed

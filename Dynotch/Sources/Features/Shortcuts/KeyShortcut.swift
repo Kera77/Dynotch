@@ -61,6 +61,11 @@ final class ShortcutStore: ObservableObject {
         pinnedFeatures.contains(feature)
     }
 
+    /// Pinning only means something for a module that has a shortcut.
+    func pinsWhenOpened(_ feature: FeatureID) -> Bool {
+        shortcuts[feature] != nil && pins(feature)
+    }
+
     func setPins(_ feature: FeatureID, _ pins: Bool) {
         if pins {
             pinnedFeatures.insert(feature)

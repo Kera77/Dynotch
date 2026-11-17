@@ -15,7 +15,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: "General"
-        case .features: "Features"
+        case .features: "Modules"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
         case .badges: "App badges"

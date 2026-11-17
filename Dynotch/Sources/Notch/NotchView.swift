@@ -38,22 +38,6 @@ struct NotchView: View {
 
     var geometry: NotchGeometry { model.geometry }
 
-    /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
-    /// taller while one of them is hovered (spec K-8d).
-    private var collapsedSize: CGSize {
-        if hud.display != nil {
-            return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
-        }
-        if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
-        if notifications.peek != nil { return geometry.peekSize }
-        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
-        if indicatorLayout.isEmpty, let labelHeight {
-            // Only the notice: centred under the bare notch.
-            return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)
-        }
-        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelHeight)
-    }
-
     /// Meeting countdowns and the Claude usage beside the closed notch.
     private var indicatorItems: [IndicatorItem] {
         IndicatorItem.items(
@@ -68,7 +52,7 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     private var collapsedOffset: CGFloat {
-        guard !model.isExpanded, notifications.peek == nil, hud.display == nil, calls.call == nil else { return 0 }
+        guard !model.isExpanded, notifications.peek == nil, hud.display == nil, calls.call == nil, !isGathered else { return 0 }
         return indicatorLayout.horizontalOffset
     }
 
@@ -144,7 +128,11 @@ struct NotchView: View {
                         }
                     }
                 )
-                .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
+                // Laid out at full size and kept in place while the black area unfolds over it.
+                .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
+                .offset(x: isGathered ? indicatorLayout.horizontalOffset : 0)
+                .blur(radius: isGathered ? 6 : 0)
+                .opacity(isGathered ? 0 : 1)
                 .transition(.opacity)
             }
 
@@ -187,6 +175,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: notices.notice)
         .animation(Self.quickAnimation, value: calls.isComposing)
         .environment(\.colorScheme, .dark)
+        .environment(\.pinNotch) { [model] in model.isPinned = true }
     }
 
     private var shape: UnevenRoundedRectangle {
@@ -279,6 +268,35 @@ struct NotchView: View {
         .frame(width: pageWidth, alignment: .leading)
         .offset(x: -CGFloat(index) * pageWidth)
         .clipped()
+    }
+}
+
+// MARK: - Closed size
+
+extension NotchView {
+    /// Right after a Space switch: drawn into the notch, then unfolding (spec N-8).
+    private var isGathered: Bool {
+        model.isGathered && !model.isExpanded && hud.display == nil && calls.call == nil && notifications.peek == nil
+    }
+
+    private var collapsedSize: CGSize {
+        isGathered ? geometry.notchSize : naturalCollapsedSize
+    }
+
+    /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
+    /// taller while one of them is hovered (spec K-8d).
+    private var naturalCollapsedSize: CGSize {
+        if hud.display != nil {
+            return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
+        }
+        if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
+        if notifications.peek != nil { return geometry.peekSize }
+        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
+        if indicatorLayout.isEmpty, let labelHeight {
+            // Only the notice: centred under the bare notch.
+            return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)
+        }
+        return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelHeight)
     }
 }
 

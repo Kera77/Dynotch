@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.28 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.29 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -34,6 +34,7 @@
 | N-7 | A panel csak akkor kapja meg a billentyűzetfókuszt, ha szükséges, így nem veszi el a fókuszt az aktív apptól (non-activating panel). |
 | N-8 | **Minden csatlakoztatott kijelzőn** van notch-panel, és mindegyikről ugyanúgy elérhető. Kijelző csatlakoztatásakor vagy leválasztásakor a panelek automatikusan újraépülnek. |
 | N-9 | **Notch nélküli kijelzőn** egy látható, fekete **virtuális notch** jelenik meg a kijelző felső közepén (185 pt széles, menüsor magasságú), hogy látszódjon, hova kell vinni az egeret. |
+| N-8 | (v0.29) **Space-váltás:** amikor az egér alatti kijelzőn Space-t váltok, a becsukott notch mellett álló jelzők egy pillanatra **behúzódnak a notchba** (a fekete terület a notch méretére szűkül, a tartalom elhalványul és elmosódik), majd **rugós mozgással szétnyílnak** és élesednek, mintha a notch az új Space-szel együtt érkezett volna. A „Mozgás csökkentése” akadálymentességi beállításnál nincs animáció. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -50,6 +51,7 @@
 | M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 | M-9 | (v0.28) A felső sorban **csak annyi modulikon látszik, amennyi a notch bal oldalán elfér** (notchos kijelzőn semmi nem kerül a notch mögé). Ha az egér az ikonokon van, a **kétujjas vízszintes swipe csak az ikonokat lépteti** (modult nem vált); **kattintás vált modult**. Ha a modul swipe-pal (a tartalom fölött) vált, az ikonja magától láthatóvá válik. |
+| M-10 | (v0.29) A beállítások **Features** füle **Modules** nevet kapott; a sorok **fogd-és-vidd** módszerrel átrendezhetők (bal oldali fogantyú, a sor húzás közben a helyére csúszik). A „Pin” jelölő csak gyorsbillentyűvel rendelkező modulnál lehet bejelölve; gyorsbillentyű nélkül üresen, letiltva látszik. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -217,6 +219,7 @@
 | # | Követelmény |
 |---|-------------|
 | E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
+| E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 
@@ -446,6 +449,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.29** | Space-váltás animáció; értesítésre válaszoláskor rögzül a notch; Modules fül húzható sorokkal; Pin csak gyorsbillentyűvel |
 | **v0.28** | A modulikonok elférnek a notch mellett, swipe-pal léptethetők; a jelvény jobb klikkes listája mindig csak az adott app értesítéseit mutatja |
 | **v0.27** | Automatikus frissítés; Homebrew-telepítés |
 | **v0.26** | Akkumulátor-modul és merülésjelzés; minden rendszerértesítés; a „Claude finished” a valódi projektet írja; élesebb körök; fókusz-kapcsoló a menüsorban |
