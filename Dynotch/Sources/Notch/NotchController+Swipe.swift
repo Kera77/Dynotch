@@ -13,16 +13,7 @@ extension NotchController {
         // The settings scroll on their own; no feature switching there.
         guard !model.isShowingSettings, !model.isShowingNotifications else { return false }
 
-        let phase: SwipeDetector.Phase
-        if event.phase.contains(.began) {
-            phase = .began
-        } else if event.phase.contains(.changed) {
-            phase = .changed
-        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            phase = .ended
-        } else {
-            phase = .none
-        }
+        let phase = Self.phase(of: event)
         // Normalize so positive = fingers moved right, regardless of "natural scrolling".
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let isMomentum = !event.momentumPhase.isEmpty
@@ -64,16 +55,7 @@ extension NotchController {
     }
 
     private func scrollSwitcher(_ event: NSEvent) -> Bool {
-        let phase: SwipeDetector.Phase
-        if event.phase.contains(.began) {
-            phase = .began
-        } else if event.phase.contains(.changed) {
-            phase = .changed
-        } else if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            phase = .ended
-        } else {
-            phase = .none
-        }
+        let phase = Self.phase(of: event)
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let steps = switcherStepper.handle(
             phase: phase, isMomentum: !event.momentumPhase.isEmpty, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
@@ -83,5 +65,13 @@ extension NotchController {
             Haptics.perform(.dayStep, settings: settings)
         }
         return true
+    }
+
+    /// Where a trackpad gesture is.
+    static func phase(of event: NSEvent) -> SwipeDetector.Phase {
+        if event.phase.contains(.began) { return .began }
+        if event.phase.contains(.changed) { return .changed }
+        if event.phase.contains(.ended) || event.phase.contains(.cancelled) { return .ended }
+        return .none
     }
 }

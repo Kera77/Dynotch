@@ -41,7 +41,11 @@ final class NotchController {
     var swipe = SwipeDetector()
     var dayStepper = DayStepper()
     /// Swipes over the feature icons move them by one icon per step (spec M-9).
-    var switcherStepper = DayStepper(stepWidth: FeatureSwitcher.step)
+    var switcherStepper: DayStepper = {
+        var stepper = DayStepper()
+        stepper.stepWidth = FeatureSwitcher.step
+        return stepper
+    }()
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
     /// After the announcement was swiped away the pointer is still on it: no hover details until
