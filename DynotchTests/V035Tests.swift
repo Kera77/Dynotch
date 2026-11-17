@@ -15,8 +15,4 @@ struct V035Tests {
             #expect(TrailingControlsMetrics.width <= room)
         }
     }
-
-    @Test func noFocusChangeRightAfterAClick() {
-        #expect(FocusRules.quietAfterClick >= 0.3)
-    }
 }

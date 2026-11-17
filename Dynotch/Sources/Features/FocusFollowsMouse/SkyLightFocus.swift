@@ -84,8 +84,7 @@ enum SkyLightFocus {
             _ = postEventRecord(&psn, &activate)
         }
 
-        // A button went down meanwhile: the user's click activates the app by itself.
-        guard NSEvent.pressedMouseButtons == 0, setFrontProcess(&psn, windowID, userGenerated) == 0 else { return false }
+        guard setFrontProcess(&psn, windowID, userGenerated) == 0 else { return false }
 
         // Make the window key without ordering it front.
         for kind: UInt8 in [0x01, 0x02] {

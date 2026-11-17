@@ -10,8 +10,8 @@ final class FocusFollowsMouse {
     private var settingsObserver: AnyCancellable?
     private var lastFocused: CGWindowID?
     private var attempts = FocusRules.Attempts()
-    /// The last mouse button press or release anywhere.
-    private var lastClick = Date.distantPast
+    /// When each reason for not switching was last written to the log.
+    private var lastSkipLog: [String: Date] = [:]
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -29,14 +29,8 @@ final class FocusFollowsMouse {
     private func apply() {
         let enabled = settings.focusFollowsMouse && SkyLightFocus.isAvailable
         if enabled, monitor == nil {
-            let clicks: NSEvent.EventTypeMask = [
-                .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp
-            ]
-            monitor = NSEvent.addGlobalMonitorForEvents(matching: clicks.union(.mouseMoved)) { [weak self] event in
-                let isMove = event.type == .mouseMoved
-                MainActor.assumeIsolated {
-                    if isMove { self?.pointerMoved() } else { self?.clicked() }
-                }
+            monitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+                MainActor.assumeIsolated { self?.pointerMoved() }
             }
             DiagnosticsLog.append("focus", "on (Accessibility: \(AXIsProcessTrusted()))")
         } else if !enabled, let monitor {
@@ -60,22 +54,15 @@ final class FocusFollowsMouse {
         }
     }
 
-    /// A click switches the app itself; focusing at the same moment would send the app a
-    /// second press and release in the middle of the user's own, and its clicks could stop
-    /// working (spec F-10).
-    private func clicked() {
-        pending?.cancel()
-        pending = nil
-        lastClick = Date()
-    }
-
     private func focusWindowUnderPointer() {
-        // Never while dragging or selecting, right after a click, and never take the keyboard
-        // from a Dynotch panel someone is typing in (spec F-4, F-10).
-        guard NSEvent.pressedMouseButtons == 0,
-              Date().timeIntervalSince(lastClick) > FocusRules.quietAfterClick,
-              !NSApp.windows.contains(where: { $0.isKeyWindow && $0.isVisible }),
-              let point = CGEvent(source: nil)?.location,
+        // Never while dragging or selecting, and never take the keyboard from a Dynotch panel
+        // someone is typing in (spec F-4).
+        guard NSEvent.pressedMouseButtons == 0 else { return }
+        if let window = NSApp.windows.first(where: { $0.isKeyWindow && $0.isVisible }) {
+            logSkip("a Dynotch window has the keyboard (\(type(of: window)))")
+            return
+        }
+        guard let point = CGEvent(source: nil)?.location,
               let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]]
         else { return }
@@ -91,11 +78,24 @@ final class FocusFollowsMouse {
             return
         }
         let focusedWindow = frontPID.flatMap(SkyLightFocus.focusedWindowID(of:))
-        guard attempts.shouldTry(target.id) else { return }
+        guard attempts.shouldTry(target.id) else {
+            logSkip("the window did not keep the focus twice; waiting for another window")
+            return
+        }
         if SkyLightFocus.focusWithoutRaise(
             pid: target.pid, windowID: target.id, focusedPID: frontPID, focusedWindowID: focusedWindow
         ) {
             lastFocused = target.id
+        } else {
+            logSkip("the window server refused the switch")
         }
+    }
+
+    /// Why focus did not follow, at most once a minute per reason (no app or window names).
+    private func logSkip(_ reason: String) {
+        let now = Date()
+        guard now.timeIntervalSince(lastSkipLog[reason] ?? .distantPast) > 60 else { return }
+        lastSkipLog[reason] = now
+        DiagnosticsLog.append("focus", "skipped: \(reason)")
     }
 }

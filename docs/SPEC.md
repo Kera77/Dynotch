@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.36 elfogadva** · Utolsó módosítás: 2026-11-17
+> Állapot: **v0.36.1 elfogadva** · Utolsó módosítás: 2026-11-17
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -296,7 +296,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-6 | *Beállítások › Általános*: be/ki (alapból be), várakozási idő. Technika: a WindowServer nem nyilvános `_SLPSSetFrontProcessWithOptions` és `SLPSPostEventRecordTo` hívásai futásidőben betöltve; ha egy macOS-verzióban hiányoznak, a funkció kikapcsol, és a napló (`focus.log`) jelzi. |
 | F-8 | (v0.25) **Az aktív alkalmazáson belül a fókusz nem vált ablakot** (az app maga dönti el, melyik ablaka aktív), csak másik alkalmazásra. Így a párbeszédablakok és felugró ablakok nem villódznak. Ha egy ablak kétszer egymás után nem veszi át a fókuszt, a Dynotch nem próbálkozik tovább, amíg az egér máshová nem megy. |
 | F-9 | (v0.26) A lenyitott notch jobb felső sorában, a billentyűzetzár mellett **felfelé nyíl ikonú kapcsoló**: be- és kikapcsolja a funkciót (bekapcsolva kék). |
-| F-10 | (v0.35) **Kattintás közben nincs váltás:** egérgomb lenyomásakor és felengedésekor a függőben lévő fókuszváltás megszakad, és utána 0,5 mp-ig nincs váltás; közvetlenül a váltás előtt újra ellenőrzi, hogy nincs-e lenyomott gomb. (A váltás az appnak egy lenyomás–felengedés jellegű eseménypárt küld; ha ez a felhasználó kattintása közé esett, az app kattintáskezelése összezavarodhatott, és csak a funkció ki-be kapcsolása után működött újra.) A kattintásokat csak figyeli, nem módosítja. |
+| F-10 | (v0.35, **v0.36.1-ben visszavonva**) A kattintás körüli szünet (lenyomáskor a függő váltás megszakítása, utána 0,5 mp szünet) után a fókusz alig követte az egeret, ezért a korábbi működés állt vissza. Helyette a `focus.log` rögzíti, miért marad el egy váltás (Dynotch-ablaké a billentyűzet; az ablak kétszer sem tartotta meg a fókuszt; a WindowServer elutasította), okonként legfeljebb percenként egyszer, app- és ablaknevek nélkül. |
 
 ---
 
@@ -476,6 +476,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.36.1** | Az autoraise korábbi működése visszaáll; naplózza, ha nem vált |
 | **v0.36** | Jelzés a notch alatt, ha a Claude Code kérdez vagy engedélyre vár (terminál, VS Code); válaszra eltűnik |
 | **v0.35** | A notch csak alapállapotban kapszula; tablet menü jobbra, a gombok elférnek; „New task” sor az Emlékeztetőkben; autoraise kattintás közben nem vált |
 | **v0.34** | Kapszula alakú notch; rejtés teljes képernyős appoknál (felső szélre nyílik); iPad mint kijelző a felső sor menüjéből |

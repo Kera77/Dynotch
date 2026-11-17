@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.36.1] - 2026-11-17
+
+### Fixed
+- Focus follows mouse hardly moved the focus any more: the pause around clicks added in 0.35 is
+  undone. The focus log now notes why a switch did not happen.
+
 ## [0.36.0] - 2026-11-17
 
 ### Added

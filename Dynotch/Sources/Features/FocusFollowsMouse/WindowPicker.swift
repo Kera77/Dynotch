@@ -47,9 +47,6 @@ enum WindowPicker {
 /// When focus must not follow the pointer (spec F-8).
 enum FocusRules {
     /// Focus only moves to another app, never between the windows of the active one.
-    /// No focus change this long after a mouse button was pressed or released (spec F-10).
-    static let quietAfterClick: TimeInterval = 0.5
-
     static func shouldSwitch(targetPID: pid_t, frontPID: pid_t?) -> Bool {
         targetPID != frontPID
     }
