@@ -52,5 +52,8 @@ codesign -d -r- "$APP" 2>&1 | tail -1
 ditto -c -k --keepParent "$APP" "$DIST/Dynotch-$VERSION.zip"
 hdiutil create -volname "Dynotch" -srcfolder "$APP" -ov -format UDZO "$DIST/Dynotch-$VERSION.dmg"
 
+# The Homebrew cask downloads the latest release under a fixed name.
+cp "$DIST/Dynotch-$VERSION.zip" "$DIST/Dynotch.zip"
+
 (cd "$DIST" && shasum -a 256 ./* > SHA256SUMS.txt)
 echo "==> Artifacts:"; ls -lh "$DIST"

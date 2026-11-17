@@ -43,6 +43,7 @@ struct SettingsView: View {
     let notifications: NotificationService
     let badges: BadgeService
     let shortcuts: ShortcutStore
+    let updates: UpdateService
 
     @State private var selectedTab = SettingsTab.general
     @State private var hoveredTab: SettingsTab?
@@ -113,7 +114,7 @@ struct SettingsView: View {
         case .focus:
             FocusSettingsView(settings: settings)
         case .about:
-            AboutSettingsView()
+            AboutSettingsView(updates: updates)
         }
     }
 }
@@ -357,27 +358,5 @@ private struct CalendarSettingsView: View {
             }
         }
         .formStyle(.grouped)
-    }
-}
-
-// MARK: - About
-
-private struct AboutSettingsView: View {
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 72, height: 72)
-            Text("Dynotch")
-                .font(.title2.bold())
-            Text("Version \(AppInfo.version) (\(AppInfo.build))")
-                .foregroundStyle(.secondary)
-            if let url = AppInfo.repositoryURL {
-                Link("GitHub", destination: url)
-            }
-            Button("Quit Dynotch") { NSApp.terminate(nil) }
-                .padding(.top, 12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

@@ -18,4 +18,5 @@ struct AppServices {
     let notices: NoticeService
     let chat: ClaudeChatService
     let battery: BatteryService
+    let updates: UpdateService
 }

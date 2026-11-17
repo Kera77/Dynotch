@@ -22,7 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shortcuts: ShortcutStore(),
         notices: NoticeService(),
         chat: ClaudeChatService(),
-        battery: BatteryService(settings: settings)
+        battery: BatteryService(settings: settings),
+        updates: UpdateService()
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -47,6 +48,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
         services.battery.start()
+        services.updates.start()
+        if let previous = services.updates.versionUpdatedFrom() {
+            DiagnosticsLog.append("updates", "now running \(AppInfo.version), updated from \(previous)")
+            services.notifications.present(
+                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier
+            )
+        }
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
             notices.show(StickyNotice(title: "Claude answered", detail: chat.title, date: Date(), opensChat: true))

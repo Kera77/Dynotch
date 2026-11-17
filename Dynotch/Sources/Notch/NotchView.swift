@@ -17,6 +17,7 @@ struct NotchView: View {
     @ObservedObject var chat: ClaudeChatService
     @ObservedObject var battery: BatteryService
     let shortcuts: ShortcutStore
+    let updates: UpdateService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -200,7 +201,10 @@ struct NotchView: View {
         VStack(spacing: 0) {
             menuBar
             if model.isShowingSettings {
-                SettingsView(settings: settings, calendar: calendar, notifications: notifications, badges: badges, shortcuts: shortcuts)
+                SettingsView(
+                    settings: settings, calendar: calendar, notifications: notifications,
+                    badges: badges, shortcuts: shortcuts, updates: updates
+                )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)

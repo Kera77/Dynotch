@@ -22,7 +22,7 @@ final class SettingsWindowController {
     private func makeWindow() -> NSWindow {
         let rootView = SettingsView(
             settings: services.settings, calendar: services.calendar, notifications: services.notifications,
-            badges: services.badges, shortcuts: services.shortcuts
+            badges: services.badges, shortcuts: services.shortcuts, updates: services.updates
         )
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
         window.title = "Dynotch Settings"

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.26 elfogadva** · Utolsó módosítás: 2026-11-16
+> Állapot: **v0.27 elfogadva** · Utolsó módosítás: 2026-11-16
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -391,6 +391,15 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BT-2 | Adatforrás: a Mac saját akkuja a rendszer áramforrás-adataiból; a Magic-eszközök az I/O Registryből (`ioreg`); az AirPods és más Bluetooth-eszközök a rendszerprofilból (`system_profiler`). Frissítés 2 percenként és a modul megnyitásakor. |
 | BT-3 | Ha egy eszköz **20% alá** esik (és nem tölt), a becsukott notch mellett megjelenik: **bal oldalt az eszköz ikonja, jobb oldalt pirossal a töltöttség**. Hoverre a neve és egy **X**; **amíg nem X-elem ki, ott marad**. Kiikszelve csak akkor jön újra, ha az eszközt közben 30% fölé töltötték, majd megint lemerül. |
 
+## 4q. Frissítés és telepítés (v0.27)
+
+| # | Követelmény |
+|---|-------------|
+| U-1 | Az app indulás után 20 másodperccel, majd **6 óránként** megnézi a legfrissebb GitHub-kiadást. |
+| U-2 | Ha újabb verzió van, letölti a verziószámos zipet, és csak akkor telepíti, ha **az SHA256 egyezik** a kiadás `SHA256SUMS.txt`-jével, a csomagban **a várt verzió** van, és **ugyanaz a tanúsítvány írta alá**, mint a futó appot. |
+| U-3 | Alapból automatikusan telepít: az app kilép, egy háttérfolyamat kicseréli a `/Applications`-beli példányt (hiba esetén visszateszi a régit), és elindítja az újat. Az újraindulás után egy értesítés jelzi az új verziót. *Settings › About*: automatikus telepítés ki/be, „Check Now” / „Install”, állapot. |
+| U-4 | **Homebrew:** `brew install --cask kera77/dynotch/dynotch` (tap: `Kera77/homebrew-dynotch`). A cask mindig a legfrissebb kiadás fix nevű `Dynotch.zip`-jét tölti le, és leveszi a karantén jelzést, mert az app nincs az Apple-nél hitelesítve. A további frissítéseket az app maga végzi (U-1…U-3). |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -436,6 +445,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.27** | Automatikus frissítés; Homebrew-telepítés |
 | **v0.26** | Akkumulátor-modul és merülésjelzés; minden rendszerértesítés; a „Claude finished” a valódi projektet írja; élesebb körök; fókusz-kapcsoló a menüsorban |
 | **v0.25** | Előnézet hoverre; Claude Code-előzmények, becsukható oldalsáv és menüsor-ikon a Claude-modulban; „Claude finished” csak a háttérmunka végén; kereső a beállítások applistáiban; appon belül nincs fókuszváltás |
 | **v0.24** | Claude-chat a notchban; rögzítés-gyorsbillentyű; jelvény bal/jobb klikk; appban elintézett értesítések eltűnnek; hívó csak névvel, iMessage-tartalék; Beeper-kulcs fájlban; fókusz-villódzás javítása |

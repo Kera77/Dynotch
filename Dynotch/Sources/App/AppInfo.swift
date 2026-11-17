@@ -9,6 +9,10 @@ enum AppInfo {
         string(for: "CFBundleVersion", in: .main) ?? "0"
     }
 
+    static var bundleIdentifier: String {
+        Bundle.main.bundleIdentifier ?? "com.peterkereki.Dynotch"
+    }
+
     static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }

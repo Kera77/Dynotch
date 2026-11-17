@@ -10,12 +10,29 @@ Natív macOS alkalmazás (SwiftUI, macOS 14+).
 ## Telepítés
 
 Személyes használatra készül, Apple aláírás/notarizáció nélkül. A kiadásokat egy saját (önaláírt) tanúsítvány írja alá, így a macOS-engedélyek (pl. Naptár) frissítés után is megmaradnak.
+### Homebrew
+
+```bash
+brew install --cask kera77/dynotch/dynotch
+```
+
+A cask mindig a legfrissebb kiadást telepíti, és leveszi róla a karantén jelzést (az app önaláírt).
+Frissíteni nem kell kézzel: a Dynotch maga frissül (lásd lent).
+
+### Script
+
 A legfrissebb kiadás telepítése `/Applications`-be:
 
 ```bash
 make install              # legfrissebb
 make install TAG=v0.1.0   # adott verzió
 ```
+
+### Automatikus frissítés
+
+Az app 6 óránként megnézi a GitHub-kiadásokat. Ha van újabb, letölti, ellenőrzi az SHA256-ot,
+a verziót és hogy ugyanaz a tanúsítvány írta-e alá, majd lecseréli magát és újraindul.
+Kikapcsolható: *Settings › About › Install updates automatically* (ott van a „Check Now” gomb is).
 
 A script letölti a release-t, ellenőrzi a SHA256-ot, és eltávolítja a karantén jelzést,
 így a Gatekeeper nem figyelmeztet. Ha mégis kézzel töltöd le a `.dmg`-t, első indításkor:

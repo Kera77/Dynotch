@@ -70,7 +70,8 @@ final class NotchController {
             notifications: notifications, calculator: services.calculator, notes: services.notes,
             reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
-            notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts
+            notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
+            updates: services.updates
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
