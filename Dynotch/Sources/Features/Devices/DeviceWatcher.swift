@@ -38,7 +38,7 @@ struct DeviceEvent: Identifiable, Equatable {
     let isConnected: Bool
     var detail: String?
     var actions: [Action] = []
-    /// Each earbud, the case, or the one level (spec DV-8).
+    /// Each earbud, the case, or the one level (spec DV-8b).
     var levels: [DeviceLevel] = []
 
     static func == (lhs: DeviceEvent, rhs: DeviceEvent) -> Bool { lhs.id == rhs.id && lhs.detail == rhs.detail && lhs.levels == rhs.levels }
@@ -148,7 +148,7 @@ final class DeviceWatcher: NSObject, ObservableObject {
         }
         show(event, key: "bt:" + name)
         guard connected else { return }
-        // The levels arrive a moment after the connection: asked a few times (spec DV-8).
+        // The levels arrive a moment after the connection: asked a few times (spec DV-8b).
         Task { [weak self] in
             for wait in [1.0, 1, 1, 2, 3] {
                 try? await Task.sleep(for: .seconds(wait))
@@ -199,7 +199,7 @@ final class DeviceWatcher: NSObject, ObservableObject {
         let name = AudioOutputs.defaultOutputName()
         defer { audioOutput = name }
         guard let name, name != audioOutput else { return }
-        // Headphones just connected: their notice stays, with the levels (spec DV-8).
+        // Headphones just connected: their notice stays, with the levels (spec DV-8b).
         if current?.category == .bluetooth, current?.name == name {
             current?.actions.removeAll { if case .useForAudio = $0 { true } else { false } }
             return

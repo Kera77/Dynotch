@@ -30,7 +30,7 @@ struct DevicePeekView: View {
                             .foregroundStyle(Color.white.opacity(0.6))
                             .lineLimit(1)
                     } else {
-                        // Each earbud and the case with its own icon (spec DV-8).
+                        // Each earbud and the case with its own icon (spec DV-8b).
                         HStack(spacing: 10) {
                             ForEach(event.levels) { level in levelView(level) }
                         }

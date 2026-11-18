@@ -22,7 +22,7 @@ enum DeviceSymbols {
     }
 }
 
-/// One battery of a device: an earbud, the case, or the device itself (spec DV-8).
+/// One battery of a device: an earbud, the case, or the device itself (spec DV-8b).
 struct DeviceLevel: Equatable, Sendable, Identifiable {
     enum Part: String, Sendable {
         case left, right, caseBattery, main
