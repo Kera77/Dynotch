@@ -40,6 +40,9 @@ final class StatsService: ObservableObject {
     /// Sends Dynotch's own notification (spec SY-9).
     var notify: (String, String) -> Void = { _, _ in }
     private var swapNotified = false
+    /// Warnings hidden with the X, until they clear (spec SY-10).
+    private var dismissed: Set<String> = []
+    private var active: [String] = []
     let indicator = StatsIndicator()
 
     static let historyLength = 90
@@ -168,7 +171,8 @@ final class StatsService: ObservableObject {
             memoryPressure: next.memory?.pressure, diskFree: next.disk?.free, diskTotal: next.disk?.total,
             thermal: ProcessInfo.processInfo.thermalState, swapUsed: next.memory?.swapUsed ?? 0, swapLimit: swapLimit
         )
-        let warnings = StatsWarnings.warnings(reading, off: alertsOff)
+        active = StatsWarnings.warnings(reading, off: alertsOff)
+        let warnings = Self.shown(active, dismissed: &dismissed)
         if indicator.warnings != warnings { indicator.warnings = warnings }
         // One notification per crossing of the swap limit (spec SY-9).
         let isOver = StatsWarnings.isOverSwap(reading)
@@ -183,6 +187,18 @@ final class StatsService: ObservableObject {
         new.reduce(into: [:]) { result, entry in
             result[entry.key] = old[entry.key].map { $0 * 0.4 + entry.value * 0.6 } ?? entry.value
         }
+    }
+
+    /// The warnings not hidden; a hidden one that cleared is forgotten, so it shows when it comes
+    /// back (spec SY-10).
+    nonisolated static func shown(_ active: [String], dismissed: inout Set<String>) -> [String] {
+        dismissed.formIntersection(active)
+        return active.filter { !dismissed.contains($0) }
+    }
+
+    func dismissWarnings() {
+        dismissed.formUnion(active)
+        indicator.warnings = Self.shown(active, dismissed: &dismissed)
     }
 
     func isShown(_ value: StatsValue) -> Bool { shownValues.contains(value) }

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.56 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.57 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -731,6 +731,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-7 | A modul fejlécének **Options** menüjében választható, mit mutasson a csukott notch jobb oldala, **bármelyiket együtt is**: CPU („C 23%”), memória („M 61%”), letöltési sebesség („↓1.2M”); alapból semmit. Rámutatásra a modul nyílik le. Nyitott modulnál másodpercenként, a csukott notch értékeihez két másodpercenként, egyébként félpercenként mér. |
 | SY-8 | **Figyelmeztető piros pötty** a csukott notch mellett, ha kevés a memória, majdnem tele a lemez (10 GB vagy 5% alatt), vagy a Mac lassít, hogy lehűljön. |
 | SY-9 | (v0.57) Az Options menüben a figyelmeztetések **egyenként kikapcsolhatók** (memória, lemez, lassítás hő miatt, swap). Beállítható, hogy a **swap** hány GB felett (1, 2, 4, 8, 16, 32 vagy soha) küldjön **értesítést** és tegyen piros pöttyöt a notch mellé; átlépésenként egyszer értesít. |
+| SY-10 | (v0.57) Ha van figyelmeztetés, a notch melletti piros pöttyre mutatva a modul helyett egy sor nyílik le a figyelmeztetéssel, **Open** gombbal (megnyitja a System modult) és **X**-szel. Az X elrejti a figyelmeztetést, **amíg az el nem múlik**; ha később újra jelentkezik, ismét látszik. Új fajta figyelmeztetés azonnal megjelenik. Figyelmeztetés nélkül rámutatásra a modul nyílik. |
 
 ## 4ő. Képmetsző (v0.57)
 
@@ -794,6 +795,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.57** | Képmetsző (⌃⇧S módváltással: terület, ablak, teljes képernyő, görgetett, videó; szerkesztő a notchban; tálca Screenshots fül); borító a notch bal oldalán lenyíló lejátszóval; a menük nem zárják be a notchot; System: több érték, kapcsolható és elrejthető figyelmeztetések, swap-értesítés, összevont appfolyamatok; jelvénylista küldőnként; Reminders két választható oszloppal; nagyobb szintkör; switcher: csak takart ablakok |
 | **v0.56** | Zenelejátszó (Spotify): borító a notch mellett a haladás karikájával, lejátszó modul, borító és lista kapcsolói, elrejtés szünetnél; rendszerstatisztika modul (CPU, memória, hálózat, lemez, akku, folyamatok, érték és figyelmeztetés a notch mellett); Reminders: legújabb felül, „i” részletek panel dátummal és időponttal; a böngészős (Google Chat) értesítések megmaradnak; csoport fejlécében kuka és X |
 | **v0.55** | Jelvény: kattintásra az értesítései, hoverre lenyíló lista; Google Chat-válasz a tér nevével és szigorúbb ellenőrzéssel; a váltó kijelölése animál, a swipe-távolság egyértelmű és nem fordul körbe |
 | **v0.54** | Alkalmazásváltó a notchban (gyorsbillentyű, háromujjas swipe, három nézet); helyben frissített böngészős értesítések (Google Chat a Zenben); banner nélküli mód Fókusszal; Beeper hálózati ikonok weboldalról; a tálca-előnézet nyitva tartja a notchot |

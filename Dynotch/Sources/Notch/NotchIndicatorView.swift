@@ -24,6 +24,8 @@ struct NotchIndicatorView: View {
     var join: (CalendarEvent) -> Void = { _ in }
     /// Opens the Reminders module (spec R-10).
     var openTasks: () -> Void = {}
+    /// Opens the System module from its warning (spec SY-10).
+    var openStats: () -> Void = {}
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
     /// The tasks under the counter's drop-down, and checking one off (spec R-12).
@@ -218,8 +220,7 @@ extension NotchIndicatorView {
         case .recording:
             recordingLabel
         case .stats:
-            simpleLabel(stats?.indicator.warnings.first ?? "System", detail: "", symbol: "exclamationmark.triangle.fill",
-                        color: Theme.red)
+            statsLabel(item)
         case .working:
             HStack(spacing: 7) {
                 Text("Claude is working on your question…")

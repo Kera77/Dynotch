@@ -120,6 +120,17 @@ struct StatsModuleTests {
         #expect(StatsService.smoothed(old: [1: 1.0], new: [1: 0.0, 2: 0.5]) == [1: 0.4, 2: 0.5])
     }
 
+    @Test func aHiddenWarningComesBackOnlyAfterItCleared() {
+        var dismissed: Set<String> = ["Memory is running low"]
+        #expect(StatsService.shown(["Memory is running low"], dismissed: &dismissed).isEmpty)
+        // A new kind shows at once.
+        #expect(StatsService.shown(["Memory is running low", "The disk is almost full"], dismissed: &dismissed)
+            == ["The disk is almost full"])
+        // Cleared: forgotten, so it shows when it comes back.
+        #expect(StatsService.shown([], dismissed: &dismissed).isEmpty)
+        #expect(StatsService.shown(["Memory is running low"], dismissed: &dismissed) == ["Memory is running low"])
+    }
+
     @Test func warningsCoverMemoryDiskHeatAndSwap() {
         typealias Reading = StatsWarnings.Reading
         let calm = Reading(memoryPressure: 1, diskFree: 200_000_000_000, diskTotal: 500_000_000_000)

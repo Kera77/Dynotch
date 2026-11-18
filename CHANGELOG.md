@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.57.0] - 2026-11-18
+
 ### Added
 - Screenshots (Settings › Screenshots): ⌃⇧S, pressed again while holding ⌃⇧, steps through
   Area, Window, Full Screen, Scrolling and Screen Recording (reorderable, each can be turned
@@ -13,7 +15,8 @@
 - Window switcher: "Only covered windows" lists just the windows mostly hidden behind others
   (50% by default, adjustable), with Current Space or All apps.
 - System: the closed notch can show CPU, memory and network speed together; each alert can be
-  turned off, and a notification comes when swap goes above a chosen size.
+  turned off, and a notification comes when swap goes above a chosen size. A warning beside the
+  notch can be hidden with its X until it clears.
 
 ### Changed
 - Reminders: each of the two columns picks what it shows, as in the Reminders app (Upcoming,

@@ -30,12 +30,14 @@ extension NotchView {
                     case .working: break
                     case .battery(let device): battery.dismissWarning(for: device)
                     case .tasks: tasks.hide()
-                    case .music, .stats, .recording: break
+                    case .stats: stats.dismissWarnings()
+                    case .music, .recording: break
                     }
                 }
             },
             join: { calendar.join($0) },
             openTasks: { openModule(.reminders) },
+            openStats: { openModule(.stats) },
             batterySamples: { battery.history.samples[$0] ?? [] },
             taskItems: { tasks.listed },
             completeTask: { tasks.complete($0) },

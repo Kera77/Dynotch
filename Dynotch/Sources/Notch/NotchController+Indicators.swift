@@ -63,7 +63,8 @@ extension NotchController {
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             // The cover and the stats open their module (spec MU-2, SY-7).
-            if let feature = items[slot].opensModule {
+            // With a warning the stats drop it down with an X instead (spec SY-10).
+            if let feature = items[slot].opensModule, feature != .stats || stats.indicator.warnings.isEmpty {
                 openFromIndicator(feature)
                 return
             }

@@ -93,6 +93,28 @@ extension NotchIndicatorView {
         }
     }
 
+    /// The stats' warnings, Open and the X that hides them until they clear (spec SY-10).
+    func statsLabel(_ item: IndicatorItem) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.red)
+            Text((stats?.indicator.warnings ?? []).joined(separator: " · "))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button("Open", action: openStats)
+                .buttonStyle(.plain)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 9)
+                .frame(height: 18)
+                .background(Capsule().fill(Color.white.opacity(0.16)))
+            dismissButton(for: item, help: "Hide until it clears")
+        }
+        .padding(.horizontal, 12)
+        .frame(height: IndicatorLayout.labelHeight - 4)
+    }
+
     /// A recording is running: Stop ends it (spec SH-5).
     var recordingLabel: some View {
         HStack(spacing: 7) {
