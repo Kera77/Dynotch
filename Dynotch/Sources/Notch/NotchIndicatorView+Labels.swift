@@ -42,13 +42,16 @@ extension NotchIndicatorView {
                 .foregroundStyle(Color.white.opacity(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
-            SwipeUpArrow()
-                .stroke(Color.white.opacity(0.45), style: StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .miter))
-                .frame(width: 8, height: 6)
-                .padding(.horizontal, 2.5)
-                .accessibilityElement()
-                .help("Swipe up with two fingers to dismiss")
-                .accessibilityLabel("Swipe up with two fingers to dismiss")
+            // The small X like everywhere else; a swipe up still works too (spec CN-5b).
+            Button(action: dismissNotice) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Dismiss (or swipe up with two fingers)")
+            .accessibilityLabel("Dismiss")
         }
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
@@ -86,10 +89,20 @@ extension NotchIndicatorView {
     /// Hovered: the player drops down; announced: the new track's name (spec MU-2, MU-4).
     @ViewBuilder
     func musicLabel(_ glance: MusicIndicator.Glance) -> some View {
-        if let music, hoveredIndex != nil {
+        if let music, showsMusicPlayer {
             MusicDropdown(service: music)
         } else {
-            simpleLabel(glance.title, detail: glance.artist, symbol: "music.note", color: glance.tint.color)
+            // A new track: its cover, title and artist (spec MU-4).
+            HStack(spacing: 10) {
+                MusicArtwork(image: glance.artwork, cornerRadius: 5).frame(width: 30, height: 30)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(glance.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                    Text(glance.artist).font(.system(size: 11)).foregroundStyle(glance.tint.color).lineLimit(1)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: IndicatorLayout.musicAnnounceHeight - 4)
         }
     }
 

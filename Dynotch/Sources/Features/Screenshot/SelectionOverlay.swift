@@ -49,13 +49,15 @@ final class SelectionOverlay {
         let start = windows.first { $0.frame.contains(pointer) } ?? windows.first
         start?.makeKey()
         start.map { _ = $0.makeFirstResponder($0.contentView) }
-        NSCursor.crosshair.push()
+        // A cross while picking, like other screenshot tools (spec SH-2).
+        windows.forEach { $0.invalidateCursorRects(for: $0.contentView ?? NSView()) }
+        NSCursor.crosshair.set()
     }
 
     private func finish(_ result: Result) {
         guard let continuation else { return }
         self.continuation = nil
-        NSCursor.pop()
+        NSCursor.arrow.set()
         windows.forEach { $0.orderOut(nil) }
         windows = []
         if Self.current === self { Self.current = nil }
@@ -82,13 +84,23 @@ private final class SelectionView: NSView {
         self.kind = kind
         self.screen = screen
         super.init(frame: frame)
-        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
+        addTrackingArea(NSTrackingArea(
+            rect: .zero, options: [.mouseMoved, .cursorUpdate, .activeAlways, .inVisibleRect], owner: self
+        ))
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
 
     override var acceptsFirstResponder: Bool { true }
+
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: .crosshair)
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        NSCursor.crosshair.set()
+    }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
     private var selection: CGRect? {
@@ -128,6 +140,7 @@ private final class SelectionView: NSView {
     }
 
     override func mouseMoved(with event: NSEvent) {
+        NSCursor.crosshair.set()
         guard kind == .window else { return }
         let found = ScreenCapture.window(at: NSEvent.mouseLocation)
         if found?.id != hovered?.id {

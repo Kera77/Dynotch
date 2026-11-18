@@ -234,52 +234,25 @@ struct MusicVolumeRow: View {
             .controlSize(.mini)
             .tint(service.tint.color)
             Image(systemName: "speaker.wave.3.fill").font(.system(size: 10)).foregroundStyle(Color.white.opacity(0.5))
-            outputMenu
-            MusicHideMenu(service: service)
+            MusicOutputMenu(outputs: service.outputs)
+            MusicHideMenu(hiding: service.hiding, service: service)
         }
         .onAppear { level = Double(volume) }
         .onChange(of: volume) { _, new in if !isEditing { level = Double(new) } }
-    }
-
-    private var outputMenu: some View {
-        Menu {
-            ForEach(service.outputs) { device in
-                Button {
-                    service.selectOutput(device.id)
-                } label: {
-                    if device.id == service.currentOutput {
-                        Label(device.name, systemImage: "checkmark")
-                    } else {
-                        Text(device.name)
-                    }
-                }
-            }
-        } label: {
-            Image(systemName: "airplayaudio")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.7))
-                .frame(width: 24, height: 22)
-        }
-        .menuStyle(.button)
-        .buttonStyle(.plain)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .help("Sound output")
-        .accessibilityLabel("Sound output")
-        .onAppear(perform: service.refreshOutputs)
     }
 }
 
 /// Hiding the cover beside the notch while the music is paused (spec MU-9).
 struct MusicHideMenu: View {
-    @ObservedObject var service: MusicService
+    @ObservedObject var hiding: MusicHiding
+    /// Not watched: the menu must not be rebuilt as the music plays (spec N-22).
+    let service: MusicService
 
     var body: some View {
         Menu {
             Button("Hide Now, Until It Plays") { service.hideUntilPlay() }
-                .disabled(service.nowPlaying?.isPlaying != false)
-            Picker("Hide After a Pause", selection: $service.hidesAfterPause) {
-                ForEach(MusicService.hideChoices, id: \.self) { Text(Self.title(for: $0)).tag($0) }
+            Picker("Hide After a Pause", selection: $hiding.minutes) {
+                ForEach(MusicHiding.choices, id: \.self) { Text(Self.title(for: $0)).tag($0) }
             }
             .pickerStyle(.menu)
         } label: {
@@ -331,5 +304,38 @@ struct MusicDropdown: View {
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+/// Where the sound goes (spec MU-6).
+struct MusicOutputMenu: View {
+    @ObservedObject var outputs: MusicOutputs
+
+    var body: some View {
+        Menu {
+            ForEach(outputs.devices) { device in
+                Button {
+                    outputs.select(device.id)
+                } label: {
+                    if device.id == outputs.current {
+                        Label(device.name, systemImage: "checkmark")
+                    } else {
+                        Text(device.name)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "airplayaudio")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 24, height: 22)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Sound output")
+        .accessibilityLabel("Sound output")
+        .onAppear(perform: outputs.refresh)
     }
 }

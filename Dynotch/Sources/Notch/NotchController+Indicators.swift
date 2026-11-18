@@ -21,6 +21,8 @@ extension NotchController {
         if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
+        setOverNotice(notices.notice != nil && notifications.peek == nil && model.hoveredIndicator == nil
+            && noticeArea(for: layout).contains(point))
         guard !layout.isEmpty else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
@@ -85,7 +87,7 @@ extension NotchController {
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).
     private func isOnBadgeList(at point: CGPoint, layout: IndicatorLayout, shown: [BadgeItem]) -> Bool {
         guard let current = shown.first(where: { $0.id == model.hoveredBadge }) else { return false }
-        let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeRows(for: current.app))
+        let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: current.app, beeper: beeper))
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point)
@@ -110,6 +112,12 @@ extension NotchController {
     func setHoveredIndicator(_ index: Int?) {
         guard model.hoveredIndicator != index else { return }
         withAnimation(Self.animation) { model.hoveredIndicator = index }
+        updateCollapsedInteraction()
+    }
+
+    private func setOverNotice(_ over: Bool) {
+        guard isOverNotice != over else { return }
+        isOverNotice = over
         updateCollapsedInteraction()
     }
 
@@ -145,7 +153,7 @@ extension NotchController {
 
     private func updateCollapsedInteraction() {
         guard !model.isExpanded else { return }
-        let isActive = model.hoveredIndicator != nil || model.hoveredBadge != nil || model.badgesUnfolded
+        let isActive = model.hoveredIndicator != nil || model.hoveredBadge != nil || model.badgesUnfolded || isOverNotice
         panel.ignoresMouseEvents = !isActive
         if isActive {
             startHoverTimer()

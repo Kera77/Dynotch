@@ -46,7 +46,7 @@
 | N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 | N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
-| N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. |
+| N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -119,6 +119,7 @@
 |---|---|
 | H-1 | Amikor a hangerő vagy a beépített kijelző fényereje változik, a notch **két oldalra kiszélesedik**, fekete sávként, a notch magasságában. |
 | H-2 | **Bal oldalon** egy fix, fehér ikon: hangszóró (némításkor áthúzott) vagy nap. Szintenként nem cserélődik, nem villog. |
+| H-2b | (v0.58) A hangerő a rendszer „virtuális fő hangerején” át állítódik, így **Bluetooth fejhallgatón (AirPods)** is; a következő gombnyomás a legutóbb beállított szintről lép tovább, mert a Bluetooth eszköz csak késve jelzi vissza az új értéket. |
 | H-3 | **Jobb oldalon** egy **fehér kör**, amely a tetejétől **az óramutató járásával megegyezően** mutatja a szintet, **közepén a szint számmal** (0–100). Ugyanez a kör (a szám a közepén) mutatja az AI session-fogyást is. A körök nem Retina kijelzőn is élesek. |
 | H-3b | (v0.57) A szintkör (hangerő, fényerő, AI-használat) **28 pontos**, kitölti a helyét; a szám a kör belsejében margóval áll, a „100” sem ér a körhöz. |
 | H-4 | A HUD az utolsó változás után 1,5 s-mal visszahúzódik. Ha közben újabb változás jön, az időzítés újraindul. |
@@ -401,6 +402,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-9 | (v0.45) A hozzáadható appok listájában **nincsenek háttér-segédappok**: kimaradnak az `LSUIElement` / `LSBackgroundOnly` appok (nincs Dock-ikonjuk, így jelvényük sem), és a `/System/Library/CoreServices` mappából csak a Finder jelenik meg (pl. AddressBookUrlForwarder nem). Az *Utilities* mappa appjai maradnak. |
 | B-10 | (v0.55) A jelvényre vitt egér alatt **lenyílik az app értesítéseinek listája** (legfeljebb 5: feladó, idő, a szöveg első sora). Egy sorra kattintva megnyílik az app teljes értesítéslistája a notchban. Ha az appnak nincs értesítése az Értesítési központban: „No notifications in Notification Center” és egy Open gomb. A listára lefelé mozgatva az egér nyitva tartja; felugró értesítés közben nem nyílik. |
 | B-10b | (v0.57) A lenyíló listában az üzenetek **küldőnként csoportosítva**: a küldő neve egyszer, alatta az üzenetei egymás alatt időponttal. |
+| B-10c | (v0.58) A **Beeper** jelvényénél, ha az Értesítési központban már nincs Beeper-értesítés (a Beeper pár másodperc után törli őket), a lista a Beeper **olvasatlan csevegéseit** mutatja a legutóbbi üzenettel. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -447,6 +449,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CN-3 | A jelzés **csak akkor jelenik meg, ha a Claude Code mindennel végzett**: ha a leállás pillanatában még fut háttérfeladata (a munkamenet naplója szerint elindult, de nem jelentett vissza és nem lett leállítva), nincs jelzés; az a végső leálláskor jön. A Dynotch saját chatjének futásai nem váltják ki. |
 | CN-4 | (v0.26) A jelzés azt a projektet nevezi meg, amelyben a munkamenet **ténylegesen dolgozott** (a napló utolsó szakaszában legtöbbet érintett git-repó), nem azt a mappát, ahonnan a munkamenet indult. |
 | CN-5 | (v0.45) A becsukott notch alatti jelzések (pl. „Dynotch updated”) jobb szélén a „két ujjal felfelé eltüntethető” jelzés **kisebb, élesebb, hegyesebb szögű nyíl** (a korábbi lapos chevron helyett). |
+| CN-5b | (v0.58) A notch alatti értesítő sáv (pl. „Dynotch updated”) jobb szélén a **kis X** zárja be, mint máshol; a két ujjas felhúzás is működik. |
 | CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
 
 ## 4n. Claude a notchban (v0.24)
@@ -711,7 +714,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-1 | A *Music* modul a **Spotify**t mutatja és vezérli AppleScripttel (más lejátszót nem). Csak akkor szól a Spotifyhoz, ha fut (különben elindítaná); a Spotify változásjelzésére és néhány másodpercenként frissít. A modul a többihez hasonlóan kikapcsolható. |
 | MU-2 | Amíg a Spotifyban van szám (szól vagy szünetel), a csukott notch **bal oldalán, közvetlenül a notch mellett** megjelenik a **lemezborító** kerek kivágásban. (v0.57) **Rámutatásra a sor alá lenyílik a lejátszó** (borító, cím, előadó, folyamatjelző, gombok, hangerő, kimenet, elrejtés); a sor a jelvényekkel és számlálókkal fölötte látszik. A teljes Music modul a modullistából nyitható. Bal oldalt nincs hangszínsáv. |
 | MU-3 | A borító körül egy **karika** az óramutató járásával egyezően, felülről indulva telik, és a szám haladását mutatja. A karika színe a borító **domináns színe** (fekete háttéren is látható fényerővel; szürke borítónál halvány fehér). |
-| MU-4 | Számváltáskor a notch alatt pár másodpercre megjelenik a cím és az előadó. |
+| MU-4 | Számváltáskor a notch alatt pár másodpercre megjelenik a **borító**, a cím és az előadó (v0.58: nem a lenyíló lejátszó). |
 | MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
 | MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
@@ -732,6 +735,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-8 | **Figyelmeztető piros pötty** a csukott notch mellett, ha kevés a memória, majdnem tele a lemez (10 GB vagy 5% alatt), vagy a Mac lassít, hogy lehűljön. |
 | SY-9 | (v0.57) Az Options menüben a figyelmeztetések **egyenként kikapcsolhatók** (memória, lemez, lassítás hő miatt, swap). Beállítható, hogy a **swap** hány GB felett (1, 2, 4, 8, 16, 32 vagy soha) küldjön **értesítést** és tegyen piros pöttyöt a notch mellé; átlépésenként egyszer értesít. |
 | SY-10 | (v0.57) Ha van figyelmeztetés, a notch melletti piros pöttyre mutatva a modul helyett egy sor nyílik le a figyelmeztetéssel, **Open** gombbal (megnyitja a System modult) és **X**-szel. Az X elrejti a figyelmeztetést, **amíg az el nem múlik**; ha később újra jelentkezik, ismét látszik. Új fajta figyelmeztetés azonnal megjelenik. Figyelmeztetés nélkül rámutatásra a modul nyílik. |
+| SY-11 | (v0.58) A folyamatok memóriája a **memory footprint**, mint az Activity Monitorban (nem a rezidens méret). |
 
 ## 4ő. Képmetsző (v0.57)
 
@@ -740,6 +744,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SH-1 | **Gyorsbillentyű**, alapból **⌃⇧S** (Beállítások › Screenshots, átírható). A módosítók nyomva tartása mellett minden S a **következő módra** lép (körbe); a notch alatt látszanak a módok, a választott kivilágítva. A módosítók felengedésére indul a választott mód; **Esc** megszakítja. A funkció kikapcsolható. |
 | SH-2 | **Módok**, sorrendjük húzással átrendezhető, egyenként kikapcsolhatók (legalább egy marad): **Area** (terület kijelölése húzással, közben méretkijelzés), **Window** (az egér alatti ablak kiemelődik, kattintásra elkészül, árnyék nélkül), **Full Screen** (az egér alatti kijelző), **Scrolling** (görgetett kép), **Screen Recording** (videó). A kijelölés Esc-kel vagy jobb kattintással megszakítható. |
 | SH-3 | A kép **PNG**-ként a `~/Pictures/Screenshots` mappába kerül („Screenshot 2026-11-18 at 17.45.12.png”), és **azonnal a vágólapra** (kép és fájl). A Dynotch saját ablakai nem kerülnek a képre. Képernyőfelvételi engedély kell. |
+| SH-3b | (v0.58) A kép a kijelző **teljes (Retina) felbontásában** készül, nem kicsinyítve; kijelölés közben az egér **szálkereszt**, utána újra nyíl. |
 | SH-4 | **Görgetett kép, kézi görgetéssel:** a terület kijelölése után kék keret jelzi a területet, alatta „Scroll, then Done” sáv. Görgetés közben a Dynotch másodpercenként négyszer képet készít, megkeresi, mennyit mozdult a tartalom, és az új sorokat alulra illeszti. Done (vagy a gyorsbillentyű újra) befejezi, Esc/Cancel elveti. |
 | SH-5 | **Képernyőfelvétel** (macOS 15+): az egér alatti kijelzőről `.mov` a Screenshots mappába („Screen Recording … .mov”), a fájl a vágólapra kerül. Kapcsolható a **Mac hangja** (alap: be) és a **mikrofon** (alap: ki). Felvétel közben a csukott notch mellett piros pötty és az eltelt idő; rámutatva **Stop**. A gyorsbillentyű is leállítja. A Dynotch nem kerül a felvételre. |
 | SH-6 | Kép után a notch alatt pár másodpercre **felugró**: bélyegkép, „Copied · Saved”. A felugróra mutatva (vagy a notchot lenyitva) **megnyílik a szerkesztő**. |

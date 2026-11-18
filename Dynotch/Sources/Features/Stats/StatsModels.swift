@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 /// The values the closed notch can show of the stats, any of them (spec SY-7).
@@ -90,5 +91,45 @@ enum StatsWarnings {
     nonisolated static func isOverSwap(_ reading: Reading) -> Bool {
         guard let limit = reading.swapLimit, limit > 0 else { return false }
         return reading.swapUsed > UInt64(limit) * gigabyte
+    }
+}
+
+/// The stats' choices (spec SY-7, SY-9), kept in the defaults.
+@MainActor
+final class StatsOptions: ObservableObject {
+    /// Shown beside the closed notch.
+    @Published private(set) var shownValues: Set<StatsValue> {
+        didSet { defaults.set(shownValues.map(\.rawValue).sorted(), forKey: Self.valuesKey) }
+    }
+    @Published private(set) var alertsOff: Set<StatsAlert> {
+        didSet { defaults.set(alertsOff.map(\.rawValue).sorted(), forKey: Self.alertsKey) }
+    }
+    /// Gigabytes of swap that bring a notification; nil: none.
+    @Published var swapLimit: Int? {
+        didSet { defaults.set(swapLimit ?? 0, forKey: Self.swapKey) }
+    }
+
+    static let swapChoices = [1, 2, 4, 8, 16, 32]
+    private static let valuesKey = "statsValues", alertsKey = "statsAlertsOff", swapKey = "statsSwapLimit"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
+        shownValues = Set((defaults.stringArray(forKey: Self.valuesKey) ?? []).compactMap(StatsValue.init(rawValue:)))
+        alertsOff = Set((defaults.stringArray(forKey: Self.alertsKey) ?? []).compactMap(StatsAlert.init(rawValue:)))
+        let swap = defaults.integer(forKey: Self.swapKey)
+        swapLimit = swap > 0 ? swap : nil
+    }
+
+    func isShown(_ value: StatsValue) -> Bool { shownValues.contains(value) }
+
+    func setShown(_ value: StatsValue, _ shown: Bool) {
+        if shown { shownValues.insert(value) } else { shownValues.remove(value) }
+    }
+
+    func isOn(_ alert: StatsAlert) -> Bool { !alertsOff.contains(alert) }
+
+    func setOn(_ alert: StatsAlert, _ isOn: Bool) {
+        if isOn { alertsOff.remove(alert) } else { alertsOff.insert(alert) }
     }
 }

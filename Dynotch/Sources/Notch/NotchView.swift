@@ -339,7 +339,7 @@ extension NotchView {
 
     /// The cover's player drops down only when hovered; announced, only the track's name (spec MU-2, MU-4).
     private func labelHeight(of index: Int) -> CGFloat {
-        if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.labelHeight }
+        if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.musicAnnounceHeight }
         return indicatorItems[index].labelHeight
     }
 }

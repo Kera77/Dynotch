@@ -76,6 +76,15 @@ struct MusicModuleTests {
     }
 }
 
+struct VolumeStepTests {
+    @Test func aLevelJustSetWinsOverAnOldReading() {
+        let now = Date(timeIntervalSince1970: 100)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: (0.5625, now.addingTimeInterval(-0.2)), now: now) == 0.5625)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: (0.5625, now.addingTimeInterval(-3)), now: now) == 0.5)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: nil, now: now) == 0.5)
+    }
+}
+
 struct StatsModuleTests {
     @Test func cpuLoadComesFromTwoReadings() {
         let old = SystemReadings.CPUTicks(busy: 100, total: 1000)

@@ -24,6 +24,8 @@ struct NotchIndicatorView: View {
     var join: (CalendarEvent) -> Void = { _ in }
     /// Opens the Reminders module (spec R-10).
     var openTasks: () -> Void = {}
+    /// Closes the notice under the notch (spec CN-5b).
+    var dismissNotice: () -> Void = {}
     /// Opens the System module from its warning (spec SY-10).
     var openStats: () -> Void = {}
     /// A device's battery history, drawn small in its hover label (spec BT-6).
@@ -35,6 +37,8 @@ struct NotchIndicatorView: View {
     var badgeRows: (BadgeItem) -> [BadgeNotificationRow] = { _ in [] }
     var openBadgeApp: (BadgeItem) -> Void = { _ in }
     var showsBadgeList = true // off over a notification pop-up (spec E-24)
+    /// The cover is hovered: its player drops down, not only the track's name (spec MU-2, MU-4).
+    var showsMusicPlayer = false
     /// Stops a screen recording (spec SH-5).
     var stopRecording: () -> Void = {}
     /// The cover's progress and the stats' numbers (spec MU-3, SY-7).

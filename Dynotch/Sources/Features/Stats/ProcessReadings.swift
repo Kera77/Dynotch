@@ -49,10 +49,19 @@ enum ProcessReadings {
             guard proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info, size) == size else { continue }
             // Task times are in Mach time units.
             sample.cpuTime[pid] = UInt64(Double(info.pti_total_user + info.pti_total_system) * scale)
-            sample.memory[pid] = info.pti_resident_size
+            sample.memory[pid] = footprint(of: pid) ?? info.pti_resident_size
             if proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 { sample.paths[pid] = String(cString: buffer) }
         }
         return sample
+    }
+
+    /// The memory Activity Monitor shows: the process's footprint, not its resident size (spec SY-6).
+    static func footprint(of pid: pid_t) -> UInt64? {
+        var usage = rusage_info_v4()
+        let status = withUnsafeMutablePointer(to: &usage) { pointer in
+            pointer.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(pid, RUSAGE_INFO_V4, $0) }
+        }
+        return status == 0 ? usage.ri_phys_footprint : nil
     }
 
     /// CPU use between two samples, per process.

@@ -30,26 +30,20 @@ final class MusicService: ObservableObject {
     @Published private(set) var readAt = Date()
     @Published private(set) var artwork: NSImage?
     @Published private(set) var tint = ArtworkColor.fallback
-    @Published private(set) var outputs: [SoundOutputs.Device] = []
-    @Published private(set) var currentOutput: AudioDeviceID?
+    /// The sound outputs and the pause hiding, each its own object: their menus are not rebuilt
+    /// as the music plays, so they stay open (spec N-22).
+    let outputs = MusicOutputs()
+    let hiding = MusicHiding()
     let indicator = MusicIndicator()
-    /// Minutes of pause after which the cover goes away; nil: never (spec MU-9).
-    @Published var hidesAfterPause: Int? {
-        didSet {
-            UserDefaults.standard.set(hidesAfterPause ?? -1, forKey: Self.hideKey)
-            updateGlance()
-        }
-    }
     /// Hidden by hand until the music plays again (spec MU-9).
     @Published private(set) var isHiddenUntilPlay = false
     private var pausedSince: Date?
 
-    static let hideChoices: [Int?] = [0, 1, 5, 15, nil]
-    private static let hideKey = "musicHideAfterPause"
     private let settings: AppSettings
     private var timer: Timer?
     private var observers: [NSObjectProtocol] = []
     private var settingsObserver: AnyCancellable?
+    private var hidingObserver: AnyCancellable?
     private var announceTask: Task<Void, Never>?
     private var artworkTask: Task<Void, Never>?
     private var artworkTrack: String?
@@ -60,8 +54,6 @@ final class MusicService: ObservableObject {
 
     init(settings: AppSettings) {
         self.settings = settings
-        let stored = UserDefaults.standard.object(forKey: Self.hideKey) as? Int ?? 5
-        hidesAfterPause = stored < 0 ? nil : stored
     }
 
     func hideUntilPlay() {
@@ -91,6 +83,9 @@ final class MusicService: ObservableObject {
                 guard app?.bundleIdentifier == SpotifyClient.bundleID else { return }
                 MainActor.assumeIsolated { self?.refresh() }
             })
+        }
+        hidingObserver = hiding.objectWillChange.sink { [weak self] in
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.updateGlance() } }
         }
         settingsObserver = settings.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async { MainActor.assumeIsolated { self?.applyEnabled() } }
@@ -155,7 +150,7 @@ final class MusicService: ObservableObject {
         // The cover can be turned off (spec MU-8).
         let hidden = nowPlaying.map {
             Self.hidesCover(
-                isPlaying: $0.isPlaying, pausedSince: pausedSince, after: hidesAfterPause, byHand: isHiddenUntilPlay, now: Date()
+                isPlaying: $0.isPlaying, pausedSince: pausedSince, after: hiding.minutes, byHand: isHiddenUntilPlay, now: Date()
             )
         } ?? true
         let glance = settings.showsNowPlaying && !hidden ? nowPlaying.map {
@@ -246,14 +241,37 @@ extension MusicService {
             self?.refresh()
         }
     }
+}
 
-    func refreshOutputs() {
-        outputs = SoundOutputs.list()
-        currentOutput = SoundOutputs.current
+/// The Mac's sound outputs for the player's menu (spec MU-6).
+@MainActor
+final class MusicOutputs: ObservableObject {
+    @Published private(set) var devices: [SoundOutputs.Device] = []
+    @Published private(set) var current: AudioDeviceID?
+
+    func refresh() {
+        devices = SoundOutputs.list()
+        current = SoundOutputs.current
     }
 
-    func selectOutput(_ id: AudioDeviceID) {
+    func select(_ id: AudioDeviceID) {
         SoundOutputs.select(id)
-        refreshOutputs()
+        refresh()
+    }
+}
+
+/// After how many minutes of pause the cover goes away; nil: never (spec MU-9).
+@MainActor
+final class MusicHiding: ObservableObject {
+    @Published var minutes: Int? {
+        didSet { UserDefaults.standard.set(minutes ?? -1, forKey: Self.key) }
+    }
+
+    static let choices: [Int?] = [0, 1, 5, 15, nil]
+    private static let key = "musicHideAfterPause"
+
+    init() {
+        let stored = UserDefaults.standard.object(forKey: Self.key) as? Int ?? 5
+        minutes = stored < 0 ? nil : stored
     }
 }

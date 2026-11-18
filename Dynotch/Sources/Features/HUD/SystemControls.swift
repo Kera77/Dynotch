@@ -31,24 +31,28 @@ enum VolumeControl {
     )
 
     /// False for outputs whose volume can't be set (e.g. HDMI): their keys are left to macOS.
+    /// The "virtual main volume" belongs to the Audio Hardware Service, which also covers
+    /// Bluetooth headphones such as AirPods (spec H-2b).
     static func isSettable(_ device: AudioDeviceID) -> Bool {
         var address = volumeAddress
+        guard AudioHardwareServiceHasProperty(device, &address) else { return false }
         var settable: DarwinBoolean = false
-        return AudioObjectIsPropertySettable(device, &address, &settable) == noErr && settable.boolValue
+        return AudioHardwareServiceIsPropertySettable(device, &address, &settable) == noErr && settable.boolValue
     }
 
     static func volume(_ device: AudioDeviceID) -> Double? {
         var address = volumeAddress
         var value = Float32(0)
         var size = UInt32(MemoryLayout<Float32>.size)
-        guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &value) == noErr else { return nil }
+        guard AudioHardwareServiceGetPropertyData(device, &address, 0, nil, &size, &value) == noErr else { return nil }
         return Double(value)
     }
 
     static func setVolume(_ level: Double, on device: AudioDeviceID) {
         var address = volumeAddress
         var value = Float32(min(max(level, 0), 1))
-        AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value)
+        let status = AudioHardwareServiceSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value)
+        if status != noErr { DiagnosticsLog.append("hud", "volume not set (\(status))") }
     }
 
     static func isMuted(_ device: AudioDeviceID) -> Bool {
@@ -116,6 +120,13 @@ enum MediaKey: Int {
 
 /// Pure level stepping (spec A-3): macOS steps by 1/16, Option+Shift by 1/64, on a grid.
 enum HUDLogic {
+    /// What the level is now: the one set within the last second wins over a reading that may
+    /// still be old (Bluetooth headphones, spec H-2b).
+    nonisolated static func currentLevel(read: Double, lastSet: (level: Double, date: Date)?, now: Date = Date()) -> Double {
+        guard let lastSet, now.timeIntervalSince(lastSet.date) < 1 else { return read }
+        return lastSet.level
+    }
+
     static func stepped(_ level: Double, increase: Bool, fine: Bool) -> Double {
         let steps = fine ? 64.0 : 16.0
         let next = (level * steps).rounded() + (increase ? 1 : -1)

@@ -26,6 +26,7 @@ final class NotchController {
     let notices: NoticeService
     let chat: ClaudeChatService
     let battery: BatteryService
+    let beeper: BeeperService
     let music: MusicService
     let stats: StatsService
     let screenshots: ScreenshotService
@@ -70,6 +71,8 @@ final class NotchController {
     /// it leaves, so only the countdown stays (spec K-8f).
     var suppressIndicatorHover = false
     var wasExpanded = false
+    /// The pointer is on the notice under the notch: its X can be clicked (spec CN-5b).
+    var isOverNotice = false
     /// The question notice whose app was already brought forward (spec CQ-3).
     var activatedQuestion: Date?
     /// Watches for the click outside that closes the settings (spec C-6).
@@ -92,6 +95,7 @@ final class NotchController {
         notices = services.notices
         chat = services.chat
         battery = services.battery
+        beeper = services.beeper
         music = services.music
         stats = services.stats
         screenshots = services.screenshots

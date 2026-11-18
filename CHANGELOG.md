@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+- The notice under the notch (e.g. "Dynotch updated") has the small X instead of the arrow.
+- Submenus in the System options and the music player stay open while choosing.
+- Screenshots are taken at the display's full Retina resolution; the pointer is a crosshair
+  while picking.
+- System counts memory like Activity Monitor (footprint), so Zen's total matches.
+- Beeper's badge list shows its unread chats when Beeper has already cleared its notifications.
+- The volume keys work with AirPods and other Bluetooth headphones.
+- A new track shows its cover and name, not a squeezed player.
+
 ## [0.57.0] - 2026-11-18
 
 ### Added

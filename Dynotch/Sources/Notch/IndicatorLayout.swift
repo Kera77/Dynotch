@@ -140,6 +140,8 @@ struct IndicatorLayout: Equatable {
     }
     /// The player under the row (spec MU-2).
     static let musicDropdownHeight: CGFloat = 128
+    /// A new track's cover and name (spec MU-4).
+    static let musicAnnounceHeight: CGFloat = 42
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 20

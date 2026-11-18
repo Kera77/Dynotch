@@ -30,6 +30,9 @@ enum ScreenCapture {
         configuration.width = max(Int(local.width * screen.backingScaleFactor), 1)
         configuration.height = max(Int(local.height * screen.backingScaleFactor), 1)
         configuration.showsCursor = false
+        // Full Retina pixels, not a scaled-down copy (spec SH-3).
+        configuration.captureResolution = .best
+        configuration.scalesToFit = false
         return await image(filter, configuration)
     }
 
@@ -48,6 +51,7 @@ enum ScreenCapture {
         configuration.height = max(Int(window.frame.height * scale), 1)
         configuration.showsCursor = false
         configuration.ignoreShadowsSingleWindow = true
+        configuration.captureResolution = .best
         return await image(SCContentFilter(desktopIndependentWindow: window), configuration)
     }
 

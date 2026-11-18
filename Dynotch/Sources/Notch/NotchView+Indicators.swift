@@ -41,12 +41,14 @@ extension NotchView {
             batterySamples: { battery.history.samples[$0] ?? [] },
             taskItems: { tasks.listed },
             completeTask: { tasks.complete($0) },
-            badgeRows: { notifications.badgeRows(for: $0.app) },
+            badgeRows: { notifications.badgeListRows(for: $0.app, beeper: beeper) },
             openBadgeApp: { badges.open($0.app) }
         )
         row.showsBadgeList = showsBadgeList
         row.stopRecording = { screenshots.stopRecording() }
+        row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
         row.music = music
+        row.showsMusicPlayer = model.hoveredIndicator != nil
         row.stats = stats
         return row
     }
@@ -56,6 +58,6 @@ extension NotchView {
         guard notifications.peek == nil, let id = model.hoveredBadge,
               let badge = badgeFit.shown.first(where: { $0.id == id })
         else { return nil }
-        return IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeRows(for: badge.app))
+        return IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: badge.app, beeper: beeper))
     }
 }

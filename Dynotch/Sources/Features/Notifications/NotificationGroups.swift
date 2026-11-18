@@ -66,7 +66,28 @@ struct BadgeNotificationRow: Identifiable, Equatable, Sendable {
     }
 }
 
+extension BeeperService {
+    /// Beeper's unread chats as badge list rows: Beeper takes its notifications out of
+    /// Notification Center within seconds, but its chats still say what is unread (spec B-10c).
+    func badgeRows() -> [BadgeNotificationRow] {
+        unreadChats.enumerated().map { index, chat in
+            BadgeNotificationRow(
+                id: -1 - Int64(index), sender: chat.name, detail: chat.preview?.text ?? "\(chat.unread) unread",
+                date: chat.preview?.timestamp.flatMap { try? Date($0, strategy: .iso8601) } ?? Date()
+            )
+        }
+    }
+}
+
 extension NotificationService {
+    /// What a badge's hover list shows: its notifications, or for Beeper its unread chats when
+    /// none are left in Notification Center (spec B-10, B-10c).
+    func badgeListRows(for app: BadgeApp, beeper: BeeperService) -> [BadgeNotificationRow] {
+        let rows = badgeRows(for: app)
+        guard rows.isEmpty, app.bundleID.lowercased().contains("beeper"), beeper.state == .ready else { return rows }
+        return beeper.badgeRows()
+    }
+
     /// The app's notifications still in Notification Center, newest first, for its badge's
     /// hover list (spec B-10).
     func badgeRows(for app: BadgeApp) -> [BadgeNotificationRow] {

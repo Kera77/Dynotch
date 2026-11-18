@@ -23,20 +23,9 @@ final class StatsService: ObservableObject {
     @Published private(set) var uploadHistory: [Double] = []
     @Published private(set) var processes: [ProcessUsage] = []
     @Published var sortsByMemory = false { didSet { if oldValue != sortsByMemory { rankProcesses() } } }
-    /// Shown beside the closed notch, in this order (spec SY-7).
-    @Published private(set) var shownValues: Set<StatsValue> {
-        didSet {
-            defaults.set(shownValues.map(\.rawValue).sorted(), forKey: Self.valuesKey)
-            applyEnabled()
-        }
-    }
-    @Published private(set) var alertsOff: Set<StatsAlert> {
-        didSet { defaults.set(alertsOff.map(\.rawValue).sorted(), forKey: Self.alertsKey) }
-    }
-    /// Gigabytes of swap that bring a notification; nil: none (spec SY-9).
-    @Published var swapLimit: Int? {
-        didSet { defaults.set(swapLimit ?? 0, forKey: Self.swapKey) }
-    }
+    /// What shows beside the notch and the alerts: its own object, so its menu is not rebuilt
+    /// with every reading (spec SY-7, SY-9).
+    let options: StatsOptions
     /// Sends Dynotch's own notification (spec SY-9).
     var notify: (String, String) -> Void = { _, _ in }
     private var swapNotified = false
@@ -46,8 +35,6 @@ final class StatsService: ObservableObject {
     let indicator = StatsIndicator()
 
     static let historyLength = 90
-    static let swapChoices = [1, 2, 4, 8, 16, 32]
-    private static let valuesKey = "statsValues", alertsKey = "statsAlertsOff", swapKey = "statsSwapLimit"
     private let settings: AppSettings
     private let defaults: UserDefaults
     private var timer: Timer?
@@ -64,14 +51,11 @@ final class StatsService: ObservableObject {
     init(settings: AppSettings, defaults: UserDefaults = .standard) {
         self.settings = settings
         self.defaults = defaults
-        shownValues = Set((defaults.stringArray(forKey: Self.valuesKey) ?? []).compactMap(StatsValue.init(rawValue:)))
-        alertsOff = Set((defaults.stringArray(forKey: Self.alertsKey) ?? []).compactMap(StatsAlert.init(rawValue:)))
-        let swap = defaults.integer(forKey: Self.swapKey)
-        swapLimit = swap > 0 ? swap : nil
+        options = StatsOptions(defaults: defaults)
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
+        settingsObserver = settings.objectWillChange.merge(with: options.objectWillChange).sink { [weak self] in
             DispatchQueue.main.async { MainActor.assumeIsolated { self?.applyEnabled() } }
         }
         applyEnabled()
@@ -88,14 +72,14 @@ final class StatsService: ObservableObject {
 
     private func applyEnabled() {
         let isOn = settings.isEnabled(.stats)
-        let values = isOn ? StatsValue.allCases.filter(shownValues.contains) : []
+        let values = isOn ? StatsValue.allCases.filter(options.shownValues.contains) : []
         if indicator.values != values { indicator.values = values }
         if !isOn { indicator.warnings = [] }
         schedule()
     }
 
     private func schedule() {
-        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : !shownValues.isEmpty ? 2 : 30
+        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : !options.shownValues.isEmpty ? 2 : 30
         guard wanted != interval else { return }
         interval = wanted
         timer?.invalidate()
@@ -169,14 +153,14 @@ final class StatsService: ObservableObject {
     private func checkWarnings(_ next: StatsSnapshot) {
         let reading = StatsWarnings.Reading(
             memoryPressure: next.memory?.pressure, diskFree: next.disk?.free, diskTotal: next.disk?.total,
-            thermal: ProcessInfo.processInfo.thermalState, swapUsed: next.memory?.swapUsed ?? 0, swapLimit: swapLimit
+            thermal: ProcessInfo.processInfo.thermalState, swapUsed: next.memory?.swapUsed ?? 0, swapLimit: options.swapLimit
         )
-        active = StatsWarnings.warnings(reading, off: alertsOff)
+        active = StatsWarnings.warnings(reading, off: options.alertsOff)
         let warnings = Self.shown(active, dismissed: &dismissed)
         if indicator.warnings != warnings { indicator.warnings = warnings }
         // One notification per crossing of the swap limit (spec SY-9).
         let isOver = StatsWarnings.isOverSwap(reading)
-        if isOver, !swapNotified, !alertsOff.contains(.swap), let limit = swapLimit {
+        if isOver, !swapNotified, !options.alertsOff.contains(.swap), let limit = options.swapLimit {
             notify("Swap is above \(limit) GB", "\(StatsFormat.bytes(Double(reading.swapUsed))) of swap in use")
         }
         swapNotified = isOver
@@ -199,18 +183,6 @@ final class StatsService: ObservableObject {
     func dismissWarnings() {
         dismissed.formUnion(active)
         indicator.warnings = Self.shown(active, dismissed: &dismissed)
-    }
-
-    func isShown(_ value: StatsValue) -> Bool { shownValues.contains(value) }
-
-    func setShown(_ value: StatsValue, _ shown: Bool) {
-        if shown { shownValues.insert(value) } else { shownValues.remove(value) }
-    }
-
-    func isOn(_ alert: StatsAlert) -> Bool { !alertsOff.contains(alert) }
-
-    func setOn(_ alert: StatsAlert, _ isOn: Bool) {
-        if isOn { alertsOff.remove(alert) } else { alertsOff.insert(alert) }
     }
 
     func quit(_ process: ProcessUsage) {

@@ -40,7 +40,7 @@ struct StatsFeatureView: View {
         HStack {
             Text("System").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
             Spacer()
-            StatsOptionsMenu(service: service)
+            StatsOptionsMenu(options: service.options)
         }
     }
 
@@ -176,23 +176,23 @@ struct StatsProcessList: View {
 
 /// What shows beside the notch, which alerts are on, and the swap limit (spec SY-7…SY-9).
 struct StatsOptionsMenu: View {
-    @ObservedObject var service: StatsService
+    @ObservedObject var options: StatsOptions
 
     var body: some View {
         Menu {
             Section("Beside the notch") {
                 ForEach(StatsValue.allCases) { value in
-                    Toggle(value.title, isOn: Binding(get: { service.isShown(value) }, set: { service.setShown(value, $0) }))
+                    Toggle(value.title, isOn: Binding(get: { options.isShown(value) }, set: { options.setShown(value, $0) }))
                 }
             }
             Section("Alerts") {
                 ForEach(StatsAlert.allCases) { alert in
-                    Toggle(alert.title, isOn: Binding(get: { service.isOn(alert) }, set: { service.setOn(alert, $0) }))
+                    Toggle(alert.title, isOn: Binding(get: { options.isOn(alert) }, set: { options.setOn(alert, $0) }))
                 }
             }
-            Picker("Notify When Swap Is Above", selection: $service.swapLimit) {
+            Picker("Notify When Swap Is Above", selection: $options.swapLimit) {
                 Text("Never").tag(Int?.none)
-                ForEach(StatsService.swapChoices, id: \.self) { Text("\($0) GB").tag(Int?.some($0)) }
+                ForEach(StatsOptions.swapChoices, id: \.self) { Text("\($0) GB").tag(Int?.some($0)) }
             }
         } label: {
             Label("Options", systemImage: "slider.horizontal.3")

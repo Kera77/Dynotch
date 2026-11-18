@@ -27,6 +27,9 @@ final class HUDService: ObservableObject {
     private var settingsObserver: AnyCancellable?
     /// Our own volume changes also arrive through the listener; they are shown once.
     private var ownChangeUntil = Date.distantPast
+    /// The level set last: Bluetooth headphones report a new level only after a moment, so the
+    /// next key press goes on from this one (spec H-2b).
+    private var lastSet: (device: AudioDeviceID, set: (level: Double, date: Date))?
 
     private static let visibleFor: Duration = .milliseconds(1500)
 
@@ -104,18 +107,21 @@ final class HUDService: ObservableObject {
     }
 
     private func changeVolume(_ key: MediaKey, device: AudioDeviceID, fine: Bool) {
-        ownChangeUntil = Date().addingTimeInterval(0.3)
-        let current = VolumeControl.volume(device) ?? 0
+        ownChangeUntil = Date().addingTimeInterval(1)
+        let read = VolumeControl.volume(device) ?? 0
+        let current = HUDLogic.currentLevel(read: read, lastSet: lastSet.flatMap { $0.device == device ? $0.set : nil })
         switch key {
         case .mute:
             VolumeControl.setMuted(!VolumeControl.isMuted(device), on: device)
+            show(.volume, level: current, muted: VolumeControl.isMuted(device))
         default:
             let level = HUDLogic.stepped(current, increase: key == .soundUp, fine: fine)
             VolumeControl.setVolume(level, on: device)
+            lastSet = (device, (level, Date()))
             // Changing the level unmutes, as in macOS.
             VolumeControl.setMuted(level <= 0, on: device)
+            show(.volume, level: level, muted: level <= 0)
         }
-        show(.volume, level: VolumeControl.volume(device) ?? current, muted: VolumeControl.isMuted(device))
     }
 
     private func changeBrightness(increase: Bool, fine: Bool) {
