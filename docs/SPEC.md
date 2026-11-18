@@ -708,6 +708,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
 | MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
+| MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. |
 
 ## 4ű. Rendszerstatisztika (v0.56)
 

@@ -24,7 +24,7 @@ extension NotchView {
     var isPill: Bool { settings.externalStyle == .pill && !geometry.hasPhysicalNotch }
 
     /// The modules the strip shows (spec MS-5).
-    var stripFeatures: [FeatureID] { ModuleStripChoice.features(from: settings.activeFeatures) }
+    var stripFeatures: [FeatureID] { ModuleStripChoice.features(from: settings.listedFeatures) }
 
     /// The gap between a pill and the top edge, and between it and the menu bar's bottom.
     static var pillGap: CGFloat { 3 }

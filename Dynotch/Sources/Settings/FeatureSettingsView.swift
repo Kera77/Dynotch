@@ -67,6 +67,7 @@ struct FeatureSettingsView: View {
                     .disabled(!settings.isEnabled(feature))
                     .help("Also show \(feature.title) as a menu bar icon; off: only in the notch")
             }
+            if feature == .music { musicOptions }
             ShortcutRecorder(shortcut: shortcuts.shortcuts[feature]) { shortcuts.set($0, for: feature) }
                 .disabled(!settings.isEnabled(feature))
             // Without a shortcut there is nothing to pin: shown unticked (spec SC-2).
@@ -75,6 +76,21 @@ struct FeatureSettingsView: View {
                 .disabled(!settings.isEnabled(feature) || shortcuts.shortcuts[feature] == nil)
                 .help("Opening \(feature.title) with its shortcut also pins the notch, so it stays open")
         }
+    }
+
+    /// The cover beside the notch, and Music among the modules (spec MU-8).
+    @ViewBuilder private var musicOptions: some View {
+        Toggle("Cover", isOn: $settings.showsNowPlaying)
+            .toggleStyle(.checkbox)
+            .disabled(!settings.isEnabled(.music))
+            .help("Show what Spotify plays beside the closed notch; hovering it opens Music")
+        Toggle("In list", isOn: Binding(
+            get: { !settings.unlistedFeatures.contains(.music) },
+            set: { if $0 { settings.unlistedFeatures.remove(.music) } else { settings.unlistedFeatures.insert(.music) } }
+        ))
+        .toggleStyle(.checkbox)
+        .disabled(!settings.isEnabled(.music))
+        .help("Show Music among the modules; off: it opens only from its cover or its shortcut")
     }
 
     private func menuBarBinding(for feature: FeatureID) -> Binding<Bool> {

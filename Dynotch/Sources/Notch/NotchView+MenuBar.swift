@@ -10,7 +10,7 @@ extension NotchView {
     var menuBar: some View {
         HStack(spacing: 0) {
             FeatureSwitcher(
-                features: settings.activeFeatures,
+                features: settings.listedFeatures,
                 selected: model.isShowingSettings ? nil : model.currentFeature,
                 first: model.switcherFirst,
                 visibleCount: model.switcherVisibleCount

@@ -170,7 +170,7 @@ extension NotchController {
             return true
         default:
             guard flags == .command, let digit = Int(event.charactersIgnoringModifiers ?? ""), (1...9).contains(digit) else { return false }
-            let features = settings.activeFeatures
+            let features = settings.listedFeatures
             guard features.indices.contains(digit - 1) else { return false }
             withAnimation(Self.animation) { model.select(features[digit - 1]) }
             return true

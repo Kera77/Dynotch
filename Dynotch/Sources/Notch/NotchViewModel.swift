@@ -280,7 +280,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     func step(_ direction: NavigationDirection) {
-        if let target = FeatureID.neighbor(of: currentFeature, in: settings.activeFeatures, direction: direction) {
+        if let target = FeatureID.neighbor(of: currentFeature, in: settings.listedFeatures, direction: direction) {
             currentFeature = target
             settings.lastFeature = target
             updateLarge()
@@ -298,14 +298,14 @@ final class NotchViewModel: ObservableObject {
 
     /// Swipes the icons without switching features.
     func scrollSwitcher(by steps: Int) {
-        let count = settings.activeFeatures.count
+        let count = settings.listedFeatures.count
         let next = FeatureSwitcher.clampedFirst(switcherFirst + steps, count: count, visible: switcherVisibleCount)
         if next != switcherFirst { switcherFirst = next }
     }
 
     /// The current feature's icon is in view.
     func revealCurrentFeature() {
-        let features = settings.activeFeatures
+        let features = settings.listedFeatures
         guard let index = features.firstIndex(of: currentFeature) else { return }
         let visible = switcherVisibleCount
         var first = FeatureSwitcher.clampedFirst(switcherFirst, count: features.count, visible: visible)

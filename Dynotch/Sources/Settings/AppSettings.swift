@@ -15,6 +15,7 @@ final class AppSettings: ObservableObject {
         static let closeDelay = "closeDelay"
         static let featureOrder = "featureOrder"
         static let enabledFeatures = "enabledFeatures"
+        static let unlistedFeatures = "unlistedFeatures", showsNowPlaying = "musicShowsNowPlaying"
         static let lastFeature = "lastFeature"
         static let calendarAlertEnabled = "calendarAlertEnabled"
         static let calendarLeadMinutes = "calendarLeadMinutes"
@@ -68,6 +69,16 @@ final class AppSettings: ObservableObject {
 
     @Published private(set) var enabledFeatures: Set<FeatureID> {
         didSet { defaults.set(enabledFeatures.map(\.rawValue).sorted(), forKey: Key.enabledFeatures) }
+    }
+
+    /// On, but not among the modules: opened from elsewhere, e.g. Music from its cover (spec MU-8).
+    @Published var unlistedFeatures: Set<FeatureID> = [] {
+        didSet { defaults.set(unlistedFeatures.map(\.rawValue).sorted(), forKey: Key.unlistedFeatures) }
+    }
+
+    /// What Spotify plays shows beside the closed notch (spec MU-8).
+    @Published var showsNowPlaying = true {
+        didSet { defaults.set(showsNowPlaying, forKey: Key.showsNowPlaying) }
     }
 
     /// Last active feature, restored when the panel opens (spec L-1, L-2).
@@ -329,19 +340,8 @@ final class AppSettings: ObservableObject {
             .flatMap(SettingsPresentation.init(rawValue:)) ?? .notch
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
         calendarLeadMinutes = min(max(storedLead, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
+        loadModuleOptions()
     }
-
-    /// Enabled features in menu-bar order.
-    var activeFeatures: [FeatureID] {
-        featureOrder.filter(enabledFeatures.contains)
-    }
-
-    /// Feature to show when the panel opens: the last one if still enabled, else the first enabled.
-    var initialFeature: FeatureID {
-        if let lastFeature, enabledFeatures.contains(lastFeature) { return lastFeature }
-        return activeFeatures.first ?? .home
-    }
-
 }
 
 // MARK: - Features and notification sources

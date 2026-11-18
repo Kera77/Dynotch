@@ -106,7 +106,7 @@ struct AppearanceSettingsView: View {
                 }
             }
             .disabled(!settings.moduleStrip)
-            StripModulesRows(features: settings.activeFeatures)
+            StripModulesRows(features: settings.listedFeatures)
                 .disabled(!settings.moduleStrip)
         } header: {
             Text("Module strip")

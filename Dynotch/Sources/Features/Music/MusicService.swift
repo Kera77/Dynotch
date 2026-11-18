@@ -85,6 +85,7 @@ final class MusicService: ObservableObject {
             timer = nil
             apply(nil)
         }
+        updateGlance()
     }
 
     func refresh() {
@@ -118,11 +119,12 @@ final class MusicService: ObservableObject {
     }
 
     private func updateGlance() {
-        let glance = nowPlaying.map {
+        // The cover can be turned off (spec MU-8).
+        let glance = settings.showsNowPlaying ? nowPlaying.map {
             MusicIndicator.Glance(
                 trackID: $0.trackID, title: $0.title, artist: $0.artist, isPlaying: $0.isPlaying, artwork: artwork, tint: tint
             )
-        }
+        } : nil
         if indicator.glance != glance { indicator.glance = glance }
         if glance == nil, indicator.isAnnouncing { indicator.isAnnouncing = false }
     }

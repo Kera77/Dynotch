@@ -261,7 +261,9 @@ struct NotchView: View {
     /// moves the current one out to the left while the new one comes in from the right, and
     /// the other way round.
     private var featureContent: some View {
-        let features = settings.activeFeatures
+        // A module left out of the list (e.g. Music opened from its cover) comes after the others (spec MU-8).
+        let listed = settings.listedFeatures
+        let features = listed.contains(model.currentFeature) ? listed : listed + [model.currentFeature]
         let index = features.firstIndex(of: model.currentFeature) ?? 0
         let pageWidth = model.openSize.width
         return HStack(spacing: 0) {
