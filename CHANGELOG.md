@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- Replying to Google Chat from the notch when the notification names no conversation: Dynotch
+  opens Google Chat, jumps to the conversation by name (⌘⇧K) and sends only once the window or
+  the field shows that name; otherwise the text stays on the clipboard.
+
+### Fixed
+- Beeper messages read in Beeper stayed in the notification list.
+- Settings › Notifications explains why chats whose banner Dynotch hides cannot disappear once
+  read elsewhere, and what to set instead.
+
 ## [0.50.0] - 2026-11-18
 
 ### Added

@@ -88,6 +88,14 @@ struct NotificationSourceRow: View {
                 updated.hidesBanner = choice.value
                 service.setRule(updated, for: app)
             }
+            if service.hidesBanner(for: app.identifier) {
+                // Closing the banner takes it out of Notification Center too (spec E-13b).
+                Text("Hidden banners leave Notification Center at once, so a message read elsewhere stays here. "
+                    + "For chats, set this app's alert style to None in System Settings › Notifications and choose Show.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             picker("Reply field", value: rule.showsReply, labels: ["Default (off)", "Show", "Hide"]) { choice in
                 var updated = rule
                 updated.showsReply = choice.value

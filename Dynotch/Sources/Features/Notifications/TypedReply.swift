@@ -13,9 +13,16 @@ enum TypedReply {
     private static let activationTimeout: Duration = .seconds(6)
     private static let loadDelay: Duration = .milliseconds(2500)
 
-    static func send(_ text: String, link: URL?, sourceApp: String, fallbackApp: String) async throws -> String {
+    /// - Parameter conversation: the chat's name, for Google Chat notifications without a link.
+    static func send(
+        _ text: String, link: URL?, sourceApp: String, fallbackApp: String, conversation: String? = nil
+    ) async throws -> String {
         guard AXIsProcessTrusted() else {
             throw Failure(description: "Replying needs Accessibility access (Settings › Notifications).")
+        }
+        if link == nil, let conversation, !conversation.isEmpty {
+            // Google Chat names no conversation in its notifications: jump to it by name (spec E-11d).
+            return try await GoogleChatJump.send(text, to: conversation, sourceApp: sourceApp, chatApp: fallbackApp)
         }
         guard let link, let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: sourceApp)
             ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: fallbackApp)
@@ -54,7 +61,7 @@ enum TypedReply {
         return "Sent in \(FileManager.default.displayName(atPath: appURL.path).replacingOccurrences(of: ".app", with: ""))"
     }
 
-    private static func waitUntilFrontmost(_ bundleID: String) async -> Bool {
+    static func waitUntilFrontmost(_ bundleID: String) async -> Bool {
         let deadline = ContinuousClock.now + activationTimeout
         while ContinuousClock.now < deadline {
             if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID { return true }
@@ -63,12 +70,12 @@ enum TypedReply {
         return false
     }
 
-    private static func copyToClipboard(_ text: String) {
+    static func copyToClipboard(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
     }
 
-    private static func press(key: CGKeyCode, flags: CGEventFlags) {
+    static func press(key: CGKeyCode, flags: CGEventFlags) {
         let source = CGEventSource(stateID: .combinedSessionState)
         for isDown in [true, false] {
             let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: isDown)

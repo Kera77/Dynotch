@@ -26,6 +26,13 @@ enum ChatSources {
         notification.appIdentifier.lowercased().contains("beeper")
     }
 
+    /// True when a chat of that name is known and has nothing unread; an unknown name stays.
+    nonisolated static func isRead(chatNamed name: String, in chats: [BeeperChatInfo]) -> Bool {
+        let wanted = name.trimmingCharacters(in: .whitespaces).lowercased()
+        let matching = chats.filter { $0.name.lowercased() == wanted }
+        return !matching.isEmpty && matching.allSatisfy { $0.unread == 0 }
+    }
+
     static func isGoogleChat(_ notification: AppNotification, catalog: NotificationAppCatalog) -> Bool {
         if notification.site == "chat.google.com" || notification.appIdentifier == WebNotificationSource.siteIdentifier("chat.google.com") {
             return true
@@ -83,7 +90,7 @@ struct NotificationsTabsView: View {
         switch tab {
         case .all:
             // No unread bubbles here; the Chats tab has them as cards (spec UM-8b).
-            NotificationsFeatureView(service: service, isActive: isActive)
+            NotificationsFeatureView(service: service, isActive: isActive) { !readInBeeper($0) }
         case .chats:
             // Unread Beeper chats as notification cards, like before Beeper got its own tab;
             // Beeper's own notifications would be the same messages twice (spec UM-9).
@@ -93,7 +100,7 @@ struct NotificationsTabsView: View {
                 isActive: isActive,
                 include: { notification in
                     ChatSources.isGoogleChat(notification, catalog: service.catalog)
-                        || (!cards && ChatSources.isBeeper(notification))
+                        || (!cards && ChatSources.isBeeper(notification) && !readInBeeper(notification))
                 },
                 leading: cards ? AnyView(BeeperUnreadCards(beeper: beeper, open: open)) : nil
             )
@@ -102,6 +109,12 @@ struct NotificationsTabsView: View {
         case .googleChat:
             GoogleChatTabView(service: service, showsList: beeper.showsChatList) { beeper.showsChatList.toggle() }
         }
+    }
+
+    /// A Beeper message whose chat Beeper no longer counts as unread goes from the list (spec UM-10).
+    private func readInBeeper(_ notification: AppNotification) -> Bool {
+        guard ChatSources.isBeeper(notification), beeper.state == .ready else { return false }
+        return ChatSources.isRead(chatNamed: notification.title, in: beeper.chats)
     }
 
     private func open(_ chat: BeeperChatInfo) {

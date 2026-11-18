@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.50 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.50 elfogadva, v0.51 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -246,6 +246,7 @@
 |---|-------------|
 | E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
 | E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
+| E-11d | (v0.51) **Google Chat link nélkül:** ha az értesítés nem tartalmazza a beszélgetés címét, a Dynotch megnyitja a Google Chatet (a Dock-appot, ha telepítve van, különben a chat.google.com-ot a böngészőben), ⌘⇧K-val a beszélgetés nevére ugrik, és **csak akkor küld**, ha az ablak címe vagy a fókuszban lévő mező a beszélgetés nevét mutatja (kis- és nagybetűtől, ékezettől függetlenül). Ha ez nem igazolható, nem gépel sehova: a szöveg a vágólapon marad. |
 | E-15 | (v0.32) **Weboldalak külön forrásként:** ha egy böngésző (pl. Zen) olyan oldal értesítését mutatja, amelyhez nincs telepített webapp, az oldal **saját forrás** lesz (pl. „Google Calendar”), a böngésző ikonjával; az első értesítésével magától megjelenik a Beállítások › Notifications **Websites** szakaszában. Alapból úgy van be- vagy kikapcsolva, mint a böngésző, kivéve a Gmailt és a Google Chatet (alapból be). Megnyitáskor az oldalt nyitja meg abban a böngészőben. |
 | E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
 | E-15c | (v0.48) **Böngésző szétbontva:** a Beállítások › Notifications listájában egy böngésző (pl. Zen) sora alatt, beljebb húzva, a róla érkező oldalak külön kapcsolóval: a saját web appjukkal rendelkezők (Gmail, Google Chat) és a web app nélküliek (Google Calendar) is. Ezek nem szerepelnek még egyszer külön. |
@@ -255,6 +256,7 @@
 | E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. (v0.42) Az emoji-választó a Dynotch saját, **kis ablaka**, mindig **az emoji ikon alá** nyílik (hoverre vagy kattintásra): legutóbb használtak, majd kategóriák (arcok, kezek, szívek, természet, étel, egyéb); megnyitásakor a notch rögzül. |
 | E-18b | (v0.49) A hoverre megnyílt emoji-lenyíló (válaszmező, Beeper-reakció) bezárul, ha az egér se a gombon, se a lenyílón nincs (0,35 mp után). Kattintásra megnyitva marad a következő kattintásig. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
+| E-13b | (v0.51) Ha egy forrásnál a Dynotch zárja be a macOS-bannert, az értesítés azonnal kikerül az Értesítési központból, így a máshol elolvasott üzenet nem tűnik el a listából. A forrás beállításainál ezt egy megjegyzés jelzi, és javasolja helyette a macOS-ben a „Nincs” értesítési stílust. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 | E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
 | E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |
@@ -555,6 +557,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
 | UM-8b | (v0.49) Az **All** fülön nincsenek „Unread” buborékok; az olvasatlan Beeper-csevegések a Chats fülön kártyaként vannak. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
+| UM-10 | (v0.51) A Beeper-értesítések (All és Chats fül) eltűnnek, amint a Beeper a csevegésüket már nem tartja olvasatlannak (a Beeper API alapján, a csevegés neve szerint). Ismeretlen nevű csevegésé marad. |
 
 ## 4x. Beeper a notchban (v0.42)
 
