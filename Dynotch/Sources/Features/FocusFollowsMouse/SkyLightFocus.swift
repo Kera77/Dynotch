@@ -43,6 +43,27 @@ enum SkyLightFocus {
         return windowID
     }
 
+    /// True if `windowID` is one of the app's standard windows (AXStandardWindow): not a pop-up,
+    /// drop-down, menu or tooltip, which are windows of their own in e.g. JetBrains apps and close
+    /// when they lose the focus (spec F-14).
+    static func isStandardWindow(pid: pid_t, windowID: CGWindowID) -> Bool {
+        guard let getWindow else { return false }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.2)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &value) == .success,
+              let windows = value as? [AXUIElement]
+        else { return false }
+        for window in windows {
+            var id: UInt32 = 0
+            guard getWindow(window, &id) == .success, id == windowID else { continue }
+            var subrole: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole) == .success else { return false }
+            return (subrole as? String) == FocusRules.standardSubrole
+        }
+        return false
+    }
+
     /// True if the app's focused window is a dialog, alert or sheet: it wants to keep the focus
     /// (spec F-8).
     static func hasFocusedDialog(pid: pid_t) -> Bool {
@@ -58,11 +79,13 @@ enum SkyLightFocus {
         if AXUIElementCopyAttributeValue(window, kAXModalAttribute as CFString, &modal) == .success, (modal as? Bool) == true {
             return true
         }
+        // Anything but a standard window (a dialog, a pop-up or drop-down with the focus, or one
+        // without a subrole) keeps the focus inside its app (spec F-14).
         var subrole: CFTypeRef?
         guard AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole) == .success,
               let name = subrole as? String
-        else { return false }
-        return FocusRules.isDialog(subrole: name)
+        else { return true }
+        return FocusRules.isDialog(subrole: name) || name != FocusRules.standardSubrole
     }
 
     /// Makes `windowID` of `pid` the key window and its app the active one, leaving the window

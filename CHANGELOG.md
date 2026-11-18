@@ -8,6 +8,8 @@
 - A see-through black panel (opacity below 100 %) blurs what is behind it.
 
 ### Fixed
+- Focus follows mouse closed drop-downs inside an app (e.g. DataGrip's project picker): inside
+  the active app it now moves only between standard windows.
 - Settings › Permissions: Grant for Contacts (and Calendar, Reminders) did nothing until Dynotch
   had asked once; it now shows the system's prompt.
 

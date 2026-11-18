@@ -76,8 +76,12 @@ final class FocusFollowsMouse {
         // dialog or sheet, nor onto a small pop-up, which made them flicker before (spec F-8).
         let sameApp = target.pid == frontPID
         let focusedIsDialog = sameApp && frontPID.map(SkyLightFocus.hasFocusedDialog(pid:)) == true
+        // Asked only inside the active app, and only when another of its windows is under the pointer.
+        let targetIsStandard = sameApp && target.id != focusedWindow
+            && SkyLightFocus.isStandardWindow(pid: target.pid, windowID: target.id)
         guard FocusRules.shouldSwitch(
-            target: target, frontPID: frontPID, focusedWindow: focusedWindow, focusedIsDialog: focusedIsDialog
+            target: target, frontPID: frontPID, focusedWindow: focusedWindow, focusedIsDialog: focusedIsDialog,
+            targetIsStandard: targetIsStandard
         ) else {
             attempts.reset()
             return

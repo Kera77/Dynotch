@@ -64,12 +64,17 @@ enum FocusRules {
     /// Windows smaller than this inside the active app are taken for pop-ups (spec F-13).
     static let minimumSwitchSize = CGSize(width: 120, height: 80)
 
+    static let standardSubrole = "AXStandardWindow"
+
     /// Focus follows windows, not apps (spec F-13): another app's window always; another window
     /// of the active app only when that app's focused window is known and is not a dialog or
-    /// sheet (which want to keep the focus), and the target is not a small pop-up.
-    static func shouldSwitch(target: ScreenWindow, frontPID: pid_t?, focusedWindow: CGWindowID?, focusedIsDialog: Bool) -> Bool {
+    /// sheet (which want to keep the focus), and the target is a standard window, not a pop-up
+    /// or drop-down (spec F-14).
+    static func shouldSwitch(
+        target: ScreenWindow, frontPID: pid_t?, focusedWindow: CGWindowID?, focusedIsDialog: Bool, targetIsStandard: Bool
+    ) -> Bool {
         guard target.pid == frontPID else { return true }
-        guard let focusedWindow, focusedWindow != target.id, !focusedIsDialog else { return false }
+        guard let focusedWindow, focusedWindow != target.id, !focusedIsDialog, targetIsStandard else { return false }
         return target.bounds.width >= minimumSwitchSize.width && target.bounds.height >= minimumSwitchSize.height
     }
 
