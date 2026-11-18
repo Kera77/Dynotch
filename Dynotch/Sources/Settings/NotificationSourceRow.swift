@@ -96,6 +96,11 @@ struct NotificationSourceRow: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            picker("Pop-up", value: rule.peekShowsMessage, labels: ["Default", "With message", "Name only"]) { choice in
+                var updated = rule
+                updated.peekShowsMessage = choice.value
+                service.setRule(updated, for: app)
+            }
             picker("Reply field", value: rule.showsReply, labels: ["Default (off)", "Show", "Hide"]) { choice in
                 var updated = rule
                 updated.showsReply = choice.value

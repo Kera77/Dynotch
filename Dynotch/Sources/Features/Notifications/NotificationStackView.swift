@@ -50,7 +50,8 @@ struct NotificationStackView: View {
                 }
                 .scrollIndicators(.never)
                 .onAppear {
-                    if let last = notifications.last { proxy.scrollTo(last.id, anchor: .bottom) }
+                    // Long cards start at the top and scroll down (spec E-23).
+                    if let first = notifications.first { proxy.scrollTo(first.id, anchor: .top) }
                 }
             }
             if canReply, let replyTarget {
@@ -145,7 +146,8 @@ struct NotificationStackView: View {
             Text(detail.isEmpty ? "—" : detail)
                 .font(.system(size: 13))
                 .foregroundStyle(Color.white.opacity(0.9))
-                .lineLimit(2)
+                // Hovered, the whole text shows (spec E-23).
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(notification.date.formatted(date: .omitted, time: .shortened))
                 .font(.system(size: 10))

@@ -146,7 +146,9 @@ struct NotchGeometry: Equatable, Sendable {
 
     /// The tallest notification panel, for the window size.
     var maxNotificationSize: CGSize {
-        notificationSize(count: Self.maxVisibleNotificationRows, hasReply: true)
+        let size = notificationSize(count: Self.maxVisibleNotificationRows, hasReply: true)
+        // A card with long messages grows up to its limit (spec E-23).
+        return CGSize(width: size.width, height: max(size.height, NotificationTextLayout.maxStackHeight))
     }
 
     /// Notes and Reminders: tall like the full calendar, but narrower (spec J-1, R-2).

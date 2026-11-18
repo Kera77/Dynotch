@@ -26,6 +26,8 @@ final class NotificationService: ObservableObject {
     @Published var focus: NotificationFocus?
     /// Installed apps found in the database, for the settings list.
     @Published private(set) var apps: [NotificationApp] = []
+    /// The screen is shared or recorded: nothing pops up (spec N-21).
+    var isScreenShared = false
 
     let catalog = NotificationAppCatalog()
     /// The websites seen and every source's rules (spec E-15).
@@ -293,8 +295,8 @@ final class NotificationService: ObservableObject {
     }
 
     private func showPeek(_ notification: AppNotification) {
-        // During a Focus it is listed, without popping up (spec E-20).
-        guard popsUp(notification) else { return }
+        // During a Focus, or while the screen is shared, it is listed without popping up (spec E-20, N-21).
+        guard popsUp(notification), !isScreenShared else { return }
         peekTask?.cancel()
         peek = notification
         let duration = settings.notificationDuration

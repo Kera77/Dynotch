@@ -45,6 +45,7 @@
 | N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
 | N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
+| N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -264,6 +265,8 @@
 | E-19 | (v0.43) **Elhalasztás:** jobb klikk egy értesítésen vagy a lista fejlécén: *1 óra múlva*, *ma este (18:00)*, *holnap reggel (9:00)*. Addig eltűnik, utána újra felugrik. |
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
+| E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
+| E-23 | (v0.52) Hoverre a kártya **a teljes szöveget** mutatja (nincs sorlimit), a válaszmezővel, ha a forrásnál be van kapcsolva. A magassága a mért szöveghez igazodik, 520 pt fölött görgethető, és mindig **a tetejéről** indul. |
 
 ## 4c. Számológép (v0.6)
 

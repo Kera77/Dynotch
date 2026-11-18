@@ -206,3 +206,20 @@ extension NotchController {
         if hidden { panel.ignoresMouseEvents = true }
     }
 }
+
+// MARK: - Screen sharing (spec N-21)
+
+extension NotchController {
+    /// While the screen is shared nothing pops up beside or under the notch; a notification
+    /// already shown goes.
+    func setScreenShared(_ shared: Bool) {
+        guard model.isScreenShared != shared else { return }
+        notifications.isScreenShared = shared
+        if shared {
+            notifications.clearPeek()
+            setHoveredIndicator(nil)
+            setHoveredBadge(nil)
+        }
+        withAnimation(Self.animation) { model.isScreenShared = shared }
+    }
+}

@@ -7,6 +7,7 @@ final class NotchManager {
     private let openSettings: () -> Void
     private var controllers: [NotchController] = []
     private var missionControl: MissionControlWatcher?
+    private var screenShare: ScreenShareWatcher?
     private var screenObserver: NSObjectProtocol?
     private var signature = ""
     private var spaceSwipes: SpaceSwipeMonitor?
@@ -32,6 +33,13 @@ final class NotchManager {
         }
         missionControl.start()
         self.missionControl = missionControl
+        // Sharing the screen: nothing of the notch for the viewers (spec N-21).
+        let sharing = ScreenShareWatcher { [weak self] shared in
+            self?.controllers.forEach { $0.setScreenShared(shared) }
+            for window in NSApp.windows { window.sharingType = shared ? .none : .readOnly }
+        }
+        sharing.start()
+        screenShare = sharing
         watchMenuBar()
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,

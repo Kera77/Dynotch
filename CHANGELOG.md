@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- Notification pop-ups can show the message, not only the sender: Settings › Notifications ›
+  Pop-up shows (and the number of lines), or per app. Messages arriving one after the other
+  stack under each other; hovering shows every text in full with the reply field, scrolling
+  from the top when long.
+- While the screen is shared or recorded (Meet, Zoom, Teams, browsers, macOS recording) the notch
+  shows nothing by itself, and its windows are hidden from the share.
+
 ### Changed
 - Google Chat tab: only the unread messages, like the All tab, without the side list.
 - Beeper tab: with the chat list closed it shows the unread chats as cards; opening the list

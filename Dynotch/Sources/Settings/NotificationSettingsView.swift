@@ -113,6 +113,7 @@ struct NotificationSettingsView: View {
             }
 
             Section {
+                PeekSettingsRows(preferences: service.preferences)
                 FocusToggle(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
                 LabeledContent("Accessibility") {
@@ -203,5 +204,28 @@ struct FocusToggle: View {
 
     var body: some View {
         Toggle("During a Focus, pop up only the sources allowed in their rules", isOn: $preferences.respectsFocus)
+    }
+}
+
+/// What the pop-up under the notch shows (spec E-22): the name, or the message too, and how
+/// many lines before hovering shows all of it.
+private struct PeekSettingsRows: View {
+    @ObservedObject var preferences: NotificationPreferences
+
+    var body: some View {
+        Picker("Pop-up shows", selection: $preferences.peekShowsMessage) {
+            Text("Name only").tag(false)
+            Text("With message").tag(true)
+        }
+        .pickerStyle(.segmented)
+        LabeledContent("Message lines") {
+            HStack(spacing: 6) {
+                Text("\(preferences.peekLines)")
+                    .monospacedDigit()
+                Stepper("", value: $preferences.peekLines, in: NotificationPreferences.peekLinesRange)
+                    .labelsHidden()
+            }
+        }
+        .disabled(!preferences.peekShowsMessage)
     }
 }

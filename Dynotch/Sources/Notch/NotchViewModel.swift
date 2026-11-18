@@ -17,6 +17,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
     @Published private(set) var notificationsCanReply = false
+    /// The hovered card's measured height; nil: by the number of messages.
+    private(set) var notificationsHeight: CGFloat?
 
     var isShowingNotifications: Bool { !notifications.isEmpty }
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
@@ -133,6 +135,8 @@ final class NotchViewModel: ObservableObject {
     /// Files are being dragged over the notch (spec FT-1).
     /// Mission Control is showing: no hover opening (spec N-19).
     var isHiddenForMissionControl = false
+    /// The screen is shared or recorded: nothing appears by itself (spec N-21).
+    @Published var isScreenShared = false
     @Published private(set) var isShowingDropZone = false
 
     /// A page that replaces the modules for a moment.
@@ -160,7 +164,10 @@ final class NotchViewModel: ObservableObject {
     /// Size of the panel while it is open, without a resized module (spec RS-1).
     var normalOpenSize: CGSize {
         // Room at the bottom for the reply field, or the "open to reply" button.
-        if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
+        if isShowingNotifications {
+            let size = geometry.notificationSize(count: notifications.count, hasReply: true)
+            return CGSize(width: size.width, height: notificationsHeight ?? size.height)
+        }
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
@@ -179,7 +186,10 @@ final class NotchViewModel: ObservableObject {
     ///   - presenting: new notifications to list instead of the features (opened from a
     ///     notification peek); the remembered feature is not changed.
     ///   - canReply: whether the list gets a reply field.
-    func setExpanded(_ expanded: Bool, presenting presented: [AppNotification] = [], canReply: Bool = false) {
+    /// - Parameter stackHeight: the hovered card's height for its texts (spec E-23).
+    func setExpanded(
+        _ expanded: Bool, presenting presented: [AppNotification] = [], canReply: Bool = false, stackHeight: CGFloat? = nil
+    ) {
         guard expanded != isExpanded else { return }
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
@@ -187,6 +197,7 @@ final class NotchViewModel: ObservableObject {
         }
         notifications = expanded ? presented : []
         notificationsCanReply = expanded && !presented.isEmpty && canReply
+        notificationsHeight = expanded ? stackHeight : nil
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded {
             holdsForSettings = false

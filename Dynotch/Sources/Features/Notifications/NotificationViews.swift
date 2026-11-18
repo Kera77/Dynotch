@@ -25,10 +25,45 @@ struct NotificationPeekView: View {
     let content: NotificationContent
     let notchHeight: CGFloat
     var newCount = 1
+    /// The messages' texts, oldest first, when the pop-up shows them (spec E-22); empty: name only.
+    var messages: [String] = []
+    var lines = 4
 
     var body: some View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
+            if messages.isEmpty {
+                nameRow
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    nameRow
+                        .frame(height: 20)
+                    // One under the other; when they do not fit, the newest stay in sight.
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(Array(messages.enumerated()), id: \.offset) { _, text in
+                            Text(text.isEmpty ? "—" : text)
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.white.opacity(0.88))
+                                .lineLimit(lines)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding(.leading, 22)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .clipped()
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 4)
+                .padding(.bottom, 8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+        }
+    }
+
+    private var nameRow: some View {
             HStack(spacing: 6) {
                 AppIconView(app: app, size: 16)
                 Text(content.sender)
@@ -51,10 +86,8 @@ struct NotificationPeekView: View {
                         .background(Capsule().fill(Color.white.opacity(0.2)))
                         .help("\(newCount) new notifications")
                 }
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
     }
 }
 

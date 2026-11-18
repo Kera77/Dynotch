@@ -140,7 +140,8 @@ final class NotchController {
     /// Area that opens the panel: the notch, or the whole peek while a notification shows.
     var hoverZone: CGRect {
         let geometry = model.geometry
-        return reachingDown(notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize))
+        return reachingDown(notifications.peek == nil
+            ? geometry.hoverZone : geometry.keepOpenZone(for: notifications.peekSize(in: geometry)))
     }
 
     var keepOpenZone: CGRect {
@@ -214,7 +215,8 @@ final class NotchController {
         let stack = notifications.peek.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
         if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
-        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply) }
+        let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
+        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
         notifications.clearPeek()
         startHoverTimer()
         if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }

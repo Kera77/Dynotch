@@ -117,20 +117,14 @@ struct NotchView: View {
                     CallView(service: calls, call: call, notchHeight: geometry.notchSize.height)
                         .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                         .transition(.opacity)
-                } else if !model.isExpanded, let notification = notifications.peek {
-                    NotificationPeekView(
-                        app: notifications.catalog.app(for: notification.appIdentifier),
-                        content: notifications.content(for: notification),
-                        notchHeight: geometry.notchSize.height,
-                        newCount: notifications.unseen.count
-                    )
-                    .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
+                } else if !model.isExpanded, !model.isScreenShared, let notification = notifications.peek {
+                    peekView(notification)
                     .transition(.opacity)
-                } else if !model.isExpanded, let event = devices.current {
+                } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
                         .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                         .transition(.opacity)
-                } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
+                } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
                     NotchIndicatorView(
                         items: indicatorItems,
                         leadTime: calendar.leadTime,
@@ -323,7 +317,9 @@ extension NotchView {
             return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
-        if notifications.peek != nil || devices.current != nil { return geometry.peekSize }
+        if model.isScreenShared { return geometry.notchSize }
+        if notifications.peek != nil { return notifications.peekSize(in: geometry) }
+        if devices.current != nil { return geometry.peekSize }
         let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.

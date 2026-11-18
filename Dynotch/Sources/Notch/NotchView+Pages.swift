@@ -53,4 +53,18 @@ extension NotchView {
             TrayDropZoneView(notchHeight: geometry.notchSize.height, keep: keepInTray, airDrop: sendWithAirDrop)
         }
     }
+
+    /// A new notification under the closed notch: the name, or its messages too (spec E-3, E-22).
+    func peekView(_ notification: AppNotification) -> some View {
+        let peekSize = notifications.peekSize(in: geometry)
+        return NotificationPeekView(
+            app: notifications.catalog.app(for: notification.appIdentifier),
+            content: notifications.content(for: notification),
+            notchHeight: geometry.notchSize.height,
+            newCount: notifications.unseen.count,
+            messages: notifications.peekShowsMessage(notification) ? notifications.peekTexts(for: notification) : [],
+            lines: notifications.preferences.peekLines
+        )
+        .frame(width: peekSize.width, height: peekSize.height)
+    }
 }
