@@ -24,6 +24,28 @@ struct AppNotification: Identifiable, Equatable, Sendable {
         copy.sourceIdentifier = sourceIdentifier ?? self.appIdentifier
         return copy
     }
+
+    /// The same notification under another id (spec E-13b: kept after its record left).
+    func with(id newID: Int64) -> AppNotification {
+        var copy = AppNotification(
+            id: newID, appIdentifier: appIdentifier, title: title,
+            subtitle: subtitle, body: body, date: date, site: site, link: link
+        )
+        copy.sourceIdentifier = sourceIdentifier
+        return copy
+    }
+
+    /// The same message posted again by its site.
+    func repeats(_ other: AppNotification) -> Bool {
+        isFromBrowser && appIdentifier == other.appIdentifier && title == other.title
+            && subtitle == other.subtitle && body == other.body
+    }
+
+    /// Posted by a browser for a website: the page closes these itself after a few seconds,
+    /// so leaving Notification Center says nothing about being read (spec E-13c).
+    var isFromBrowser: Bool {
+        WebNotificationSource.isShared(sourceIdentifier ?? appIdentifier)
+    }
 }
 
 /// What the notch shows for a notification.

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+- Google Chat and other website notifications stay in the notch after the page closes them in
+  Notification Center a few seconds later; a message posted again replaces the kept copy.
+
+### Changed
+- A notification group shows a bin to remove it and, when open, the small X to close it instead
+  of the arrow.
+
 ## [0.55.0] - 2026-11-18
 
 ### Added

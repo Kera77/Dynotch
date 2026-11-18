@@ -58,11 +58,12 @@ struct NotificationGroupRow: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Color.white.opacity(0.45))
                         .lineLimit(1)
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.45))
-                    NotificationHeaderButton(symbol: "xmark", help: "Remove") {
+                    // Like the pop-up's header: the bin removes, the small X closes (spec E-5c).
+                    NotificationHeaderButton(symbol: "trash", help: "Remove") {
                         withAnimation(.easeOut(duration: 0.2)) { group.notifications.forEach { service.remove($0) } }
+                    }
+                    if isExpanded {
+                        NotificationHeaderButton(symbol: "xmark", help: "Close", action: toggle)
                     }
                 }
                 if !isExpanded, !content.detail.isEmpty {

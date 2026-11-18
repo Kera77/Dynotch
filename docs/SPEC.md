@@ -241,6 +241,7 @@
 | # | Követelmény |
 |---|-------------|
 | E-5b | **Csoportosítás:** az Értesítések funkcióban az azonos alkalmazásból és küldőtől (vagy csevegésből) jött értesítések **egy csoportba** kerülnek; a csoport zárva a legfrissebb üzenetet és a darabszámot mutatja. **Kattintásra kinyílik:** minden üzenet időrendben, alatta **válaszmező** (csevegőappoknál; Enterre küld), levelezésnél és rendszerüzenetnél „Open <app>” gomb. Egyetlen csoport eleve nyitva van. |
+| E-5c | A csoport fejlécében a **kuka** törli a csoport értesítéseit; kinyitva a lenyíló nyíl helyett a **kis X** zárja be (mint a felugró lista fejlécében). |
 
 ### Elintézett értesítések (v0.24)
 
@@ -259,6 +260,7 @@
 | E-18b | (v0.49) A hoverre megnyílt emoji-lenyíló (válaszmező, Beeper-reakció) bezárul, ha az egér se a gombon, se a lenyílón nincs (0,35 mp után). Kattintásra megnyitva marad a következő kattintásig. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-13b | (v0.51) Ha egy forrásnál a Dynotch zárja be a macOS-bannert, az értesítés azonnal kikerül az Értesítési központból, így a máshol elolvasott üzenet nem tűnik el a listából. A forrás beállításainál ezt egy megjegyzés jelzi, és javasolja helyette a macOS-ben a „Nincs” értesítési stílust. |
+| E-13c | Böngészőből jött (webes) értesítéseknél (pl. Google Chat a Zenben) az oldal maga zárja be az értesítést pár másodperc után, ezért ezek az Értesítési központból kikerülve **is a notch listájában maradnak**, saját azonosítóval (a rekordazonosítót a macOS újra kiadja). Ha az oldal ugyanazt az üzenetet újra elküldi, a régi példány lecserélődik. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 | E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
 | E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |

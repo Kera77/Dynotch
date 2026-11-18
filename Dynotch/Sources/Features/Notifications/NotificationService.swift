@@ -96,32 +96,6 @@ final class NotificationService: ObservableObject {
 
     private static let unseenLimit = 12
 
-    /// Called once the new notifications were seen (all, or the given ones).
-    func markSeen(_ seen: [AppNotification]? = nil) {
-        guard let seen else {
-            if !unseen.isEmpty { unseen = [] }
-            return
-        }
-        let ids = Set(seen.map(\.id))
-        unseen.removeAll { ids.contains($0.id) }
-    }
-
-    /// Removes one notification from the list (spec E-12).
-    func remove(_ notification: AppNotification) {
-        recent.removeAll { $0.id == notification.id }
-        unseen.removeAll { $0.id == notification.id }
-        focus?.notifications.removeAll { $0.id == notification.id }
-        if peek?.id == notification.id { clearPeek() }
-    }
-
-    /// Removes every notification (spec E-12).
-    func clearAll() {
-        recent = []
-        unseen = []
-        focus?.notifications = []
-        clearPeek()
-    }
-
     /// Negative ids never clash with the database's record ids.
     private var internalID: Int64 = 0
 
@@ -221,10 +195,24 @@ final class NotificationService: ObservableObject {
         // Identifiers only: which notifications left with Notification Center (spec E-13).
         let apps = recent.filter { gone.contains($0.id) }.map { "#\($0.id) \($0.appIdentifier)" }
         DiagnosticsLog.append("notification-records", "left Notification Center: " + apps.joined(separator: ", "))
+        // Websites close their own notifications: those stay, under an id of their own, as the
+        // record id is soon given to a new notification (spec E-13c).
+        for kept in recent where gone.contains(kept.id) && kept.isFromBrowser {
+            internalID -= 1
+            rekey(kept.id, to: internalID)
+        }
         recent.removeAll { gone.contains($0.id) }
         unseen.removeAll { gone.contains($0.id) }
         focus?.notifications.removeAll { gone.contains($0.id) }
         if let peek, gone.contains(peek.id) { clearPeek() }
+    }
+
+    private func rekey(_ id: Int64, to newID: Int64) {
+        func swap(_ item: AppNotification) -> AppNotification { item.id == id ? item.with(id: newID) : item }
+        recent = recent.map(swap)
+        unseen = unseen.map(swap)
+        if let notifications = focus?.notifications { focus?.notifications = notifications.map(swap) }
+        if let current = peek, current.id == id { peek = current.with(id: newID) }
     }
 
     private func openDatabaseIfDue() {
@@ -283,8 +271,12 @@ final class NotificationService: ObservableObject {
         guard let newest = incoming.last else { return }
         // A record updated in place replaces its earlier version (spec E-1d).
         let ids = Set(incoming.map(\.id))
-        recent.removeAll { ids.contains($0.id) }
-        unseen.removeAll { ids.contains($0.id) }
+        // A kept website notification posted again replaces the kept copy (spec E-13c).
+        let replaced = { (old: AppNotification) in
+            ids.contains(old.id) || (old.id < 0 && incoming.contains { $0.repeats(old) })
+        }
+        recent.removeAll(where: replaced)
+        unseen.removeAll(where: replaced)
         recent = Array((incoming.reversed() + recent).prefix(Self.historyLimit))
         unseen = Array((unseen + incoming).suffix(Self.unseenLimit))
         showPeek(newest)
@@ -304,7 +296,8 @@ final class NotificationService: ObservableObject {
             try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled, let self else { return }
             self.peekTask = nil
-            if self.peek?.id == notification.id { self.peek = nil }
+            // A newer peek or a re-keyed one (spec E-13c) cancels or keeps this task.
+            self.peek = nil
         }
     }
 }
@@ -347,5 +340,33 @@ extension NotificationService {
         recent = Array(([notification] + recent).prefix(50))
         unseen.append(notification)
         showPeekAgain(notification)
+    }
+}
+
+extension NotificationService {
+    /// Called once the new notifications were seen (all, or the given ones).
+    func markSeen(_ seen: [AppNotification]? = nil) {
+        guard let seen else {
+            if !unseen.isEmpty { unseen = [] }
+            return
+        }
+        let ids = Set(seen.map(\.id))
+        unseen.removeAll { ids.contains($0.id) }
+    }
+
+    /// Removes one notification from the list (spec E-12).
+    func remove(_ notification: AppNotification) {
+        recent.removeAll { $0.id == notification.id }
+        unseen.removeAll { $0.id == notification.id }
+        focus?.notifications.removeAll { $0.id == notification.id }
+        if peek?.id == notification.id { clearPeek() }
+    }
+
+    /// Removes every notification (spec E-12).
+    func clearAll() {
+        recent = []
+        unseen = []
+        focus?.notifications = []
+        clearPeek()
     }
 }
