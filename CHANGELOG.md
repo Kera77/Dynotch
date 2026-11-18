@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.50.0] - 2026-11-18
+
 ### Added
 - Hovering the tasks counter beside the notch drops down its tasks (up to six), each checked off
   with its circle.
