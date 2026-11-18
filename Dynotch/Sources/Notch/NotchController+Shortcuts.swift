@@ -155,7 +155,8 @@ extension NotchController {
 extension NotchController {
     /// Esc closes, ⌘1–9 picks a module, ← → step through them (not while typing in a field).
     func handleKey(_ event: NSEvent) -> Bool {
-        guard model.isExpanded else { return false }
+        // The screenshot editor handles its own keys (spec SH-7).
+        guard model.isExpanded, model.editor == nil else { return false }
         let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
         let isTyping = panel.firstResponder is NSText
         switch Int(event.keyCode) {

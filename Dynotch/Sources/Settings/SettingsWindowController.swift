@@ -24,7 +24,8 @@ final class SettingsWindowController {
             settings: services.settings, calendar: services.calendar, notifications: services.notifications,
             badges: services.badges, shortcuts: services.shortcuts, updates: services.updates,
             clipboard: services.clipboard, tray: services.tray, beeper: services.beeper, devices: services.devices,
-            chat: services.chat, tasks: services.tasks, switcher: services.switcher.settings
+            chat: services.chat, tasks: services.tasks, switcher: services.switcher.settings,
+            screenshots: services.screenshots.settings
         )
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
         window.title = "Dynotch Settings"

@@ -726,6 +726,23 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-7 | A modul fejlécében választható, mit mutasson a csukott notch jobb oldala: **semmit** (alap), a **CPU**-t vagy a **letöltési sebességet**. Rámutatásra a modul nyílik le. Nyitott modulnál másodpercenként, a csukott notch értékéhez két másodpercenként, egyébként félpercenként mér. |
 | SY-8 | **Figyelmeztető piros pötty** a csukott notch mellett, ha kevés a memória, majdnem tele a lemez (10 GB vagy 5% alatt), vagy a Mac lassít, hogy lehűljön. |
 
+## 4ő. Képmetsző (v0.57)
+
+| # | Követelmény |
+|---|---|
+| SH-1 | **Gyorsbillentyű**, alapból **⌃⇧S** (Beállítások › Screenshots, átírható). A módosítók nyomva tartása mellett minden S a **következő módra** lép (körbe); a notch alatt látszanak a módok, a választott kivilágítva. A módosítók felengedésére indul a választott mód; **Esc** megszakítja. A funkció kikapcsolható. |
+| SH-2 | **Módok**, sorrendjük húzással átrendezhető, egyenként kikapcsolhatók (legalább egy marad): **Area** (terület kijelölése húzással, közben méretkijelzés), **Window** (az egér alatti ablak kiemelődik, kattintásra elkészül, árnyék nélkül), **Full Screen** (az egér alatti kijelző), **Scrolling** (görgetett kép), **Screen Recording** (videó). A kijelölés Esc-kel vagy jobb kattintással megszakítható. |
+| SH-3 | A kép **PNG**-ként a `~/Pictures/Screenshots` mappába kerül („Screenshot 2026-11-18 at 17.45.12.png”), és **azonnal a vágólapra** (kép és fájl). A Dynotch saját ablakai nem kerülnek a képre. Képernyőfelvételi engedély kell. |
+| SH-4 | **Görgetett kép, kézi görgetéssel:** a terület kijelölése után kék keret jelzi a területet, alatta „Scroll, then Done” sáv. Görgetés közben a Dynotch másodpercenként négyszer képet készít, megkeresi, mennyit mozdult a tartalom, és az új sorokat alulra illeszti. Done (vagy a gyorsbillentyű újra) befejezi, Esc/Cancel elveti. |
+| SH-5 | **Képernyőfelvétel** (macOS 15+): az egér alatti kijelzőről `.mov` a Screenshots mappába („Screen Recording … .mov”), a fájl a vágólapra kerül. Kapcsolható a **Mac hangja** (alap: be) és a **mikrofon** (alap: ki). Felvétel közben a csukott notch mellett piros pötty és az eltelt idő; rámutatva **Stop**. A gyorsbillentyű is leállítja. A Dynotch nem kerül a felvételre. |
+| SH-6 | Kép után a notch alatt pár másodpercre **felugró**: bélyegkép, „Copied · Saved”. A felugróra mutatva (vagy a notchot lenyitva) **megnyílik a szerkesztő**. |
+| SH-7 | **Szerkesztő:** a notch szinte a kijelző méretére nagyul, benne a kép. Nyitva marad, amíg a Close (Esc) vagy a Done (⌘S) be nem zárja; alatta nem vált modult nyíllal vagy húzással. |
+| SH-8 | **Eszközök** (Beállítások › Screenshots › Editor tools, egyenként kikapcsolhatók): Copy, Save, Crop, Text, Arrow, Rectangle, Ellipse, Line, Pencil, Highlighter, Pixelate, Numbered Step. Mellettük szín (8 szín) és vonalvastagság (3 fokozat, a kép méretéhez igazítva), visszavonás ⌘Z, újra ⇧⌘Z. |
+| SH-9 | **Mentés:** a Save és a Done (ha volt változás) **felülírja a fájlt** és a vágólapra teszi az eredményt; a Copy csak a vágólapra teszi. |
+| SH-10 | A rajzok a kép pixeleiben tárolódnak, így a mentett kép ugyanúgy néz ki, mint a szerkesztőben; a vágás nem veszi el a rajzokat. |
+| SH-11 | A **tálcán** „Screenshots” fül a mappa **legutóbbi 10** képével és felvételével (a mappából semmi nem törlődik). Képre duplán kattintva vagy a jobb klikk menü **Edit** pontjával megnyílik a szerkesztő. Kikapcsolt képmetszőnél a fül nem látszik. |
+| SH-12 | Minden kép és hiba a `screenshots.log`-ba kerül (tartalom nélkül). |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.

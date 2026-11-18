@@ -14,7 +14,7 @@ extension NotchController {
                 updates: services.updates, tablets: services.tablets, clipboard: services.clipboard,
                 clipboardPicker: services.clipboardPicker, tray: services.tray, beeper: services.beeper, devices: services.devices,
                 musicIndicator: services.music.indicator, statsIndicator: services.stats.indicator, music: services.music,
-                stats: services.stats
+                stats: services.stats, screenshots: services.screenshots
             ) { [weak self] in
                 self?.settingsButtonPressed()
             }
@@ -26,6 +26,8 @@ extension NotchController {
             rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
             rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }
             rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
+        rootView.editScreenshot = { [weak self] in self?.openScreenshotEditor($0, fromPeek: false) }
+        rootView.closeScreenshotEditor = { [weak self] in self?.closeScreenshotEditor() }
         return rootView
     }
 }

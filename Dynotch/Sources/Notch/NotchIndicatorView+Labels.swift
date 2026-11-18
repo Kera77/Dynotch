@@ -54,4 +54,40 @@ extension NotchIndicatorView {
         .frame(height: IndicatorLayout.labelHeight - 4)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+
+    /// A recording is running: Stop ends it (spec SH-5).
+    var recordingLabel: some View {
+        HStack(spacing: 7) {
+            Circle().fill(Theme.red).frame(width: 8, height: 8)
+            Text("Recording the screen").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+            Spacer(minLength: 8)
+            Button("Stop", action: stopRecording)
+                .buttonStyle(.plain)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .frame(height: 20)
+                .background(Capsule().fill(Theme.red))
+        }
+        .padding(.horizontal, 12)
+        .frame(height: IndicatorLayout.labelHeight - 4)
+    }
+}
+
+/// A red dot and the time recorded so far (spec SH-5).
+struct RecordingSlot: View {
+    let since: Date
+    let now: Date
+
+    var body: some View {
+        let seconds = max(Int(now.timeIntervalSince(since)), 0)
+        HStack(spacing: 4) {
+            Circle().fill(Theme.red).frame(width: 7, height: 7)
+            Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+        }
+        .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
+    }
 }

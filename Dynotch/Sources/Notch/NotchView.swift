@@ -39,6 +39,8 @@ struct NotchView: View {
     @ObservedObject var statsIndicator: StatsIndicator
     let music: MusicService
     let stats: StatsService
+    /// The mode chooser, the pop-up after a shot and the recording (spec SH-1, SH-6, SH-5).
+    @ObservedObject var screenshots: ScreenshotService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -54,6 +56,9 @@ struct NotchView: View {
     /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
     var keepInTray: ([URL]) -> Void = { _ in }
     var sendWithAirDrop: ([URL]) -> Void = { _ in }
+    /// Opens a screenshot in the editor, and closes the editor (spec SH-7, SH-11).
+    var editScreenshot: (URL) -> Void = { _ in }
+    var closeScreenshotEditor: () -> Void = {}
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Motion.quick
@@ -70,7 +75,7 @@ struct NotchView: View {
         IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
-            music: musicIndicator.glance, stats: statsIndicator.isShown
+            music: musicIndicator.glance, stats: statsIndicator.isShown, recording: screenshots.recordingSince
         )
     }
 
@@ -86,7 +91,8 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     var collapsedOffset: CGFloat {
-        guard !model.isExpanded, notifications.peek == nil, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered
+        guard !model.isExpanded, notifications.peek == nil, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
+              !showsScreenshotPeek
         else { return 0 }
         return indicatorLayout.horizontalOffset
     }
@@ -142,6 +148,10 @@ struct NotchView: View {
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
                         .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
+                        .transition(.opacity)
+                } else if !model.isExpanded, showsScreenshotPeek {
+                    screenshotPeek
+                        .frame(width: screenshotPeekSize.width, height: screenshotPeekSize.height)
                         .transition(.opacity)
                 } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
@@ -213,6 +223,8 @@ struct NotchView: View {
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
         .animation(NotchController.animation, value: devices.current?.id)
+        .animation(NotchController.animation, value: screenshots.peek?.id)
+        .animation(Self.quickAnimation, value: screenshots.choosing)
         .animation(Self.quickAnimation, value: hud.display != nil)
         .animation(NotchController.animation, value: calls.call != nil)
         .animation(NotchController.animation, value: notices.notice)
@@ -235,7 +247,8 @@ struct NotchView: View {
                 SettingsView(
                     settings: settings, calendar: calendar, notifications: notifications,
                     badges: badges, shortcuts: shortcuts, updates: updates, clipboard: clipboard, tray: tray, beeper: beeper,
-                    devices: devices, chat: chat, tasks: tasks, switcher: switcher?.settings
+                    devices: devices, chat: chat, tasks: tasks, switcher: switcher?.settings,
+                    screenshots: screenshots.settings
                 )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -314,6 +327,7 @@ extension NotchView {
             return CGSize(width: max(peek.width, row), height: peek.height)
         }
         if devices.current != nil { return geometry.peekSize }
+        if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? hoveredBadgeHeight
             ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {

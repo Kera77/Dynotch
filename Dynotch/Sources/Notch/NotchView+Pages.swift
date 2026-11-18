@@ -39,7 +39,7 @@ extension NotchView {
         case .clipboard:
             ClipboardFeatureView(store: clipboard, close: closeNotifications)
         case .tray:
-            TrayFeatureView(store: tray)
+            TrayFeatureView(store: tray, edit: editScreenshot)
         case .music:
             MusicFeatureView(service: music, isActive: model.isExpanded && model.currentFeature == .music)
         case .stats:
@@ -51,7 +51,11 @@ extension NotchView {
 
     /// The clipboard's items while its shortcut is held, or the drop zone (spec CB-3, FT-1).
     @ViewBuilder var overlayPage: some View {
-        if model.isShowingSwitcher, let switcher {
+        if let editor = model.editor {
+            ScreenshotEditorView(
+                editor: editor, settings: screenshots.settings, notchHeight: geometry.notchSize.height, close: closeScreenshotEditor
+            )
+        } else if model.isShowingSwitcher, let switcher {
             SwitcherView(
                 switcher: switcher, settings: switcher.settings, notchHeight: geometry.notchSize.height,
                 width: model.openSize.width

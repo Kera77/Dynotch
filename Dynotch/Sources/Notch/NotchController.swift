@@ -28,6 +28,7 @@ final class NotchController {
     let battery: BatteryService
     let music: MusicService
     let stats: StatsService
+    let screenshots: ScreenshotService
     private var chatObserver: AnyCancellable?
     private var spaceObserver: NSObjectProtocol?
     var gatherTask: Task<Void, Never>?
@@ -93,6 +94,7 @@ final class NotchController {
         battery = services.battery
         music = services.music
         stats = services.stats
+        screenshots = services.screenshots
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -150,6 +152,8 @@ final class NotchController {
             updateCallInteraction()
         } else if model.isExpanded {
             evaluatePointerWhileExpanded()
+        } else if handleScreenshotPeek(at: NSEvent.mouseLocation) {
+            // The shot just made opens into the editor (spec SH-6).
         } else if handleDevicePeek(at: NSEvent.mouseLocation) {
             // A device notice under the notch (spec DV-6).
         } else if handleFileDrag(at: NSEvent.mouseLocation) {
@@ -274,7 +278,8 @@ final class NotchController {
         }
         switch event.type {
         case .scrollWheel:
-            return handleScroll(event)
+            // No module switching under the screenshot editor (spec SH-7).
+            return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)
         default:

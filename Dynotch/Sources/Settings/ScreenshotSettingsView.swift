@@ -1,0 +1,86 @@
+import SwiftUI
+
+/// Settings › Screenshots (spec SH-1…SH-12): the shortcut, the modes and their order, sound for
+/// recordings, and the editor's tools.
+struct ScreenshotSettingsView: View {
+    @ObservedObject var settings: ScreenshotSettings
+    @State private var dragged: CaptureMode?
+    @State private var isAllowed = ScreenCapture.isAllowed
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Screenshots", isOn: $settings.isOn)
+                LabeledContent("Shortcut") {
+                    ShortcutRecorder(shortcut: settings.shortcut) { settings.shortcut = $0 }
+                }
+                if !isAllowed {
+                    HStack {
+                        Text("Needs Screen Recording.").foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Allow…") {
+                            ScreenCapture.requestAccess()
+                            isAllowed = ScreenCapture.isAllowed
+                        }
+                    }
+                }
+            } footer: {
+                Text("Hold the modifiers and press the key again to step to the next mode; letting go takes the picture. "
+                    + "Esc cancels. Pictures go to Pictures › Screenshots and onto the clipboard.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section("Modes, in the order of the key presses") {
+                ForEach(settings.order) { mode in modeRow(mode) }
+            }
+            Section("Screen recording") {
+                Toggle("Record the Mac's sound", isOn: $settings.recordsSystemAudio)
+                Toggle("Record the microphone", isOn: $settings.recordsMicrophone)
+            }
+            Section("Editor tools") {
+                ForEach(EditorTool.allCases) { tool in
+                    Toggle(isOn: Binding(get: { settings.isOn(tool) }, set: { settings.setOn(tool, $0) })) {
+                        Label(tool.title, systemImage: tool.symbol)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private func modeRow(_ mode: CaptureMode) -> some View {
+        let position = settings.modes.firstIndex(of: mode).map { "\($0 + 1)×" } ?? "Off"
+        return HStack(spacing: 8) {
+            Image(systemName: "line.3.horizontal").foregroundStyle(.secondary).accessibilityLabel("Drag to reorder")
+            Toggle(isOn: Binding(get: { settings.isOn(mode) }, set: { settings.setOn(mode, $0) })) {
+                Label(mode.title, systemImage: mode.symbol)
+            }
+            Spacer()
+            Text(position).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+        }
+        .opacity(dragged == mode ? 0.4 : 1)
+        .onDrag {
+            dragged = mode
+            return NSItemProvider(object: mode.rawValue as NSString)
+        }
+        .onDrop(of: [.text], delegate: ModeDropDelegate(target: mode, settings: settings, dragged: $dragged))
+    }
+}
+
+private struct ModeDropDelegate: DropDelegate {
+    let target: CaptureMode
+    let settings: ScreenshotSettings
+    @Binding var dragged: CaptureMode?
+
+    func dropEntered(info: DropInfo) {
+        guard let dragged else { return }
+        withAnimation(Motion.quick) { settings.move(dragged, to: target) }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
+
+    func performDrop(info: DropInfo) -> Bool {
+        dragged = nil
+        return true
+    }
+}

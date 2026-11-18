@@ -33,6 +33,8 @@ struct NotchIndicatorView: View {
     var badgeRows: (BadgeItem) -> [BadgeNotificationRow] = { _ in [] }
     var openBadgeApp: (BadgeItem) -> Void = { _ in }
     var showsBadgeList = true // off over a notification pop-up (spec E-24)
+    /// Stops a screen recording (spec SH-5).
+    var stopRecording: () -> Void = {}
     /// The cover's progress and the stats' numbers (spec MU-3, SY-7).
     var music: MusicService?
     var stats: StatsService?
@@ -122,7 +124,7 @@ struct NotchIndicatorView: View {
         case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
             BrandGlyphView(glyph: .claude, size: 16)
-        case .tasks, .music, .stats:
+        case .tasks, .music, .stats, .recording:
             // Only on the right (spec R-10, MU-2, SY-7).
             EmptyView()
         }
@@ -168,6 +170,8 @@ struct NotchIndicatorView: View {
             }
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
+        case .recording(let since):
+            RecordingSlot(since: since, now: now)
         }
     }
 
@@ -233,6 +237,8 @@ extension NotchIndicatorView {
             tasksLabel(count, item: item)
         case .music(let glance):
             simpleLabel(glance.title, detail: glance.artist, symbol: "music.note", color: glance.tint.color)
+        case .recording:
+            recordingLabel
         case .stats:
             simpleLabel(stats?.indicator.warnings.first ?? "System", detail: "", symbol: "exclamationmark.triangle.fill",
                         color: Theme.red)

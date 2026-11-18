@@ -36,7 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         devices: DeviceWatcher(settings: settings),
         switcher: SwitcherController(settings: SwitcherSettings()),
         music: MusicService(settings: settings),
-        stats: StatsService(settings: settings)
+        stats: StatsService(settings: settings),
+        screenshots: ScreenshotService(settings: ScreenshotSettings())
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -44,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var notchManager: NotchManager?
     private var textService: TextServiceProvider?
     private var switcherObserver: AnyCancellable?
+    private var screenshotObserver: AnyCancellable?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -74,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.battery.start()
         services.music.start()
         services.stats.start()
+        services.screenshots.start()
         services.updates.start()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
@@ -94,6 +97,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.clipboardPicker.present = { [weak manager] shown in manager?.showClipboardPicker(shown) }
         services.clipboardPicker.start()
         startSwitcher(manager)
+        services.screenshots.openEditor = { [weak manager] url in manager?.openScreenshotEditor(url) }
+        // The tray's Screenshots tab follows the tool (spec SH-11).
+        screenshotObserver = services.screenshots.settings.$isOn.sink { [tray = services.tray] in tray.showsScreenshots = $0 }
         services.beeper.start()
         services.devices.start()
 

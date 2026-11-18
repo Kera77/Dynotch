@@ -29,4 +29,5 @@ struct AppServices {
     let switcher: SwitcherController
     let music: MusicService
     let stats: StatsService
+    let screenshots: ScreenshotService
 }

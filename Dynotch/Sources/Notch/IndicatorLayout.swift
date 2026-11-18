@@ -38,6 +38,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case music(MusicIndicator.Glance)
     /// CPU, network speed or a warning (spec SY-7, SY-8).
     case stats
+    /// A screen recording since this time; its details have Stop (spec SH-5).
+    case recording(Date)
 
     var id: String {
         switch self {
@@ -48,13 +50,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .tasks: "tasks"
         case .music: "music"
         case .stats: "stats"
+        case .recording: "recording"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks, .music, .stats: false
+        case .meeting, .battery, .tasks, .music, .stats, .recording: false
         }
     }
 
@@ -80,13 +83,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
         case .music: IndicatorLayout.ringSlotWidth
         case .stats: IndicatorLayout.statsSlotWidth
+        case .recording: IndicatorLayout.slotWidth
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery, .music, .stats: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .music, .stats, .recording: IndicatorLayout.labelHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count): IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * 22 + 6
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
@@ -97,9 +101,10 @@ enum IndicatorItem: Identifiable, Equatable {
     /// tasks at the far right.
     static func items(
         meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
-        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Bool = false
+        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Bool = false, recording: Date? = nil
     ) -> [IndicatorItem] {
-        (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
+        (recording.map { [.recording($0)] } ?? [])
+            + (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats ? [.stats] : [])
             + (tasks.map { [.tasks($0)] } ?? [])
     }

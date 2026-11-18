@@ -15,6 +15,7 @@ struct SettingsView: View {
     let chat: ClaudeChatService
     let tasks: TaskIndicator
     var switcher: SwitcherSettings?
+    var screenshots: ScreenshotSettings?
 
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
@@ -56,6 +57,8 @@ struct SettingsView: View {
             FocusSettingsView(settings: settings)
         case .switcher:
             if let switcher { SwitcherSettingsView(settings: switcher) }
+        case .screenshots:
+            if let screenshots { ScreenshotSettingsView(settings: screenshots) }
         case .permissions:
             PermissionsSettingsView(notifications: notifications)
         case .about:

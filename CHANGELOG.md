@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+- Screenshots (Settings › Screenshots): ⌃⇧S, pressed again while holding ⌃⇧, steps through
+  Area, Window, Full Screen, Scrolling and Screen Recording (reorderable, each can be turned
+  off); letting go takes it. Shots are saved to Pictures › Screenshots and copied; a pop-up
+  under the notch opens the editor in a large notch with crop, text, arrow, rectangle, ellipse,
+  line, pencil, highlighter, pixelate and numbered steps, colours, widths and undo. Recordings
+  can include the Mac's sound and the microphone. The tray has a Screenshots tab with the ten
+  newest, which open in the editor.
+
 ## [0.56.0] - 2026-11-18
 
 ### Added

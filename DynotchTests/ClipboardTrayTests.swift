@@ -62,6 +62,12 @@ struct ClipboardTrayTests {
         let kept = try #require(store.trayFiles.first?.url)
         // /var and /private/var are the same folder.
         #expect(kept.resolvingSymlinksInPath().path.hasPrefix(home.resolvingSymlinksInPath().path))
+        // The Screenshots tab follows the tray (spec SH-11); without it there is nowhere to go.
+        #expect(store.step(by: 1) == true)
+        #expect(store.selectedFolder == TrayStore.screenshotsID)
+        #expect(store.step(by: 1) == false)
+        #expect(store.step(by: -1) == true)
+        store.showsScreenshots = false
         #expect(store.step(by: 1) == false)
         #expect(store.step(by: -1) == false)
         store.remove(store.items[0])

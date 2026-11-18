@@ -28,6 +28,10 @@ final class TrayStore: ObservableObject {
         didSet { watchSelectedFolder() }
     }
     private let watcher = FolderWatcher()
+    /// The built-in Screenshots tab: the newest shots of ~/Pictures/Screenshots (spec SH-11).
+    static let screenshotsID = UUID(uuidString: "5C2E5C2E-0000-4000-8000-000000000001") ?? UUID()
+    /// Whether the screenshot tool is on, so its tab shows.
+    @Published var showsScreenshots = true
     /// Days after which a file leaves the tray; 0: never (spec FT-6).
     @Published var retentionDays: Int {
         didSet {
@@ -197,12 +201,13 @@ final class TrayStore: ObservableObject {
 
     private func watchSelectedFolder() {
         let folder = folders.first { $0.id == selectedFolder }
-        watcher.watch(folder.flatMap(url(of:))) { [weak self] in self?.objectWillChange.send() }
+        let watched = selectedFolder == Self.screenshotsID ? ScreenshotFiles.folder : folder.flatMap(url(of:))
+        watcher.watch(watched) { [weak self] in self?.objectWillChange.send() }
     }
 
     /// Swiping steps between the tray and the folders (spec FT-4); false at either end.
     func step(by offset: Int) -> Bool {
-        let tabs: [UUID?] = [nil] + folders.map(\.id)
+        let tabs: [UUID?] = [nil] + (showsScreenshots ? [Self.screenshotsID] : []) + folders.map(\.id)
         guard let index = tabs.firstIndex(of: selectedFolder) else { return false }
         let next = index + offset
         guard tabs.indices.contains(next) else { return false }

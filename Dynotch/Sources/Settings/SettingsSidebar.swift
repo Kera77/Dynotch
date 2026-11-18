@@ -11,6 +11,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case tray
     case focus
     case switcher
+    case screenshots
     case permissions
     case about
 
@@ -28,6 +29,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .tray: "Tray"
         case .focus: "Focus"
         case .switcher: "Switcher"
+        case .screenshots: "Screenshots"
         case .permissions: "Permissions"
         case .about: "About"
         }
@@ -45,6 +47,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .tray: "tray"
         case .focus: "cursorarrow.rays"
         case .switcher: "rectangle.stack"
+        case .screenshots: "camera.viewfinder"
         case .permissions: "lock.shield"
         case .about: "info.circle"
         }
@@ -65,6 +68,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .tray: "tray files folder airdrop retention drop"
         case .focus: "focus follows mouse autoraise"
         case .switcher: "switcher alt tab windows apps swipe trackpad thumbnails"
+        case .screenshots: "screenshot capture snip crop record video editor annotate scrolling"
         case .permissions: "privacy access full disk accessibility calendar reminders contacts bluetooth"
         case .about: "version update diagnostics quit"
         }

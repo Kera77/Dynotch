@@ -33,7 +33,7 @@ final class NotchViewModel: ObservableObject {
     /// A tray file's Quick Look is open: the notch stays whatever the pointer does (spec FT-8b).
     var holdsForPreview = false
     /// Anything that keeps the open panel from closing when the pointer leaves.
-    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker }
+    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil }
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
@@ -107,6 +107,8 @@ final class NotchViewModel: ObservableObject {
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
     var wantsKeyboard: Bool {
+        // The screenshot editor types text and takes ⌘Z and Esc (spec SH-7).
+        if editor != nil { return true }
         guard !isShowingOverlayPage else { return false }
         return isExpanded && !isPreview && (isShowingNotifications ? notificationsCanReply
             : isShowingSettings || Self.typingFeatures.contains(currentFeature))
@@ -165,7 +167,17 @@ final class NotchViewModel: ObservableObject {
     }
 
     var isShowingOverlayPage: Bool {
-        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher
+        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil
+    }
+
+    /// The screenshot editor, large in the notch (spec SH-7).
+    @Published private(set) var editor: ScreenshotEditor?
+    /// Opened from the pop-up: closing it closes the notch too.
+    private(set) var editorClosesNotch = false
+
+    func setEditor(_ editor: ScreenshotEditor?, closesNotch: Bool = false) {
+        self.editor = editor
+        editorClosesNotch = editor != nil && closesNotch
     }
 
     func setClipboardPicker(_ shown: Bool, inline: Bool = false) {
@@ -191,6 +203,7 @@ final class NotchViewModel: ObservableObject {
             return CGSize(width: size.width, height: notificationsHeight ?? size.height)
         }
         if isShowingSwitcher { return switcherSize }
+        if editor != nil { return geometry.maxModuleSize }
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
@@ -231,6 +244,7 @@ final class NotchViewModel: ObservableObject {
         }
         if !expanded {
             isShowingSwitcher = false
+            editor = nil
             isShowingClipboardPicker = false
             isClipboardInline = false
         }

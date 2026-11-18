@@ -69,6 +69,13 @@ final class NotchManager {
         }
     }
 
+    /// The screenshot editor, on the display under the pointer (spec SH-7, SH-11).
+    func openScreenshotEditor(_ url: URL) {
+        let pointer = NSEvent.mouseLocation
+        let controller = controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+        controller?.openScreenshotEditor(url, fromPeek: false)
+    }
+
     /// The window switcher, on the display under the pointer (spec AS-6).
     func showSwitcher(_ shown: Bool) {
         let pointer = NSEvent.mouseLocation

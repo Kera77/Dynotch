@@ -9,7 +9,8 @@ extension NotchController {
     func updateHoveredIndicator() {
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.isShown
+            lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.isShown,
+            recording: screenshots.recordingSince
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         let shownBadges = fit.shown

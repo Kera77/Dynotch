@@ -6,6 +6,8 @@ import UniformTypeIdentifiers
 /// files below. Files can be dragged out into any app and dropped in.
 struct TrayFeatureView: View {
     @ObservedObject var store: TrayStore
+    /// Opens a screenshot in the editor (spec SH-11).
+    var edit: (URL) -> Void = { _ in }
 
     /// The file Space shows in Quick Look (spec FT-8).
     @State private var chosen: URL?
@@ -17,8 +19,12 @@ struct TrayFeatureView: View {
         store.folders.first { $0.id == store.selectedFolder }
     }
 
+    private var isScreenshots: Bool { store.selectedFolder == TrayStore.screenshotsID }
+
     private var files: [URL] {
-        selected.map(store.contents(of:)) ?? store.trayFiles.map(\.url)
+        // The ten newest shots and recordings (spec SH-11).
+        if isScreenshots { return ScreenshotFiles.recent(10) }
+        return selected.map(store.contents(of:)) ?? store.trayFiles.map(\.url)
     }
 
     var body: some View {
@@ -34,6 +40,9 @@ struct TrayFeatureView: View {
     private var chips: some View {
         HStack(spacing: 8) {
             chip(title: "Tray", colour: Theme.blue, isOn: store.selectedFolder == nil) { store.selectedFolder = nil }
+            if store.showsScreenshots {
+                chip(title: "Screenshots", colour: .orange, isOn: isScreenshots) { store.selectedFolder = TrayStore.screenshotsID }
+            }
             ForEach(store.folders) { folder in
                 let colour = Self.dotColours[folder.colour % Self.dotColours.count]
                 chip(title: folder.name, colour: colour, isOn: store.selectedFolder == folder.id) {
@@ -75,12 +84,17 @@ struct TrayFeatureView: View {
         return TrayFileCell(
             url: url, isChosen: chosen == url, isRow: store.showsList, move: trayItem != nil,
             moved: { if let trayItem { store.remove(trayItem) } },
+            // A double click opens a shot in the editor (spec SH-11).
+            open: isScreenshots && ScreenshotFiles.isEditable(url) ? { edit(url) } : nil,
             choose: {
                 chosen = url
                 isFocused = true
             }
         )
         .contextMenu {
+            if isScreenshots, ScreenshotFiles.isEditable(url) {
+                Button("Edit") { edit(url) }
+            }
             Button("Quick Look") { TrayQuickLook.shared.toggle(url) }
             Button("Open") { NSWorkspace.shared.open(url) }
             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
@@ -138,8 +152,9 @@ struct TrayFeatureView: View {
         .overlay {
             if files.isEmpty {
                 EmptyStateView(
-                    symbol: selected == nil ? "tray" : "folder",
-                    text: selected == nil ? "Drop files on the notch to keep them here." : "This folder is empty."
+                    symbol: isScreenshots ? "camera.viewfinder" : selected == nil ? "tray" : "folder",
+                    text: isScreenshots ? "Press ⌃⇧S to take a screenshot."
+                        : selected == nil ? "Drop files on the notch to keep them here." : "This folder is empty."
                 )
             }
         }
@@ -163,6 +178,8 @@ struct TrayFileCell: View {
     /// Dragged out, the file moves (a tray file) or is copied (an attached folder's).
     var move = false
     var moved: @MainActor () -> Void = {}
+    /// What a double click does instead of opening the file.
+    var open: (() -> Void)?
     var choose: () -> Void = {}
 
     var body: some View {
@@ -173,7 +190,11 @@ struct TrayFileCell: View {
             // Dragged out under its own name, "(1)" when taken (spec FT-12, FT-12b).
             .overlay {
                 TrayDragSource(url: url, move: move, moved: moved) { clicks in
-                    if clicks >= 2 { NSWorkspace.shared.open(url) } else { choose() }
+                    if clicks >= 2 {
+                        if let open { open() } else { NSWorkspace.shared.open(url) }
+                    } else {
+                        choose()
+                    }
                 }
             }
             .help(url.path)
