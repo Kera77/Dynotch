@@ -103,6 +103,7 @@
 | C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
 | C-10 | (v0.44) A beállítások szakaszai közötti váltás becsúszik, mint az értesítés-fülek. |
 | C-11 | (v0.48) A beállítások a Beeper és a Google Chat (széles) fül fölött is a saját méretükkel nyílnak meg, így a felső sor nem csúszik ki a képből. |
+| C-12 | (v0.58) A Beállításokban egy lenyitott sor (pl. egy értesítési forrás szabályai, „Modules in the strip”) **magától a látótérbe görget**, nem kell utána görgetni. |
 
 ---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
@@ -715,6 +716,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-2 | Amíg a Spotifyban van szám (szól vagy szünetel), a csukott notch **bal oldalán, közvetlenül a notch mellett** megjelenik a **lemezborító** kerek kivágásban. (v0.57) **Rámutatásra a sor alá lenyílik a lejátszó** (borító, cím, előadó, folyamatjelző, gombok, hangerő, kimenet, elrejtés); a sor a jelvényekkel és számlálókkal fölötte látszik. A teljes Music modul a modullistából nyitható. Bal oldalt nincs hangszínsáv. |
 | MU-3 | A borító körül egy **karika** az óramutató járásával egyezően, felülről indulva telik, és a szám haladását mutatja. A karika színe a borító **domináns színe** (fekete háttéren is látható fényerővel; szürke borítónál halvány fehér). |
 | MU-4 | Számváltáskor a notch alatt pár másodpercre megjelenik a **borító**, a cím és az előadó (v0.58: nem a lenyíló lejátszó). |
+| MU-4b | (v0.58) A számváltás sora: borító, majd egy sorban a **cím és utána az előadók**. Ha nem fér ki, 1 mp után **balról jobbra végigfut**, és amikor a vége látszik, **1 mp múlva bezárul**; ha kifér, 4 mp-ig látszik. |
 | MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
 | MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |

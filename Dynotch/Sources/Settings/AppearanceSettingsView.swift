@@ -146,9 +146,10 @@ struct AppearanceSettingsView: View {
 private struct StripModulesRows: View {
     let features: [FeatureID]
     @State private var hidden = ModuleStripChoice.hidden
+    @State private var isOpen = false
 
     var body: some View {
-        DisclosureGroup("Modules in the strip") {
+        DisclosureGroup("Modules in the strip", isExpanded: $isOpen) {
             ForEach(features) { feature in
                 Toggle(isOn: Binding(get: { !hidden.contains(feature) }, set: { shown in
                     ModuleStripChoice.setShown(feature, shown)
@@ -158,5 +159,6 @@ private struct StripModulesRows: View {
                 }
             }
         }
+        .revealWhenOpened(isOpen)
     }
 }

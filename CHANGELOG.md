@@ -10,7 +10,9 @@
 - System counts memory like Activity Monitor (footprint), so Zen's total matches.
 - Beeper's badge list shows its unread chats when Beeper has already cleared its notifications.
 - The volume keys work with AirPods and other Bluetooth headphones.
-- A new track shows its cover and name, not a squeezed player.
+- A new track shows its cover and name, not a squeezed player; a long title and artist line
+  runs through, then closes a second after its end.
+- Opening a row in Settings scrolls it into view.
 
 ## [0.57.0] - 2026-11-18
 

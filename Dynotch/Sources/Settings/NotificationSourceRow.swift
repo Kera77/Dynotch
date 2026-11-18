@@ -71,6 +71,8 @@ struct NotificationSourceRow: View {
             }
             if isOpen { options }
         }
+        // Opened, it scrolls into view by itself (spec C-12).
+        .revealWhenOpened(isOpen)
     }
 
     private var options: some View {

@@ -1,0 +1,39 @@
+import AppKit
+import SwiftUI
+
+extension View {
+    /// When `isOpen` turns true, the settings scroll so the whole opened row is in view, with no
+    /// scrolling by hand (spec C-12).
+    func revealWhenOpened(_ isOpen: Bool) -> some View {
+        background(RevealAnchor(isOpen: isOpen))
+    }
+}
+
+/// An invisible view the size of the row: it asks the enclosing scroll view to show it.
+private struct RevealAnchor: NSViewRepresentable {
+    let isOpen: Bool
+
+    func makeNSView(context: Context) -> NSView { NSView() }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        guard isOpen, !context.coordinator.wasOpen else {
+            context.coordinator.wasOpen = isOpen
+            return
+        }
+        context.coordinator.wasOpen = true
+        // After the opening animation has laid the row out at its new height.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            NSAnimationContext.runAnimationGroup { animation in
+                animation.duration = 0.2
+                animation.allowsImplicitAnimation = true
+                _ = view.scrollToVisible(view.bounds)
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator {
+        var wasOpen = false
+    }
+}

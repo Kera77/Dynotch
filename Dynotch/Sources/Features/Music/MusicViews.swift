@@ -339,3 +339,55 @@ struct MusicOutputMenu: View {
         .onAppear(perform: outputs.refresh)
     }
 }
+
+/// "Title — Artist, Artist" on one line. If it does not fit, it waits a second, runs through
+/// from left to right until its end shows, and the announcement closes a second later (spec MU-4b).
+struct MusicMarquee: View {
+    let title: String
+    let artist: String
+    let tint: Color
+    /// How long the announcement still needs, once the line is measured.
+    let needs: (TimeInterval) -> Void
+
+    @State private var offset: CGFloat = 0
+
+    static let speed: CGFloat = 40
+
+    /// Seconds before the end: the pause, the run, and the pause at the end.
+    nonisolated static func duration(overflow: CGFloat) -> TimeInterval {
+        overflow <= 0 ? 4 : 1 + Double(overflow / speed) + 1
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            line
+                .fixedSize()
+                .background(GeometryReader { text in
+                    Color.clear.onAppear { start(textWidth: text.size.width, room: proxy.size.width) }
+                })
+                .offset(x: offset)
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .leading)
+                .clipped()
+        }
+    }
+
+    private var line: some View {
+        HStack(spacing: 6) {
+            Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+            if !artist.isEmpty {
+                Text("—").font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.4))
+                Text(artist).font(.system(size: 12)).foregroundStyle(tint)
+            }
+        }
+        .lineLimit(1)
+    }
+
+    private func start(textWidth: CGFloat, room: CGFloat) {
+        let overflow = textWidth - room
+        needs(Self.duration(overflow: overflow))
+        guard overflow > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation(.linear(duration: Double(overflow / Self.speed))) { offset = -overflow }
+        }
+    }
+}

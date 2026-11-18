@@ -163,10 +163,15 @@ final class MusicService: ObservableObject {
     }
 
     private func announce() {
-        announceTask?.cancel()
         indicator.isAnnouncing = true
+        endAnnouncement(after: Self.announceDuration)
+    }
+
+    /// A long name runs through first; the announcement ends this long from now (spec MU-4b).
+    func endAnnouncement(after seconds: TimeInterval) {
+        announceTask?.cancel()
         announceTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(Self.announceDuration))
+            try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             self?.indicator.isAnnouncing = false
         }

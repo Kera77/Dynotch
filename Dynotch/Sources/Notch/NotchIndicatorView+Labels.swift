@@ -95,11 +95,11 @@ extension NotchIndicatorView {
             // A new track: its cover, title and artist (spec MU-4).
             HStack(spacing: 10) {
                 MusicArtwork(image: glance.artwork, cornerRadius: 5).frame(width: 30, height: 30)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(glance.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                    Text(glance.artist).font(.system(size: 11)).foregroundStyle(glance.tint.color).lineLimit(1)
+                // Title, then every artist; a long line runs through, then it closes (spec MU-4b).
+                MusicMarquee(title: glance.title, artist: glance.artist, tint: glance.tint.color) { seconds in
+                    music?.endAnnouncement(after: seconds)
                 }
-                Spacer(minLength: 0)
+                .id(glance.trackID)
             }
             .padding(.horizontal, 12)
             .frame(height: IndicatorLayout.musicAnnounceHeight - 4)

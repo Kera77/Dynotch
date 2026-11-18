@@ -49,6 +49,13 @@ struct MusicModuleTests {
         #expect(MusicService.hidesCover(isPlaying: false, pausedSince: paused, after: nil, byHand: true, now: now))
     }
 
+    @Test func aLongTrackNameRunsThroughThenCloses() {
+        #expect(MusicMarquee.duration(overflow: 0) == 4)
+        // One second before, 80 points at 40 per second, one second after (spec MU-4b).
+        #expect(MusicMarquee.duration(overflow: 80) == 4)
+        #expect(MusicMarquee.duration(overflow: 200) == 7)
+    }
+
     @Test func theProgressBarMapsClicksToSeconds() {
         #expect(MusicProgressBar.seconds(at: 50, width: 200, duration: 240) == 60)
         #expect(MusicProgressBar.seconds(at: -10, width: 200, duration: 240) == 0)
