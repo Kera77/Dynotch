@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- A notification pop-up keeps the closed notch's row (badges, countdowns, counters) and drops
+  down under it; the badges stay clickable meanwhile.
+
 ## [0.52.0] - 2026-11-18
 
 ### Added

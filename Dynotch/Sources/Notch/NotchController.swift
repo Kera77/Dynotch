@@ -167,7 +167,7 @@ final class NotchController {
             // A device notice under the notch (spec DV-6).
         } else if handleFileDrag(at: NSEvent.mouseLocation) {
             // Files dragged onto the notch (spec FT-1).
-        } else if openingZone.contains(NSEvent.mouseLocation) {
+        } else if opens(at: NSEvent.mouseLocation) {
             hideStrip()
             setHoveredIndicator(nil)
             setHoveredBadge(nil)

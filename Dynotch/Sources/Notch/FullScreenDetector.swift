@@ -71,6 +71,16 @@ extension NotchController {
         }
     }
 
+    /// Whether the pointer opens the closed notch here. Over a notification the row beside the
+    /// notch (badges, indicators) stays usable; the notch and the notification open (spec E-24).
+    func opens(at point: CGPoint) -> Bool {
+        guard openingZone.contains(point) else { return false }
+        guard notifications.peek != nil else { return true }
+        let notch = model.geometry.notchRect
+        let inRowBeside = point.y >= notch.minY && !notch.insetBy(dx: -4, dy: 0).contains(point)
+        return !inRowBeside
+    }
+
     /// The area that opens the closed notch: over a full-screen app only the top edge.
     var openingZone: CGRect {
         if model.isHiddenForFullScreen { return model.geometry.topEdgeZone }

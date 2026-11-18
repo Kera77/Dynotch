@@ -60,7 +60,7 @@ struct NotchView: View {
     var geometry: NotchGeometry { model.geometry }
 
     /// Meeting countdowns and the Claude usage beside the closed notch.
-    private var indicatorItems: [IndicatorItem] {
+    var indicatorItems: [IndicatorItem] {
         IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown
@@ -68,7 +68,7 @@ struct NotchView: View {
     }
 
     /// The badges that fit beside the menu bar, and how many wait behind the "+" (spec B-8).
-    private var badgeFit: BadgeFit {
+    var badgeFit: BadgeFit {
         BadgeFit.make(badges: badges.visible, items: indicatorItems, room: model.badgeRoom, unfolded: model.badgesUnfolded)
     }
 
@@ -118,46 +118,22 @@ struct NotchView: View {
                         .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                         .transition(.opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let notification = notifications.peek {
-                    peekView(notification)
+                    // The closed notch's row stays; the notification drops down under it (spec E-24).
+                    ZStack(alignment: .top) {
+                        peekView(notification, width: naturalCollapsedSize.width)
+                        if !indicatorLayout.isEmpty {
+                            indicatorRow(hoveredIndex: nil, notice: nil)
+                                .frame(width: naturalCollapsedSize.width, height: geometry.notchSize.height, alignment: .top)
+                        }
+                    }
+                    .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
                     .transition(.opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
                         .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
                         .transition(.opacity)
                 } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
-                    NotchIndicatorView(
-                        items: indicatorItems,
-                        leadTime: calendar.leadTime,
-                        notchSize: geometry.notchSize,
-                        hoveredIndex: labelIndex,
-                        badges: badgeFit.shown,
-                        hiddenBadges: badgeFit.hidden,
-                        hoveredBadge: model.hoveredBadge,
-                        notice: shownNotice,
-                        // Left click: the app itself; right click: its notifications in the notch (spec B-6b).
-                        openBadge: { badges.open($0.app) },
-                        moveBadge: { id, index in
-                            withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
-                        },
-                        showBadgeNotifications: showBadgeNotifications,
-                        dismiss: { item in
-                            withAnimation(Self.quickAnimation) {
-                                model.hoveredIndicator = nil
-                                switch item {
-                                case .meeting(let event): calendar.dismissIndicator(event)
-                                case .usage: claudeUsage.dismissIndicator()
-                                case .working: break
-                                case .battery(let device): battery.dismissWarning(for: device)
-                                case .tasks: tasks.hide()
-                                }
-                            }
-                        },
-                        join: { calendar.join($0) },
-                        openTasks: { openModule(.reminders) },
-                        batterySamples: { battery.history.samples[$0] ?? [] },
-                        taskItems: { tasks.listed },
-                        completeTask: { tasks.complete($0) }
-                    )
+                    indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
                     // Laid out at full size and kept in place while the black area unfolds over it.
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
                     .offset(x: isGathered ? indicatorLayout.horizontalOffset : 0)
@@ -318,7 +294,12 @@ extension NotchView {
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
         if model.isScreenShared { return geometry.notchSize }
-        if notifications.peek != nil { return notifications.peekSize(in: geometry) }
+        if notifications.peek != nil {
+            // As wide as the row above it, when that is wider (spec E-24).
+            let peek = notifications.peekSize(in: geometry)
+            let row = indicatorLayout.isEmpty ? 0 : indicatorLayout.size(notch: geometry.notchSize, labelHeight: nil).width
+            return CGSize(width: max(peek.width, row), height: peek.height)
+        }
         if devices.current != nil { return geometry.peekSize }
         let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {

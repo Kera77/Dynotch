@@ -18,12 +18,18 @@ extension NotchController {
         if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
-        guard !layout.isEmpty, notifications.peek == nil else {
+        guard !layout.isEmpty else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             return
         }
         let geometry = model.geometry
+        if notifications.peek != nil {
+            // Over a notification the row stays clickable, but no details drop down (spec E-24).
+            setHoveredIndicator(nil)
+            setHoveredBadge(layout.badge(at: point, notchRect: geometry.notchRect).map { shownBadges[$0].id })
+            return
+        }
         if unfoldBadgesIfNeeded(at: point, layout: layout, hidden: fit.hidden) { return }
         // A badge being clicked or dragged stays the hovered one.
         if model.hoveredBadge != nil, NSEvent.pressedMouseButtons != 0 { return }

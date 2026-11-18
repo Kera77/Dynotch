@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.52 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.52 elfogadva, v0.53 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -267,6 +267,7 @@
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 | E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
 | E-23 | (v0.52) Hoverre a kártya **a teljes szöveget** mutatja (nincs sorlimit), a válaszmezővel, ha a forrásnál be van kapcsolva. A magassága a mért szöveghez igazodik, 520 pt fölött görgethető, és mindig **a tetejéről** indul. |
+| E-24 | (v0.53) A felugró értesítés **nem takarja el a csukott notch sorát**: a jelvények és a jelzők a helyükön maradnak, az értesítés alattuk nyílik le, legalább olyan szélesen, mint a sor. A sor jelvényei közben kattinthatók (bal klikk: app, jobb klikk: értesítések); a jelzők hover-címkéi addig nem nyílnak le. A notchra vagy az értesítésre vitt egér lenyitja a kártyát. |
 
 ## 4c. Számológép (v0.6)
 
