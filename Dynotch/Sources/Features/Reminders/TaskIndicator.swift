@@ -41,11 +41,21 @@ enum TaskSnooze: Int, CaseIterable, Sendable {
 enum TaskIndicatorLogic {
     /// Today's tasks (due today or overdue) if there are any, otherwise every open one.
     static func count(_ items: [ReminderItem], now: Date, calendar: Calendar = .current) -> TaskCount? {
-        let today = items.filter { item in
-            item.isOverdue(at: now, calendar: calendar) || item.due.map { calendar.isDate($0, inSameDayAs: now) } == true
-        }
+        let today = todays(items, now: now, calendar: calendar)
         if !today.isEmpty { return TaskCount(count: today.count, isToday: true) }
         return items.isEmpty ? nil : TaskCount(count: items.count, isToday: false)
+    }
+
+    /// The tasks the counter counts, in the order the drop-down lists them (spec R-12).
+    static func listed(_ items: [ReminderItem], now: Date, calendar: Calendar = .current) -> [ReminderItem] {
+        let today = todays(items, now: now, calendar: calendar)
+        return ReminderLogic.sorted(today.isEmpty ? items : today, by: .due)
+    }
+
+    private static func todays(_ items: [ReminderItem], now: Date, calendar: Calendar) -> [ReminderItem] {
+        items.filter { item in
+            item.isOverdue(at: now, calendar: calendar) || item.due.map { calendar.isDate($0, inSameDayAs: now) } == true
+        }
     }
 
     /// The hidden counter comes back when its time is up or a task arrived meanwhile.
@@ -96,6 +106,14 @@ final class TaskIndicator: ObservableObject {
 
     private var openItems: [ReminderItem] {
         store.access == .granted ? store.open.filter { !store.completing.contains($0.id) } : []
+    }
+
+    /// The tasks under the counter's hover drop-down (spec R-12).
+    var listed: [ReminderItem] { TaskIndicatorLogic.listed(openItems, now: Date()) }
+
+    /// Checked off from the drop-down.
+    func complete(_ item: ReminderItem) {
+        store.complete(item)
     }
 
     /// The ×: hidden for the chosen time, or until a new task arrives.

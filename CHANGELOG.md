@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Hovering the tasks counter beside the notch drops down its tasks (up to six), each checked off
+  with its circle.
+
+### Changed
+- A module opened by its shortcut no longer becomes the one the notch opens on hover.
+
 ## [0.49.0] - 2026-11-18
 
 ### Added

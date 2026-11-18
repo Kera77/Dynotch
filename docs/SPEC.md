@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.49 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.49 elfogadva, v0.50 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -321,6 +321,7 @@
 | R-9 | (v0.43) A határidő **színes pill**: lejárt piros, ma narancs, holnap kék, később szürke. |
 | R-10 | (v0.45) **Feladatszámláló a becsukott notch jobb oldalán** (a jelzők sorának jobb végén): a menüsor-ikon (`checklist`) és a szám, kisebben. Ha vannak **mai** (ma esedékes vagy lejárt) feladatok, azokat számolja (fehér), különben az **összes nyitottat** (halványabb), minden listából. Kattintásra a Reminders modul nyílik; hoverre alatta „3 tasks due today”, **Open** gomb és X. Csak Reminders-engedéllyel; *Settings › General › Tasks*-ban kikapcsolható (alapból be). |
 | R-11 | (v0.45) Az X a számlálót a beállított időre **elrejti** (15 perc, 30 perc, 1 óra – alapból –, 2 óra, másnapig; *Settings › General › Tasks*). Hamarabb visszajön, ha közben **új feladat** érkezik. Az elrejtés újraindítás után is megmarad. |
+| R-12 | (v0.50) A feladatszámlálóra hoverelve **lenyílik a feladatlista**: a fejléc (szám, Open, ×) alatt a számolt feladatok (a maiak, ha vannak, különben az összes nyitott) határidő szerint, legfeljebb 6 sor, mindegyik előtt kör, amivel kipipálható, mellette a határidő-pill. |
 
 ---
 
@@ -415,6 +416,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | SC-1 | **Beállítások › Features:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
 | SC-3 | Külön gyorsbillentyű a **notch rögzítésére**: nyitott panelnél ki-be kapcsolja a rögzítést, csukottnál rögzítve megnyitja. A lakat ikon rögzítéskor **kék**, mint a billentyűzetzár. |
+| SC-4 | (v0.50) A gyorsbillentyűvel megnyitott modul **nem írja felül** a notchban legutóbb használtat: ha a naptár volt nyitva, és gyorsbillentyűvel a számológépet nyitod meg, a következő hover újra a naptárat nyitja. |
 | SC-2 | **Modulonként** jelölőnégyzet („Pin”) a Features listában: ha be van jelölve, az adott modul gyorsbillentyűs megnyitásakor a notch rögzítése automatikusan bekapcsol (nem záródik be). (v0.26; korábban egy közös kapcsoló volt, annak bekapcsolt állapota minden modulra átöröklődik.) |
 
 ## 4m. „Claude befejezte” jelzés (v0.23)

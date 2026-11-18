@@ -225,7 +225,9 @@ final class NotchViewModel: ObservableObject {
         updateLarge()
     }
 
-    func select(_ feature: FeatureID) {
+    /// - Parameter remember: false for a module opened by its shortcut: the next hover still opens
+    ///   the one used last in the notch (spec SC-4).
+    func select(_ feature: FeatureID, remember: Bool = true) {
         // Picking a feature (even the current one) leaves the settings and the preview.
         if isShowingSettings { isShowingSettings = false }
         holdsForSettings = false
@@ -235,7 +237,7 @@ final class NotchViewModel: ObservableObject {
             return
         }
         currentFeature = feature
-        settings.lastFeature = feature
+        if remember { settings.lastFeature = feature }
         updateLarge()
     }
 

@@ -69,7 +69,9 @@ enum IndicatorItem: Identifiable, Equatable {
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery, .tasks: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery: IndicatorLayout.labelHeight
+        // The tasks drop down under their header (spec R-12).
+        case .tasks(let count): IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * 22 + 6
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
@@ -113,6 +115,8 @@ struct IndicatorLayout: Equatable {
     static let padding: CGFloat = 8
     /// Height of a meeting's hover label (spec K-8d).
     static let labelHeight: CGFloat = 26
+    /// Tasks listed in the counter's drop-down at most; Open shows the rest.
+    static let taskRows = 6
     static let labelWidth: CGFloat = 440
     /// Between two app badges (spec B-4).
     static let badgeSpacing: CGFloat = 8

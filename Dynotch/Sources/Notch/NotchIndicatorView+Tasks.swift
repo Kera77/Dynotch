@@ -28,6 +28,19 @@ struct TasksCounter: View {
 extension NotchIndicatorView {
     /// "3 tasks due today", Open, and the × that hides the counter for a while (spec R-11).
     func tasksLabel(_ count: TaskCount, item: IndicatorItem) -> some View {
+        VStack(spacing: 0) {
+            tasksHeader(count, item: item)
+            // The tasks themselves, checked off with their circle (spec R-12).
+            VStack(spacing: 0) {
+                ForEach(taskItems().prefix(IndicatorLayout.taskRows)) { task in
+                    TaskDropDownRow(task: task) { completeTask(task) }
+                }
+            }
+            .padding(.bottom, 6)
+        }
+    }
+
+    private func tasksHeader(_ count: TaskCount, item: IndicatorItem) -> some View {
         HStack(spacing: 7) {
             Image(systemName: "checklist")
                 .font(.system(size: 12, weight: .semibold))
@@ -49,5 +62,40 @@ extension NotchIndicatorView {
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// One task in the counter's drop-down: its circle checks it off.
+struct TaskDropDownRow: View {
+    let task: ReminderItem
+    let complete: () -> Void
+
+    @State private var isChecked = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button {
+                isChecked = true
+                complete()
+            } label: {
+                Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 13))
+                    .foregroundStyle(isChecked ? Theme.blue : Color.white.opacity(0.6))
+            }
+            .buttonStyle(.plain)
+            .help("Complete")
+            .accessibilityLabel("Complete \(task.title)")
+            Text(task.title)
+                .font(.system(size: 12))
+                .foregroundStyle(isChecked ? Color.white.opacity(0.4) : .white)
+                .strikethrough(isChecked)
+                .lineLimit(1)
+            Spacer(minLength: 6)
+            if let due = ReminderLogic.dueText(for: task, now: Date()) {
+                DuePill(text: due, urgency: ReminderLogic.urgency(of: task, now: Date()), isDone: isChecked)
+            }
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 22)
     }
 }

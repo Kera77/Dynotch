@@ -26,6 +26,9 @@ struct NotchIndicatorView: View {
     var openTasks: () -> Void = {}
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
+    /// The tasks under the counter's drop-down, and checking one off (spec R-12).
+    var taskItems: () -> [ReminderItem] = { [] }
+    var completeTask: (ReminderItem) -> Void = { _ in }
 
     static let lineWidth: CGFloat = 2
 

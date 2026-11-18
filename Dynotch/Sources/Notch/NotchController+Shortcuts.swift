@@ -27,7 +27,7 @@ extension NotchController {
             expand()
         }
         openFully()
-        withAnimation(Self.animation) { model.select(feature) }
+        withAnimation(Self.animation) { model.select(feature, remember: false) }
         if pinned {
             model.isPinned = true
         } else {

@@ -160,7 +160,9 @@ struct NotchView: View {
                         },
                         join: { calendar.join($0) },
                         openTasks: { openModule(.reminders) },
-                        batterySamples: { battery.history.samples[$0] ?? [] }
+                        batterySamples: { battery.history.samples[$0] ?? [] },
+                        taskItems: { tasks.listed },
+                        completeTask: { tasks.complete($0) }
                     )
                     // Laid out at full size and kept in place while the black area unfolds over it.
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
