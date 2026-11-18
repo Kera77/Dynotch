@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.56.0] - 2026-11-18
+
 ### Added
 - Music module for Spotify: the cover beside the closed notch with a ring in its colour showing
   the track's progress; hovering it opens the player with seek bar, shuffle, previous, play,
