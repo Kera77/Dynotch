@@ -7,6 +7,36 @@ final class TrayQuickLook: NSObject, QLPreviewPanelDataSource {
     static let shared = TrayQuickLook()
 
     private var urls: [URL] = []
+    /// The preview opened or closed: the notch stays while it shows (spec FT-8b).
+    var shownChanged: (Bool) -> Void = { _ in }
+    private var watch: Timer?
+    private var isShown = false
+
+    /// Follows the panel, which also closes by itself (its X, Esc, a click elsewhere).
+    private func follow() {
+        set(true)
+        watch?.invalidate()
+        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let visible = QLPreviewPanel.sharedPreviewPanelExists() && QLPreviewPanel.shared()?.isVisible == true
+                if !visible {
+                    self.watch?.invalidate()
+                    self.watch = nil
+                    self.set(false)
+                }
+            }
+        }
+        timer.tolerance = 0.05
+        RunLoop.main.add(timer, forMode: .common)
+        watch = timer
+    }
+
+    private func set(_ shown: Bool) {
+        guard shown != isShown else { return }
+        isShown = shown
+        shownChanged(shown)
+    }
 
     func toggle(_ url: URL) {
         guard let panel = QLPreviewPanel.shared() else { return }
@@ -19,6 +49,7 @@ final class TrayQuickLook: NSObject, QLPreviewPanelDataSource {
         panel.reloadData()
         panel.currentPreviewItemIndex = 0
         panel.makeKeyAndOrderFront(nil)
+        follow()
     }
 
     func close() {

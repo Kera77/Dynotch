@@ -30,6 +30,10 @@ final class NotchViewModel: ObservableObject {
     var holdsForTyping = false
     /// Held open until a click outside: by the settings or by typing.
     var isHeldByClick: Bool { holdsForSettings || holdsForTyping }
+    /// A tray file's Quick Look is open: the notch stays whatever the pointer does (spec FT-8b).
+    var holdsForPreview = false
+    /// Anything that keeps the open panel from closing when the pointer leaves.
+    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker }
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
@@ -209,6 +213,7 @@ final class NotchViewModel: ObservableObject {
         if !expanded {
             holdsForSettings = false
             holdsForTyping = false
+            holdsForPreview = false
         }
         if !expanded {
             isShowingClipboardPicker = false

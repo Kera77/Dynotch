@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.53 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.53 elfogadva, v0.54 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -585,6 +585,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-11 | **Adatok:** a Beeper Desktop API-n (localhost) keresztül; a token a meglévő (E-11). Az üzenetek és képek csak memóriában vannak; a naplóba csak műveletek és hibakódok kerülnek, tartalom nem. Ha a Beeper nem fut, a fül ezt írja ki, és a többi fül változatlanul működik. |
 | BP-12 | **A Beeper jelvényére kattintva** (a notch mellett, B-1) a notch a **Beeper fülön** nyílik le az app megnyitása helyett (ha az Értesítések modul be van kapcsolva; különben marad a régi működés). A jobb klikk (B-6) változatlan. |
 | BP-3b | (v0.43) Ha a csevegésnek nincs saját képe, a másik résztvevő képe látszik; ha neki sincs, monogram (emojit és írásjelet kihagyva). A hálózat jelvénye a **telepített hivatalos app ikonja** (WhatsApp, Messenger, Telegram, Signal, Üzenetek, Slack, Discord…), ha nincs telepítve, a színes jel. A sikertelen képletöltést később újrapróbálja. |
+| BP-3c | (v0.54) Ha egy hálózat appja nincs telepítve (például Instagram), a jelvény a hálózat saját weboldalának ikonja (apple-touch-icon, különben favicon), egyszer letöltve és az Application Supportban tárolva. A repóban nincs logó. Ikon nélkül (például Discord) marad a színes jel. |
 | BP-4b | (v0.43) A reply és a reakció gomb **fix szélességű** helyen a buborék mellett (hoverre a sor nem változik); egy üzenetre kattintva arra válaszol. A reakciógomb hoverre a gyors reakciókat, kattintásra a teljes emoji-választót nyitja. Beeper nem fut: *Open Beeper* gomb. |
 
 ## 4y. Vágólapkezelő (v0.42)
@@ -613,6 +614,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-5 | Fájlok kihúzhatók bármely appba; mappára vagy a rácsra ejtve **másolás**, ⌥-tal **áthelyezés**; dupla kattintás megnyit; jobb klikk: Quick Look, Open, Show in Finder, Remove. |
 | FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
 | FT-8 | **Quick Look:** kijelölt fájlon szóköz megnyitja / bezárja. |
+| FT-8b | (v0.54) Amíg egy tálcafájl Quick Look-előnézete nyitva van, a notch nyitva marad, akkor is, ha az egér elmegy róla. Az előnézet bezárása után a notch a következő máshova kattintásra zárul be, nem az egér elvitelére. |
 | FT-9 | A kiválasztott csatolt mappa változásait (más appból hozzáadott / törölt fájl) azonnal mutatja. |
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
@@ -664,6 +666,28 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | RS-4 | *Settings › Appearance*: **Resize modules from the bottom right corner** kapcsoló (alapból be). Kikapcsolva minden modul a normál méretén nyílik. |
 | RS-5 | (v0.45: csak az AI; **v0.46: minden modul**) A modulok kitöltik a kapott méretet; az oldalsó listák arányosan nőnek: AI csevegéslista (24%, 160–260 pt), Notes jegyzetlista (26%, 210–320 pt), Beeper/Google Chat lista (30%, 240–360 pt), teljes naptár havi rácsa (30%, 256–380 pt). A naptár napsávján a swipe a megnövelt szélességben is működik. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
 | RS-6 | (v0.46) **Minden modul méretezhető, az újak is** (az új modul automatikusan méretezhető, a nézetének ezt követnie kell; fejlesztői szabály a `CLAUDE.md`-ben). A nagy nézetek (teljes naptár, nagy Notes / Reminders) és a széles csevegőfülek **külön méretet** jegyeznek meg, hogy a kis nézet ne nőjön meg velük. |
+
+## 4ö. Alkalmazásváltó (tervezett, v0.54)
+
+Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és több nézettel.
+
+| # | Követelmény |
+|---|---|
+| AS-1 | **Ki- és bekapcsolható** (*Settings › Switcher*), alapból kikapcsolva. |
+| AS-2 | Az **ablakokat** mutatja, a **legutóbb használt** sorrendben (az első az aktív, egy lépés az előzőre visz). *Group windows by app*: appokként (appnként egy elem, a legutóbbi ablakával). |
+| AS-3 | **Hatókör:** *Current Space* (alapból) vagy *All apps* (minden Space; egy másik Space ablakára váltva a macOS átvált oda). Opciók: minimalizált és rejtett ablakok mutatása, csak az egér alatti kijelző ablakai. |
+| AS-4 | **Kizárt appok** listája. |
+| AS-5 | **Nézetek:** *Thumbnails* (ablak-előnézet, alatta ikon és cím), *App Icons* (nagy ikonok egy sorban, a kijelöltnél a cím), *Titles* (függőleges lista ikonnal és ablakcímmel). Méret: *Small / Medium / Large*. A design a notchét követi (fekete vagy Liquid Glass). |
+| AS-6 | **A notchból nyílik le**, azon a kijelzőn, ahol az egér van. |
+| AS-7 | **Előnézetek külön kapcsolóval** (*Window previews*), alapból kikapcsolva: csak bekapcsolva kér Képernyőfelvétel-engedélyt (a lila megosztás-jelzés miatt). Kikapcsolva, vagy engedély nélkül, a Thumbnails nézet ikont és címet mutat. Az előnézetek megnyitáskor készülnek: előbb az ikonok, pillanatokon belül az előnézetek. Képernyőmegosztás alatt (N-21) nincs előnézet. |
+| AS-8 | **Gyorsbillentyű:** nincs alapértelmezett, a beállításokban rögzíthető (például ⌥⇥). Lenyomva tartott módosító mellett a billentyű és a → előre, a ⇧ és a ← vissza léptet; a módosító elengedése vált; Esc megszakít. |
+| AS-9 | **Elengedés után:** *Focus* (azonnal vált) vagy *Hold* (nyitva marad, kattintás vagy Enter választ). |
+| AS-10 | **Nyitott váltóban:** W ablak bezárása, M minimalizálás, Q app kilépése, H elrejtése; egérrel kijelölés és kattintás; gépeléssel név szerinti szűrés. |
+| AS-11 | **Swipe:** alapból **háromujjas vízszintes** (3 vagy 4 ujj, vagy ki). Az első mozdulatra megnyílik, az ujjak oldalra mozgatásával lépked a kijelölés (állítható érzékenység), de **amíg az ujjak a trackpaden vannak, csak kiemel**; felemeléskor vált. Felfelé húzás vagy Esc: megszakítás. A trackpad nyers érintéseiből (MultitouchSupport). |
+| AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. Bekapcsoláskor a Dynotch figyelmeztet, és a Trackpad-beállításokhoz visz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. |
+| AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
+
+---
 
 ## 5. Nyitott kérdések
 

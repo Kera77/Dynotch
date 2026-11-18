@@ -54,21 +54,22 @@ enum BeeperStyle {
     ]
 
     @MainActor private static var iconCache: [String: NSImage] = [:]
-    @MainActor private static var missing: Set<String> = []
+    @MainActor private static var noApp: Set<String> = []
 
     @MainActor static func appIcon(_ network: String?) -> NSImage? {
         let lowered = (network ?? "").lowercased()
         guard !lowered.isEmpty else { return nil }
         if let icon = iconCache[lowered] { return icon }
-        if missing.contains(lowered) { return nil }
+        // Not installed: the network's own icon from its website, once fetched (spec BP-3c).
+        if noApp.contains(lowered) { return NetworkIcons.shared.icon(for: network) }
         let url = appBundles
             .filter { lowered.contains($0.word) }
             .lazy
             .compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0.bundle) }
             .first
         guard let url else {
-            missing.insert(lowered)
-            return nil
+            noApp.insert(lowered)
+            return NetworkIcons.shared.icon(for: network)
         }
         let icon = NSWorkspace.shared.icon(forFile: url.path)
         iconCache[lowered] = icon
@@ -93,6 +94,8 @@ struct BeeperAvatar: View {
     let name: String
     let network: String?
     var size: CGFloat = 36
+    /// Redraws when a network's icon arrives.
+    @ObservedObject private var networkIcons = NetworkIcons.shared
 
     private var initials: String { Self.initials(of: name) }
 

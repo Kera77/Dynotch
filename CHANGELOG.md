@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- Beeper: networks whose app is not installed (e.g. Instagram) get their own icon, fetched once
+  from the network's website.
+
+### Fixed
+- Previewing a tray file with Quick Look closed the notch (and the preview) when the pointer
+  left; the notch now stays while the preview shows, then closes on the next click outside.
+
 ## [0.53.0] - 2026-11-18
 
 ### Changed

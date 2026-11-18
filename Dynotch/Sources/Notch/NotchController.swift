@@ -195,7 +195,7 @@ final class NotchController {
         panel.ignoresMouseEvents = !isInside
         if isInside { isHeldOpen = false }
         if model.isHeldByClick { watchClicksOutsideSettings() }
-        if isInside || model.isPinned || isHeldOpen || model.isHeldByClick || model.isShowingClipboardPicker {
+        if isInside || isHeldOpen || model.keepsOpen {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {
@@ -252,7 +252,7 @@ final class NotchController {
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
             let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.isHeldByClick, !self.model.isShowingClipboardPicker {
+            if isOutside, !self.isHeldOpen, !self.model.keepsOpen {
                 self.collapse()
             }
         }
@@ -355,6 +355,7 @@ extension NotchController {
 
     /// Fires before the change; the new state is looked at on the next run loop turn.
     private func observeModel() {
+        followQuickLook()
         settingsObserver = model.objectWillChange.sink { [weak self] in
             let before = MainActor.assumeIsolated { self?.model.isExpanded == true ? self?.keepOpenZone : nil }
             DispatchQueue.main.async {

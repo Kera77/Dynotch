@@ -162,3 +162,22 @@ extension NotchController {
         }
     }
 }
+
+// MARK: - Tray preview (spec FT-8b)
+
+extension NotchController {
+    /// While a tray file's Quick Look shows, the notch stays; when it ends, the next click
+    /// outside closes the notch, not the pointer leaving.
+    func followQuickLook() {
+        let previous = TrayQuickLook.shared.shownChanged
+        TrayQuickLook.shared.shownChanged = { [weak self] shown in
+            previous(shown)
+            guard let self, self.model.isExpanded else { return }
+            self.model.holdsForPreview = shown
+            if !shown {
+                self.model.holdsForTyping = true
+                self.watchClicksOutsideSettings()
+            }
+        }
+    }
+}

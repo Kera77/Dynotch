@@ -226,6 +226,9 @@ final class NotificationService: ObservableObject {
         )
         .subtracting(bannerDismisser.closedIDs)
         guard !gone.isEmpty else { return }
+        // Identifiers only: which notifications left with Notification Center (spec E-13).
+        let apps = recent.filter { gone.contains($0.id) }.map { "#\($0.id) \($0.appIdentifier)" }
+        DiagnosticsLog.append("notification-records", "left Notification Center: " + apps.joined(separator: ", "))
         recent.removeAll { gone.contains($0.id) }
         unseen.removeAll { gone.contains($0.id) }
         focus?.notifications.removeAll { gone.contains($0.id) }
