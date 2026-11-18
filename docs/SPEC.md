@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.53 elfogadva, v0.54 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.54 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -262,8 +262,10 @@
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 | E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
 | E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |
+| E-1d | (v0.54) A böngészők (például a Zen a Google Chatnél) egy beszélgetés értesítését **helyben frissítik**: a rekord azonosítója marad, csak a szállítási ideje és a tartalma változik. A Dynotch ezeket is észreveszi (a `delivered_date` / `request_last_date` alapján), új értesítésként mutatja, a korábbi változatot lecseréli. |
 | E-19 | (v0.43) **Elhalasztás:** jobb klikk egy értesítésen vagy a lista fejlécén: *1 óra múlva*, *ma este (18:00)*, *holnap reggel (9:00)*. Addig eltűnik, utána újra felugrik. |
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
+| E-20b | (v0.54) **Banner nélküli mód:** a *Settings › Notifications › Except during the Focus* mezőben megadott nevű Fókusz (alapból „Dynotch”) alatt a Dynotch nem némul el. Ha ez a Fókusz egyetlen appot sem enged át és mindig be van kapcsolva, macOS-banner nem jelenik meg, az értesítések viszont az Értesítési központba és így a notchba is megérkeznek. |
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 | E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
 | E-22b | (v0.53, az E-22 globális kapcsolóját felváltja) A „Name only / With message” **csak appokként** állítható (az app szabályai között); alapból minden app „Name only”. Közös marad a *Message lines in pop-ups* (2–8). |
@@ -734,6 +736,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.54** | Alkalmazásváltó a notchban (gyorsbillentyű, háromujjas swipe, három nézet); helyben frissített böngészős értesítések (Google Chat a Zenben); banner nélküli mód Fókusszal; Beeper hálózati ikonok weboldalról; a tálca-előnézet nyitva tartja a notchot |
 | **v0.53** | A felugró értesítés a csukott notch sora alatt; üzenetes mini nézet csak appokként; a Beeper fül bezárt listával kicsi |
 | **v0.52** | Üzenet a mini nézetben (állítható sorszám, forrásonként), teljes szöveg hoverre; képernyőmegosztás alatt semmi a notchból; Google Chat fül csak olvasatlanokkal, Beeper fül olvasatlan kártyákkal; a zsugorodó panel nem csukódik be |
 | **v0.51** | Google Chat-válasz link nélkül (⌘⇧K, név szerinti megerősítés); a Beeperben elolvasott üzenetek kikerülnek a listából; magyarázat a rejtett bannerekről |

@@ -83,6 +83,30 @@ final class NotificationDatabase {
         }
     }
 
+    /// The latest delivery in the database (seconds since 2001); 0 if the columns are missing.
+    func lastDelivered() -> Double {
+        let sql = "SELECT IFNULL(MAX(MAX(IFNULL(delivered_date, 0), IFNULL(request_last_date, 0))), 0) FROM record"
+        return (try? query(sql) { sqlite3_column_double($0, 0) })?.first ?? 0
+    }
+
+    /// Records delivered again after `date` under an id seen before: a browser replacing its
+    /// notification for the same chat updates the record instead of adding one (spec E-1d).
+    func records(updatedAfter date: Double, upTo recordID: Int64) throws -> [NotificationRecord] {
+        let sql = """
+        SELECT r.rec_id, IFNULL(a.identifier, ''), r.data
+        FROM record r LEFT JOIN app a ON a.app_id = r.app_id
+        WHERE r.rec_id <= ? AND MAX(IFNULL(r.delivered_date, 0), IFNULL(r.request_last_date, 0)) > \(String(format: "%.6f", date))
+        ORDER BY r.rec_id LIMIT 50
+        """
+        return try query(sql, argument: recordID) { statement in
+            NotificationRecord(
+                id: sqlite3_column_int64(statement, 0),
+                appIdentifier: Self.text(statement, 1),
+                data: Self.blob(statement, 2)
+            )
+        }
+    }
+
     /// The ids, from `lowest` up, that are still in Notification Center.
     func recordIDs(from lowest: Int64) throws -> Set<Int64> {
         Set(try query("SELECT rec_id FROM record WHERE rec_id >= ?", argument: lowest) { sqlite3_column_int64($0, 0) })

@@ -37,7 +37,9 @@ final class NotificationService: ObservableObject {
 
     let settings: AppSettings
     private var database: NotificationDatabase?
-    private var lastSeenID: Int64 = 0
+    private(set) var lastSeenID: Int64 = 0
+    /// The latest delivery seen, to catch records updated in place (spec E-1d).
+    var lastDelivered: Double = 0
     private var pollTimer: Timer?
     private var lastOpenAttempt = Date.distantPast
     private var pollCount = 0
@@ -120,18 +122,6 @@ final class NotificationService: ObservableObject {
         clearPeek()
     }
 
-    /// The new notifications from the same app and sender (or chat) as this one, oldest first
-    /// (spec E-4).
-    func related(to notification: AppNotification) -> [AppNotification] {
-        let group = unseen.filter { Self.sameConversation($0, notification) }
-        return group.isEmpty ? [notification] : group
-    }
-
-    nonisolated static func sameConversation(_ lhs: AppNotification, _ rhs: AppNotification) -> Bool {
-        lhs.appIdentifier == rhs.appIdentifier
-            && lhs.title.trimmingCharacters(in: .whitespaces).lowercased() == rhs.title.trimmingCharacters(in: .whitespaces).lowercased()
-    }
-
     /// Negative ids never clash with the database's record ids.
     private var internalID: Int64 = 0
 
@@ -208,6 +198,8 @@ final class NotificationService: ObservableObject {
         do {
             let records = try database.records(after: lastSeenID)
             if !records.isEmpty { handle(records) }
+            let updated = updatedRecords(in: database)
+            if !updated.isEmpty { handle(updated) }
             try dropHandled(in: database)
         } catch {
             DiagnosticsLog.write("notifications", "read failed: \(error)")
@@ -244,6 +236,7 @@ final class NotificationService: ObservableObject {
             do {
                 let opened = try NotificationDatabase(path: path)
                 lastSeenID = try opened.maxRecordID()
+                lastDelivered = opened.lastDelivered()
                 database = opened
                 status = .running
                 // New notifications are written to the write-ahead log: read them at once.
@@ -288,6 +281,10 @@ final class NotificationService: ObservableObject {
             }
         }
         guard let newest = incoming.last else { return }
+        // A record updated in place replaces its earlier version (spec E-1d).
+        let ids = Set(incoming.map(\.id))
+        recent.removeAll { ids.contains($0.id) }
+        unseen.removeAll { ids.contains($0.id) }
         recent = Array((incoming.reversed() + recent).prefix(Self.historyLimit))
         unseen = Array((unseen + incoming).suffix(Self.unseenLimit))
         showPeek(newest)

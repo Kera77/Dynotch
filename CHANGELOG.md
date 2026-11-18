@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.54.0] - 2026-11-18
+
 ### Added
 - Window switcher (Settings › Switcher, off by default): the windows drop down from the notch as
   thumbnails, app icons or titles, in three sizes. Current Space or all apps, optionally grouped
@@ -12,8 +14,13 @@
   quit or hide. Window previews are a separate switch, as they need Screen Recording.
 - Beeper: networks whose app is not installed (e.g. Instagram) get their own icon, fetched once
   from the network's website.
+- Banner-free mode: under the Focus named in Settings › Notifications (default "Dynotch")
+  Dynotch keeps popping up; a Focus that allows no apps keeps every macOS banner away while the
+  notch still shows each notification.
 
 ### Fixed
+- Google Chat in Zen (and other browsers) replaces its notification for the same chat in place;
+  Dynotch missed those and now shows them.
 - Previewing a tray file with Quick Look closed the notch (and the preview) when the pointer
   left; the notch now stays while the preview shows, then closes on the next click outside.
 

@@ -204,6 +204,19 @@ struct FocusToggle: View {
 
     var body: some View {
         Toggle("During a Focus, pop up only the sources allowed in their rules", isOn: $preferences.respectsFocus)
+        // A Focus that keeps every macOS banner away, while Dynotch shows them all (spec E-20b).
+        LabeledContent("Except during the Focus") {
+            TextField("Dynotch", text: $preferences.ignoredFocus)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 140)
+        }
+        .disabled(!preferences.respectsFocus)
+        Text("To never see macOS banners: in System Settings › Focus add a Focus with this name that allows no apps, "
+            + "turn off sharing across devices and keep it on. Notifications still reach Notification Center, "
+            + "so Dynotch shows every one of them.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
