@@ -16,7 +16,6 @@ final class ClipboardPicker: ObservableObject {
     var present: (Bool) -> Void = { _ in }
 
     private static let signature: OSType = 0x4459_4350 // "DYCP"
-    private static let showDelay: TimeInterval = 0.25
     private var handler: EventHandlerRef?
     private var permanent: [EventHotKeyRef] = []
     private var temporary: [EventHotKeyRef] = []
@@ -170,7 +169,7 @@ final class ClipboardPicker: ObservableObject {
         let flags = CGEventSource.flagsState(.combinedSessionState)
         let held = flags.contains(.maskAlternate) || flags.contains(.maskCommand) || flags.contains(.maskControl)
         if held {
-            if Date().timeIntervalSince(startedAt) >= Self.showDelay { show() }
+            if Date().timeIntervalSince(startedAt) >= store.showDelay { show() }
         } else {
             finish(paste: true)
         }

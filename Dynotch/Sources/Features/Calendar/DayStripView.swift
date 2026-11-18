@@ -14,6 +14,13 @@ struct DayStripView: View {
         Self.days(around: today, selected: selectedDay)
     }
 
+    /// The day kept within two weeks of today.
+    nonisolated static func clamped(_ day: Date, around today: Date, calendar: Calendar = .current) -> Date {
+        let distance = calendar.dateComponents([.day], from: today, to: day).day ?? 0
+        guard abs(distance) > reach else { return day }
+        return calendar.date(byAdding: .day, value: distance > 0 ? reach : -reach, to: today) ?? day
+    }
+
     nonisolated static func days(around today: Date, selected: Date, calendar: Calendar = .current) -> [Date] {
         let distance = abs(calendar.dateComponents([.day], from: today, to: selected).day ?? 0)
         let anchor = distance <= reach ? today : selected

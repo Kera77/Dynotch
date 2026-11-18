@@ -178,12 +178,14 @@ final class NotchController {
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded else { return }
         if model.isShowingDropZone { endDropZoneIfDragEnded() } else { showDropZoneOverOpenNotch() }
+        followFocusOntoNotch()
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
         if isInside { isHeldOpen = false }
-        if isInside || model.isPinned || isHeldOpen || model.holdsForSettings || model.isShowingClipboardPicker {
+        if model.isHeldByClick { watchClicksOutsideSettings() }
+        if isInside || model.isPinned || isHeldOpen || model.isHeldByClick || model.isShowingClipboardPicker {
             graceUntil = nil
             cancelClose()
         } else if let graceUntil, graceUntil > Date() {
@@ -238,7 +240,7 @@ final class NotchController {
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
             let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.holdsForSettings, !self.model.isShowingClipboardPicker {
+            if isOutside, !self.model.isPinned, !self.isHeldOpen, !self.model.isHeldByClick, !self.model.isShowingClipboardPicker {
                 self.collapse()
             }
         }

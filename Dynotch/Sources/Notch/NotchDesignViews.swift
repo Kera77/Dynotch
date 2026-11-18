@@ -83,16 +83,26 @@ struct DesignBackground<S: Shape>: View {
         )
     }
 
+    /// How strong the extra blur is: none for a closed or fully black panel; for black a bit
+    /// more than its opacity, so 40 % still blurs gently; under the glass most of it.
+    nonisolated static func blurOpacity(glass: Bool, isOpen: Bool, openOpacity: Double) -> Double {
+        guard isOpen else { return 0 }
+        if glass { return 0.75 * openOpacity }
+        return openOpacity < 1 ? min(1, openOpacity + 0.15) : 0
+    }
+
     var body: some View {
         let glass = isOpen && design != .black
         let open = isOpen ? openOpacity : 1
         switch layer {
         case .glass:
             ZStack {
-                // A see-through black panel blurs what is behind it (spec D-13b).
+                // A see-through black panel blurs what is behind it, the blur fading with the
+                // opacity so the background shows through; under the glass it makes the
+                // system's glass blur stronger (spec D-13b, D-13c).
                 BehindWindowBlur()
                     .clipShape(shape)
-                    .opacity(!glass && isOpen && openOpacity < 1 ? 1 : 0)
+                    .opacity(Self.blurOpacity(glass: glass, isOpen: isOpen, openOpacity: openOpacity))
                 GlassFill(shape: shape)
                     .opacity(glass ? open : 0)
             }

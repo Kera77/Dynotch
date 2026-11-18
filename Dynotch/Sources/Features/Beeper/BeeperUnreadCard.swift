@@ -159,7 +159,10 @@ struct BeeperUnreadCard: View {
                     .padding(.horizontal, 10)
                     .frame(height: 28)
                     .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
-                    .onChange(of: isFocused) { _, focused in if focused { pinNotch() } }
+                    .onChange(of: isFocused) { _, focused in if focused {
+                        pinNotch()
+                        beeper.markRead(chat.id)
+                    } }
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill").font(.system(size: 20))
                 }

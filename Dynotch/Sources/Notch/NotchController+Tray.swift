@@ -69,23 +69,34 @@ extension NotchController {
 
     /// "Keep in Tray": the tray module shows them, if it is on (spec FT-2).
     func keepInTray(_ urls: [URL]) {
-        tray.add(urls)
-        withAnimation(Self.animation) { model.setDropZone(false) }
-        if settings.isEnabled(.tray) {
-            withAnimation(Self.animation) { model.select(.tray) }
-        } else {
-            collapse()
+        // The drop finishes first; changing the panel inside it left the system's drag hanging.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            tray.add(urls)
+            withAnimation(Self.animation) { model.setDropZone(false) }
+            if settings.isEnabled(.tray) {
+                withAnimation(Self.animation) { model.select(.tray) }
+            } else {
+                collapse()
+            }
         }
     }
 
     /// "AirDrop": the system's AirDrop window, as usual (spec FT-3).
+    /// Opened only after the drop has finished: opened inside it, the drag never ended and Finder
+    /// drags and Space switching stayed stuck afterwards (spec FT-3b).
     func sendWithAirDrop(_ urls: [URL]) {
-        collapse()
-        guard let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: urls) else {
-            DiagnosticsLog.append("tray", "AirDrop not available")
-            return
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            self?.collapse()
+            guard let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: urls) else {
+                DiagnosticsLog.append("tray", "AirDrop not available")
+                return
+            }
+            // Its window shows only for the app in front.
+            NSApp.activate(ignoringOtherApps: true)
+            service.perform(withItems: urls)
+            DiagnosticsLog.append("tray", "AirDrop opened")
         }
-        service.perform(withItems: urls)
     }
 
     /// While a file is dragged: open the drop zone over the notch, or close it when the drag ends.
@@ -122,12 +133,19 @@ extension NotchController {
     func showClipboardPicker() {
         guard !callIsShown else { return }
         hideStrip()
+        // In the open notch the items drop down under the module, which keeps the keyboard, so
+        // the choice is pasted into it (spec CB-3c).
+        let inline = model.isExpanded && !model.isShowingOverlayPage && !model.isPreview
         if !model.isExpanded { expand() }
-        isHeldOpen = true
-        withAnimation(Self.animation) { model.setClipboardPicker(true) }
+        if !inline { isHeldOpen = true }
+        withAnimation(Self.animation) { model.setClipboardPicker(true, inline: inline) }
     }
 
     func hideClipboardPicker() {
+        if model.isClipboardInline {
+            withAnimation(Self.animation) { model.setClipboardPicker(false) }
+            return
+        }
         withAnimation(Self.animation) { model.setClipboardPicker(false) }
         collapse()
     }

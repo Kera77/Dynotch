@@ -241,7 +241,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: settings.externalStyle)
         .environment(\.colorScheme, .dark)
         .environment(\.notchDesign, settings.design)
-        .environment(\.pinNotch) { [model] in model.isPinned = true }
+        .environment(\.pinNotch) { [model] in model.holdsForTyping = true }
         .environment(\.closeNotch) { [model] in model.requestCollapse() }
     }
 
@@ -262,6 +262,12 @@ struct NotchView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .offset(x: model.bounceOffset)
                     .transition(.opacity)
+                if model.isClipboardInline {
+                    // ⌥V in the open notch: the items under the module (spec CB-3c).
+                    ClipboardPickerView(picker: clipboardPicker, store: clipboard, notchHeight: 0)
+                        .frame(height: NotchViewModel.inlinePickerHeight)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
         }
     }

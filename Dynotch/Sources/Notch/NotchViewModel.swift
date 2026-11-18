@@ -23,6 +23,11 @@ final class NotchViewModel: ObservableObject {
     @Published var isPinned = false
     /// The settings keep the panel open until the next click outside it (spec C-6).
     var holdsForSettings = false
+    /// A click into a reply or text field keeps the panel open when the pointer leaves, until
+    /// the next click outside it (spec E-21); the lock (isPinned) stays until it is released.
+    var holdsForTyping = false
+    /// Held open until a click outside: by the settings or by typing.
+    var isHeldByClick: Bool { holdsForSettings || holdsForTyping }
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
@@ -131,10 +136,15 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isShowingDropZone = false
 
     /// A page that replaces the modules for a moment.
-    var isShowingOverlayPage: Bool { isShowingClipboardPicker || isShowingDropZone }
+    /// The clipboard's items under the open module, not instead of it (spec CB-3c).
+    @Published private(set) var isClipboardInline = false
+    static let inlinePickerHeight: CGFloat = 150
 
-    func setClipboardPicker(_ shown: Bool) {
+    var isShowingOverlayPage: Bool { (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone }
+
+    func setClipboardPicker(_ shown: Bool, inline: Bool = false) {
         if shown != isShowingClipboardPicker { isShowingClipboardPicker = shown }
+        if (shown && inline) != isClipboardInline { isClipboardInline = shown && inline }
     }
 
     func setDropZone(_ shown: Bool) {
@@ -143,8 +153,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Size of the panel while it is open: the module's resized size, or its normal one.
     var openSize: CGSize {
-        if canResize, let size = resizingSize ?? savedModuleSize { return size }
-        return normalOpenSize
+        let size = canResize ? (resizingSize ?? savedModuleSize ?? normalOpenSize) : normalOpenSize
+        return isClipboardInline ? CGSize(width: size.width, height: size.height + Self.inlinePickerHeight) : size
     }
 
     /// Size of the panel while it is open, without a resized module (spec RS-1).
@@ -178,8 +188,14 @@ final class NotchViewModel: ObservableObject {
         notifications = expanded ? presented : []
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         if !expanded, isShowingSettings { isShowingSettings = false }
-        if !expanded { holdsForSettings = false }
-        if !expanded { isShowingClipboardPicker = false }
+        if !expanded {
+            holdsForSettings = false
+            holdsForTyping = false
+        }
+        if !expanded {
+            isShowingClipboardPicker = false
+            isClipboardInline = false
+        }
         if !expanded { isShowingDropZone = false }
         if expanded, isShowingStrip { isShowingStrip = false }
         if !expanded, isPinned { isPinned = false }

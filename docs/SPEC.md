@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.48 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.48 elfogadva, v0.49 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -200,7 +200,7 @@
 | K-8j | (v0.47) A becsukott notch alatti meeting-sorban az idő („10:00–10:30 · starting”) a naptár **kékje** (mint K-5c), a Join gomb itt **szürke kapszula** fehér felirattal (a napi nézetben marad zöld). |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 | K-14 | (v0.43, v0.44-ben bővítve) **Napi idővonal** a napi nézetben: az események színes sávként (ha elég széles, a nevükkel) 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
-| K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. |
+| K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. (v0.49) A swipe is legfeljebb ±14 napig léptet (fal), nem csak a napsor. |
 | K-14b | (v0.45) Az idővonal sávjain **nincs felirat**, csak a naptár saját színe. Egy sávra mutatva a sáv alatt, az órák sorában buborék jelenik meg a meeting nevével és idejével (a rendszer lassú súgója helyett). |
 
 ---
@@ -253,12 +253,14 @@
 | E-16b | (v0.38) A **válaszmező alapból ki van kapcsolva** minden forrásnál (csevegő appoknál is); csak az a forrás kapja meg, amelynek szabályában „Show” áll. A választó első lehetősége „Default (off)”. |
 | E-17 | (v0.40) **Válasz egy sorra:** ha a forrásnál be van kapcsolva a válaszmező, az értesítéskártya egy-egy üzenetsorára vitt egérnél a sor végén válasz nyíl jelenik meg; rákattintva a mező fölött az idézett sor látszik („Answer this line…”), X-szel visszavonható. Elküldve a válasz kék buborékként a sor alá kerül, a **notch nyitva marad**, és jöhet a következő sor. Beeperen a válasz az adott üzenetre megy (a csevegés utolsó 30 üzenete közül szöveg alapján keresi meg; ha nincs meg, sima üzenet); más appoknál sima üzenetként. Az **egész beszélgetésre** adott válasz Enter után továbbra is bezárja a kártyát. |
 | E-18 | (v0.40) **Emoji:** a válaszmező mellett mosolygó ikon; rávitt egérre megnyílik a macOS emoji-választója, a kiválasztott emoji a mezőbe kerül. A beírt emotikonok emojivá válnak, ha önálló szóként állnak (gépelés közben a szóköz után, küldéskor a végén is): `:)` 🙂, `:D` 😄, `xD` 😆, `:(` 🙁, `:'(` 😢, `;)` 😉, `:P` 😛, `:O` 😮, `:*` 😘, `<3` ❤️, `:|` 😐, `B-)` 😎, `^^` 😊, `:/` 😕. Linkekben és időpontokban nem cserél. (v0.42) Az emoji-választó a Dynotch saját, **kis ablaka**, mindig **az emoji ikon alá** nyílik (hoverre vagy kattintásra): legutóbb használtak, majd kategóriák (arcok, kezek, szívek, természet, étel, egyéb); megnyitásakor a notch rögzül. |
+| E-18b | (v0.49) A hoverre megnyílt emoji-lenyíló (válaszmező, Beeper-reakció) bezárul, ha az egér se a gombon, se a lenyílón nincs (0,35 mp után). Kattintásra megnyitva marad a következő kattintásig. |
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 | E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
 | E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |
 | E-19 | (v0.43) **Elhalasztás:** jobb klikk egy értesítésen vagy a lista fejlécén: *1 óra múlva*, *ma este (18:00)*, *holnap reggel (9:00)*. Addig eltűnik, utána újra felugrik. |
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
+| E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 
 ## 4c. Számológép (v0.6)
 
@@ -342,6 +344,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-12 | (v0.38) **A szoftveresen rajzolt egérmutató nem akadály:** amikor a macOS szoftveresen rajzolja a mutatót (pl. amíg egy iPad kijelzőként csatlakozik), az egy saját ablak a mutató alatt, a legfelső szinten. Ezt (és a fölötte lévő szinteket) a választás átnézi; korábban emiatt a fókusz egyáltalán nem követte az egeret. |
 | F-13 | (v0.45, az F-8 első mondatát felváltja) **Ablakokat követ, nem appokat:** az aktív app egy másik ablakára is vált (pl. ugyanaz a böngésző két monitoron, két ablakban). Az appon belül nem vált, ha az app fókuszált ablaka párbeszédablak, sheet vagy modális, ha a célablak kisebb 120 × 80 pt-nál (felugró ablak), és ha a fókuszált ablak nem állapítható meg (Kisegítő hozzáférés nélkül). Az F-8 kétszeri próbálkozási korlátja marad. |
 | F-14 | (v0.46) Az appon belüli váltás csak **normál ablakra** (`AXStandardWindow`) és csak **normál fókuszált ablakról** történik: a lenyíló és felugró ablakok (pl. a DataGrip projektválasztója, amely külön ablak és fókuszvesztéskor bezárul), menük, tooltipek és alrole nélküli ablakok nem kapnak és nem veszítenek fókuszt. A F-13 120 × 80-as méretszűrője marad. |
+| F-15 | (v0.49) Csukáskor a notch ténylegesen visszaadja a billentyűzetet az előtérben lévő appnak (a `resignKey()` csak jelzés volt, és az ablak félaktív maradt: például a VS Code nem görgetett). Bekapcsolt egérkövetésnél a nyitott notch is megkapja a fókuszt, amikor az egér visszamegy rá. |
 
 ---
 
@@ -505,6 +508,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-12 | (v0.43) A **menüsor-buborékok** mindig az eredeti fekete designt kapják, Liquid Glass nélkül, a notch designjától függetlenül. Minden ikongombnak van VoiceOver-címkéje. |
 | D-13 | (v0.45) *Settings › Appearance*: **Open panel opacity** csúszka, 40–100% (alapból 100%). Csak a lenyitott panel hátterére hat, minden designnál; a becsukott notch, a lelógó értesítés és az előnézet fekete marad. |
 | D-13b | (v0.46) 100% alatti átlátszóságnál a fekete panel mögött **elmosás** (blur) van: az asztal és a mögötte lévő ablakok elmosva látszanak át. Az üveg-designokon az üveg eleve elmos. |
+| D-13c | (v0.49) A fekete design 100% alatt enyhén átlátszó: a blur a csúszkával együtt halványul (a csúszka 40%-tól). A Liquid Glass alatt egy külön blur réteg erősebbé teszi az üveg elmosását. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -541,11 +545,13 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-1 | **Cél:** amit a Beeperben vagy a Google Chatben még nem olvastál el (sem az appban, sem a notchban), az **mindig ott van** a notch értesítéseinél, és a notchból válaszolható. A notch nem csak az új értesítésekből dolgozik, hanem az appok olvasatlan állapotából. |
 | UM-2 | **Beeper (Desktop API):** 20 mp-enként (és a notch nyitásakor) lekéri a csevegéseket, amelyeknek `unreadCount > 0`; mindegyikből az utolsó *unreadCount* (legfeljebb 10) üzenetet. Ezek egy-egy **olvasatlan csoportot** alkotnak (a feladó/csevegés neve, ikon, üzenetek), amely addig marad, amíg a Beeper szerint a csevegés olvasatlan. |
 | UM-3 | **Olvasottnak jelölés a Beeperben is:** ha a csoportot a notchban **megnyitod** (a kártya legalább 2 mp-ig látszik), vagy válaszolsz rá, a Dynotch a Beeper API-n olvasottnak jelöli a csevegést (`POST /v1/chats/{chatID}/read`, az utolsó látott üzenetig). Ha a Beeperben olvasod el, a következő lekérdezéskor a notchból is eltűnik. |
+| UM-3b | (v0.49) Egy Beeper-csevegés csak akkor lesz olvasott, ha a **válaszmezőbe kattintasz** (a Beeper fülön és a Chats kártyákon); addig olvasatlan marad. |
 | UM-4 | **Google Chat:** nincs nyilvános API Google-fiók és saját Google Cloud-alkalmazás nélkül, ezért a forrás a macOS Értesítési központ: egy Google Chat-értesítés addig olvasatlan, amíg **benne van az Értesítési központban** (E-13 fordítva: nem tűnik el az idővel, csak ha ott eltűnik – a csevegés megnyitásakor a böngésző/webapp eltávolítja). Válasz a meglévő módon (a csevegés megnyitása és begépelés, E-11b). |
 | UM-5 | **Megjelenés:** a becsukott notch mellett az értesítési jelvény (B-1) mutatja az olvasatlanok **összesített számát**; a notch értesítés-nézetében felül egy „**Unread**” szakasz csevegésenként (legújabb elöl), alatta a korábbi értesítések. Hover/kattintás egy csoportra: a kártya (E-4) az olvasatlan üzenetekkel és a válaszmezővel (E-11, E-17 soronkénti válasz). |
 | UM-6 | **Duplikáció nélkül:** ha ugyanarról az üzenetről értesítés is jött, csak egyszer látszik (Beeper: az üzenet szövege és ideje alapján összevonva). |
 | UM-7 | **Beállítás:** *Settings › Notifications*: „Keep unread chats in the notch” forrásonként (Beeper, Google Chat); a lekérdezési gyakoriság 10–60 mp. Csak a csevegések neve, az üzenetek szövege és ideje kerül a memóriába; lemezre és a naplóba nem. |
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
+| UM-8b | (v0.49) Az **All** fülön nincsenek „Unread” buborékok; az olvasatlan Beeper-csevegések a Chats fülön kártyaként vannak. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 
 ## 4x. Beeper a notchban (v0.42)
@@ -575,6 +581,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CB-1 | Új **Clipboard** modul; a vágólapot a modul bekapcsolása nélkül is figyeli, és a gyorsbillentyű akkor is működik. Szöveget és képet (pl. Shottr) tárol, a legújabb elöl, ismétlés nélkül; újraindítás után is megmarad (Application Support, a képek PNG-ként). |
 | CB-2 | Két gyorsbillentyű, módosítható: **⌥V** a vágólap elemeihez, **⌥⇧V** a mentett elemekhez (*Settings › Clipboard*). A magyar kiosztáson az ⌥V a „ karaktert írja; ezt a billentyű elveszi. |
 | CB-3 | **Röviden megnyomva** a legutóbbi elemet illeszti be (⌘V a front appnak). **A módosító nyomva tartásával** 0,25 mp után lenyílik a notch: kártyák egymás mellett, alul számozva; a billentyű újra vagy ←→ léptet, ↑↓ vált a vágólap és a mentett elemek között, ⌥1–9 közvetlenül választ; a módosító felengedése beilleszt, Esc megszakít és összecsuk. Választás közben a nyilakat, számokat és az Esc-et csak a Dynotch kapja. |
+| CB-3b | (v0.49) A lista megjelenése előtti tartási idő állítható (*Clipboard › Show the items after*, 50–500 ms, alapból 120 ms). |
+| CB-3c | (v0.49) **A nyitott notchban** a ⌥V nem vált modult: a lista a modul **alatt** nyílik le (a panel lejjebb nyúlik), a billentyűzet a modulban marad, a ⌥ elengedésekor az elem a modul aktív mezőjébe illesztődik, és a lista eltűnik. |
 | CB-4 | A modulban „Clipboard / Saved” fülek, keresés, csillag (mentés), törlés, „Clear”; mentett szöveg felvétele; kattintásra beillesztés a front appba. |
 | CB-5 | Képmetszőből (pl. Shottr) másolt kép is elem, kicsinyítve látszik. |
 | CB-6 | A jelszókezelők rejtett/ideiglenes jelölésű másolatai (pl. `org.nspasteboard.ConcealedType`) és a kizárt appok másolatai nem kerülnek be. |
@@ -587,6 +595,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-1 | Fájlt a becsukott notchra húzva lenyílik az ejtési zóna: balra **Keep in Tray**, jobbra **AirDrop**. |
 | FT-2 | A tálca a fájlokra **hivatkozást** tárol (követi, ha áthelyezed); ami ideiglenes helyről jön (böngésző, képmetsző), azt a Dynotch tálcamappájába másolja. |
 | FT-3 | AirDrop: a rendszer megszokott AirDrop-ablaka nyílik meg. |
+| FT-3b | (v0.49) Az AirDrop-ablak csak a ledobás befejezése után nyílik meg (előtérbe hozva); a ledobáson belül megnyitva a rendszer húzása beragadt (utána nem ment a Finder-húzás és a Space-váltás). A „Keep in Tray” is a ledobás után fut. |
 | FT-4 | A **Tray** modulban fülek: „Tray” és a „+”-szal csatolt mappák (színes ponttal); swipe-pal is váltható, a végén a következő modulra lép. |
 | FT-5 | Fájlok kihúzhatók bármely appba; mappára vagy a rácsra ejtve **másolás**, ⌥-tal **áthelyezés**; dupla kattintás megnyit; jobb klikk: Quick Look, Open, Show in Finder, Remove. |
 | FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
@@ -595,6 +604,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
 | FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
+| FT-12b | (v0.49) Kihúzáskor a Dynotch maga írja a fájlt a célmappába (file promise), a **saját nevén**, előtag nélkül; ha a név foglalt: „név (1).ext”, „név (2).ext”… A tálcából **áthelyezés** (és kikerül a tálcából), csatolt mappából **másolás**. |
 | FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). (v0.48) Sorrend: bal **2/3 Keep in Tray**, jobb **1/3 AirDrop**. |
 | FT-14 | (v0.45) A tálca beállításai **saját *Tray* fülre** kerültek (eddig a Clipboard fülön voltak): lejárat (FT-6) és **Show in Finder** gomb, ami megnyitja a Dynotch tálcamappáját. |
 

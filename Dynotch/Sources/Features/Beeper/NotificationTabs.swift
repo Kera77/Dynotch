@@ -82,10 +82,8 @@ struct NotificationsTabsView: View {
     @ViewBuilder private var content: some View {
         switch tab {
         case .all:
-            VStack(spacing: 6) {
-                UnreadChatsSection(beeper: beeper) { open($0) }
-                NotificationsFeatureView(service: service, isActive: isActive)
-            }
+            // No unread bubbles here; the Chats tab has them as cards (spec UM-8b).
+            NotificationsFeatureView(service: service, isActive: isActive)
         case .chats:
             // Unread Beeper chats as notification cards, like before Beeper got its own tab;
             // Beeper's own notifications would be the same messages twice (spec UM-9).
@@ -109,49 +107,6 @@ struct NotificationsTabsView: View {
     private func open(_ chat: BeeperChatInfo) {
         withAnimation(Motion.quick) { tab = .beeper }
         beeper.open(chat.id)
-    }
-}
-
-/// Unread Beeper chats on top of the notifications (spec UM-2, UM-5).
-struct UnreadChatsSection: View {
-    @ObservedObject var beeper: BeeperService
-    let open: (BeeperChatInfo) -> Void
-
-    var body: some View {
-        if beeper.keepsUnread, !beeper.unreadChats.isEmpty {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Unread")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.5))
-                ScrollView(.horizontal) {
-                    HStack(spacing: 8) {
-                        ForEach(beeper.unreadChats.prefix(12)) { chat in
-                            Button {
-                                open(chat)
-                            } label: {
-                                HStack(spacing: 6) {
-                                    BeeperAvatar(image: beeper.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        Text(chat.name).font(.system(size: 11, weight: .bold)).lineLimit(1)
-                                        Text(chat.preview?.text ?? "").font(.system(size: 10)).opacity(0.7).lineLimit(1)
-                                    }
-                                    .frame(maxWidth: 130, alignment: .leading)
-                                    Text("\(chat.unread)").font(.system(size: 9, weight: .bold))
-                                        .padding(.horizontal, 5).background(Capsule().fill(BeeperStyle.blue))
-                                }
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.08)))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-                .scrollIndicators(.never)
-            }
-            .padding(.horizontal, 14)
-        }
     }
 }
 

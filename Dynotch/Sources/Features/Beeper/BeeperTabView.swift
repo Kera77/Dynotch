@@ -37,7 +37,11 @@ struct BeeperComposer: View {
                     .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.1)))
                     .focused($isFocused)
                     .onSubmit(send)
-                    .onChange(of: isFocused) { _, focused in if focused { pinNotch() } }
+                    .onChange(of: isFocused) { _, focused in if focused {
+                        pinNotch()
+                        // Read in Beeper only once the reply field is clicked (spec UM-3b).
+                        service.markRead(chat.id)
+                    } }
                     .onChange(of: text) { _, typed in
                         let replaced = Emoticons.replace(in: typed, includingLast: false)
                         if replaced != typed { text = replaced }

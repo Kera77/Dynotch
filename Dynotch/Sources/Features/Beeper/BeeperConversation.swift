@@ -263,45 +263,70 @@ struct BeeperReactionButton: View {
     }
 
     @State private var panel: Panel?
+    @State private var hover = HoverIntent()
     @Environment(\.pinNotch) private var pinNotch
 
     var body: some View {
         Button {
             panel = .all
+            hover.openedByHover = false
+            pinNotch()
         } label: {
             Image(systemName: "face.smiling").font(.system(size: 11))
         }
         .buttonStyle(.plain)
         .help("React")
         .accessibilityLabel("React")
-        .onHover { if $0, panel == nil { panel = .quick } }
-        .onChange(of: panel?.id) { _, shown in if shown != nil { pinNotch() } }
+        .onHover { inside in
+            hover.overButton = inside
+            if inside, panel == nil {
+                panel = .quick
+                hover.openedByHover = true
+            }
+            closeIfLeft()
+        }
         .popover(item: $panel, arrowEdge: .bottom) { shown in
-            switch shown {
-            case .quick:
-                HStack(spacing: 4) {
-                    ForEach(BeeperConversation.quickReactions, id: \.self) { emoji in
-                        Button(emoji) {
-                            react(emoji)
-                            panel = nil
-                        }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 18))
-                    }
-                    Button {
-                        panel = .all
-                    } label: {
-                        Image(systemName: "plus.circle").font(.system(size: 14))
+            popoverContent(shown)
+                .onHover { inside in
+                    hover.overPopover = inside
+                    closeIfLeft()
+                }
+        }
+    }
+
+    private func closeIfLeft() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + HoverIntent.grace) {
+            if hover.shouldClose { panel = nil }
+        }
+    }
+
+    @ViewBuilder private func popoverContent(_ shown: Panel) -> some View {
+        switch shown {
+        case .quick:
+            HStack(spacing: 4) {
+                ForEach(BeeperConversation.quickReactions, id: \.self) { emoji in
+                    Button(emoji) {
+                        react(emoji)
+                        panel = nil
                     }
                     .buttonStyle(.plain)
+                    .font(.system(size: 18))
                 }
-                .padding(8)
-            case .all:
-                EmojiGrid { emoji in
-                    react(emoji)
-                    EmojiGrid.remember(emoji)
-                    panel = nil
+                Button {
+                    // Every emoji, staying until a click (spec E-18b).
+                    hover.openedByHover = false
+                    panel = .all
+                } label: {
+                    Image(systemName: "plus.circle").font(.system(size: 14))
                 }
+                .buttonStyle(.plain)
+            }
+            .padding(8)
+        case .all:
+            EmojiGrid { emoji in
+                react(emoji)
+                EmojiGrid.remember(emoji)
+                panel = nil
             }
         }
     }

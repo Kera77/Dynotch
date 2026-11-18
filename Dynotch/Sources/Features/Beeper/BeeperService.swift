@@ -37,7 +37,6 @@ final class BeeperService: ObservableObject {
 
     static let undoTime: TimeInterval = 5
     private static let pollInterval: TimeInterval = 20
-    private static let readAfter: Duration = .seconds(2)
     private static let listKey = "beeperShowsChatList"
     private static let unreadKey = "beeperKeepsUnread"
 
@@ -116,16 +115,12 @@ final class BeeperService: ObservableObject {
         }
     }
 
-    /// Shows a chat; looking at it for two seconds marks it read in Beeper too (spec UM-3).
+    /// Shows a chat. It stays unread until the reply field is clicked (spec UM-3b).
     func open(_ chatID: String) {
         selectedChatID = chatID
         loadMessages(chatID)
         readTask?.cancel()
-        readTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.readAfter)
-            guard let self, !Task.isCancelled, self.selectedChatID == chatID else { return }
-            self.markRead(chatID)
-        }
+        readTask = nil
     }
 
     /// The tab or the notch went away: no reading in the background.

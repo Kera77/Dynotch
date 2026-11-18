@@ -69,6 +69,14 @@ final class ClipboardStore: ObservableObject {
         }
     }
 
+    /// How long the modifier is held before the items show (spec CB-3b); a shorter press pastes
+    /// the newest one.
+    @Published var showDelay: Double {
+        didSet { defaults.set(showDelay, forKey: Keys.showDelay) }
+    }
+
+    static let showDelayRange: ClosedRange<Double> = 0.05...0.5
+
     @Published var historyShortcut: KeyShortcut? {
         didSet { defaults.set(historyShortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Keys.historyShortcut) }
     }
@@ -89,6 +97,7 @@ final class ClipboardStore: ObservableObject {
         static let historyShortcut = "clipboardShortcut"
         static let savedShortcut = "clipboardSavedShortcut"
         static let excluded = "clipboardExcludedApps"
+        static let showDelay = "clipboardShowDelay"
     }
 
     private let defaults: UserDefaults
@@ -98,6 +107,7 @@ final class ClipboardStore: ObservableObject {
 
     init(defaults: UserDefaults = .standard, folder: URL? = nil) {
         self.defaults = defaults
+        showDelay = defaults.object(forKey: Keys.showDelay) as? Double ?? 0.12
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
         self.folder = folder ?? support.appendingPathComponent("Dynotch/Clipboard")

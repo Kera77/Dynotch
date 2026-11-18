@@ -122,7 +122,8 @@ extension NotchController {
         guard steps != 0 else { return dayStepper.isHorizontal }
         let calendarService = calendar
         if let day = Calendar.current.date(byAdding: .day, value: steps, to: calendarService.selectedDay) {
-            calendarService.selectedDay = Calendar.current.startOfDay(for: day)
+            // Two weeks each way is the wall (spec K-15).
+            calendarService.selectedDay = DayStripView.clamped(Calendar.current.startOfDay(for: day), around: calendarService.today)
             Haptics.perform(.dayStep, settings: settings)
         }
         return true

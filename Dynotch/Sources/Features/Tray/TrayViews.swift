@@ -33,7 +33,7 @@ struct TrayFeatureView: View {
 
     private var chips: some View {
         HStack(spacing: 8) {
-            chip(title: "Tray", colour: .white, isOn: store.selectedFolder == nil) { store.selectedFolder = nil }
+            chip(title: "Tray", colour: Theme.blue, isOn: store.selectedFolder == nil) { store.selectedFolder = nil }
             ForEach(store.folders) { folder in
                 let colour = Self.dotColours[folder.colour % Self.dotColours.count]
                 chip(title: folder.name, colour: colour, isOn: store.selectedFolder == folder.id) {
@@ -70,10 +70,16 @@ struct TrayFeatureView: View {
     }
 
     private func cell(_ url: URL) -> some View {
-        TrayFileCell(url: url, isChosen: chosen == url, isRow: store.showsList) {
-            chosen = url
-            isFocused = true
-        }
+        let trayItem = selected == nil ? store.trayFiles.first(where: { $0.url == url })?.item : nil
+        // Out of the tray a file moves; out of an attached folder it is copied (spec FT-12b).
+        return TrayFileCell(
+            url: url, isChosen: chosen == url, isRow: store.showsList, move: trayItem != nil,
+            moved: { if let trayItem { store.remove(trayItem) } },
+            choose: {
+                chosen = url
+                isFocused = true
+            }
+        )
         .contextMenu {
             Button("Quick Look") { TrayQuickLook.shared.toggle(url) }
             Button("Open") { NSWorkspace.shared.open(url) }
@@ -154,6 +160,9 @@ struct TrayFileCell: View {
     var isChosen = false
     /// One line with a small icon (list), or a tile.
     var isRow = false
+    /// Dragged out, the file moves (a tray file) or is copied (an attached folder's).
+    var move = false
+    var moved: @MainActor () -> Void = {}
     var choose: () -> Void = {}
 
     var body: some View {
@@ -161,14 +170,12 @@ struct TrayFileCell: View {
             .padding(4)
             .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(isChosen ? 0.16 : 0)))
             .contentShape(Rectangle())
-            // Dragged out under the name it came with (spec FT-12).
-            .onDrag {
-                let provider = NSItemProvider(contentsOf: url) ?? NSItemProvider()
-                provider.suggestedName = url.lastPathComponent
-                return provider
+            // Dragged out under its own name, "(1)" when taken (spec FT-12, FT-12b).
+            .overlay {
+                TrayDragSource(url: url, move: move, moved: moved) { clicks in
+                    if clicks >= 2 { NSWorkspace.shared.open(url) } else { choose() }
+                }
             }
-            .onTapGesture(count: 2) { NSWorkspace.shared.open(url) }
-            .onTapGesture(count: 1, perform: choose)
             .help(url.path)
     }
 

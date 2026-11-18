@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added
+- Settings › Clipboard: how long ⌥ is held before the items show (default 120 ms, was 250 ms).
+
+### Changed
+- ⌥V in the open notch keeps the module: the items drop down under it, and the choice is pasted
+  into the module's field.
+- Files dragged out of the tray keep their own name, "name (1)" when it is taken; tray files
+  are moved out, files of attached folders copied.
+- A Beeper chat becomes read only when you click its reply field.
+- No unread bubbles on the All tab.
+- The tray's chip dot is blue.
+- Black design below 100 % is gently see-through with a blur; Liquid Glass blurs more.
+
+### Fixed
+- Dropping a file on AirDrop opened no window and left the system's drag stuck (no more Finder
+  drags or Space switching).
+- After the notch closed, the app in front did not get its key window back (e.g. VS Code did
+  not scroll); with focus follows mouse the open notch takes the focus when the pointer returns.
+- A reply field kept the notch open until X: now a click elsewhere closes it, while moving the
+  pointer away still keeps it.
+- Emoji pickers opened by hover now close when the pointer goes elsewhere.
+- Swiping in the calendar went past the two weeks.
+
 ## [0.48.0] - 2026-11-18
 
 ### Changed

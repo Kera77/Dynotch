@@ -18,15 +18,17 @@ extension NotchController {
         }
     }
 
-    /// A click in another app closes the settings that hold the panel open (spec C-6).
+    /// A click in another app closes the settings, or a reply being typed, that hold the panel
+    /// open (spec C-6, E-21).
     func watchClicksOutsideSettings() {
         guard settingsClickMonitor == nil else { return }
         settingsClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.stopWatchingClicksOutsideSettings()
-                guard self.model.holdsForSettings, self.model.isExpanded else { return }
+                guard self.model.holdsForSettings || self.model.holdsForTyping, self.model.isExpanded else { return }
                 self.model.holdsForSettings = false
+                self.model.holdsForTyping = false
                 if !self.model.isPinned { self.collapse() }
             }
         }
@@ -47,11 +49,32 @@ extension NotchController {
         guard wantsKeyboard != panel.allowsKey else { return }
         panel.allowsKey = wantsKeyboard
         if !wantsKeyboard {
-            panel.resignKey()
-        } else if model.isShowingSettings || !openedJustNow || model.currentFeature == .calculator {
-            // The calculator takes typing right away, even when opened by hover (spec SZ-10).
+            giveKeyboardBack()
+        } else if model.isShowingSettings || !openedJustNow || model.currentFeature == .calculator || settings.focusFollowsMouse {
+            // The calculator takes typing right away, even when opened by hover (spec SZ-10);
+            // with focus following the mouse, so does every module (spec F-15).
             panel.makeKey()
         }
+    }
+
+    /// resignKey() only reports; the app in front gets its key window back for real, or its
+    /// window stayed half active (e.g. VS Code did not scroll) (spec F-15).
+    func giveKeyboardBack() {
+        guard panel.isKeyWindow else { return }
+        panel.makeFirstResponder(nil)
+        if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() {
+            front.activate()
+        } else {
+            NSApp.deactivate()
+        }
+    }
+
+    /// Focus follows the mouse onto the open notch too, when the pointer comes back (spec F-15).
+    func followFocusOntoNotch() {
+        guard settings.focusFollowsMouse, model.isExpanded, model.wantsKeyboard, panel.allowsKey, !panel.isKeyWindow,
+              NSEvent.pressedMouseButtons == 0, keepOpenZone.contains(NSEvent.mouseLocation)
+        else { return }
+        panel.makeKey()
     }
 }
 

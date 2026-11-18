@@ -7,11 +7,15 @@ struct EmojiButton: View {
     var size: CGFloat = 15
 
     @State private var isOpen = false
+    @State private var hover = HoverIntent()
     @Environment(\.pinNotch) private var pinNotch
 
     var body: some View {
         Button {
             isOpen.toggle()
+            // Opened by a click: it stays until the next click (spec E-18b).
+            hover.openedByHover = false
+            if isOpen { pinNotch() }
         } label: {
             Image(systemName: "face.smiling")
                 .font(.system(size: size))
@@ -22,16 +26,44 @@ struct EmojiButton: View {
         .buttonStyle(.plain)
         .help("Emoji")
         .accessibilityLabel("Emoji")
-        .onHover { if $0 { isOpen = true } }
-        // The picker hangs below the notch: keep the notch open meanwhile.
-        .onChange(of: isOpen) { _, open in if open { pinNotch() } }
+        .onHover { inside in
+            hover.overButton = inside
+            if inside, !isOpen {
+                isOpen = true
+                hover.openedByHover = true
+            }
+            closeIfLeft()
+        }
         .popover(isPresented: $isOpen, arrowEdge: .bottom) {
             EmojiGrid { emoji in
                 text += emoji
                 EmojiGrid.remember(emoji)
             }
+            .onHover { inside in
+                hover.overPopover = inside
+                closeIfLeft()
+            }
         }
     }
+
+    /// Opened by hover and the pointer went elsewhere, not onto the picker: it goes (spec E-18b).
+    private func closeIfLeft() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + HoverIntent.grace) {
+            if hover.shouldClose { isOpen = false }
+        }
+    }
+}
+
+/// A drop-down opened by hover closes once the pointer is neither on its button nor on it;
+/// one opened by a click stays (spec E-18b).
+struct HoverIntent {
+    var openedByHover = false
+    var overButton = false
+    var overPopover = false
+
+    static let grace: TimeInterval = 0.35
+
+    var shouldClose: Bool { openedByHover && !overButton && !overPopover }
 }
 
 struct EmojiGrid: View {
