@@ -47,6 +47,7 @@
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 | N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
+| N-23 | (v0.59) Ha egy ikon (jobb oldali jelző vagy bal oldali badge) lenyílója nyitva van, a mellette lévő ikonon **áthaladó** egér nem cseréli le: a másik ikon csak akkor veszi át, ha az egér **0,3 mp-ig** rajta marad. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -635,6 +636,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-9 | A kiválasztott csatolt mappa változásait (más appból hozzáadott / törölt fájl) azonnal mutatja. |
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
+| FT-11b | (v0.59) A mozaik / lista nézetet **mappánként** (tálca, Screenshots, csatolt mappák) külön jegyzi meg; a korábbi közös beállítást minden meglévő fül megkapja, az új mappa mozaikkal indul. |
+| FT-11c | (v0.59) Fájlnevek: a túl hosszú nevet **középen** rövidíti (eleje és vége, pl. az időpont és a kiterjesztés látszik); mozaikban 11 pt, közepesen vastag, 90 pt széles, 2 sor; egérrel fölé a csempe alatt a **teljes név**. |
 | FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
 | FT-12b | (v0.49) Kihúzáskor a Dynotch maga írja a fájlt a célmappába (file promise), a **saját nevén**, előtag nélkül; ha a név foglalt: „név (1).ext”, „név (2).ext”… A tálcából **áthelyezés** (és kikerül a tálcából), csatolt mappából **másolás**. |
 | FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). (v0.48) Sorrend: bal **2/3 Keep in Tray**, jobb **1/3 AirDrop**. |

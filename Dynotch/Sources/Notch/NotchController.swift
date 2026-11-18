@@ -73,6 +73,8 @@ final class NotchController {
     var wasExpanded = false
     /// The pointer is on the notice under the notch: its X can be clicked (spec CN-5b).
     var isOverNotice = false
+    /// Another icon the pointer is on while a drop-down is open, and since when (spec N-23).
+    var pendingHover: (target: String, since: Date)?
     /// The question notice whose app was already brought forward (spec CQ-3).
     var activatedQuestion: Date?
     /// Watches for the click outside that closes the settings (spec C-6).

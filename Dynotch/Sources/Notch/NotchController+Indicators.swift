@@ -43,6 +43,7 @@ extension NotchController {
             setHoveredIndicator(nil)
             return
         }
+        if let badge, !settlesOn("b" + badge) { return }
         setHoveredBadge(badge)
         guard badge == nil, !items.isEmpty else {
             setHoveredIndicator(nil)
@@ -64,6 +65,7 @@ extension NotchController {
             suppressIndicatorHover = false
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
+            guard settlesOn("i\(slot)") else { return }
             // The cover and the stats open their module (spec MU-2, SY-7).
             // With a warning the stats drop it down with an X instead (spec SY-10).
             if let feature = items[slot].opensModule, feature != .stats || stats.indicator.warnings.isEmpty {
@@ -74,6 +76,21 @@ extension NotchController {
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
+    }
+
+    /// While one icon's details are down, passing over another icon on the way does not swap
+    /// them: it takes over only once the pointer rests on it (spec N-23).
+    private func settlesOn(_ target: String) -> Bool {
+        let current = model.hoveredIndicator.map { "i\($0)" } ?? model.hoveredBadge.map { "b" + $0 }
+        guard let current, current != target else {
+            pendingHover = nil
+            return true
+        }
+        let now = Date()
+        if pendingHover?.target != target { pendingHover = (target, now) }
+        guard let since = pendingHover?.since, now.timeIntervalSince(since) >= 0.3 else { return false }
+        pendingHover = nil
+        return true
     }
 
     private func openFromIndicator(_ feature: FeatureID) {

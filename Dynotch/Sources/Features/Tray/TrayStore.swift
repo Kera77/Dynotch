@@ -40,9 +40,16 @@ final class TrayStore: ObservableObject {
         }
     }
 
-    /// The files as a list instead of tiles (spec FT-11).
-    @Published var showsList: Bool {
-        didSet { defaults.set(showsList, forKey: "trayShowsList") }
+    /// List or tiles, kept per tab (spec FT-11, FT-11b); tabs from before keep the old shared choice.
+    @Published private var listByTab: [String: Bool] {
+        didSet { defaults.set(listByTab, forKey: "trayListByTab") }
+    }
+    private let sharedList: Bool
+
+    /// The open tab's files as a list instead of tiles.
+    var showsList: Bool {
+        get { listByTab[selectedFolder?.uuidString ?? "tray"] ?? sharedList }
+        set { listByTab[selectedFolder?.uuidString ?? "tray"] = newValue }
     }
 
     static let retentionChoices = [0, 1, 3, 7, 14, 30]
@@ -57,7 +64,8 @@ final class TrayStore: ObservableObject {
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
         self.folder = folder ?? support.appendingPathComponent("Dynotch/Tray")
         retentionDays = defaults.object(forKey: Self.retentionKey) as? Int ?? 0
-        showsList = defaults.bool(forKey: "trayShowsList")
+        sharedList = defaults.bool(forKey: "trayShowsList")
+        listByTab = defaults.dictionary(forKey: "trayListByTab") as? [String: Bool] ?? [:]
         load()
         dropExpired()
     }
@@ -157,6 +165,7 @@ final class TrayStore: ObservableObject {
         else { return }
         let added = TrayFolder(bookmark: bookmark, name: url.lastPathComponent, colour: folders.count % 6)
         folders.append(added)
+        listByTab[added.id.uuidString] = false
         selectedFolder = added.id
         persist()
     }

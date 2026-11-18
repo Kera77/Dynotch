@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+- Tray: long file names are shortened in the middle, so their end (a shot's time, the extension) shows; tiles are wider with larger text, and the whole name shows under a tile while the mouse is on it.
+- Tray: tiles or list is kept for each tab separately.
+- With an icon's details dropped down, passing over a neighbouring icon no longer swaps them; it takes over after resting on it for 0.3 s.
+
 ### Fixed
 - The screenshot editor test no longer puts its blue test picture on the real clipboard.
 

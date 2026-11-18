@@ -128,7 +128,7 @@ struct TrayFeatureView: View {
                         ForEach(files, id: \.self) { cell($0) }
                     }
                 } else {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 74), spacing: 8)], spacing: 10) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 98), spacing: 8)], spacing: 10) {
                         ForEach(files, id: \.self) { cell($0) }
                     }
                 }
@@ -181,9 +181,12 @@ struct TrayFileCell: View {
     /// What a double click does instead of opening the file.
     var open: (() -> Void)?
     var choose: () -> Void = {}
+    @State private var isHovering = false
 
     var body: some View {
         content
+            // A tile shows its whole name while the mouse is over it (spec FT-11c).
+            .overlay(alignment: .top) { if isHovering && !isRow { fullName } }
             .padding(4)
             .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(isChosen ? 0.16 : 0)))
             .contentShape(Rectangle())
@@ -198,6 +201,23 @@ struct TrayFileCell: View {
                 }
             }
             .help(url.path)
+            .onHover { isHovering = $0 }
+            .zIndex(isHovering ? 1 : 0)
+    }
+
+    private var fullName: some View {
+        Text(url.lastPathComponent)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .lineLimit(5)
+            .frame(width: 140)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.black.opacity(0.9)))
+            .offset(y: 52)
+            .allowsHitTesting(false)
     }
 
     @ViewBuilder private var content: some View {
@@ -206,17 +226,20 @@ struct TrayFileCell: View {
             HStack(spacing: 8) {
                 icon.frame(width: 20, height: 20)
                 Text(url.lastPathComponent).font(.system(size: 12)).foregroundStyle(.white).lineLimit(1)
+                    .truncationMode(.middle)
                 Spacer(minLength: 0)
             }
         } else {
             VStack(spacing: 4) {
                 icon.frame(width: 44, height: 44)
+                // The middle is cut, so the end of the name (a shot's time, the extension) stays (spec FT-11c).
                 Text(url.lastPathComponent)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white)
                     .lineLimit(2)
+                    .truncationMode(.middle)
                     .multilineTextAlignment(.center)
-                    .frame(width: 74)
+                    .frame(width: 90)
             }
         }
     }
