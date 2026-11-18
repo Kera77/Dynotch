@@ -43,7 +43,7 @@ enum NotificationTextLayout {
         let rows = texts.reduce(CGFloat(0)) { sum, text in
             sum + height(of: text, width: stackTextWidth, fontSize: 13) + 12 + 4
         }
-        let height = notchHeight + NotchGeometry.notificationHeaderHeight + rows + 10 + NotchGeometry.notificationReplyHeight
-        return min(height, maxStackHeight)
+        let total = notchHeight + NotchGeometry.notificationHeaderHeight + rows + 10 + NotchGeometry.notificationReplyHeight
+        return min(total, maxStackHeight)
     }
 }
