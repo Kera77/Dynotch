@@ -32,6 +32,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case working
     /// A device whose battery is low (spec BT-3).
     case battery(BatteryDevice)
+    /// Today's or the open tasks (spec R-10).
+    case tasks(TaskCount)
 
     var id: String {
         switch self {
@@ -39,13 +41,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .usage: "claude-usage"
         case .working: "claude-working"
         case .battery(let device): "battery-\(device.id)"
+        case .tasks: "tasks"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery: false
+        case .meeting, .battery, .tasks: false
         }
     }
 
@@ -59,23 +62,25 @@ enum IndicatorItem: Identifiable, Equatable {
         case .meeting: IndicatorLayout.slotWidth
         case .usage, .working: IndicatorLayout.ringSlotWidth
         case .battery: IndicatorLayout.batterySlotWidth
+        case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .tasks: IndicatorLayout.labelHeight
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
 
-    /// Meetings first, the usage last (rightmost).
+    /// Meetings first, then the usage, low batteries, and the tasks at the far right.
     static func items(
-        meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = []
+        meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
+        tasks: TaskCount? = nil
     ) -> [IndicatorItem] {
         meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? []) + (working ? [.working] : [])
-            + lowBatteries.map(IndicatorItem.battery)
+            + lowBatteries.map(IndicatorItem.battery) + (tasks.map { [.tasks($0)] } ?? [])
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
@@ -99,6 +104,8 @@ struct IndicatorLayout: Equatable {
     static let ringSlotWidth: CGFloat = 28
     /// "18%" in red (spec BT-3).
     static let batterySlotWidth: CGFloat = 34
+    /// The checklist icon and a one-digit count, like the menu bar's (spec R-10).
+    static let tasksSlotWidth: CGFloat = 34
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 20

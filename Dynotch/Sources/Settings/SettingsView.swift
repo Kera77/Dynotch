@@ -13,6 +13,7 @@ struct SettingsView: View {
     let beeper: BeeperService
     let devices: DeviceWatcher
     let chat: ClaudeChatService
+    let tasks: TaskIndicator
 
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
@@ -35,7 +36,7 @@ struct SettingsView: View {
     @ViewBuilder private var content: some View {
         switch selectedTab {
         case .general:
-            GeneralSettingsView(settings: settings, devices: devices, chat: chat)
+            GeneralSettingsView(settings: settings, devices: devices, chat: chat, tasks: tasks)
         case .appearance:
             AppearanceSettingsView(settings: settings)
         case .features:
@@ -66,6 +67,7 @@ private struct GeneralSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var devices: DeviceWatcher
     let chat: ClaudeChatService
+    @ObservedObject var tasks: TaskIndicator
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
@@ -107,6 +109,20 @@ private struct GeneralSettingsView: View {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
                 Text("A light tap when the notch opens, when you swipe between features and between days.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
+                Toggle("Tasks counter next to the notch", isOn: $tasks.isEnabled)
+                Picker("Its × hides it for", selection: $tasks.snooze) {
+                    ForEach(TaskSnooze.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                .disabled(!tasks.isEnabled)
+            } header: {
+                Text("Tasks")
+            } footer: {
+                Text("Today's reminders (and overdue ones); when there are none, every open one. Click it to open "
+                    + "Reminders. After the × it comes back sooner when a task is added.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

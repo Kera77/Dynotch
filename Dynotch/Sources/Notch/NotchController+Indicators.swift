@@ -9,7 +9,7 @@ extension NotchController {
     func updateHoveredIndicator() {
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings
+            lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         let shownBadges = fit.shown
@@ -138,7 +138,7 @@ extension NotchController {
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings
+            lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
         let announced = calendar.announcement.flatMap { announcement in

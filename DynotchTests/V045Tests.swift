@@ -83,3 +83,50 @@ struct ResizeTests {
         #expect(ClaudeChatView.sidebarWidth(for: 2000) == 260)
     }
 }
+
+/// The tasks counter beside the notch (spec R-10, R-11).
+struct TaskIndicatorTests {
+    private func task(_ id: String, due: Date?, hasTime: Bool = false) -> ReminderItem {
+        ReminderItem(id: id, title: id, listID: "l", due: due, dueHasTime: hasTime, priority: 0, isCompleted: false, created: nil)
+    }
+
+    @Test func todaysTasksFirstOtherwiseAllOpen() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Budapest") ?? .current
+        let now = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 18, hour: 10)))
+        let yesterday = now.addingTimeInterval(-86_400)
+        let nextWeek = now.addingTimeInterval(7 * 86_400)
+        let today = [task("a", due: now), task("b", due: yesterday), task("c", due: nextWeek), task("d", due: nil)]
+        #expect(TaskIndicatorLogic.count(today, now: now, calendar: calendar) == TaskCount(count: 2, isToday: true))
+        let later = [task("c", due: nextWeek), task("d", due: nil)]
+        #expect(TaskIndicatorLogic.count(later, now: now, calendar: calendar) == TaskCount(count: 2, isToday: false))
+        #expect(TaskIndicatorLogic.count([], now: now, calendar: calendar) == nil)
+    }
+
+    @Test func hiddenCounterComesBackWhenTimeIsUpOrATaskArrives() {
+        let now = Date()
+        let until = now.addingTimeInterval(3600)
+        #expect(!TaskIndicatorLogic.showsAgain(hiddenUntil: until, hiddenIDs: ["a"], openIDs: ["a"], now: now))
+        #expect(!TaskIndicatorLogic.showsAgain(hiddenUntil: until, hiddenIDs: ["a", "b"], openIDs: ["a"], now: now))
+        #expect(TaskIndicatorLogic.showsAgain(hiddenUntil: until, hiddenIDs: ["a"], openIDs: ["a", "new"], now: now))
+        #expect(TaskIndicatorLogic.showsAgain(hiddenUntil: until, hiddenIDs: ["a"], openIDs: ["a"], now: until))
+    }
+
+    @Test func snoozeTimes() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Budapest") ?? .current
+        let now = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 18, hour: 22, minute: 30)))
+        #expect(TaskSnooze.halfHour.until(from: now, calendar: calendar) == now.addingTimeInterval(1800))
+        let tomorrow = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 19)))
+        #expect(TaskSnooze.tomorrow.until(from: now, calendar: calendar) == tomorrow)
+    }
+
+    @Test func tasksSitAtTheFarRightWithoutAnIcon() {
+        let items = IndicatorItem.items(meetings: [], usage: nil, tasks: TaskCount(count: 3, isToday: true))
+        #expect(items.map(\.id) == ["tasks"])
+        let layout = IndicatorLayout(items: items)
+        #expect(layout.iconSlots.isEmpty)
+        #expect(layout.leftWidth == 0)
+        #expect(layout.rightWidth > 0)
+    }
+}

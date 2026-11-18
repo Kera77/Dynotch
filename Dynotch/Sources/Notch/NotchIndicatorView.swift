@@ -22,6 +22,8 @@ struct NotchIndicatorView: View {
     let dismiss: (IndicatorItem) -> Void
     /// Opens the meeting's link (spec K-8g).
     var join: (CalendarEvent) -> Void = { _ in }
+    /// Opens the Reminders module (spec R-10).
+    var openTasks: () -> Void = {}
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
 
@@ -106,6 +108,9 @@ struct NotchIndicatorView: View {
         case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
             BrandGlyphView(glyph: .claude, size: 16)
+        case .tasks:
+            // Only on the right (spec R-10).
+            EmptyView()
         }
     }
 
@@ -140,6 +145,8 @@ struct NotchIndicatorView: View {
                 .monospacedDigit()
                 .foregroundStyle(BatteryFeatureView.red)
                 .frame(width: IndicatorLayout.batterySlotWidth, height: IndicatorLayout.capsuleHeight)
+        case .tasks(let count):
+            TasksCounter(count: count, width: item.slotWidth, open: openTasks)
         }
     }
 
@@ -201,6 +208,8 @@ extension NotchIndicatorView {
             }
             .padding(.horizontal, 12)
             .frame(height: IndicatorLayout.labelHeight - 4)
+        case .tasks(let count):
+            tasksLabel(count, item: item)
         case .working:
             HStack(spacing: 7) {
                 Text("Claude is working on your question…")
@@ -315,7 +324,7 @@ extension NotchIndicatorView {
     }
 
     /// Always at the right edge (spec K-8e).
-    private func dismissButton(for item: IndicatorItem, help: String) -> some View {
+    func dismissButton(for item: IndicatorItem, help: String) -> some View {
         Button {
             dismiss(item)
         } label: {

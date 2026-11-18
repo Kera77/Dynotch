@@ -6,13 +6,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     private lazy var notifications = NotificationService(settings: settings)
     private lazy var clipboard = ClipboardStore()
+    private lazy var reminders = RemindersStore()
     private lazy var services = AppServices(
         settings: settings,
         calendar: CalendarService(settings: settings),
         notifications: notifications,
         calculator: CalculatorStore(),
         notes: NotesStore(),
-        reminders: RemindersStore(),
+        reminders: reminders,
+        tasks: TaskIndicator(store: reminders),
         claudeUsage: ClaudeUsageService(settings: settings) { [notifications] title, body in
             notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
         },

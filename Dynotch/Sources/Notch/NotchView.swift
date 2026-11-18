@@ -8,6 +8,7 @@ struct NotchView: View {
     let calculator: CalculatorStore
     let notes: NotesStore
     let reminders: RemindersStore
+    @ObservedObject var tasks: TaskIndicator
     @ObservedObject var claudeUsage: ClaudeUsageService
     @ObservedObject var hud: HUDService
     @ObservedObject var badges: BadgeService
@@ -62,7 +63,7 @@ struct NotchView: View {
     private var indicatorItems: [IndicatorItem] {
         IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings
+            lowBatteries: battery.warnings, tasks: tasks.shown
         )
     }
 
@@ -159,10 +160,12 @@ struct NotchView: View {
                                 case .usage: claudeUsage.dismissIndicator()
                                 case .working: break
                                 case .battery(let device): battery.dismissWarning(for: device)
+                                case .tasks: tasks.hide()
                                 }
                             }
                         },
                         join: { calendar.join($0) },
+                        openTasks: { openModule(.reminders) },
                         batterySamples: { battery.history.samples[$0] ?? [] }
                     )
                     // Laid out at full size and kept in place while the black area unfolds over it.
@@ -255,7 +258,7 @@ struct NotchView: View {
                 SettingsView(
                     settings: settings, calendar: calendar, notifications: notifications,
                     badges: badges, shortcuts: shortcuts, updates: updates, clipboard: clipboard, tray: tray, beeper: beeper,
-                    devices: devices, chat: chat
+                    devices: devices, chat: chat, tasks: tasks
                 )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

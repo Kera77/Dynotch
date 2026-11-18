@@ -50,7 +50,9 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Words the search finds the tab by (spec C-9).
     var keywords: String {
         switch self {
-        case .general: "launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay"
+        case .general:
+            "launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay "
+                + "tasks reminders counter"
         case .appearance: "design glass liquid pill notch rounded full screen preview hover strip smart opening"
         case .features: "modules order shortcuts menu bar pin"
         case .calendar: "meetings countdown lead time"

@@ -15,6 +15,7 @@ final class NotchController {
     let notifications: NotificationService
     let claudeUsage: ClaudeUsageService
     let reminders: RemindersStore
+    let tasks: TaskIndicator
     let calculator: CalculatorStore
     let tray: TrayStore
     let devices: DeviceWatcher
@@ -75,6 +76,7 @@ final class NotchController {
         notifications = services.notifications
         claudeUsage = services.claudeUsage
         reminders = services.reminders
+        tasks = services.tasks
         calculator = services.calculator
         tray = services.tray
         devices = services.devices
@@ -95,7 +97,8 @@ final class NotchController {
         var rootView = NotchView(
             model: model, settings: settings, calendar: calendar,
             notifications: notifications, calculator: services.calculator, notes: services.notes,
-            reminders: services.reminders, claudeUsage: services.claudeUsage, hud: services.hud, badges: services.badges,
+            reminders: services.reminders, tasks: services.tasks, claudeUsage: services.claudeUsage, hud: services.hud,
+            badges: services.badges,
             calls: services.calls, keyboardLock: services.keyboardLock,
             notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
             updates: services.updates, tablets: services.tablets, clipboard: services.clipboard,

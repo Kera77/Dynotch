@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- Tasks counter right of the notch: today's reminders, or every open one when none is due today.
+  Click opens Reminders; its × hides it for a chosen time (Settings › General › Tasks), or until
+  a new task arrives.
 - Resize modules like on an iPad: rest the pointer in the bottom right corner and drag the arc;
   ↺ restores the normal size. Kept per module and display; for now the AI module. Can be turned
   off in Settings › Appearance.

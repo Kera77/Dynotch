@@ -312,6 +312,8 @@
 | R-7 | A **menüsor-ikon mellett** a kiválasztott lista nyitott feladatainak **száma** látszik (engedély nélkül nincs szám). (v0.40) A szám függőlegesen pontosan az ikon két sora közé igazodik. (v0.42) A számot az ikonnal együtt rajzolja egy képbe, a számjegyek közepe mérten a két sor közé esik. |
 | R-8 | Alsó sor: szűrő (kész feladatok), a nyitott feladatok száma vagy hibaüzenet, lakat (menüsor), *Megnyitás az Emlékeztetők appban*. A kézi sorrend (amit az Emlékeztetők appban húzással állítasz) nem érhető el, ezért alapból határidő, azonos határidőnél cím szerinti a sorrend. |
 | R-9 | (v0.43) A határidő **színes pill**: lejárt piros, ma narancs, holnap kék, később szürke. |
+| R-10 | (v0.45) **Feladatszámláló a becsukott notch jobb oldalán** (a jelzők sorának jobb végén): a menüsor-ikon (`checklist`) és a szám, kisebben. Ha vannak **mai** (ma esedékes vagy lejárt) feladatok, azokat számolja (fehér), különben az **összes nyitottat** (halványabb), minden listából. Kattintásra a Reminders modul nyílik; hoverre alatta „3 tasks due today”, **Open** gomb és X. Csak Reminders-engedéllyel; *Settings › General › Tasks*-ban kikapcsolható (alapból be). |
+| R-11 | (v0.45) Az X a számlálót a beállított időre **elrejti** (15 perc, 30 perc, 1 óra – alapból –, 2 óra, másnapig; *Settings › General › Tasks*). Hamarabb visszajön, ha közben **új feladat** érkezik. Az elrejtés újraindítás után is megmarad. |
 
 ---
 
