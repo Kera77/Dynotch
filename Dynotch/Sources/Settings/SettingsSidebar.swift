@@ -157,7 +157,8 @@ struct PermissionsSettingsView: View {
             Label("Allowed", systemImage: "checkmark.circle.fill").foregroundStyle(.green).labelStyle(.titleAndIcon)
         default:
             Button("Grant…") {
-                if let url = permission.settingsURL { NSWorkspace.shared.open(url) }
+                let readable = notifications.status == .running
+                Task { await permission.grant(notificationsReadable: readable) }
             }
         }
     }

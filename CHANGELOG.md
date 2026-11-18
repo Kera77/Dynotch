@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- A see-through black panel (opacity below 100 %) blurs what is behind it.
+
+### Fixed
+- Settings › Permissions: Grant for Contacts (and Calendar, Reminders) did nothing until Dynotch
+  had asked once; it now shows the system's prompt.
+
 ## [0.45.0] - 2026-11-18
 
 ### Added

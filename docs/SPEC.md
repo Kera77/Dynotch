@@ -95,6 +95,7 @@
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
 | C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
 | C-8 | (v0.43) **Permissions fül:** minden engedély (Teljes lemezelérés, Accessibility, Naptár, Emlékeztetők, Kontaktok, Bluetooth) egy helyen, mire kell; megadva pipa, különben gomb a Rendszerbeállítások megfelelő oldalára. |
+| C-8b | (v0.46) A *Permissions* fül **Grant…** gombja a még soha nem kért engedélyeknél (Contacts, Calendar, Reminders) a rendszer **engedélykérő ablakát** hozza fel – a Rendszerbeállítások listájában az app csak kérés után jelenik meg, ezért a Contacts addig nem volt megadható. Elutasítás után a Rendszerbeállítások megfelelő panelét nyitja. |
 | C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
 | C-10 | (v0.44) A beállítások szakaszai közötti váltás becsúszik, mint az értesítés-fülek. |
 
@@ -497,6 +498,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-11 | (v0.43) Egyforma **üres állapot**: ikon, egy mondat és ha van, a teendő gombja (pl. *Open Beeper*). |
 | D-12 | (v0.43) A **menüsor-buborékok** mindig az eredeti fekete designt kapják, Liquid Glass nélkül, a notch designjától függetlenül. Minden ikongombnak van VoiceOver-címkéje. |
 | D-13 | (v0.45) *Settings › Appearance*: **Open panel opacity** csúszka, 40–100% (alapból 100%). Csak a lenyitott panel hátterére hat, minden designnál; a becsukott notch, a lelógó értesítés és az előnézet fekete marad. |
+| D-13b | (v0.46) 100% alatti átlátszóságnál a fekete panel mögött **elmosás** (blur) van: az asztal és a mögötte lévő ablakok elmosva látszanak át. Az üveg-designokon az üveg eleve elmos. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 

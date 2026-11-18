@@ -82,6 +82,28 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// The Grant button (spec C-8b): a permission never asked for is asked for with the system's
+    /// prompt, since System Settings lists an app only after it asked; otherwise its pane opens.
+    @MainActor
+    func grant(notificationsReadable: Bool) async {
+        if isGranted(notificationsReadable: notificationsReadable) == nil {
+            switch self {
+            case .contacts:
+                _ = try? await CNContactStore().requestAccess(for: .contacts)
+                return
+            case .calendar:
+                _ = try? await EKEventStore().requestFullAccessToEvents()
+                return
+            case .reminders:
+                _ = try? await EKEventStore().requestFullAccessToReminders()
+                return
+            case .fullDiskAccess, .accessibility, .bluetooth:
+                break
+            }
+        }
+        if let settingsURL { NSWorkspace.shared.open(settingsURL) }
+    }
+
     private static func contacts() -> Bool? {
         switch CNContactStore.authorizationStatus(for: .contacts) {
         case .notDetermined: nil

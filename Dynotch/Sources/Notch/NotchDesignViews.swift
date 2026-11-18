@@ -39,6 +39,20 @@ struct GlassFill<S: Shape>: View {
     }
 }
 
+/// Blurs what is behind the window: the desktop and other apps (spec D-13b).
+struct BehindWindowBlur: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .hudWindow
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.appearance = NSAppearance(named: .darkAqua)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
 /// Which part of the design a window draws. The glass sits in a window of its own that never
 /// takes the keyboard: the system draws glass darker, nearly black, in a window that has it
 /// (spec D-6).
@@ -74,8 +88,14 @@ struct DesignBackground<S: Shape>: View {
         let open = isOpen ? openOpacity : 1
         switch layer {
         case .glass:
-            GlassFill(shape: shape)
-                .opacity(glass ? open : 0)
+            ZStack {
+                // A see-through black panel blurs what is behind it (spec D-13b).
+                BehindWindowBlur()
+                    .clipShape(shape)
+                    .opacity(!glass && isOpen && openOpacity < 1 ? 1 : 0)
+                GlassFill(shape: shape)
+                    .opacity(glass ? open : 0)
+            }
         case .content:
             ZStack {
                 shape.fill(solid)
