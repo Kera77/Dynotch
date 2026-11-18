@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.44 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.45 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -676,6 +676,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.45** | Tray saját beállításfüllel, panel-átlátszóság csúszka, idővonal hover-névvel, badge-lista szűrése, iPad-szerű modul-átméretezés (AI), feladatszámláló a notch mellett, a fókusz ablakokat követ, élesebb felfelé nyíl, meeting X kattintás javítva |
 | **v0.44** | Mission Control alatt rejtett notch, átrendezhető gombok a notch mellett, naptár ±14 nap Today gombbal és kis hónapcímkével, meetingnevek az idővonalon, pontos Claude-modellek; ChatGPT- és AI-ikon, AirDrop drop zone javítása |
 | **v0.43.1** | Javítás: Bluetooth-eszköz csatlakozásakor kilépés; Teljes lemezelérés megadva, mégis elutasítva (tesztbuild azonos azonosítóval) |
 | **v0.43** | A 0.42 tesztjén talált hibák javítása; napi idővonal, értesítés-elhalasztás és Fókusz, számológép-változók és mértékegységek, scratchpad, határidő-pillek, akku-előzmény, AI diktálás és kedvencek, ChatGPT-mód; egységes design, Engedélyek fül, gyorsabb notch |

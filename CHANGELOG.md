@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.45.0] - 2026-11-18
+
 ### Added
 - Tasks counter right of the notch: today's reminders, or every open one when none is due today.
   Click opens Reminders; its × hides it for a chosen time (Settings › General › Tasks), or until
