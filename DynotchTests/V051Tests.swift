@@ -31,4 +31,10 @@ struct V051Tests {
         #expect(!NotchController.shrank(from: wide, to: wide))
         #expect(!NotchController.shrank(from: wide, to: CGRect(x: 0, y: 0, width: 800, height: 500)))
     }
+
+    @Test func spaceNameComesFromTheParentheses() {
+        #expect(GoogleChatJump.conversationName(from: "Krisztián Ivancsó (Support - Sysadmins)") == "Support - Sysadmins")
+        #expect(GoogleChatJump.conversationName(from: "Kovács Anna") == "Kovács Anna")
+        #expect(GoogleChatJump.conversationName(from: "Anna ()") == "Anna ()")
+    }
 }

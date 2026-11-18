@@ -36,4 +36,10 @@ struct V054Tests {
         #expect(database.lastDelivered() == 120)
         sqlite3_close(handle)
     }
+
+    @Test func badgeListHeightFollowsItsNotificationsUpToFive() {
+        #expect(IndicatorLayout.badgeDropdownHeight(count: 0) == 34)
+        #expect(IndicatorLayout.badgeDropdownHeight(count: 2) == CGFloat(8 + 2 * 36))
+        #expect(IndicatorLayout.badgeDropdownHeight(count: 12) == CGFloat(8 + 5 * 36))
+    }
 }

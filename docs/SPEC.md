@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.54 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.55 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -248,7 +248,7 @@
 |---|-------------|
 | E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
 | E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
-| E-11d | (v0.51) **Google Chat link nélkül:** ha az értesítés nem tartalmazza a beszélgetés címét, a Dynotch megnyitja a Google Chatet (a Dock-appot, ha telepítve van, különben a chat.google.com-ot a böngészőben), ⌘⇧K-val a beszélgetés nevére ugrik, és **csak akkor küld**, ha az ablak címe vagy a fókuszban lévő mező a beszélgetés nevét mutatja (kis- és nagybetűtől, ékezettől függetlenül). Ha ez nem igazolható, nem gépel sehova: a szöveg a vágólapon marad. |
+| E-11d | (v0.51, v0.55-ben szigorítva) **Google Chat link nélkül:** ha az értesítés nem tartalmazza a beszélgetés címét, a Dynotch megnyitja a Google Chatet (a Dock-appot, ha telepítve van, különben a chat.google.com-ot a böngészőben), ⌘⇧K-val a beszélgetés nevére ugrik (a „Feladó (Tér)” címből a tér nevére), és **csak akkor küld** (beillesztés, Enter), ha a fókuszban a beszélgetés üres üzenetmezője van, és az vagy az ablak címe a beszélgetés nevét mutatja (kis- és nagybetűtől, ékezettől függetlenül). Ha ez nem igazolható, nem gépel sehova: a szöveg a vágólapon marad. |
 | E-15 | (v0.32) **Weboldalak külön forrásként:** ha egy böngésző (pl. Zen) olyan oldal értesítését mutatja, amelyhez nincs telepített webapp, az oldal **saját forrás** lesz (pl. „Google Calendar”), a böngésző ikonjával; az első értesítésével magától megjelenik a Beállítások › Notifications **Websites** szakaszában. Alapból úgy van be- vagy kikapcsolva, mint a böngésző, kivéve a Gmailt és a Google Chatet (alapból be). Megnyitáskor az oldalt nyitja meg abban a böngészőben. |
 | E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
 | E-15c | (v0.48) **Böngésző szétbontva:** a Beállítások › Notifications listájában egy böngésző (pl. Zen) sora alatt, beljebb húzva, a róla érkező oldalak külön kapcsolóval: a saját web appjukkal rendelkezők (Gmail, Google Chat) és a web app nélküliek (Google Calendar) is. Ezek nem szerepelnek még egyszer külön. |
@@ -388,9 +388,11 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
 | B-6 | **Bal kattintás** az ikonra megnyitja az alkalmazást (v0.24). **Jobb kattintás** lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
 | B-6b | (v0.48) **Bal klikk** a jelvényre mindig az alkalmazást nyitja meg (a Beeperét és a Google Chatét is). **Jobb klikk** a notchban a hozzá tartozó értesítés-részt nyitja: Beepernél a Beeper fület, Google Chatnél a Google Chat fület, minden más appnál (pl. Gmail) az **All** fület az app értesítéseivel. |
+| B-6c | (v0.55) (a B-6b-t felváltja) **Kattintás** a jelvényre: az app értesítései nyílnak meg a notchban (Beepernél a Beeper fül, Google Chatnél a Google Chat fül, másnál az All fül az app értesítéseivel). Jobb klikkre nincs külön művelet. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 | B-8 | (v0.31) **Nem takarja a menüsort:** az app méri, hol ér véget a menüsor a notch bal oldalán (az aktív app menüi Kisegítő hozzáféréssel, a menüikonok a rendszer ablaklistájából), appváltáskor és 3 másodpercenként. Ha a jelvények belelógnának, csak annyi látszik, amennyi kifér (a sorrend elejéről), a többit a bal szélen egy **„‹ +N”** jel mutatja. **Hoverre** az összes kinyílik (ilyenkor ideiglenesen takarhatják a menüt), és visszacsukódik, ha az egér elhagyja a notch bal oldalát. Mérések között egy pillanatra előfordulhat átfedés. |
 | B-9 | (v0.45) A hozzáadható appok listájában **nincsenek háttér-segédappok**: kimaradnak az `LSUIElement` / `LSBackgroundOnly` appok (nincs Dock-ikonjuk, így jelvényük sem), és a `/System/Library/CoreServices` mappából csak a Finder jelenik meg (pl. AddressBookUrlForwarder nem). Az *Utilities* mappa appjai maradnak. |
+| B-10 | (v0.55) A jelvényre vitt egér alatt **lenyílik az app értesítéseinek listája** (legfeljebb 5: feladó, idő, a szöveg első sora). Egy sorra kattintva megnyílik az app teljes értesítéslistája a notchban. Ha az appnak nincs értesítése az Értesítési központban: „No notifications in Notification Center” és egy Open gomb. A listára lefelé mozgatva az egér nyitva tartja; felugró értesítés közben nem nyílik. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -680,12 +682,14 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-3 | **Hatókör:** *Current Space* (alapból) vagy *All apps* (minden Space; egy másik Space ablakára váltva a macOS átvált oda). Opciók: minimalizált és rejtett ablakok mutatása, csak az egér alatti kijelző ablakai. |
 | AS-4 | **Kizárt appok** listája. |
 | AS-5 | **Nézetek:** *Thumbnails* (ablak-előnézet, alatta ikon és cím), *App Icons* (nagy ikonok egy sorban, a kijelöltnél a cím), *Titles* (függőleges lista ikonnal és ablakcímmel). Méret: *Small / Medium / Large*. A design a notchét követi (fekete vagy Liquid Glass). |
+| AS-5b | (v0.55) A kijelölés kék kerete rugós animációval csúszik át a következő elemre, a kijelölt elem kicsit nagyobb. |
 | AS-6 | **A notchból nyílik le**, azon a kijelzőn, ahol az egér van. |
 | AS-7 | **Előnézetek külön kapcsolóval** (*Window previews*), alapból kikapcsolva: csak bekapcsolva kér Képernyőfelvétel-engedélyt (a lila megosztás-jelzés miatt). Kikapcsolva, vagy engedély nélkül, a Thumbnails nézet ikont és címet mutat. Az előnézetek megnyitáskor készülnek: előbb az ikonok, pillanatokon belül az előnézetek. Képernyőmegosztás alatt (N-21) nincs előnézet. |
 | AS-8 | **Gyorsbillentyű:** nincs alapértelmezett, a beállításokban rögzíthető (például ⌥⇥). Lenyomva tartott módosító mellett a billentyű és a → előre, a ⇧ és a ← vissza léptet; a módosító elengedése vált; Esc megszakít. |
 | AS-9 | **Elengedés után:** *Focus* (azonnal vált) vagy *Hold* (nyitva marad, kattintás vagy Enter választ). |
 | AS-10 | **Nyitott váltóban:** W ablak bezárása, M minimalizálás, Q app kilépése, H elrejtése; egérrel kijelölés és kattintás; gépeléssel név szerinti szűrés. |
 | AS-11 | **Swipe:** alapból **háromujjas vízszintes** (3 vagy 4 ujj, vagy ki). Az első mozdulatra megnyílik, az ujjak oldalra mozgatásával lépked a kijelölés (állítható érzékenység), de **amíg az ujjak a trackpaden vannak, csak kiemel**; felemeléskor vált. Felfelé húzás vagy Esc: megszakítás. A trackpad nyers érintéseiből (MultitouchSupport). |
+| AS-11b | (v0.55) A *Distance per window* (a trackpad szélességének 5–25%-a) megadja, mennyit kell mozdítani egy ablaknyi lépéshez; swipe közben a kijelölés a lista végein megáll, nem fordul körbe. A mért elmozdulás a naplóba kerül. |
 | AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. A *Switcher* beállításoknál ezt egy megjegyzés jelzi, és gomb visz a Trackpad-beállításokhoz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. A trackpadet csak bekapcsolt váltónál figyeli. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
@@ -736,6 +740,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.55** | Jelvény: kattintásra az értesítései, hoverre lenyíló lista; Google Chat-válasz a tér nevével és szigorúbb ellenőrzéssel; a váltó kijelölése animál, a swipe-távolság egyértelmű és nem fordul körbe |
 | **v0.54** | Alkalmazásváltó a notchban (gyorsbillentyű, háromujjas swipe, három nézet); helyben frissített böngészős értesítések (Google Chat a Zenben); banner nélküli mód Fókusszal; Beeper hálózati ikonok weboldalról; a tálca-előnézet nyitva tartja a notchot |
 | **v0.53** | A felugró értesítés a csukott notch sora alatt; üzenetes mini nézet csak appokként; a Beeper fül bezárt listával kicsi |
 | **v0.52** | Üzenet a mini nézetben (állítható sorszám, forrásonként), teljes szöveg hoverre; képernyőmegosztás alatt semmi a notchból; Google Chat fül csak olvasatlanokkal, Beeper fül olvasatlan kártyákkal; a zsugorodó panel nem csukódik be |

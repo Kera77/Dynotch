@@ -70,4 +70,10 @@ struct SwitcherTests {
         #expect(!settings.showsPreviews)
         #expect(settings.scope == .currentSpace)
     }
+
+    @Test func swipeStepsFollowTheDistancePerWindow() {
+        #expect(SwitcherController.steps(travel: 0.3, step: 0.05) == 6)
+        #expect(SwitcherController.steps(travel: 0.3, step: 0.25) == 1)
+        #expect(SwitcherController.steps(travel: -0.12, step: 0.05) == -2)
+    }
 }

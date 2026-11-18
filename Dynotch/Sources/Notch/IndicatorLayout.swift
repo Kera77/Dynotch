@@ -117,6 +117,13 @@ struct IndicatorLayout: Equatable {
     static let labelHeight: CGFloat = 26
     /// Tasks listed in the counter's drop-down at most; Open shows the rest.
     static let taskRows = 6
+    /// A badge's hover list: at most this many notifications (spec B-10).
+    static let badgeRows = 5
+
+    /// The hover list's height under the row; an empty list shows one line and Open.
+    static func badgeDropdownHeight(count: Int) -> CGFloat {
+        count == 0 ? 34 : 8 + CGFloat(min(count, badgeRows)) * 36
+    }
     static let labelWidth: CGFloat = 440
     /// Between two app badges (spec B-4).
     static let badgeSpacing: CGFloat = 8

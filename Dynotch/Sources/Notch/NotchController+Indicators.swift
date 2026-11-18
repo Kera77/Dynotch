@@ -34,6 +34,10 @@ extension NotchController {
         // A badge being clicked or dragged stays the hovered one.
         if model.hoveredBadge != nil, NSEvent.pressedMouseButtons != 0 { return }
         let badge = layout.badge(at: point, notchRect: geometry.notchRect).map { shownBadges[$0].id }
+        if badge == nil, isOnBadgeList(at: point, layout: layout, shown: shownBadges) {
+            setHoveredIndicator(nil)
+            return
+        }
         setHoveredBadge(badge)
         guard badge == nil, !items.isEmpty else {
             setHoveredIndicator(nil)
@@ -53,6 +57,15 @@ extension NotchController {
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
+    }
+
+    /// Moving down onto the hovered badge's list keeps it open (spec B-10).
+    private func isOnBadgeList(at point: CGPoint, layout: IndicatorLayout, shown: [BadgeItem]) -> Bool {
+        guard let current = shown.first(where: { $0.id == model.hoveredBadge }) else { return false }
+        let height = IndicatorLayout.badgeDropdownHeight(count: notifications.badgeRows(for: current.app).count)
+        let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
+            .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
+        return area.contains(point)
     }
 
     /// The item whose details under the notch are under the pointer: the hovered one (moving down

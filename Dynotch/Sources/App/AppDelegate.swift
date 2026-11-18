@@ -183,10 +183,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard settings.isOn, settings.swipeFingers > 0 else { return }
             TrackpadSwipe.start { event in
                 MainActor.assumeIsolated {
-                    let step = switcher.settings.swipeStep
                     switch event {
                     case .began: switcher.swipeBegan()
-                    case .moved(let travel): switcher.swipeMoved(steps: Int((travel / step).rounded(.towardZero)))
+                    case .moved(let travel): switcher.swipeMoved(travel: travel)
                     case .ended(let cancelled): switcher.swipeEnded(cancelled: cancelled)
                     }
                 }

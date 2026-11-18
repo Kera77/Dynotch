@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.55.0] - 2026-11-18
+
+### Added
+- Hovering an app badge drops down that app's notifications (up to five); a line opens them all
+  in the notch.
+
+### Changed
+- A click on an app badge opens its notifications in the notch (Beeper's or Google Chat's tab,
+  otherwise All with that app's); no right-click action.
+- Window switcher: the highlight slides to the next window; the swipe stops at either end, and
+  "Distance per window" says how far the fingers move for one window.
+
+### Fixed
+- Replying to Google Chat in a space typed the sender and space into the search and sent
+  nothing: it now looks up the space, and sends only once the conversation's empty message
+  field has the keyboard.
+
 ## [0.54.0] - 2026-11-18
 
 ### Added

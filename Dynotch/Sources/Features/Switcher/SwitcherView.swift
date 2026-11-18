@@ -45,6 +45,8 @@ struct SwitcherView: View {
     let width: CGFloat
 
     private var scale: CGFloat { settings.size.scale }
+    /// The highlight slides from one entry to the next (spec AS-5b).
+    @Namespace private var highlight
 
     var body: some View {
         let columns = SwitcherLayout.columns(
@@ -69,6 +71,7 @@ struct SwitcherView: View {
                         }
                     }
                     .padding(SwitcherLayout.padding)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: switcher.selection)
                 }
                 .scrollIndicators(.never)
                 .onChange(of: switcher.selection) { _, _ in
@@ -87,8 +90,14 @@ struct SwitcherView: View {
             case .titles: titleEntry(item)
             }
         }
-        .background(shape.fill(Color.white.opacity(isSelected ? 0.18 : 0)))
-        .overlay(shape.strokeBorder(isSelected ? Theme.blue : .clear, lineWidth: 2))
+        .background {
+            if isSelected {
+                shape.fill(Color.white.opacity(0.18))
+                    .overlay(shape.strokeBorder(Theme.blue, lineWidth: 2))
+                    .matchedGeometryEffect(id: "selection", in: highlight)
+            }
+        }
+        .scaleEffect(isSelected ? 1.05 : 1)
     }
 
     private func appIcon(_ item: SwitcherItem) -> NSImage {

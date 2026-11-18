@@ -61,11 +61,11 @@ final class SwitcherSettings: ObservableObject {
     }
     /// 3 or 4 fingers; 0: no swipe (spec AS-11).
     @Published var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
-    /// Trackpad width (0…1) a finger moves to step one window.
+    /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
     @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
     @Published private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
 
-    static let swipeStepRange: ClosedRange<Double> = 0.04...0.2
+    static let swipeStepRange: ClosedRange<Double> = 0.05...0.25
 
     private enum Key {
         static let isOn = "switcherOn", style = "switcherStyle", size = "switcherSize", scope = "switcherScope"

@@ -122,7 +122,7 @@ struct NotchView: View {
                     ZStack(alignment: .top) {
                         peekView(notification, width: naturalCollapsedSize.width)
                         if !indicatorLayout.isEmpty {
-                            indicatorRow(hoveredIndex: nil, notice: nil)
+                            indicatorRow(hoveredIndex: nil, notice: nil, showsBadgeList: false)
                                 .frame(width: naturalCollapsedSize.width, height: geometry.notchSize.height, alignment: .top)
                         }
                     }
@@ -301,7 +301,8 @@ extension NotchView {
             return CGSize(width: max(peek.width, row), height: peek.height)
         }
         if devices.current != nil { return geometry.peekSize }
-        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
+        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? hoveredBadgeHeight
+            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)

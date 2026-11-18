@@ -9,7 +9,9 @@ import ApplicationServices
 enum GoogleChatJump {
     private static let chatURL = URL(string: "https://chat.google.com")
 
-    static func send(_ text: String, to conversation: String, sourceApp: String, chatApp: String) async throws -> String {
+    static func send(_ text: String, to title: String, sourceApp: String, chatApp: String) async throws -> String {
+        // "Sender (Space)": the space is the conversation; otherwise the person (spec E-11d).
+        let conversation = conversationName(from: title)
         let webApp = chatApp.lowercased().hasPrefix("com.apple.safari.webapp")
             ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: chatApp) : nil
         guard let appURL = webApp ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: sourceApp),
@@ -37,10 +39,15 @@ enum GoogleChatJump {
         TypedReply.press(key: 0x24, flags: [])
         try? await Task.sleep(for: .milliseconds(1800))
 
-        // Never type into a conversation that is not the one answered.
+        // Never type into a conversation that is not the one answered: the conversation's empty
+        // message field must have the keyboard, and it or the window must name the conversation.
         let check = shownConversation(in: bundleID)
-        guard isFront(bundleID), Self.matches(conversation, in: check.texts) else {
-            DiagnosticsLog.append("reply", "google chat jump not confirmed (title=\(check.hasTitle) field=\(check.hasField))")
+        let named = Self.matches(conversation, in: check.texts)
+        let titleNamed = check.texts.first.map { Self.matches(conversation, in: [$0]) } ?? false
+        DiagnosticsLog.append(
+            "reply", "google chat check: role=\(check.role) empty=\(check.isEmpty) titleNamed=\(titleNamed) named=\(named)"
+        )
+        guard isFront(bundleID), check.isMessageField, named else {
             TypedReply.press(key: 0x35, flags: []) // Escape closes the search if it is still open.
             if let saved { TypedReply.copyToClipboard(saved) }
             return try fail(text, "Couldn't confirm the conversation in Google Chat. Text copied: paste it with ⌘V.")
@@ -65,9 +72,22 @@ enum GoogleChatJump {
     }
 
     private struct Shown {
+        /// The window title and the focused field's labels (never its value: that is our typing).
         var texts: [String] = []
-        var hasTitle = false
-        var hasField = false
+        var role = "-"
+        var isEmpty = false
+
+        /// An empty multi-line field: the message box, not the search (spec E-11d).
+        var isMessageField: Bool { role == (kAXTextAreaRole as String) && isEmpty }
+    }
+
+    /// "Krisztián Ivancsó (Support - Sysadmins)" → "Support - Sysadmins"; a person's name stays.
+    nonisolated static func conversationName(from title: String) -> String {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasSuffix(")"), let open = trimmed.lastIndex(of: "(") else { return trimmed }
+        let inner = trimmed[trimmed.index(after: open)..<trimmed.index(before: trimmed.endIndex)]
+        let space = inner.trimmingCharacters(in: .whitespaces)
+        return space.isEmpty ? trimmed : space
     }
 
     /// The front window's title and the focused field's label and placeholder.
@@ -76,15 +96,16 @@ enum GoogleChatJump {
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID
         else { return Shown() }
         let app = AXUIElementCreateApplication(pid)
-        var texts: [String] = []
+        var shown = Shown()
         let window = element(app, kAXFocusedWindowAttribute)
-        let title = window.flatMap { string($0, kAXTitleAttribute) }
-        if let title { texts.append(title) }
+        if let title = window.flatMap({ string($0, kAXTitleAttribute) }) { shown.texts.append(title) }
         let field = element(app, kAXFocusedUIElementAttribute)
-        let labels = [kAXDescriptionAttribute, kAXPlaceholderValueAttribute, kAXTitleAttribute, kAXHelpAttribute]
+        shown.texts += [kAXDescriptionAttribute, kAXPlaceholderValueAttribute, kAXHelpAttribute]
             .compactMap { attribute in field.flatMap { string($0, attribute) } }
-        texts += labels
-        return Shown(texts: texts, hasTitle: title != nil, hasField: !labels.isEmpty)
+        shown.role = field.flatMap { string($0, kAXRoleAttribute) } ?? "-"
+        let value = field.flatMap { string($0, kAXValueAttribute) } ?? ""
+        shown.isEmpty = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return shown
     }
 
     private static func element(_ parent: AXUIElement, _ attribute: String) -> AXUIElement? {

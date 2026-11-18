@@ -44,7 +44,30 @@ struct NotificationFocus: Equatable, Sendable {
     }
 }
 
+/// One line of a badge's hover list (spec B-10).
+struct BadgeNotificationRow: Identifiable, Equatable, Sendable {
+    let id: Int64
+    let sender: String
+    let detail: String
+    let date: Date
+}
+
 extension NotificationService {
+    /// The app's notifications still in Notification Center, newest first, for its badge's
+    /// hover list (spec B-10).
+    func badgeRows(for app: BadgeApp) -> [BadgeNotificationRow] {
+        recent.filter {
+            NotificationFocus.matches(
+                bundleID: app.bundleID, name: app.name,
+                identifier: $0.appIdentifier, notificationAppName: catalog.app(for: $0.appIdentifier).name
+            )
+        }
+        .map { notification in
+            let content = content(for: notification)
+            return BadgeNotificationRow(id: notification.id, sender: content.sender, detail: content.detail, date: notification.date)
+        }
+    }
+
     /// Limits the Notifications feature to the unopened notifications of one app: its newest
     /// ones, as many as its badge counts.
     func setFocus(bundleID: String, name: String, count: Int?) {

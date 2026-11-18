@@ -68,9 +68,15 @@ struct SwitcherSettingsView: View {
                     Text("4 fingers").tag(4)
                 }
                 .pickerStyle(.segmented)
-                LabeledContent("Sensitivity") {
-                    Slider(value: $settings.swipeStep, in: SwitcherSettings.swipeStepRange)
-                        .frame(width: 160)
+                // How far the fingers move for one window: shorter is faster (spec AS-11b).
+                LabeledContent("Distance per window") {
+                    HStack(spacing: 8) {
+                        Slider(value: $settings.swipeStep, in: SwitcherSettings.swipeStepRange, step: 0.01)
+                            .frame(width: 160)
+                        Text("\(Int((settings.swipeStep * 100).rounded())) % of the trackpad")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .disabled(settings.swipeFingers == 0)
                 Button("Open Trackpad Settings…") {

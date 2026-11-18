@@ -27,6 +27,7 @@ final class SwitcherController: ObservableObject {
     private var heldModifiers: UInt32 = 0
     private var isHolding = false
     private var swipeStart = 0
+    private var lastTravel = 0.0
     private var observer: AnyCancellable?
     private var registered: KeyShortcut?
 
@@ -117,14 +118,26 @@ final class SwitcherController: ObservableObject {
         swipeStart = selection
     }
 
-    /// `steps` counted from where the swipe began; only the choice moves until the fingers lift.
-    func swipeMoved(steps: Int) {
+    /// `travel` in trackpad widths since the swipe began; one window per `settings.swipeStep`.
+    /// Only the choice moves until the fingers lift, and it stops at either end (spec AS-11b).
+    func swipeMoved(travel: Double) {
         guard isShown, !items.isEmpty else { return }
-        selection = ((swipeStart + steps) % items.count + items.count) % items.count
+        lastTravel = travel
+        let steps = Self.steps(travel: travel, step: settings.swipeStep)
+        selection = min(max(swipeStart + steps, 0), items.count - 1)
+    }
+
+    nonisolated static func steps(travel: Double, step: Double) -> Int {
+        let value = travel / max(step, 0.01)
+        // 0.3 / 0.05 is 5.999…: a hair of tolerance keeps it 6.
+        return Int((value + (value >= 0 ? 1e-9 : -1e-9)).rounded(.towardZero))
     }
 
     func swipeEnded(cancelled: Bool) {
         guard isShown else { return }
+        DiagnosticsLog.append(
+            "spaces", "switcher swipe: travel=\(String(format: "%.2f", lastTravel)) step=\(String(format: "%.2f", settings.swipeStep))"
+        )
         finish(switching: !cancelled)
     }
 

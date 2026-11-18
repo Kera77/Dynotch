@@ -29,6 +29,10 @@ struct NotchIndicatorView: View {
     /// The tasks under the counter's drop-down, and checking one off (spec R-12).
     var taskItems: () -> [ReminderItem] = { [] }
     var completeTask: (ReminderItem) -> Void = { _ in }
+    /// A hovered badge's notifications, and opening the app (spec B-10).
+    var badgeRows: (BadgeItem) -> [BadgeNotificationRow] = { _ in [] }
+    var openBadgeApp: (BadgeItem) -> Void = { _ in }
+    var showsBadgeList = true // off over a notification pop-up (spec E-24)
 
     static let lineWidth: CGFloat = 2
 
@@ -50,6 +54,10 @@ struct NotchIndicatorView: View {
 
                 if let hoveredIndex, items.indices.contains(hoveredIndex) {
                     label(for: items[hoveredIndex], now: context.date)
+                } else if showsBadgeList, let badge = badges.first(where: { $0.id == hoveredBadge }) {
+                    BadgeDropdown(
+                        rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) }
+                    )
                 } else if let notice {
                     noticeLabel(notice)
                 }
