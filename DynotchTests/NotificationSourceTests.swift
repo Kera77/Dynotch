@@ -38,6 +38,17 @@ struct NotificationSourceTests {
         #expect(service.attribute(beeper).appIdentifier == "com.automattic.beeper.desktop")
     }
 
+    /// Spec E-15b: a browser's notifications split into its sites, listed under it.
+    @Test func browserSplitsIntoItsSites() {
+        let service = makeService()
+        _ = service.attribute(zen(site: "calendar.google.com"))
+        _ = service.attribute(zen(site: "chat.google.com"))
+        let zenApp = service.catalog.app(for: "app.zen-browser.zen")
+        #expect(Set(service.sources(from: zenApp).map(\.identifier)) == ["web:calendar.google.com", "web:chat.google.com"])
+        // Another app has no sites.
+        #expect(service.sources(from: service.catalog.app(for: "com.automattic.beeper.desktop")).isEmpty)
+    }
+
     @Test func sitesStartLikeTheirBrowserExceptGmailAndChat() {
         let service = makeService()
         _ = service.attribute(zen(site: "calendar.google.com"))

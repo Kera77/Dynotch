@@ -20,10 +20,17 @@ struct NotificationRule: Codable, Equatable, Sendable {
 final class NotificationPreferences: ObservableObject {
     private static let sitesKey = "notificationSites"
     private static let rulesKey = "notificationRules"
+    private static let webAppSitesKey = "notificationWebAppSites"
 
     /// Site (host) → the browser that showed its notifications.
     @Published private(set) var sites: [String: String] {
         didSet { defaults.set(sites, forKey: Self.sitesKey) }
+    }
+
+    /// Sites a browser showed that have a web app of their own (Gmail, Google Chat): listed
+    /// under the browser in the settings too (spec E-15b).
+    @Published private(set) var webAppSites: [String: String] {
+        didSet { defaults.set(webAppSites, forKey: Self.webAppSitesKey) }
     }
 
     @Published private(set) var rules: [String: NotificationRule] {
@@ -44,12 +51,17 @@ final class NotificationPreferences: ObservableObject {
         self.defaults = defaults
         respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]
+        webAppSites = defaults.dictionary(forKey: Self.webAppSitesKey) as? [String: String] ?? [:]
         rules = defaults.data(forKey: Self.rulesKey).flatMap { try? JSONDecoder().decode([String: NotificationRule].self, from: $0) } ?? [:]
     }
 
     /// A site seen for the first time joins the list (spec E-15).
     func register(site: String, browser: String) {
         if sites[site] != browser { sites[site] = browser }
+    }
+
+    func register(webAppSite site: String, browser: String) {
+        if webAppSites[site] != browser { webAppSites[site] = browser }
     }
 
     func rule(for identifier: String) -> NotificationRule {
@@ -131,9 +143,11 @@ extension NotificationService {
     /// otherwise the site itself (spec E-2b, E-15).
     func attribute(_ notification: AppNotification) -> AppNotification {
         let resolved = resolve(notification)
-        guard resolved.appIdentifier == notification.appIdentifier,
-              WebNotificationSource.isShared(notification.appIdentifier), let site = notification.site
-        else { return resolved }
+        guard WebNotificationSource.isShared(notification.appIdentifier), let site = notification.site else { return resolved }
+        guard resolved.appIdentifier == notification.appIdentifier else {
+            preferences.register(webAppSite: site, browser: notification.appIdentifier)
+            return resolved
+        }
         preferences.register(site: site, browser: notification.appIdentifier)
         return notification.with(appIdentifier: WebNotificationSource.siteIdentifier(site))
     }
@@ -142,15 +156,32 @@ extension NotificationService {
     /// Notification Center) are listed right away, not only with their next one (spec E-15).
     func registerSites(_ found: [(browser: String, site: String)]) {
         let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
-        for (browser, site) in found
-        where WebNotificationSource.resolvedIdentifier(browser, site: site, apps: pairs) == browser {
-            preferences.register(site: site, browser: browser)
+        for (browser, site) in found {
+            if WebNotificationSource.resolvedIdentifier(browser, site: site, apps: pairs) == browser {
+                preferences.register(site: site, browser: browser)
+            } else if browser.lowercased() != "com.apple.safari.webapp" {
+                preferences.register(webAppSite: site, browser: browser)
+            }
         }
     }
 
     /// Whether the macOS banner of this source's notifications is closed.
     func hidesBanner(for identifier: String) -> Bool {
         preferences.rule(for: catalogKey(identifier)).hidesBanner ?? settings.hideNativeBanners
+    }
+
+    /// The sources a browser's notifications are split into (spec E-15b): each site's web app,
+    /// or the site itself.
+    func sources(from browser: NotificationApp) -> [NotificationApp] {
+        let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
+        let found = Set(preferences.sites.filter { $0.value == browser.identifier }.keys)
+            .union(preferences.webAppSites.filter { $0.value == browser.identifier }.keys)
+        let identifiers = found.map { site in
+            let resolved = WebNotificationSource.resolvedIdentifier(browser.identifier, site: site, apps: pairs)
+            return resolved == browser.identifier ? WebNotificationSource.siteIdentifier(site) : resolved
+        }
+        return Set(identifiers).map(catalog.app(for:))
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     /// The websites with notifications, as sources for the settings.

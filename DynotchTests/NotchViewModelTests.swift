@@ -83,6 +83,17 @@ struct NotchViewModelTests {
         #expect(model.openSize == model.geometry.expandedSize)
     }
 
+    /// Spec C-11: settings over the wide Beeper tab still get their own height, so the top row
+    /// stays in sight.
+    @Test func settingsOverWideChatTabKeepTheirSize() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.notifications)
+        model.notificationsTab = .beeper
+        model.setShowingSettings(true)
+        #expect(model.openSize == model.geometry.settingsSize)
+    }
+
     /// Spec C-2: settings in the notch use their own size and end when a feature is picked
     /// or the panel closes.
     @Test func settingsInNotch() {

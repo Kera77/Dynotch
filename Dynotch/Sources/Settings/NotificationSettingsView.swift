@@ -84,17 +84,22 @@ struct NotificationSettingsView: View {
                     Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(service.apps.filter(matchesSearch)) { app in
+                    // A browser's sites right under it, each switchable (spec E-15b).
+                    ForEach(service.apps.filter { !splitIDs.contains($0.identifier) && matchesSearch($0) }) { app in
                         NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
+                        ForEach(service.sources(from: app)) { site in
+                            NotificationSourceRow(app: site, service: service, isOn: binding(for: site))
+                                .padding(.leading, 26)
+                        }
                     }
                 }
             } header: {
                 Text("Apps")
             }
 
-            if !service.siteApps.isEmpty {
+            if service.siteApps.contains(where: { !splitIDs.contains($0.identifier) }) {
                 Section {
-                    ForEach(service.siteApps.filter(matchesSearch)) { app in
+                    ForEach(service.siteApps.filter { !splitIDs.contains($0.identifier) && matchesSearch($0) }) { app in
                         NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
                     }
                 } header: {
@@ -172,6 +177,11 @@ struct NotificationSettingsView: View {
                 beeperStatus = "\(error)"
             }
         }
+    }
+
+    /// Sources listed under their browser, not again on their own.
+    private var splitIDs: Set<String> {
+        Set(service.apps.filter { WebNotificationSource.isShared($0.identifier) }.flatMap { service.sources(from: $0) }.map(\.identifier))
     }
 
     private func matchesSearch(_ app: NotificationApp) -> Bool {

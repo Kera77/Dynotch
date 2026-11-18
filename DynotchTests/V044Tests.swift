@@ -1,3 +1,4 @@
+import CoreGraphics
 @testable import Dynotch
 import Foundation
 import Testing
@@ -39,5 +40,17 @@ struct V044Tests {
         #expect(MissionControlWatcher.isShowing(after: "AXExposeShowAllWindows"))
         #expect(MissionControlWatcher.isShowing(after: "AXExposeShowDesktop"))
         #expect(!MissionControlWatcher.isShowing(after: "AXExposeExit"))
+    }
+
+    @Test func missionControlIsADockWindowOverAWholeDisplay() {
+        let screen = CGRect(x: 0, y: 0, width: 2560, height: 1440)
+        func dock(_ width: Int, _ height: Int, layer: Int = 20) -> [String: Any] {
+            [kCGWindowOwnerName as String: "Dock", kCGWindowLayer as String: layer,
+             kCGWindowBounds as String: ["X": 0, "Y": 0, "Width": width, "Height": height]]
+        }
+        #expect(MissionControlWatcher.isMissionControl([dock(2560, 1440)], screens: [screen]))
+        // The Dock bar itself, or another layer, is not Mission Control.
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 80)], screens: [screen]))
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 1440, layer: 0)], screens: [screen]))
     }
 }

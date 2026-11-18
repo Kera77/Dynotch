@@ -155,8 +155,10 @@ final class NotchViewModel: ObservableObject {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
         if isPreview { return geometry.previewSize }
-        if currentFeature == .notifications, notificationsTab.isWide { return geometry.chatPanelSize }
+        // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
+        // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
+        if currentFeature == .notifications, notificationsTab.isWide { return geometry.chatPanelSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }

@@ -140,14 +140,8 @@ struct NotchView: View {
                         hiddenBadges: badgeFit.hidden,
                         hoveredBadge: model.hoveredBadge,
                         notice: shownNotice,
-                        openBadge: { badge in
-                            // Beeper's and Google Chat's badges open their tab in the notch (spec BP-12, GC-5).
-                            if let tab = BadgeApp.chatTab(for: badge.app), settings.isEnabled(.notifications) {
-                                openChatTab(tab)
-                            } else {
-                                badges.open(badge.app)
-                            }
-                        },
+                        // Left click: the app itself; right click: its notifications in the notch (spec B-6b).
+                        openBadge: { badges.open($0.app) },
                         moveBadge: { id, index in
                             withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
                         },

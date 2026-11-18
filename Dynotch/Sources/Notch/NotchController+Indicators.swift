@@ -182,10 +182,15 @@ extension NotchController {
 // MARK: - App badges (spec B-6)
 
 extension NotchController {
-    /// A click on a badge opens the panel with that app's unopened notifications.
+    /// A right click on a badge opens its notifications in the notch (spec B-6b): Beeper's and
+    /// Google Chat's their own tab, any other app's unopened notifications under All.
     func showNotifications(for badge: BadgeItem) {
         guard settings.isEnabled(.notifications) else {
             badges.open(badge.app)
+            return
+        }
+        if let tab = BadgeApp.chatTab(for: badge.app) {
+            openChatTab(tab)
             return
         }
         notifications.clearPeek()
@@ -193,6 +198,7 @@ extension NotchController {
         // The filter is in place before the panel and the list appear.
         notifications.setFocus(bundleID: badge.app.bundleID, name: badge.app.name, count: BadgeTracker.count(badge.label))
         expand()
+        model.notificationsTab = .all
         model.select(.notifications)
     }
 }

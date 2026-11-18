@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.48.0] - 2026-11-18
+
+### Changed
+- App badges: a left click opens the app (Beeper and Google Chat too); a right click opens its
+  notifications in the notch: Beeper's or Google Chat's tab, or All with that app's ones.
+- Drop zone: Keep in Tray on the left, AirDrop on the right.
+- Settings › Notifications: a browser's sites (Gmail, Google Chat, Google Calendar…) are listed
+  under it, each with its own switch.
+
+### Fixed
+- The notch stayed over Mission Control: it is now found from the window list too.
+- Settings opened over the Beeper or Google Chat tab pushed the top row out of sight.
+
 ## [0.47.0] - 2026-11-18
 
 ### Changed

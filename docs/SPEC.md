@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.47 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.48 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -43,7 +43,7 @@
 | N-16 | (v0.43) **Gyorsabb notch:** csak a látható modul és a két szomszédja (a swipe-hoz) épül fel; a nagy szolgáltatásokat csak a saját nézeteik figyelik; az időzítők 20% tűréssel futnak (kevesebb ébresztés). |
 | N-17 | (v0.43) Modulváltáskor és egy értesítés bezárása után a tartalom **nem marad homályos**: átúszik és kicsit elmozdul, nem méreteződik. |
 | N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
-| N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. |
+| N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -99,6 +99,7 @@
 | C-8c | (v0.47) A teszt- és Debug-buildek **saját azonosítót** kapnak (`com.peterkereki.Dynotch.debug`): a macOS az engedélyeket (Full Disk Access, Contacts…) azonosító és aláírás szerint tárolja, és a gyakori tesztfuttatás ugyanazzal az azonosítóval elvitte a telepített app engedélyeit (értesítések „elfelejtve”, Contacts minden hívásnál). Egyszeri újbóli megadás után megmaradnak. |
 | C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
 | C-10 | (v0.44) A beállítások szakaszai közötti váltás becsúszik, mint az értesítés-fülek. |
+| C-11 | (v0.48) A beállítások a Beeper és a Google Chat (széles) fül fölött is a saját méretükkel nyílnak meg, így a felső sor nem csúszik ki a képből. |
 
 ---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
@@ -247,6 +248,7 @@
 | E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
 | E-15 | (v0.32) **Weboldalak külön forrásként:** ha egy böngésző (pl. Zen) olyan oldal értesítését mutatja, amelyhez nincs telepített webapp, az oldal **saját forrás** lesz (pl. „Google Calendar”), a böngésző ikonjával; az első értesítésével magától megjelenik a Beállítások › Notifications **Websites** szakaszában. Alapból úgy van be- vagy kikapcsolva, mint a böngésző, kivéve a Gmailt és a Google Chatet (alapból be). Megnyitáskor az oldalt nyitja meg abban a böngészőben. |
 | E-15b | (v0.33) A weboldal-források nem csak a következő értesítésükkel jelennek meg: a Dynotch a Notification Centerben még meglévő böngészős értesítésekből (csak az oldal címét nézve, a szöveget nem) is felveszi az oldalakat, amikor megnyitja az adatbázist, és amikor a Beállítások › Notifications fül megnyílik. A telepített webapphoz tartozó oldalak (E-2b) továbbra is a webapphoz kerülnek. |
+| E-15c | (v0.48) **Böngésző szétbontva:** a Beállítások › Notifications listájában egy böngésző (pl. Zen) sora alatt, beljebb húzva, a róla érkező oldalak külön kapcsolóval: a saját web appjukkal rendelkezők (Gmail, Google Chat) és a web app nélküliek (Google Calendar) is. Ezek nem szerepelnek még egyszer külön. |
 | E-16 | (v0.32) **Saját szabályok forrásonként** (appok, rendszerértesítések, weboldalak): a sor melletti nyíllal lenyíló beállítások – **név** (a notchban és a listákban ez látszik), **macOS-banner** (alapértelmezés / elrejtés / megjelenítés), **válaszmező** (automatikus / mindig / soha). Egyedi szabállyal rendelkező forrásnál egy kis jel látszik. A keresés az oldal címére is szűr. |
 | E-16b | (v0.38) A **válaszmező alapból ki van kapcsolva** minden forrásnál (csevegő appoknál is); csak az a forrás kapja meg, amelynek szabályában „Show” áll. A választó első lehetősége „Default (off)”. |
 | E-17 | (v0.40) **Válasz egy sorra:** ha a forrásnál be van kapcsolva a válaszmező, az értesítéskártya egy-egy üzenetsorára vitt egérnél a sor végén válasz nyíl jelenik meg; rákattintva a mező fölött az idézett sor látszik („Answer this line…”), X-szel visszavonható. Elküldve a válasz kék buborékként a sor alá kerül, a **notch nyitva marad**, és jöhet a következő sor. Beeperen a válasz az adott üzenetre megy (a csevegés utolsó 30 üzenete közül szöveg alapján keresi meg; ha nincs meg, sima üzenet); más appoknál sima üzenetként. Az **egész beszélgetésre** adott válasz Enter után továbbra is bezárja a kártyát. |
@@ -371,6 +373,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
 | B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
 | B-6 | **Bal kattintás** az ikonra megnyitja az alkalmazást (v0.24). **Jobb kattintás** lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
+| B-6b | (v0.48) **Bal klikk** a jelvényre mindig az alkalmazást nyitja meg (a Beeperét és a Google Chatét is). **Jobb klikk** a notchban a hozzá tartozó értesítés-részt nyitja: Beepernél a Beeper fület, Google Chatnél a Google Chat fület, minden más appnál (pl. Gmail) az **All** fület az app értesítéseivel. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 | B-8 | (v0.31) **Nem takarja a menüsort:** az app méri, hol ér véget a menüsor a notch bal oldalán (az aktív app menüi Kisegítő hozzáféréssel, a menüikonok a rendszer ablaklistájából), appváltáskor és 3 másodpercenként. Ha a jelvények belelógnának, csak annyi látszik, amennyi kifér (a sorrend elejéről), a többit a bal szélen egy **„‹ +N”** jel mutatja. **Hoverre** az összes kinyílik (ilyenkor ideiglenesen takarhatják a menüt), és visszacsukódik, ha az egér elhagyja a notch bal oldalát. Mérések között egy pillanatra előfordulhat átfedés. |
 | B-9 | (v0.45) A hozzáadható appok listájában **nincsenek háttér-segédappok**: kimaradnak az `LSUIElement` / `LSBackgroundOnly` appok (nincs Dock-ikonjuk, így jelvényük sem), és a `/System/Library/CoreServices` mappából csak a Finder jelenik meg (pl. AddressBookUrlForwarder nem). Az *Utilities* mappa appjai maradnak. |
@@ -592,7 +595,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
 | FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
-| FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). |
+| FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). (v0.48) Sorrend: bal **2/3 Keep in Tray**, jobb **1/3 AirDrop**. |
 | FT-14 | (v0.45) A tálca beállításai **saját *Tray* fülre** kerültek (eddig a Clipboard fülön voltak): lejárat (FT-6) és **Show in Finder** gomb, ami megnyitja a Dynotch tálcamappáját. |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
@@ -683,6 +686,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.48** | Mission Control az ablaklistából, jelvény: bal klikk app / jobb klikk értesítések, AirDrop jobbra, beállítások a széles fülek fölött, böngésző oldalai a böngésző alatt |
 | **v0.47** | Engedélyek megmaradnak (saját azonosító a tesztbuildeknek), Google Chat-jelvény a Google Chat fület nyitja, nyugodtabb meeting-sor (kék idő, szürke Join) |
 | **v0.46** | Minden modul átméretezhető (az újak is), arányos oldalsávok; blur az átlátszó panel mögött; Grant engedélykérő ablakkal (Contacts); a fókusz nem zárja be a lenyíló menüket |
 | **v0.45** | Tray saját beállításfüllel, panel-átlátszóság csúszka, idővonal hover-névvel, badge-lista szűrése, iPad-szerű modul-átméretezés (AI), feladatszámláló a notch mellett, a fókusz ablakokat követ, élesebb felfelé nyíl, meeting X kattintás javítva |

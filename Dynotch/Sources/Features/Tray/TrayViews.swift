@@ -194,8 +194,8 @@ struct TrayFileCell: View {
     }
 }
 
-/// Dragging files over the notch (spec FT-1, FT-3): AirDrop on the left third, the tray on the
-/// other two thirds, each a rounded section with its icon in the middle.
+/// Dragging files over the notch (spec FT-1, FT-3): the tray on the left two thirds, AirDrop on
+/// the right third, each a rounded section with its icon in the middle.
 struct TrayDropZoneView: View {
     let notchHeight: CGFloat
     let keep: ([URL]) -> Void
@@ -215,14 +215,6 @@ struct TrayDropZoneView: View {
                 let spacing: CGFloat = 12
                 let third = (geometry.size.width - spacing) / 3
                 HStack(spacing: spacing) {
-                    section(title: "AirDrop", isOver: overAirDrop) {
-                        Image(nsImage: Self.airDropIcon).resizable().scaledToFit().frame(width: 44, height: 44)
-                    }
-                    .frame(width: third)
-                    .dropDestination(for: URL.self) { urls, _ in
-                        airDrop(urls)
-                        return true
-                    } isTargeted: { overAirDrop = $0 }
                     section(title: "Keep in Tray", isOver: overKeep) {
                         Image(systemName: "tray.and.arrow.down.fill").font(.system(size: 34, weight: .semibold))
                     }
@@ -231,6 +223,14 @@ struct TrayDropZoneView: View {
                         keep(urls)
                         return true
                     } isTargeted: { overKeep = $0 }
+                    section(title: "AirDrop", isOver: overAirDrop) {
+                        Image(nsImage: Self.airDropIcon).resizable().scaledToFit().frame(width: 44, height: 44)
+                    }
+                    .frame(width: third)
+                    .dropDestination(for: URL.self) { urls, _ in
+                        airDrop(urls)
+                        return true
+                    } isTargeted: { overAirDrop = $0 }
                 }
             }
             .padding(14)
