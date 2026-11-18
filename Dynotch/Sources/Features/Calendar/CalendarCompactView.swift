@@ -5,22 +5,32 @@ struct CalendarCompactView: View {
     @ObservedObject var service: CalendarService
     let expand: () -> Void
 
-    private static let leadingColumn: CGFloat = 52
-
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                Text(service.selectedDay.formatted(.dateTime.month(.abbreviated)).capitalized)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                    .frame(width: Self.leadingColumn, alignment: .leading)
+                // The month is written small under the days (spec K-15), not in a column.
                 DayStripView(
                     selectedDay: $service.selectedDay,
                     today: service.today,
                     counts: service.dayCounts
                 )
+                if service.selectedDay != service.today {
+                    // Back to today, only when away from it (spec K-15).
+                    Button {
+                        withAnimation(Motion.quick) { service.selectedDay = service.today }
+                    } label: {
+                        Text("Today")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 9)
+                            .frame(height: 22)
+                            .background(Capsule().fill(Theme.blue))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Back to today")
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                    .padding(.leading, 6)
+                }
                 CalendarIconButton(
                     symbol: "arrow.up.left.and.arrow.down.right",
                     help: "Full calendar",
@@ -69,7 +79,6 @@ struct CalendarCompactView: View {
                     scrollToCurrent(events, proxy: proxy, animated: true)
                 }
             }
-            .padding(.leading, Self.leadingColumn)
         }
     }
 }

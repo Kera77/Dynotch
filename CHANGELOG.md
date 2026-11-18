@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.44.0] - 2026-11-18
+
+### Added
+- The notch steps aside during Mission Control, so the Spaces along the top are visible.
+- Buttons beside the notch (iPad, focus follows mouse, keyboard lock, pin, settings): reorder
+  and hide them in Settings › Appearance, or ⌘-drag them in the notch.
+- Calendar: the strip spans two weeks back and ahead; a Today button when another day is
+  selected; the month is written small under the days, with a mark where a new month starts.
+- Meeting names on the day timeline's bars.
+- Settings sections slide in when you switch.
+
+### Changed
+- Claude's models show their exact version (Opus 5.5, Sonnet 5.5, Haiku 5.5).
+
+### Fixed
+- ChatGPT's icon was missing: the ChatGPT app now has a new identifier.
+- The AI module still showed Claude's mark in the module row, the preview, Settings and the
+  menu bar.
+- The drop zone with AirDrop did not appear when the notch had already opened on hover.
+
 ## [0.43.1] - 2026-11-18
 
 ### Fixed

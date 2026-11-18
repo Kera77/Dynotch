@@ -137,7 +137,7 @@ final class NotchController {
         return reachingDown(notifications.peek == nil ? geometry.hoverZone : geometry.keepOpenZone(for: geometry.peekSize))
     }
 
-    private var keepOpenZone: CGRect {
+    var keepOpenZone: CGRect {
         reachingDown(model.geometry.keepOpenZone(for: model.openSize))
     }
 
@@ -151,6 +151,7 @@ final class NotchController {
     }
 
     private func pointerMoved() {
+        guard !model.isHiddenForMissionControl else { return }
         if callIsShown {
             updateCallInteraction()
         } else if model.isExpanded {
@@ -173,7 +174,7 @@ final class NotchController {
 
     private func evaluatePointerWhileExpanded() {
         guard model.isExpanded else { return }
-        if model.isShowingDropZone { endDropZoneIfDragEnded() }
+        if model.isShowingDropZone { endDropZoneIfDragEnded() } else { showDropZoneOverOpenNotch() }
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.

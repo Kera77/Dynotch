@@ -32,7 +32,10 @@ struct AIModuleTests {
         """
         try Data(json.utf8).write(to: file)
         #expect(CodexCLI.models(in: file) == [AIModel(id: "gpt-a", title: "GPT-A")])
-        #expect(AIProvider.claude.models().map(\.id) == ["opus", "sonnet", "haiku"])
+        #expect(AIProvider.claude.models().map(\.id) == ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"])
+        // Older chats' aliases mean the exact model.
+        #expect(AIModel.current("opus") == "claude-opus-5-5")
+        #expect(AIModel.current("gpt-5") == "gpt-5")
     }
 
     @Test func codexRunsReadOnlyAndResumes() {

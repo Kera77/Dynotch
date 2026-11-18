@@ -375,15 +375,25 @@ struct AIGlyph: View {
 }
 
 extension AIProvider {
-    var bundleIdentifier: String {
+    /// The app's identifiers, newest first: the ChatGPT app now runs as `com.openai.codex`.
+    var bundleIdentifiers: [String] {
         switch self {
-        case .claude: "com.anthropic.claudefordesktop"
-        case .chatgpt: "com.openai.chat"
+        case .claude: ["com.anthropic.claudefordesktop"]
+        case .chatgpt: ["com.openai.codex", "com.openai.chat"]
+        }
+    }
+
+    private var appPath: String {
+        switch self {
+        case .claude: "/Applications/Claude.app"
+        case .chatgpt: "/Applications/ChatGPT.app"
         }
     }
 
     /// The installed app's icon, if the app is there.
     var appIcon: NSImage? {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier).map { NSWorkspace.shared.icon(forFile: $0.path) }
+        let url = bundleIdentifiers.lazy.compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }.first
+            ?? (FileManager.default.fileExists(atPath: appPath) ? URL(fileURLWithPath: appPath) : nil)
+        return url.map { NSWorkspace.shared.icon(forFile: $0.path) }
     }
 }

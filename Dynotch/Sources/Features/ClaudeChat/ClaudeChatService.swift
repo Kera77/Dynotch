@@ -291,7 +291,7 @@ extension ClaudeChatService {
             folder = URL(fileURLWithPath: directory, isDirectory: true)
         }
         let arguments = ClaudeCLI.arguments(
-            prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true, model: chat?.model, canRead: canRead
+            prompt: prompt, sessionID: chat?.sessionID, fork: chat?.needsFork == true, model: AIModel.current(chat?.model), canRead: canRead
         )
         launch(program, arguments: arguments, folder: folder, chatID: chatID, parse: ClaudeStream.event(fromLine:))
     }

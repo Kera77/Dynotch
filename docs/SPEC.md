@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.43.1 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.44 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -43,6 +43,7 @@
 | N-16 | (v0.43) **Gyorsabb notch:** csak a látható modul és a két szomszédja (a swipe-hoz) épül fel; a nagy szolgáltatásokat csak a saját nézeteik figyelik; az időzítők 20% tűréssel futnak (kevesebb ébresztés). |
 | N-17 | (v0.43) Modulváltáskor és egy értesítés bezárása után a tartalom **nem marad homályos**: átúszik és kicsit elmozdul, nem méreteződik. |
 | N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
+| N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -60,6 +61,7 @@
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
 | M-9 | (v0.28) A felső sorban **csak annyi modulikon látszik, amennyi a notch bal oldalán elfér** (notchos kijelzőn semmi nem kerül a notch mögé). Ha az egér az ikonokon van, a **kétujjas vízszintes swipe csak az ikonokat lépteti** (modult nem vált); **kattintás vált modult**. Ha a modul swipe-pal (a tartalom fölött) vált, az ikonja magától láthatóvá válik. |
 | M-10 | (v0.29) A beállítások **Features** füle **Modules** nevet kapott; a sorok **fogd-és-vidd** módszerrel átrendezhetők (bal oldali fogantyú, a sor húzás közben a helyére csúszik). A „Pin” jelölő csak gyorsbillentyűvel rendelkező modulnál lehet bejelölve; gyorsbillentyű nélkül üresen, letiltva látszik. |
+| M-11 | (v0.44) **A notch melletti gombok** (iPad, egérkövetés, billentyűzetzár, rögzítés, beállítások) sorrendje és láthatósága: *Megjelenés › Buttons beside the notch* húzással és kapcsolókkal, a notchban ⌘-húzással. A beállítások gombja nem rejthető el. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -94,6 +96,7 @@
 | C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
 | C-8 | (v0.43) **Permissions fül:** minden engedély (Teljes lemezelérés, Accessibility, Naptár, Emlékeztetők, Kontaktok, Bluetooth) egy helyen, mire kell; megadva pipa, különben gomb a Rendszerbeállítások megfelelő oldalára. |
 | C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
+| C-10 | (v0.44) A beállítások szakaszai közötti váltás becsúszik, mint az értesítés-fülek. |
 
 ---|---|
 | C-1 | **Jobb klikk** a notch-on vagy a panelen: helyi menü jelenik meg *Beállítások…*, *Névjegy* és *Kilépés* pontokkal. |
@@ -191,7 +194,8 @@
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-8h | (v0.40) A meeting-visszaszámláló (előjelzés és „folyamatban”) **hover-sorában** a név és az idő mellett, az **X-től balra** a **Join** gomb is ott van, ha a meetingnek van linkje; a meetinget nyitja meg. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
-| K-14 | (v0.43) **Napi idővonal** a napi nézetben: az események színes sávként 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
+| K-14 | (v0.43, v0.44-ben bővítve) **Napi idővonal** a napi nézetben: az események színes sávként (ha elég széles, a nevükkel) 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
+| K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. |
 
 ---
 
@@ -575,7 +579,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
 | FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
-| FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. |
+| FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
 
@@ -592,6 +596,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | AI-1 | A Claude modul neve **AI**. Két szolgáltató: **Claude** (a Claude Code-on keresztül, CC-2) és **ChatGPT** (a ChatGPT app **Codex** programján keresztül), mindkettő a Macen bejelentkezett fiókkal – előfizetéssel vagy ingyenes fiókkal; API-kulcs nem kell. A fejléc kapszula-választója (Claude \| ChatGPT) a következő beszélgetés szolgáltatóját adja; egy beszélgetés a sajátjánál marad (másikra váltva új beszélgetés indul). |
 | AI-2 | **Modellválasztó** a fejlécben: Claude-nál Opus / Sonnet / Haiku, ChatGPT-nél a fiókban elérhető modellek (a Codex saját listájából, `~/.codex/models_cache.json`); „Default” a szolgáltató alapértelmezése. **Think harder** kapcsoló (agy ikon): Claude-nál több gondolkodás, ChatGPT-nél magas érvelési szint. |
+| AI-2b | (v0.44) Claude-nál a **pontos modellek** verziószámmal (Opus 5.5, Sonnet 5.5, Haiku 5.5); új modellt az appba kell felvenni. A régi csevegések aliasai (opus, sonnet, haiku) a megfelelő pontos modellt jelentik. |
 | AI-3 | ChatGPT: `codex exec --json` a Dynotch chatmappájában, **csak olvasható** módban (fájlt nem módosíthat), a folytatás ugyanabban a Codex-munkamenetben (`resume`). Ha a Codex nincs meg vagy nincs bejelentkezés, a hiba szövege a chatben látszik. |
 | AI-4 | **Gyorskérdés:** ⌃⌥A (a Modules fülön módosítható) bárhonnan megnyitja az AI modult, a mező rögtön fogadja a gépelést. |
 | AI-5 | **Kontextus:** a mező fölötti sávból a vágólap (szöveg a kérdésbe, kép csatolmányként), a front appban kijelölt szöveg (Accessibility), fájl csatolása (gombbal vagy ráhúzva); a csatolmányok kis címkéként látszanak, X-szel eltávolíthatók. Claude a csatolt fájlokat olvasni tudja (csak a Read eszköz), ChatGPT a képeket közvetlenül kapja. |
@@ -602,7 +607,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-11 | A beszélgetéslistában **keresés** (cím és szöveg) és **kitűzés** (jobb klikk: Pin / Unpin; a kitűzöttek elöl, 📌 jellel); a válaszkész jelzés a szolgáltató nevét írja („ChatGPT answered”). |
 | AI-12 | **Folytatás a Terminálban:** a fejléc gombja a beszélgetést a Claude Code-ban vagy a Codexben folytatja (ugyanaz a munkamenet). |
 | AI-6b | (v0.43) Az AI usage fejlécében *Updated*, *Show at notch* és frissítés gomb ChatGPT-nél is. |
-| AI-13 | (v0.43) Az AI modul ikonja ✨ (sparkles); Claude-nál és ChatGPT-nél mindenhol a telepített hivatalos app ikonja. A bal oldali előzmények csak az aktuális szolgáltatás csevegései. |
+| AI-13 | (v0.43) Az AI modul ikonja ✨ (sparkles); Claude-nál és ChatGPT-nél mindenhol a telepített hivatalos app ikonja. A bal oldali előzmények csak az aktuális szolgáltatás csevegései. (v0.44) A ChatGPT app új azonosítóját (`com.openai.codex`) is felismeri; a modulválasztóban, az előnézetben, a beállításokban és a menüsorban is ✨. |
 | AI-14 | (v0.43) **Diktálás:** mikrofon gomb a beviteli mező mellett, a macOS diktálását indítja (saját mikrofonengedély nélkül). |
 | AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
 | AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
@@ -652,6 +657,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.44** | Mission Control alatt rejtett notch, átrendezhető gombok a notch mellett, naptár ±14 nap Today gombbal és kis hónapcímkével, meetingnevek az idővonalon, pontos Claude-modellek; ChatGPT- és AI-ikon, AirDrop drop zone javítása |
 | **v0.43.1** | Javítás: Bluetooth-eszköz csatlakozásakor kilépés; Teljes lemezelérés megadva, mégis elutasítva (tesztbuild azonos azonosítóval) |
 | **v0.43** | A 0.42 tesztjén talált hibák javítása; napi idővonal, értesítés-elhalasztás és Fókusz, számológép-változók és mértékegységek, scratchpad, határidő-pillek, akku-előzmény, AI diktálás és kedvencek, ChatGPT-mód; egységes design, Engedélyek fül, gyorsabb notch |
 | **v0.42.1** | Javítás: a 0.42 indításkor kilépett (hiányzó Bluetooth-leírás) |

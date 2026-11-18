@@ -21,9 +21,14 @@ struct SettingsView: View {
         HStack(spacing: 0) {
             SettingsSidebar(selected: $selectedTab, search: $search)
             Divider()
+            // Changing sections slides in, like the notification tabs (spec C-10).
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .id(selectedTab)
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                .clipped()
         }
+        .animation(Motion.quick, value: selectedTab)
         .frame(width: NotchGeometry.settingsContentSize.width, height: NotchGeometry.settingsContentSize.height)
     }
 

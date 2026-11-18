@@ -62,6 +62,7 @@ extension NotchController {
         else { return false }
         hideStrip()
         expand()
+        DiagnosticsLog.append("tray", "drop zone")
         withAnimation(Self.animation) { model.setDropZone(true) }
         return true
     }
@@ -91,9 +92,21 @@ extension NotchController {
     func fileDragTick() {
         if model.isShowingDropZone {
             endDropZoneIfDragEnded()
+        } else if model.isExpanded {
+            showDropZoneOverOpenNotch()
         } else {
             _ = handleFileDrag(at: NSEvent.mouseLocation)
         }
+    }
+
+    /// The hover opened the notch before the drag was recognised: files over it still get the
+    /// drop zone, except over the tray module, which takes them itself (spec FT-13).
+    func showDropZoneOverOpenNotch() {
+        guard model.isExpanded, !model.isShowingDropZone, !model.isShowingClipboardPicker, model.currentFeature != .tray,
+              FileDragWatcher.shared.isDraggingFiles, keepOpenZone.contains(NSEvent.mouseLocation)
+        else { return }
+        DiagnosticsLog.append("tray", "drop zone over the open notch")
+        withAnimation(Self.animation) { model.setDropZone(true) }
     }
 
     /// The drag left without a drop: the drop zone goes.
@@ -156,5 +169,22 @@ extension NotchController {
             model.notificationsTab = .beeper
             model.select(.notifications)
         }
+    }
+}
+
+// MARK: - Mission Control (spec N-19)
+
+extension NotchController {
+    /// Out of the way while Mission Control shows the Spaces along the top.
+    func setHiddenForMissionControl(_ hidden: Bool) {
+        model.isHiddenForMissionControl = hidden
+        if hidden { collapse() }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = hidden ? 0.12 : 0.25
+            panel.animator().alphaValue = hidden ? 0 : 1
+            glassPanel.animator().alphaValue = hidden ? 0 : 1
+        }
+        // Back on, the pointer logic decides about clicks again.
+        if hidden { panel.ignoresMouseEvents = true }
     }
 }

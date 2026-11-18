@@ -26,15 +26,9 @@ struct FeaturePreviewView: View {
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
             HStack(spacing: 10) {
-                Group {
-                    if feature == .claudeChat {
-                        BrandGlyphView(glyph: .claude, size: 18)
-                    } else {
-                        Image(systemName: feature.symbolName)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                }
+                Image(systemName: feature.symbolName)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
                 .frame(width: 34, height: 34)
                 .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white.opacity(0.12)))
                 VStack(alignment: .leading, spacing: 2) {

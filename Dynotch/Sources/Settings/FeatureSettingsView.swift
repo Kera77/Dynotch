@@ -57,11 +57,7 @@ struct FeatureSettingsView: View {
                 Label {
                     Text(feature.title)
                 } icon: {
-                    if feature == .claudeChat {
-                        BrandGlyphView(glyph: .claude, size: 14, color: .primary)
-                    } else {
-                        Image(systemName: feature.symbolName)
-                    }
+                    Image(systemName: feature.symbolName)
                 }
             }
             Spacer()

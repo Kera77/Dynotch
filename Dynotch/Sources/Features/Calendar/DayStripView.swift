@@ -6,17 +6,18 @@ struct DayStripView: View {
     let today: Date
     let counts: [Date: Int]
 
-    private static let daysBefore = 14
-    private static let dayCount = 60
+    /// Two weeks back and two weeks ahead of today (spec K-15).
+    static let reach = 14
 
-    /// Normally around today; around the selected day if that is far away.
+    /// Today ± two weeks; around the selected day if the full calendar chose one further away.
     private var days: [Date] {
-        let calendar = Calendar.current
-        let distance = abs(calendar.dateComponents([.day], from: today, to: selectedDay).day ?? 0)
-        let anchor = distance < Self.daysBefore ? today : selectedDay
-        return (0..<Self.dayCount).compactMap {
-            calendar.date(byAdding: .day, value: $0 - Self.daysBefore, to: anchor)
-        }
+        Self.days(around: today, selected: selectedDay)
+    }
+
+    nonisolated static func days(around today: Date, selected: Date, calendar: Calendar = .current) -> [Date] {
+        let distance = abs(calendar.dateComponents([.day], from: today, to: selected).day ?? 0)
+        let anchor = distance <= reach ? today : selected
+        return (-reach...reach).compactMap { calendar.date(byAdding: .day, value: $0, to: anchor) }
     }
 
     var body: some View {
@@ -39,6 +40,16 @@ struct DayStripView: View {
             }
             .scrollIndicators(.never)
             .mask(edgeFade)
+            // The selected day's month, small in the gap under the days (spec K-15).
+            .overlay(alignment: .bottomLeading) {
+                Text(selectedDay.formatted(.dateTime.month(.wide)))
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .padding(.horizontal, 4)
+                    .background(Color.black)
+                    .padding(.leading, 2)
+                    .allowsHitTesting(false)
+            }
             .onAppear {
                 DispatchQueue.main.async { proxy.scrollTo(selectedDay, anchor: .center) }
             }
@@ -70,6 +81,8 @@ private struct DayCell: View {
 
     private var isHighlighted: Bool { isToday || isSelected }
 
+    private var isFirstOfMonth: Bool { Calendar.current.component(.day, from: day) == 1 }
+
     private var color: Color {
         if isToday { return CalendarStyle.accent }
         if isSelected { return .white }
@@ -90,6 +103,16 @@ private struct DayCell: View {
             Circle()
                 .fill(hasEvents ? CalendarStyle.accent : .clear)
                 .frame(width: 4, height: 4)
+            // Where a new month starts (spec K-15).
+            Text(isFirstOfMonth ? day.formatted(.dateTime.month(.abbreviated)) : " ")
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.55))
+                .frame(height: 10)
+        }
+        .overlay(alignment: .leading) {
+            if isFirstOfMonth {
+                Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1).padding(.vertical, 6)
+            }
         }
         .frame(width: 36)
         .frame(maxHeight: .infinity)

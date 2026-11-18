@@ -76,7 +76,7 @@ extension ClaudeChatService {
 
     /// The default model of a service; nil: the service's own default.
     func model(for provider: AIProvider) -> String? {
-        defaults.string(forKey: Self.modelKey(provider))
+        AIModel.current(defaults.string(forKey: Self.modelKey(provider)))
     }
 
     func setDefaultModel(_ model: String?, for provider: AIProvider) {
@@ -86,7 +86,7 @@ extension ClaudeChatService {
 
     /// The model shown in the header: the chat's, or the default for a new chat.
     var shownModel: String? {
-        selected.map { $0.model } ?? model(for: provider)
+        selected.map { AIModel.current($0.model) } ?? model(for: provider)
     }
 
     var shownProvider: AIProvider { selected?.service ?? provider }

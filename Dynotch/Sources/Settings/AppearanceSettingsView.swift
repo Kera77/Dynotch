@@ -21,6 +21,15 @@ struct AppearanceSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                TopRowSettingsRows()
+            } header: {
+                Text("Buttons beside the notch")
+            } footer: {
+                Text("Drag to reorder, or ⌘-drag them in the notch. Settings always stays.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Picker("Open settings", selection: $settings.settingsPresentation) {
                     Text("In the notch").tag(SettingsPresentation.notch)
                     Text("In a window").tag(SettingsPresentation.window)

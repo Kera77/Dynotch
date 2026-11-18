@@ -122,6 +122,8 @@ final class NotchViewModel: ObservableObject {
     /// The clipboard's items while its shortcut is held (spec CB-3).
     @Published private(set) var isShowingClipboardPicker = false
     /// Files are being dragged over the notch (spec FT-1).
+    /// Mission Control is showing: no hover opening (spec N-19).
+    var isHiddenForMissionControl = false
     @Published private(set) var isShowingDropZone = false
 
     /// A page that replaces the modules for a moment.

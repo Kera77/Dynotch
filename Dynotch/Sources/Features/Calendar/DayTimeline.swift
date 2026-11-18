@@ -74,6 +74,18 @@ struct DayTimelineView: View {
         return RoundedRectangle(cornerRadius: 3, style: .continuous)
             .fill(event.color.color.opacity(event.hasEnded(at: now) ? 0.35 : 0.9))
             .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).stroke(Color.white, lineWidth: isNext ? 1.5 : 0))
+            // The meeting's name on its bar when there is room for a few letters (spec K-14).
+            .overlay(alignment: .leading) {
+                if end - start >= 28 {
+                    Text(event.title)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.white.opacity(event.hasEnded(at: now) ? 0.6 : 1))
+                        .shadow(color: .black.opacity(0.5), radius: 1)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .padding(.horizontal, 4)
+                }
+            }
             .frame(width: max(end - start, 3), height: 14)
             .offset(x: start, y: 3)
             .help(event.title + (isNext ? " – click to join" : ""))

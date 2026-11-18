@@ -13,12 +13,17 @@ enum AIProvider: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// The models to choose from (spec AI-2): Claude's by alias, ChatGPT's from the list Codex
+    /// The models to choose from (spec AI-2): Claude's exact models, ChatGPT's from the list Codex
     /// keeps for the signed-in account.
     func models() -> [AIModel] {
         switch self {
         case .claude:
-            [AIModel(id: "opus", title: "Opus"), AIModel(id: "sonnet", title: "Sonnet"), AIModel(id: "haiku", title: "Haiku")]
+            // Exact models with their version (spec AI-2b); a new one is added here.
+            [
+                AIModel(id: "claude-opus-5-5", title: "Opus 5.5"),
+                AIModel(id: "claude-sonnet-5-5", title: "Sonnet 5.5"),
+                AIModel(id: "claude-haiku-5-5", title: "Haiku 5.5")
+            ]
         case .chatgpt:
             CodexCLI.models()
         }
@@ -28,6 +33,13 @@ enum AIProvider: String, Codable, CaseIterable, Sendable {
 struct AIModel: Identifiable, Equatable, Sendable {
     let id: String
     let title: String
+
+    /// Claude's aliases kept by older chats and settings, as the exact model they stand for.
+    static let aliases = ["opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "haiku": "claude-haiku-5-5"]
+
+    static func current(_ id: String?) -> String? {
+        id.map { aliases[$0] ?? $0 }
+    }
 }
 
 /// Finds and runs Codex, the ChatGPT app's command line program (spec AI-3).

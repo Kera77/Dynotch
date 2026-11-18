@@ -6,6 +6,7 @@ final class NotchManager {
     private let services: AppServices
     private let openSettings: () -> Void
     private var controllers: [NotchController] = []
+    private var missionControl: MissionControlWatcher?
     private var screenObserver: NSObjectProtocol?
     private var signature = ""
     private var spaceSwipes: SpaceSwipeMonitor?
@@ -25,6 +26,12 @@ final class NotchManager {
         }
         monitor.start()
         spaceSwipes = monitor
+        // Mission Control: the notch would cover the Spaces along the top (spec N-19).
+        let missionControl = MissionControlWatcher { [weak self] shown in
+            self?.controllers.forEach { $0.setHiddenForMissionControl(shown) }
+        }
+        missionControl.start()
+        self.missionControl = missionControl
         watchMenuBar()
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,

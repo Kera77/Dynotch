@@ -139,7 +139,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 feature: .claudeChat,
                 panelSize: NSSize(width: 640, height: 470),
                 settings: settings,
-                icon: StatusIcon(changes: chat.objectWillChange, image: { BrandGlyphImage.claude }, toolTip: { "Claude" }),
+                icon: StatusIcon(changes: chat.objectWillChange, image: { nil }, toolTip: { "AI" }),
                 onOpen: { chat.isVisibleInMenuBar = true },
                 onClose: { chat.isVisibleInMenuBar = false },
                 makeContent: { AnyView(ClaudeChatMenuBarView(service: chat, state: $0)) }
