@@ -43,3 +43,11 @@ lists and grids that grow, no fixed panel-wide frames). Side lists scale with
 Read only the part of a file you need (`grep -n`, then `sed -n a,bp`); filter long command
 output (`check.sh` and `preflight.sh` already print one result line). Commit after each
 approved package so the git status at session start stays short.
+
+- One approved package = one session: after the release and the test list, tell the owner a new
+  session is worth starting.
+- Do not re-read a file you just edited; make several small edits in one step and run
+  `check.sh` once per coherent set of changes, not after every tiny edit.
+- Before adding a SPEC row, `grep` that its number is free.
+- Keep replies short: the result, the risks, the open questions.
+- Do not start subagents unless the owner asks.
