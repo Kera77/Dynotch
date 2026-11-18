@@ -1,64 +1,16 @@
 import AppKit
 import Combine
 
-/// What the closed notch shows of the stats (spec SY-7).
-enum StatsIndicatorMode: String, CaseIterable, Sendable {
-    case off
-    case cpu
-    case network
-
-    var title: String {
-        switch self {
-        case .off: "Nothing"
-        case .cpu: "CPU"
-        case .network: "Network speed"
-        }
-    }
-}
-
-/// One reading of everything the module shows (spec SY-1…SY-5).
-struct StatsSnapshot: Equatable, Sendable {
-    var cpu = 0.0
-    var memory: SystemReadings.Memory?
-    /// Bytes per second.
-    var download = 0.0
-    var upload = 0.0
-    var address: String?
-    var disk: SystemReadings.Disk?
-    var diskRead = 0.0
-    var diskWrite = 0.0
-    var battery: MacBattery?
-}
-
-/// Problems worth a dot beside the closed notch (spec SY-8).
-enum StatsWarnings {
-    static let lowDisk: Int64 = 10_000_000_000
-
-    nonisolated static func warnings(
-        memoryPressure: Int?, diskFree: Int64?, diskTotal: Int64?, thermal: ProcessInfo.ThermalState
-    ) -> [String] {
-        var found: [String] = []
-        if let memoryPressure, memoryPressure >= 2 {
-            found.append(memoryPressure >= 4 ? "Memory is critically low" : "Memory is running low")
-        }
-        if let diskFree, let diskTotal, diskTotal > 0, diskFree < lowDisk || Double(diskFree) / Double(diskTotal) < 0.05 {
-            found.append("The disk is almost full")
-        }
-        if thermal == .serious || thermal == .critical {
-            found.append("The Mac is slowing down to cool off")
-        }
-        return found
-    }
-}
-
 /// The closed notch's part: whether a value or a warning shows. Its own object, so the notch is
 /// not redrawn with every reading (spec SY-7, SY-8).
 @MainActor
 final class StatsIndicator: ObservableObject {
-    @Published fileprivate(set) var mode = StatsIndicatorMode.off
+    @Published fileprivate(set) var values: [StatsValue] = []
     @Published fileprivate(set) var warnings: [String] = []
 
-    var isShown: Bool { mode != .off || !warnings.isEmpty }
+    var isShown: Bool { !values.isEmpty || !warnings.isEmpty }
+    /// For the row: how many values the slot holds, nil when it is not shown.
+    var slotValues: Int? { isShown ? values.count : nil }
 }
 
 /// Reads the system's numbers (spec SY-1…SY-8): every second while the module is open, every two
@@ -71,17 +23,28 @@ final class StatsService: ObservableObject {
     @Published private(set) var uploadHistory: [Double] = []
     @Published private(set) var processes: [ProcessUsage] = []
     @Published var sortsByMemory = false { didSet { if oldValue != sortsByMemory { rankProcesses() } } }
-    @Published var mode: StatsIndicatorMode {
+    /// Shown beside the closed notch, in this order (spec SY-7).
+    @Published private(set) var shownValues: Set<StatsValue> {
         didSet {
-            defaults.set(mode.rawValue, forKey: Self.modeKey)
-            indicator.mode = settings.isEnabled(.stats) ? mode : .off
-            schedule()
+            defaults.set(shownValues.map(\.rawValue).sorted(), forKey: Self.valuesKey)
+            applyEnabled()
         }
     }
+    @Published private(set) var alertsOff: Set<StatsAlert> {
+        didSet { defaults.set(alertsOff.map(\.rawValue).sorted(), forKey: Self.alertsKey) }
+    }
+    /// Gigabytes of swap that bring a notification; nil: none (spec SY-9).
+    @Published var swapLimit: Int? {
+        didSet { defaults.set(swapLimit ?? 0, forKey: Self.swapKey) }
+    }
+    /// Sends Dynotch's own notification (spec SY-9).
+    var notify: (String, String) -> Void = { _, _ in }
+    private var swapNotified = false
     let indicator = StatsIndicator()
 
     static let historyLength = 90
-    private static let modeKey = "statsIndicator"
+    static let swapChoices = [1, 2, 4, 8, 16, 32]
+    private static let valuesKey = "statsValues", alertsKey = "statsAlertsOff", swapKey = "statsSwapLimit"
     private let settings: AppSettings
     private let defaults: UserDefaults
     private var timer: Timer?
@@ -98,7 +61,10 @@ final class StatsService: ObservableObject {
     init(settings: AppSettings, defaults: UserDefaults = .standard) {
         self.settings = settings
         self.defaults = defaults
-        mode = defaults.string(forKey: Self.modeKey).flatMap(StatsIndicatorMode.init(rawValue:)) ?? .off
+        shownValues = Set((defaults.stringArray(forKey: Self.valuesKey) ?? []).compactMap(StatsValue.init(rawValue:)))
+        alertsOff = Set((defaults.stringArray(forKey: Self.alertsKey) ?? []).compactMap(StatsAlert.init(rawValue:)))
+        let swap = defaults.integer(forKey: Self.swapKey)
+        swapLimit = swap > 0 ? swap : nil
     }
 
     func start() {
@@ -119,13 +85,14 @@ final class StatsService: ObservableObject {
 
     private func applyEnabled() {
         let isOn = settings.isEnabled(.stats)
-        indicator.mode = isOn ? mode : .off
+        let values = isOn ? StatsValue.allCases.filter(shownValues.contains) : []
+        if indicator.values != values { indicator.values = values }
         if !isOn { indicator.warnings = [] }
         schedule()
     }
 
     private func schedule() {
-        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : mode != .off ? 2 : 30
+        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : !shownValues.isEmpty ? 2 : 30
         guard wanted != interval else { return }
         interval = wanted
         timer?.invalidate()
@@ -156,11 +123,7 @@ final class StatsService: ObservableObject {
         cpuHistory = Array((cpuHistory + [next.cpu]).suffix(Self.historyLength))
         downloadHistory = Array((downloadHistory + [next.download]).suffix(Self.historyLength))
         uploadHistory = Array((uploadHistory + [next.upload]).suffix(Self.historyLength))
-        let warnings = StatsWarnings.warnings(
-            memoryPressure: next.memory?.pressure, diskFree: next.disk?.free, diskTotal: next.disk?.total,
-            thermal: ProcessInfo.processInfo.thermalState
-        )
-        if indicator.warnings != warnings { indicator.warnings = warnings }
+        checkWarnings(next)
         if isVisible { readProcesses() }
     }
 
@@ -188,14 +151,50 @@ final class StatsService: ObservableObject {
 
     private func readProcesses() {
         let sample = ProcessReadings.sample()
-        if let processSample { processCPU = ProcessReadings.cpu(from: processSample, to: sample) }
+        if let processSample {
+            processCPU = Self.smoothed(old: processCPU, new: ProcessReadings.cpu(from: processSample, to: sample))
+        }
         processSample = sample
         rankProcesses()
     }
 
     private func rankProcesses() {
         guard let processSample else { return }
-        processes = ProcessReadings.top(6, byMemory: sortsByMemory, cpu: processCPU, memory: processSample.memory)
+        processes = ProcessReadings.top(6, byMemory: sortsByMemory, cpu: processCPU, sample: processSample)
+    }
+
+    private func checkWarnings(_ next: StatsSnapshot) {
+        let reading = StatsWarnings.Reading(
+            memoryPressure: next.memory?.pressure, diskFree: next.disk?.free, diskTotal: next.disk?.total,
+            thermal: ProcessInfo.processInfo.thermalState, swapUsed: next.memory?.swapUsed ?? 0, swapLimit: swapLimit
+        )
+        let warnings = StatsWarnings.warnings(reading, off: alertsOff)
+        if indicator.warnings != warnings { indicator.warnings = warnings }
+        // One notification per crossing of the swap limit (spec SY-9).
+        let isOver = StatsWarnings.isOverSwap(reading)
+        if isOver, !swapNotified, !alertsOff.contains(.swap), let limit = swapLimit {
+            notify("Swap is above \(limit) GB", "\(StatsFormat.bytes(Double(reading.swapUsed))) of swap in use")
+        }
+        swapNotified = isOver
+    }
+
+    /// A little of the earlier reading stays, so the busiest ones don't jump around (spec SY-6).
+    nonisolated static func smoothed(old: [pid_t: Double], new: [pid_t: Double]) -> [pid_t: Double] {
+        new.reduce(into: [:]) { result, entry in
+            result[entry.key] = old[entry.key].map { $0 * 0.4 + entry.value * 0.6 } ?? entry.value
+        }
+    }
+
+    func isShown(_ value: StatsValue) -> Bool { shownValues.contains(value) }
+
+    func setShown(_ value: StatsValue, _ shown: Bool) {
+        if shown { shownValues.insert(value) } else { shownValues.remove(value) }
+    }
+
+    func isOn(_ alert: StatsAlert) -> Bool { !alertsOff.contains(alert) }
+
+    func setOn(_ alert: StatsAlert, _ isOn: Bool) {
+        if isOn { alertsOff.remove(alert) } else { alertsOff.insert(alert) }
     }
 
     func quit(_ process: ProcessUsage) {

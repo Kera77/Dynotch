@@ -86,6 +86,9 @@ enum OpenMenus {
         ]
     }
 
+    /// One of Dynotch's menus is open: the notch stays while it is (spec N-22).
+    static var isOpen: Bool { !menus.isEmpty }
+
     static func closeAll() {
         let open = menus
         menus = []

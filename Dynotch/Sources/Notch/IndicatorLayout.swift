@@ -36,8 +36,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case tasks(TaskCount)
     /// Spotify's cover with the track's progress (spec MU-2).
     case music(MusicIndicator.Glance)
-    /// CPU, network speed or a warning (spec SY-7, SY-8).
-    case stats
+    /// CPU, memory, network speed (this many of them) or a warning (spec SY-7, SY-8).
+    case stats(Int)
     /// A screen recording since this time; its details have Stop (spec SH-5).
     case recording(Date)
 
@@ -61,13 +61,10 @@ enum IndicatorItem: Identifiable, Equatable {
         }
     }
 
-    /// Hovering these opens their module instead of writing details (spec MU-2, SY-7).
+    /// Hovering these opens their module instead of writing details (spec SY-7). The cover drops
+    /// its player down under the row instead (spec MU-2).
     var opensModule: FeatureID? {
-        switch self {
-        case .music: .music
-        case .stats: .stats
-        default: nil
-        }
+        if case .stats = self { .stats } else { nil }
     }
 
     var isBattery: Bool {
@@ -81,8 +78,9 @@ enum IndicatorItem: Identifiable, Equatable {
         case .usage, .working: IndicatorLayout.ringSlotWidth
         case .battery: IndicatorLayout.batterySlotWidth
         case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
-        case .music: IndicatorLayout.ringSlotWidth
-        case .stats: IndicatorLayout.statsSlotWidth
+        // Only on the left, next to the notch (spec MU-2).
+        case .music: 0
+        case .stats(let values): IndicatorLayout.statsWidth(values: values)
         case .recording: IndicatorLayout.slotWidth
         }
     }
@@ -90,7 +88,8 @@ enum IndicatorItem: Identifiable, Equatable {
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery, .music, .stats, .recording: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .stats, .recording: IndicatorLayout.labelHeight
+        case .music: IndicatorLayout.musicDropdownHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count): IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * 22 + 6
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
@@ -101,11 +100,11 @@ enum IndicatorItem: Identifiable, Equatable {
     /// tasks at the far right.
     static func items(
         meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
-        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Bool = false, recording: Date? = nil
+        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil
     ) -> [IndicatorItem] {
         (recording.map { [.recording($0)] } ?? [])
             + (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
-            + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats ? [.stats] : [])
+            + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? [])
     }
 
@@ -113,6 +112,8 @@ enum IndicatorItem: Identifiable, Equatable {
     /// for the first meeting, the Claude icon for the usage.
     static func iconSlots(for items: [IndicatorItem]) -> [Int] {
         var slots: [Int] = []
+        // The cover sits next to the notch (spec MU-2).
+        if let music = items.firstIndex(where: { if case .music = $0 { true } else { false } }) { slots.append(music) }
         if let meeting = items.firstIndex(where: { if case .meeting = $0 { true } else { false } }) { slots.append(meeting) }
         if let claude = items.firstIndex(where: \.isClaude) { slots.append(claude) }
         // Every low device has its own icon.
@@ -133,7 +134,12 @@ struct IndicatorLayout: Equatable {
     /// The checklist icon and a one-digit count, like the menu bar's (spec R-10).
     static let tasksSlotWidth: CGFloat = 34
     /// "↓12M" or "100%", with room for a warning dot (spec SY-7).
-    static let statsSlotWidth: CGFloat = 50
+    /// "C 23%", "M 61%", "↓12M" side by side, with room for a warning dot (spec SY-7).
+    static func statsWidth(values: Int) -> CGFloat {
+        values == 0 ? 26 : CGFloat(values) * 46 + 8
+    }
+    /// The player under the row (spec MU-2).
+    static let musicDropdownHeight: CGFloat = 128
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 20
@@ -147,9 +153,15 @@ struct IndicatorLayout: Equatable {
     static let badgeRows = 5
 
     /// The hover list's height under the row; an empty list shows one line and Open.
-    static func badgeDropdownHeight(count: Int) -> CGFloat {
-        count == 0 ? 34 : 8 + CGFloat(min(count, badgeRows)) * 36
+    static func badgeDropdownHeight(rows: [BadgeNotificationRow]) -> CGFloat {
+        let groups = BadgeNotificationRow.bySender(rows, limit: badgeRows)
+        guard !groups.isEmpty else { return 34 }
+        // A name line per sender, a line per message (spec B-10b).
+        return 8 + CGFloat(groups.count) * badgeSenderHeight + CGFloat(groups.reduce(0) { $0 + $1.rows.count }) * badgeMessageHeight
     }
+
+    static let badgeSenderHeight: CGFloat = 20
+    static let badgeMessageHeight: CGFloat = 18
     static let labelWidth: CGFloat = 440
     /// Between two app badges (spec B-4).
     static let badgeSpacing: CGFloat = 8
@@ -218,8 +230,10 @@ struct IndicatorLayout: Equatable {
 
     /// Right of the notch: the capsules.
     var rightWidth: CGFloat {
-        guard count >= 1 else { return 0 }
-        return slotWidths.reduce(0, +) + CGFloat(count - 1) * Self.spacing + 2 * Self.padding
+        // Items shown only on the left (the cover) take no place on the right.
+        let shown = slotWidths.filter { $0 > 0 }
+        guard !shown.isEmpty else { return 0 }
+        return shown.reduce(0, +) + CGFloat(shown.count - 1) * Self.spacing + 2 * Self.padding
     }
 
     func rowWidth(notch: CGSize) -> CGFloat {
@@ -248,7 +262,8 @@ struct IndicatorLayout: Equatable {
 
     /// Horizontal centre of place `index`, right of the notch.
     func center(of index: Int, notchRect: CGRect) -> CGFloat {
-        let before = slotWidths.prefix(index).reduce(0, +) + CGFloat(index) * Self.spacing
+        let earlier = slotWidths.prefix(index).filter { $0 > 0 }
+        let before = earlier.reduce(0, +) + CGFloat(earlier.count) * Self.spacing
         return notchRect.maxX + Self.padding + before + slotWidths[index] / 2
     }
 
@@ -271,7 +286,7 @@ struct IndicatorLayout: Equatable {
             return nearest.map { iconSlots[$0] }
         }
         return (0..<count).first {
-            abs(point.x - center(of: $0, notchRect: notchRect)) <= (slotWidths[$0] + Self.spacing) / 2
+            slotWidths[$0] > 0 && abs(point.x - center(of: $0, notchRect: notchRect)) <= (slotWidths[$0] + Self.spacing) / 2
         }
     }
 

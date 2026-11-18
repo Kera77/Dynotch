@@ -55,6 +55,44 @@ extension NotchIndicatorView {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// A low device: its name, level, history and estimate (spec BT-3, BT-6).
+    func batteryLabel(_ device: BatteryDevice, item: IndicatorItem) -> some View {
+        HStack(spacing: 7) {
+            Text(device.name)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Text("battery at \(device.level)%")
+                .font(.system(size: 11))
+                .foregroundStyle(BatteryFeatureView.red)
+            let samples = batterySamples(device.id)
+            if samples.count > 1 {
+                BatterySparkline(samples: samples)
+                    .frame(width: 64, height: 16)
+            }
+            if let left = BatteryHistory.estimate(from: samples) {
+                Text(BatteryHistory.estimateText(left))
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 8)
+            dismissButton(for: item, help: "Hide until it has been recharged")
+        }
+        .padding(.horizontal, 12)
+        .frame(height: IndicatorLayout.labelHeight - 4)
+    }
+
+    /// Hovered: the player drops down; announced: the new track's name (spec MU-2, MU-4).
+    @ViewBuilder
+    func musicLabel(_ glance: MusicIndicator.Glance) -> some View {
+        if let music, hoveredIndex != nil {
+            MusicDropdown(service: music)
+        } else {
+            simpleLabel(glance.title, detail: glance.artist, symbol: "music.note", color: glance.tint.color)
+        }
+    }
+
     /// A recording is running: Stop ends it (spec SH-5).
     var recordingLabel: some View {
         HStack(spacing: 7) {

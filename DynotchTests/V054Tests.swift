@@ -38,8 +38,16 @@ struct V054Tests {
     }
 
     @Test func badgeListHeightFollowsItsNotificationsUpToFive() {
-        #expect(IndicatorLayout.badgeDropdownHeight(count: 0) == 34)
-        #expect(IndicatorLayout.badgeDropdownHeight(count: 2) == CGFloat(8 + 2 * 36))
-        #expect(IndicatorLayout.badgeDropdownHeight(count: 12) == CGFloat(8 + 5 * 36))
+        func row(_ id: Int64, _ sender: String) -> BadgeNotificationRow {
+            BadgeNotificationRow(id: id, sender: sender, detail: "m", date: Date())
+        }
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: []) == 34)
+        // Anna twice, Béla once: two name lines, three messages (spec B-10b).
+        let rows = [row(1, "Anna"), row(2, "Béla"), row(3, "Anna")]
+        #expect(BadgeNotificationRow.bySender(rows, limit: 5).map(\.sender) == ["Anna", "Béla"])
+        #expect(BadgeNotificationRow.bySender(rows, limit: 5).first?.rows.map(\.id) == [1, 3])
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: rows) == CGFloat(8 + 2 * 20 + 3 * 18))
+        let many = (0..<12).map { row(Int64($0), "Anna") }
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: many) == CGFloat(8 + 20 + 5 * 18))
     }
 }

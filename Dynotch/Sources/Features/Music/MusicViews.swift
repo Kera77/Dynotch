@@ -175,14 +175,16 @@ struct MusicProgressBar: View {
 struct MusicControls: View {
     @ObservedObject var service: MusicService
     let playing: NowPlaying
+    /// Smaller, for the drop-down under the row.
+    var compact = false
 
     var body: some View {
-        HStack(spacing: 18) {
+        HStack(spacing: compact ? 12 : 18) {
             toggle("shuffle", isOn: playing.isShuffling, help: "Shuffle", action: service.toggleShuffle)
-            button("backward.fill", size: 16, help: "Previous", action: service.previous)
-            button(playing.isPlaying ? "pause.fill" : "play.fill", size: 22, help: playing.isPlaying ? "Pause" : "Play",
+            button("backward.fill", size: compact ? 12 : 16, help: "Previous", action: service.previous)
+            button(playing.isPlaying ? "pause.fill" : "play.fill", size: compact ? 16 : 22, help: playing.isPlaying ? "Pause" : "Play",
                    action: service.playPause)
-            button("forward.fill", size: 16, help: "Next", action: service.next)
+            button("forward.fill", size: compact ? 12 : 16, help: "Next", action: service.next)
             toggle("repeat", isOn: playing.isRepeating, help: "Repeat", action: service.toggleRepeat)
         }
         .frame(maxWidth: .infinity)
@@ -193,7 +195,7 @@ struct MusicControls: View {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: size + 14, height: size + 10)
+                .frame(width: size + 14, height: size + (compact ? 4 : 10))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -300,6 +302,34 @@ struct MusicHideMenu: View {
         case 0: "Immediately"
         case 1: "After 1 minute"
         case let value?: "After \(value) minutes"
+        }
+    }
+}
+
+/// The player under the closed notch's row, when the cover is hovered (spec MU-2): the row with
+/// the badges and counters stays above it.
+struct MusicDropdown: View {
+    @ObservedObject var service: MusicService
+
+    var body: some View {
+        if let playing = service.nowPlaying {
+            HStack(spacing: 12) {
+                Button { SpotifyClient.open() } label: {
+                    MusicArtwork(image: service.artwork, cornerRadius: 8).frame(width: 96, height: 96)
+                }
+                .buttonStyle(.plain)
+                .help("Show Spotify")
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(playing.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                    Text(playing.artist).font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(1)
+                    MusicProgressBar(service: service, duration: playing.duration)
+                    MusicControls(service: service, playing: playing, compact: true)
+                    MusicVolumeRow(service: service, volume: playing.volume)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

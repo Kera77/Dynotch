@@ -50,6 +50,20 @@ struct BadgeNotificationRow: Identifiable, Equatable, Sendable {
     let sender: String
     let detail: String
     let date: Date
+
+    /// The newest `limit` messages under their sender's name, senders in order of their newest
+    /// message (spec B-10b).
+    nonisolated static func bySender(_ rows: [BadgeNotificationRow], limit: Int) -> [(sender: String, rows: [BadgeNotificationRow])] {
+        var groups: [(sender: String, rows: [BadgeNotificationRow])] = []
+        for row in rows.prefix(limit) {
+            if let index = groups.firstIndex(where: { $0.sender == row.sender }) {
+                groups[index].rows.append(row)
+            } else {
+                groups.append((row.sender, [row]))
+            }
+        }
+        return groups
+    }
 }
 
 extension NotificationService {

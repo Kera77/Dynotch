@@ -70,13 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
         ClaudeQuestionHook.upgradeIfNeeded()
-        services.battery.onCharged = { [notifications] device in
-            notifications.present(title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier)
-        }
-        services.battery.start()
-        services.music.start()
-        services.stats.start()
-        services.screenshots.start()
+        startDeviceAndMediaModules()
         services.updates.start()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
@@ -228,5 +222,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Launching the app again (e.g. from Finder) opens Settings, since there is no Dock icon.
         settingsWindow.show()
         return false
+    }
+
+    /// Batteries, music, the stats and screenshots, with their own notifications.
+    private func startDeviceAndMediaModules() {
+        services.battery.onCharged = { [notifications] device in
+            notifications.present(title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier)
+        }
+        services.battery.start()
+        services.music.start()
+        services.stats.notify = { [notifications] title, body in
+            notifications.present(title: title, body: body, appIdentifier: AppInfo.bundleIdentifier)
+        }
+        services.stats.start()
+        services.screenshots.start()
     }
 }

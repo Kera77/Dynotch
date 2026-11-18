@@ -46,6 +46,7 @@
 | N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 | N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
+| N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -397,6 +398,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-8 | (v0.31) **Nem takarja a menüsort:** az app méri, hol ér véget a menüsor a notch bal oldalán (az aktív app menüi Kisegítő hozzáféréssel, a menüikonok a rendszer ablaklistájából), appváltáskor és 3 másodpercenként. Ha a jelvények belelógnának, csak annyi látszik, amennyi kifér (a sorrend elejéről), a többit a bal szélen egy **„‹ +N”** jel mutatja. **Hoverre** az összes kinyílik (ilyenkor ideiglenesen takarhatják a menüt), és visszacsukódik, ha az egér elhagyja a notch bal oldalát. Mérések között egy pillanatra előfordulhat átfedés. |
 | B-9 | (v0.45) A hozzáadható appok listájában **nincsenek háttér-segédappok**: kimaradnak az `LSUIElement` / `LSBackgroundOnly` appok (nincs Dock-ikonjuk, így jelvényük sem), és a `/System/Library/CoreServices` mappából csak a Finder jelenik meg (pl. AddressBookUrlForwarder nem). Az *Utilities* mappa appjai maradnak. |
 | B-10 | (v0.55) A jelvényre vitt egér alatt **lenyílik az app értesítéseinek listája** (legfeljebb 5: feladó, idő, a szöveg első sora). Egy sorra kattintva megnyílik az app teljes értesítéslistája a notchban. Ha az appnak nincs értesítése az Értesítési központban: „No notifications in Notification Center” és egy Open gomb. A listára lefelé mozgatva az egér nyitva tartja; felugró értesítés közben nem nyílik. |
+| B-10b | (v0.57) A lenyíló listában az üzenetek **küldőnként csoportosítva**: a küldő neve egyszer, alatta az üzenetei egymás alatt időponttal. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -704,7 +706,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | # | Követelmény |
 |---|---|
 | MU-1 | A *Music* modul a **Spotify**t mutatja és vezérli AppleScripttel (más lejátszót nem). Csak akkor szól a Spotifyhoz, ha fut (különben elindítaná); a Spotify változásjelzésére és néhány másodpercenként frissít. A modul a többihez hasonlóan kikapcsolható. |
-| MU-2 | Amíg a Spotifyban van szám (szól vagy szünetel), a csukott notch **jobb oldalán, a notch mellett** megjelenik a **lemezborító** kerek kivágásban. **Rámutatásra lenyílik a zenelejátszó modul.** Bal oldalt nincs hangszínsáv. |
+| MU-2 | Amíg a Spotifyban van szám (szól vagy szünetel), a csukott notch **bal oldalán, közvetlenül a notch mellett** megjelenik a **lemezborító** kerek kivágásban. (v0.57) **Rámutatásra a sor alá lenyílik a lejátszó** (borító, cím, előadó, folyamatjelző, gombok, hangerő, kimenet, elrejtés); a sor a jelvényekkel és számlálókkal fölötte látszik. A teljes Music modul a modullistából nyitható. Bal oldalt nincs hangszínsáv. |
 | MU-3 | A borító körül egy **karika** az óramutató járásával egyezően, felülről indulva telik, és a szám haladását mutatja. A karika színe a borító **domináns színe** (fekete háttéren is látható fényerővel; szürke borítónál halvány fehér). |
 | MU-4 | Számváltáskor a notch alatt pár másodpercre megjelenik a cím és az előadó. |
 | MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
@@ -722,9 +724,10 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-3 | **Lemez:** szabad hely az összesből, olvasási és írási sebesség. |
 | SY-4 | Hőmérséklet és ventilátor nincs. |
 | SY-5 | **Akku** (ha van): töltöttség, állapot (töltődik / hálózaton / akkuról), hátralévő idő, teljesítmény wattban, akku-egészség és ciklusszám. |
-| SY-6 | **Legtöbbet használó folyamatok** (6), CPU vagy memória szerint rendezve; az X gomb első kattintásra „Quit”-re vált, a második kilépteti (appot szabályosan, más folyamatot TERM jellel). A legtöbb energiát fogyasztó appokat a CPU szerinti lista mutatja. |
-| SY-7 | A modul fejlécében választható, mit mutasson a csukott notch jobb oldala: **semmit** (alap), a **CPU**-t vagy a **letöltési sebességet**. Rámutatásra a modul nyílik le. Nyitott modulnál másodpercenként, a csukott notch értékéhez két másodpercenként, egyébként félpercenként mér. |
+| SY-6 | **Legtöbbet használó folyamatok** (6), CPU vagy memória szerint rendezve; az X gomb első kattintásra „Quit”-re vált, a második kilépteti (appot szabályosan, más folyamatot TERM jellel). A legtöbb energiát fogyasztó appokat a CPU szerinti lista mutatja. (v0.57) Az appok segédfolyamatai (pl. a Zen web content, extension és GPU folyamatai) **az apphoz összevonva** számítanak, mint az Activity Monitorban; a lista mindig a legtöbbet használókat mutatja csökkenő sorrendben, a CPU-érték az előző méréssel simítva, hogy ne ugráljon. A Quit az appot lépteti ki (a segédfolyamatokkal együtt). |
+| SY-7 | A modul fejlécének **Options** menüjében választható, mit mutasson a csukott notch jobb oldala, **bármelyiket együtt is**: CPU („C 23%”), memória („M 61%”), letöltési sebesség („↓1.2M”); alapból semmit. Rámutatásra a modul nyílik le. Nyitott modulnál másodpercenként, a csukott notch értékeihez két másodpercenként, egyébként félpercenként mér. |
 | SY-8 | **Figyelmeztető piros pötty** a csukott notch mellett, ha kevés a memória, majdnem tele a lemez (10 GB vagy 5% alatt), vagy a Mac lassít, hogy lehűljön. |
+| SY-9 | (v0.57) Az Options menüben a figyelmeztetések **egyenként kikapcsolhatók** (memória, lemez, lassítás hő miatt, swap). Beállítható, hogy a **swap** hány GB felett (1, 2, 4, 8, 16, 32 vagy soha) küldjön **értesítést** és tegyen piros pöttyöt a notch mellé; átlépésenként egyszer értesít. |
 
 ## 4ő. Képmetsző (v0.57)
 

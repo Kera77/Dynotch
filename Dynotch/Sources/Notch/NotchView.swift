@@ -75,7 +75,7 @@ struct NotchView: View {
         IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
-            music: musicIndicator.glance, stats: statsIndicator.isShown, recording: screenshots.recordingSince
+            music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
         )
     }
 
@@ -328,12 +328,18 @@ extension NotchView {
         }
         if devices.current != nil { return geometry.peekSize }
         if showsScreenshotPeek { return screenshotPeekSize }
-        let labelHeight = labelIndex.map { indicatorItems[$0].labelHeight } ?? hoveredBadgeHeight
+        let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
             ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)
         }
         return indicatorLayout.size(notch: geometry.notchSize, labelHeight: labelHeight)
+    }
+
+    /// The cover's player drops down only when hovered; announced, only the track's name (spec MU-2, MU-4).
+    private func labelHeight(of index: Int) -> CGFloat {
+        if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.labelHeight }
+        return indicatorItems[index].labelHeight
     }
 }

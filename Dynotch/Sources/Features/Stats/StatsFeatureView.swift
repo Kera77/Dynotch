@@ -40,13 +40,7 @@ struct StatsFeatureView: View {
         HStack {
             Text("System").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
             Spacer()
-            Picker("Beside the notch", selection: $service.mode) {
-                ForEach(StatsIndicatorMode.allCases, id: \.self) { Text($0.title).tag($0) }
-            }
-            .pickerStyle(.menu)
-            .controlSize(.small)
-            .fixedSize()
-            .help("What the closed notch shows")
+            StatsOptionsMenu(service: service)
         }
     }
 
@@ -114,7 +108,7 @@ struct StatsFeatureView: View {
 /// The busiest processes, by CPU or memory; Quit asks once more (spec SY-6).
 struct StatsProcessList: View {
     @ObservedObject var service: StatsService
-    @State private var confirming: pid_t?
+    @State private var confirming: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -142,8 +136,8 @@ struct StatsProcessList: View {
 
     private func row(_ process: ProcessUsage) -> some View {
         HStack(spacing: 7) {
-            if let icon = NSRunningApplication(processIdentifier: process.id)?.icon {
-                Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+            if let app = process.appPath {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: app)).resizable().frame(width: 16, height: 16)
             } else {
                 Image(systemName: "gearshape").font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.5)).frame(width: 16)
             }
@@ -177,5 +171,38 @@ struct StatsProcessList: View {
         }
         .buttonStyle(.plain)
         .help(isConfirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
+    }
+}
+
+/// What shows beside the notch, which alerts are on, and the swap limit (spec SY-7…SY-9).
+struct StatsOptionsMenu: View {
+    @ObservedObject var service: StatsService
+
+    var body: some View {
+        Menu {
+            Section("Beside the notch") {
+                ForEach(StatsValue.allCases) { value in
+                    Toggle(value.title, isOn: Binding(get: { service.isShown(value) }, set: { service.setShown(value, $0) }))
+                }
+            }
+            Section("Alerts") {
+                ForEach(StatsAlert.allCases) { alert in
+                    Toggle(alert.title, isOn: Binding(get: { service.isOn(alert) }, set: { service.setOn(alert, $0) }))
+                }
+            }
+            Picker("Notify When Swap Is Above", selection: $service.swapLimit) {
+                Text("Never").tag(Int?.none)
+                ForEach(StatsService.swapChoices, id: \.self) { Text("\($0) GB").tag(Int?.some($0)) }
+            }
+        } label: {
+            Label("Options", systemImage: "slider.horizontal.3")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.75))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("What the closed notch shows, and the alerts")
     }
 }

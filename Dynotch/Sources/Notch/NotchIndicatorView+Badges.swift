@@ -27,27 +27,31 @@ struct BadgeDropdown: View {
                 .padding(.horizontal, 12)
                 .frame(height: 34)
             } else {
-                ForEach(rows.prefix(IndicatorLayout.badgeRows)) { row in
+                // Each sender's name once, their messages under it (spec B-10b).
+                ForEach(BadgeNotificationRow.bySender(rows, limit: IndicatorLayout.badgeRows), id: \.sender) { group in
                     Button(action: openNotifications) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack(spacing: 6) {
-                                Text(row.sender)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                    .lineLimit(1)
-                                Spacer(minLength: 4)
-                                Text(row.date.formatted(date: .omitted, time: .shortened))
-                                    .font(.system(size: 9))
-                                    .monospacedDigit()
-                                    .foregroundStyle(Color.white.opacity(0.4))
-                            }
-                            Text(row.detail.isEmpty ? "—" : row.detail)
-                                .font(.system(size: 11))
-                                .foregroundStyle(Color.white.opacity(0.75))
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(group.sender)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.white)
                                 .lineLimit(1)
+                                .frame(height: IndicatorLayout.badgeSenderHeight)
+                            ForEach(group.rows) { row in
+                                HStack(spacing: 6) {
+                                    Text(row.detail.isEmpty ? "—" : row.detail)
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Color.white.opacity(0.75))
+                                        .lineLimit(1)
+                                    Spacer(minLength: 4)
+                                    Text(row.date.formatted(date: .omitted, time: .shortened))
+                                        .font(.system(size: 9))
+                                        .monospacedDigit()
+                                        .foregroundStyle(Color.white.opacity(0.4))
+                                }
+                                .frame(height: IndicatorLayout.badgeMessageHeight)
+                            }
                         }
                         .padding(.horizontal, 12)
-                        .frame(height: 36)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

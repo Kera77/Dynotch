@@ -113,32 +113,44 @@ struct StatsDetail: View {
     }
 }
 
-/// The value beside the closed notch: CPU or network speed, or a warning (spec SY-7, SY-8).
+/// The values beside the closed notch: CPU, memory and network speed as chosen, or a warning
+/// (spec SY-7, SY-8).
 struct StatsSlot: View {
     @ObservedObject var service: StatsService
     @ObservedObject var indicator: StatsIndicator
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 6) {
             if !indicator.warnings.isEmpty {
                 Circle().fill(Theme.red).frame(width: 6, height: 6)
             }
-            switch indicator.mode {
-            case .cpu:
-                Text(StatsFormat.percent(service.snapshot.cpu)).foregroundStyle(cpuColor)
-            case .network:
-                Text("↓" + StatsFormat.shortRate(service.snapshot.download)).foregroundStyle(.white)
-            case .off:
+            if indicator.values.isEmpty {
                 Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.red)
+            }
+            ForEach(indicator.values) { value in
+                text(for: value)
             }
         }
         .font(.system(size: 11, weight: .semibold, design: .rounded))
         .monospacedDigit()
         .lineLimit(1)
-        .frame(width: IndicatorLayout.statsSlotWidth, height: IndicatorLayout.capsuleHeight)
+        .frame(width: IndicatorLayout.statsWidth(values: indicator.values.count), height: IndicatorLayout.capsuleHeight)
     }
 
-    private var cpuColor: Color {
-        service.snapshot.cpu > 0.85 ? Theme.red : service.snapshot.cpu > 0.6 ? .orange : .white
+    @ViewBuilder
+    private func text(for value: StatsValue) -> some View {
+        let snapshot = service.snapshot
+        switch value {
+        case .cpu:
+            Text("C " + StatsFormat.percent(snapshot.cpu)).foregroundStyle(Self.color(for: snapshot.cpu))
+        case .memory:
+            Text("M " + StatsFormat.percent(snapshot.memoryShare)).foregroundStyle(Self.color(for: snapshot.memoryShare))
+        case .network:
+            Text("↓" + StatsFormat.shortRate(snapshot.download)).foregroundStyle(.white)
+        }
+    }
+
+    static func color(for share: Double) -> Color {
+        share > 0.85 ? Theme.red : share > 0.6 ? .orange : .white
     }
 }

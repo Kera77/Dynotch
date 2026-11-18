@@ -56,15 +56,21 @@ struct MusicModuleTests {
         #expect(MusicProgressBar.time(125.9) == "2:05")
     }
 
-    @Test @MainActor func theCoverSitsNextToTheNotchAndOpensTheModule() {
+    @Test @MainActor func theCoverSitsLeftOfTheNotchAndStatsOpenTheirModule() {
         let glance = MusicIndicator.Glance(
             trackID: "1", title: "Song", artist: "A", isPlaying: true, artwork: nil, tint: ArtworkColor.fallback
         )
         let items = IndicatorItem.items(
-            meetings: [], usage: nil, tasks: TaskCount(count: 2, isToday: true), music: glance, stats: true
+            meetings: [], usage: nil, tasks: TaskCount(count: 2, isToday: true), music: glance, stats: 2
         )
         #expect(items.map(\.id) == ["music", "stats", "tasks"])
-        #expect(items[0].opensModule == .music)
+        // The cover is on the left, next to the notch, and drops its player down (spec MU-2).
+        #expect(items[0].opensModule == nil)
+        #expect(items[0].slotWidth == 0)
+        #expect(IndicatorItem.iconSlots(for: items).first == 0)
+        let layout = IndicatorLayout(items: items)
+        #expect(layout.rightWidth == IndicatorLayout.statsWidth(values: 2) + IndicatorLayout.tasksSlotWidth
+            + IndicatorLayout.spacing + 2 * IndicatorLayout.padding)
         #expect(items[1].opensModule == .stats)
         #expect(items[2].opensModule == nil)
     }
@@ -97,12 +103,39 @@ struct StatsModuleTests {
         #expect(cpu[3] == nil)
     }
 
-    @Test func warningsCoverMemoryDiskAndHeat() {
-        #expect(StatsWarnings.warnings(memoryPressure: 1, diskFree: 200_000_000_000, diskTotal: 500_000_000_000, thermal: .nominal)
-            .isEmpty)
-        let all = StatsWarnings.warnings(memoryPressure: 4, diskFree: 5_000_000_000, diskTotal: 500_000_000_000, thermal: .serious)
-        #expect(all == ["Memory is critically low", "The disk is almost full", "The Mac is slowing down to cool off"])
-        #expect(StatsWarnings.warnings(memoryPressure: 2, diskFree: nil, diskTotal: nil, thermal: .fair) == ["Memory is running low"])
+    @Test func helpersAreCountedWithTheirApp() {
+        #expect(ProcessReadings.appBundle(of: "/Applications/Zen.app/Contents/MacOS/zen") == "/Applications/Zen.app")
+        let helper = "/Applications/Zen.app/Contents/Frameworks/plugin-container.app/Contents/MacOS/plugin-container"
+        #expect(ProcessReadings.appBundle(of: helper) == "/Applications/Zen.app")
+        #expect(ProcessReadings.appBundle(of: "/usr/libexec/logd") == nil)
+        let groups = ProcessReadings.grouped(
+            cpu: [1: 0.2, 2: 0.3, 3: 0.1], memory: [1: 100, 2: 200, 3: 50],
+            paths: [1: "/Applications/Zen.app/Contents/MacOS/zen", 2: helper, 3: "/usr/libexec/logd"]
+        )
+        let zen = groups.first { $0.key == "/Applications/Zen.app" }
+        #expect(zen?.pids == [1, 2])
+        #expect(abs((zen?.cpu ?? 0) - 0.5) < 0.0001)
+        #expect(zen?.memory == 300)
+        #expect(groups.contains { $0.key == "pid:3" })
+        #expect(StatsService.smoothed(old: [1: 1.0], new: [1: 0.0, 2: 0.5]) == [1: 0.4, 2: 0.5])
+    }
+
+    @Test func warningsCoverMemoryDiskHeatAndSwap() {
+        typealias Reading = StatsWarnings.Reading
+        let calm = Reading(memoryPressure: 1, diskFree: 200_000_000_000, diskTotal: 500_000_000_000)
+        #expect(StatsWarnings.warnings(calm).isEmpty)
+        let gigabyte = StatsWarnings.gigabyte
+        let bad = Reading(
+            memoryPressure: 4, diskFree: 5_000_000_000, diskTotal: 500_000_000_000, thermal: .serious,
+            swapUsed: 5 * gigabyte, swapLimit: 4
+        )
+        #expect(StatsWarnings.warnings(bad) == [
+            "Memory is critically low", "The disk is almost full", "The Mac is slowing down to cool off", "Swap is above 4 GB"
+        ])
+        // Each alert can be turned off (spec SY-9).
+        #expect(StatsWarnings.warnings(bad, off: [.memory, .disk, .heat]) == ["Swap is above 4 GB"])
+        #expect(!StatsWarnings.isOverSwap(Reading(swapUsed: 3 * gigabyte, swapLimit: 4)))
+        #expect(!StatsWarnings.isOverSwap(Reading(swapUsed: 30 * gigabyte, swapLimit: nil)))
     }
 
     @Test func shortRatesFitBesideTheNotch() {

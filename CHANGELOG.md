@@ -10,6 +10,18 @@
   line, pencil, highlighter, pixelate and numbered steps, colours, widths and undo. Recordings
   can include the Mac's sound and the microphone. The tray has a Screenshots tab with the ten
   newest, which open in the editor.
+- System: the closed notch can show CPU, memory and network speed together; each alert can be
+  turned off, and a notification comes when swap goes above a chosen size.
+
+### Changed
+- The Spotify cover sits left of the notch; hovering it drops the player down under the row,
+  which stays visible with its badges and counters.
+- System: an app's helper processes count as the app (e.g. all of Zen's), busiest first.
+- A badge's hover list shows each sender's name once with their messages under it.
+
+### Fixed
+- A menu opened from the notch (output, hide, options) no longer closes the notch when the
+  pointer moves onto it.
 
 ## [0.56.0] - 2026-11-18
 

@@ -7,9 +7,11 @@ extension NotchController {
     /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
     /// ignores the mouse while closed, so this is computed from the pointer position.
     func updateHoveredIndicator() {
+        // A menu opened from a drop-down keeps it (spec N-22).
+        guard !OpenMenus.isOpen else { return }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.isShown,
+            lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
@@ -82,7 +84,7 @@ extension NotchController {
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).
     private func isOnBadgeList(at point: CGPoint, layout: IndicatorLayout, shown: [BadgeItem]) -> Bool {
         guard let current = shown.first(where: { $0.id == model.hoveredBadge }) else { return false }
-        let height = IndicatorLayout.badgeDropdownHeight(count: notifications.badgeRows(for: current.app).count)
+        let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeRows(for: current.app))
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point)

@@ -124,15 +124,19 @@ struct NotchIndicatorView: View {
         case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
             BrandGlyphView(glyph: .claude, size: 16)
-        case .tasks, .music, .stats, .recording:
-            // Only on the right (spec R-10, MU-2, SY-7).
+        case .music(let glance):
+            // Next to the notch on the left (spec MU-2).
+            if let music { MusicCoverRing(service: music, glance: glance) }
+        case .tasks, .stats, .recording:
+            // Only on the right (spec R-10, SY-7, SH-5).
             EmptyView()
         }
     }
 
     private func capsules(now: Date) -> some View {
         HStack(spacing: IndicatorLayout.spacing) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            // Left-only items (the cover) have no capsule.
+            ForEach(Array(items.enumerated()).filter { $0.element.slotWidth > 0 }, id: \.element.id) { index, item in
                 capsule(for: item, now: now)
                     .opacity(hoveredIndex == nil || hoveredIndex == index ? 1 : 0.45)
             }
@@ -163,11 +167,8 @@ struct NotchIndicatorView: View {
                 .frame(width: IndicatorLayout.batterySlotWidth, height: IndicatorLayout.capsuleHeight)
         case .tasks(let count):
             TasksCounter(count: count, width: item.slotWidth, open: openTasks)
-        case .music(let glance):
-            if let music {
-                MusicCoverRing(service: music, glance: glance)
-                    .frame(width: IndicatorLayout.ringSlotWidth, height: IndicatorLayout.capsuleHeight)
-            }
+        case .music:
+            EmptyView()
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
         case .recording(let since):
@@ -209,34 +210,11 @@ extension NotchIndicatorView {
         case .usage(let limits):
             usageLabel(for: limits, now: now)
         case .battery(let device):
-            HStack(spacing: 7) {
-                Text(device.name)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                Text("battery at \(device.level)%")
-                    .font(.system(size: 11))
-                    .foregroundStyle(BatteryFeatureView.red)
-                let samples = batterySamples(device.id)
-                if samples.count > 1 {
-                    BatterySparkline(samples: samples)
-                        .frame(width: 64, height: 16)
-                }
-                if let left = BatteryHistory.estimate(from: samples) {
-                    Text(BatteryHistory.estimateText(left))
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.55))
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                dismissButton(for: item, help: "Hide until it has been recharged")
-            }
-            .padding(.horizontal, 12)
-            .frame(height: IndicatorLayout.labelHeight - 4)
+            batteryLabel(device, item: item)
         case .tasks(let count):
             tasksLabel(count, item: item)
         case .music(let glance):
-            simpleLabel(glance.title, detail: glance.artist, symbol: "music.note", color: glance.tint.color)
+            musicLabel(glance)
         case .recording:
             recordingLabel
         case .stats:

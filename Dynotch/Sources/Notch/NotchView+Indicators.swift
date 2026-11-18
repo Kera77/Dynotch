@@ -54,6 +54,6 @@ extension NotchView {
         guard notifications.peek == nil, let id = model.hoveredBadge,
               let badge = badgeFit.shown.first(where: { $0.id == id })
         else { return nil }
-        return IndicatorLayout.badgeDropdownHeight(count: notifications.badgeRows(for: badge.app).count)
+        return IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeRows(for: badge.app))
     }
 }
