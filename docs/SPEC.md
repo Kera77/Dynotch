@@ -667,7 +667,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | RS-5 | (v0.45: csak az AI; **v0.46: minden modul**) A modulok kitöltik a kapott méretet; az oldalsó listák arányosan nőnek: AI csevegéslista (24%, 160–260 pt), Notes jegyzetlista (26%, 210–320 pt), Beeper/Google Chat lista (30%, 240–360 pt), teljes naptár havi rácsa (30%, 256–380 pt). A naptár napsávján a swipe a megnövelt szélességben is működik. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
 | RS-6 | (v0.46) **Minden modul méretezhető, az újak is** (az új modul automatikusan méretezhető, a nézetének ezt követnie kell; fejlesztői szabály a `CLAUDE.md`-ben). A nagy nézetek (teljes naptár, nagy Notes / Reminders) és a széles csevegőfülek **külön méretet** jegyeznek meg, hogy a kis nézet ne nőjön meg velük. |
 
-## 4ö. Alkalmazásváltó (tervezett, v0.54)
+## 4ö. Alkalmazásváltó (v0.54)
 
 Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és több nézettel.
 
@@ -684,7 +684,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-9 | **Elengedés után:** *Focus* (azonnal vált) vagy *Hold* (nyitva marad, kattintás vagy Enter választ). |
 | AS-10 | **Nyitott váltóban:** W ablak bezárása, M minimalizálás, Q app kilépése, H elrejtése; egérrel kijelölés és kattintás; gépeléssel név szerinti szűrés. |
 | AS-11 | **Swipe:** alapból **háromujjas vízszintes** (3 vagy 4 ujj, vagy ki). Az első mozdulatra megnyílik, az ujjak oldalra mozgatásával lépked a kijelölés (állítható érzékenység), de **amíg az ujjak a trackpaden vannak, csak kiemel**; felemeléskor vált. Felfelé húzás vagy Esc: megszakítás. A trackpad nyers érintéseiből (MultitouchSupport). |
-| AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. Bekapcsoláskor a Dynotch figyelmeztet, és a Trackpad-beállításokhoz visz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. |
+| AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. A *Switcher* beállításoknál ezt egy megjegyzés jelzi, és gomb visz a Trackpad-beállításokhoz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. A trackpadet csak bekapcsolt váltónál figyeli. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
 ---

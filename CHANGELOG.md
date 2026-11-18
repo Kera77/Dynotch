@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- Window switcher (Settings › Switcher, off by default): the windows drop down from the notch as
+  thumbnails, app icons or titles, in three sizes. Current Space or all apps, optionally grouped
+  by app, with minimized and hidden ones, or only the display under the pointer; excluded apps.
+  Open it with your own shortcut (hold the modifier, the key again or the arrows move, letting go
+  switches, or it stays open) or with a three- or four-finger sideways swipe: moving the fingers
+  only highlights, lifting them switches, swiping up cancels. W, M, Q and H close, minimize,
+  quit or hide. Window previews are a separate switch, as they need Screen Recording.
 - Beeper: networks whose app is not installed (e.g. Instagram) get their own icon, fetched once
   from the network's website.
 

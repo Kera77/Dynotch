@@ -110,13 +110,13 @@ final class NotchController {
         ) { [weak self] in
             self?.settingsButtonPressed()
         }
+        rootView.switcher = services.switcher
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
         observeBeeperList(services.beeper)
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         rootView.openFully = { [weak self] in self?.openFully() }
         rootView.openModule = { [weak self] in self?.openFromStrip($0) }
         rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
-        rootView.openChatTab = { [weak self] in self?.openChatTab($0) }
         model.requestCollapse = { [weak self] in self?.collapse() }
         rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }
         rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }

@@ -47,7 +47,12 @@ extension NotchView {
 
     /// The clipboard's items while its shortcut is held, or the drop zone (spec CB-3, FT-1).
     @ViewBuilder var overlayPage: some View {
-        if model.isShowingClipboardPicker {
+        if model.isShowingSwitcher, let switcher {
+            SwitcherView(
+                switcher: switcher, settings: switcher.settings, notchHeight: geometry.notchSize.height,
+                width: model.openSize.width
+            )
+        } else if model.isShowingClipboardPicker {
             ClipboardPickerView(picker: clipboardPicker, store: clipboard, notchHeight: geometry.notchSize.height)
         } else {
             TrayDropZoneView(notchHeight: geometry.notchSize.height, keep: keepInTray, airDrop: sendWithAirDrop)

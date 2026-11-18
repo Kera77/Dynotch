@@ -223,3 +223,26 @@ extension NotchController {
         withAnimation(Self.animation) { model.isScreenShared = shared }
     }
 }
+
+// MARK: - Window switcher (spec AS-6)
+
+extension NotchController {
+    func showSwitcher(_ switcher: SwitcherController) {
+        guard !callIsShown else { return }
+        hideStrip()
+        let settings = switcher.settings
+        let room = CGSize(width: model.geometry.windowSize.width, height: model.geometry.windowSize.height)
+        let size = SwitcherLayout.size(
+            count: switcher.items.count, style: settings.style, scale: settings.size.scale,
+            notchHeight: model.geometry.notchSize.height, room: room
+        )
+        if !model.isExpanded { expand() }
+        isHeldOpen = true
+        withAnimation(Self.animation) { model.setSwitcher(true, size: size) }
+    }
+
+    func hideSwitcher() {
+        withAnimation(Self.animation) { model.setSwitcher(false) }
+        collapse()
+    }
+}

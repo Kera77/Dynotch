@@ -26,4 +26,5 @@ struct AppServices {
     let tray: TrayStore
     let beeper: BeeperService
     let devices: DeviceWatcher
+    let switcher: SwitcherController
 }

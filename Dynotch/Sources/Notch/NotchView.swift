@@ -26,6 +26,8 @@ struct NotchView: View {
     let clipboard: ClipboardStore
     /// Watched by its own views, not by the whole notch (spec N-16).
     let clipboardPicker: ClipboardPicker
+    /// The window switcher (spec AS-6); set after creation.
+    var switcher: SwitcherController?
     /// Watched by its own views, not by the whole notch (spec N-16).
     let tray: TrayStore
     /// Watched by its own views, not by the whole notch (spec N-16).
@@ -43,8 +45,6 @@ struct NotchView: View {
     var openFully: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
-    /// Opens the notch on the Beeper or Google Chat tab (spec BP-12, GC-5).
-    var openChatTab: (NotificationsTab) -> Void = { _ in }
     /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
     var keepInTray: ([URL]) -> Void = { _ in }
     var sendWithAirDrop: ([URL]) -> Void = { _ in }
@@ -224,7 +224,7 @@ struct NotchView: View {
                 SettingsView(
                     settings: settings, calendar: calendar, notifications: notifications,
                     badges: badges, shortcuts: shortcuts, updates: updates, clipboard: clipboard, tray: tray, beeper: beeper,
-                    devices: devices, chat: chat, tasks: tasks
+                    devices: devices, chat: chat, tasks: tasks, switcher: switcher?.settings
                 )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

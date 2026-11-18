@@ -10,6 +10,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case clipboard
     case tray
     case focus
+    case switcher
     case permissions
     case about
 
@@ -26,6 +27,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .clipboard: "Clipboard"
         case .tray: "Tray"
         case .focus: "Focus"
+        case .switcher: "Switcher"
         case .permissions: "Permissions"
         case .about: "About"
         }
@@ -42,6 +44,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .clipboard: "doc.on.clipboard"
         case .tray: "tray"
         case .focus: "cursorarrow.rays"
+        case .switcher: "rectangle.stack"
         case .permissions: "lock.shield"
         case .about: "info.circle"
         }
@@ -61,6 +64,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .clipboard: "clipboard paste saved copy"
         case .tray: "tray files folder airdrop retention drop"
         case .focus: "focus follows mouse autoraise"
+        case .switcher: "switcher alt tab windows apps swipe trackpad thumbnails"
         case .permissions: "privacy access full disk accessibility calendar reminders contacts bluetooth"
         case .about: "version update diagnostics quit"
         }

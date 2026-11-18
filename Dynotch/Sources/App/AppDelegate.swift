@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -32,13 +33,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         clipboardPicker: ClipboardPicker(store: clipboard),
         tray: TrayStore(),
         beeper: BeeperService(),
-        devices: DeviceWatcher(settings: settings)
+        devices: DeviceWatcher(settings: settings),
+        switcher: SwitcherController(settings: SwitcherSettings())
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
     )
     private var notchManager: NotchManager?
     private var textService: TextServiceProvider?
+    private var switcherObserver: AnyCancellable?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -86,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.clipboard.start()
         services.clipboardPicker.present = { [weak manager] shown in manager?.showClipboardPicker(shown) }
         services.clipboardPicker.start()
+        startSwitcher(manager)
         services.beeper.start()
         services.devices.start()
 
@@ -163,6 +167,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notices.show(StickyNotice(
                 title: "Dynotch updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
             ))
+        }
+    }
+
+    /// The window switcher: its shortcut and the trackpad swipe (spec AS-8, AS-11).
+    private func startSwitcher(_ manager: NotchManager) {
+        let switcher = services.switcher
+        switcher.present = { [weak manager] shown in manager?.showSwitcher(shown) }
+        switcher.displayFrame = { NotchManager.pointerDisplayFrame() }
+        switcher.start()
+        let follow: @MainActor () -> Void = {
+            let settings = switcher.settings
+            TrackpadSwipe.fingers = settings.isOn ? settings.swipeFingers : 0
+            // The trackpad is only listened to while the switcher is on.
+            guard settings.isOn, settings.swipeFingers > 0 else { return }
+            TrackpadSwipe.start { event in
+                MainActor.assumeIsolated {
+                    let step = switcher.settings.swipeStep
+                    switch event {
+                    case .began: switcher.swipeBegan()
+                    case .moved(let travel): switcher.swipeMoved(steps: Int((travel / step).rounded(.towardZero)))
+                    case .ended(let cancelled): switcher.swipeEnded(cancelled: cancelled)
+                    }
+                }
+            }
+        }
+        follow()
+        switcherObserver = switcher.settings.objectWillChange.sink { _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { follow() } }
         }
     }
 

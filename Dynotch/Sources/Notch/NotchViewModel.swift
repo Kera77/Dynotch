@@ -155,7 +155,18 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isClipboardInline = false
     static let inlinePickerHeight: CGFloat = 150
 
-    var isShowingOverlayPage: Bool { (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone }
+    /// The window switcher in the notch (spec AS-6), and its measured size.
+    @Published private(set) var isShowingSwitcher = false
+    private(set) var switcherSize = CGSize.zero
+
+    func setSwitcher(_ shown: Bool, size: CGSize = .zero) {
+        if shown { switcherSize = size }
+        if shown != isShowingSwitcher { isShowingSwitcher = shown }
+    }
+
+    var isShowingOverlayPage: Bool {
+        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher
+    }
 
     func setClipboardPicker(_ shown: Bool, inline: Bool = false) {
         if shown != isShowingClipboardPicker { isShowingClipboardPicker = shown }
@@ -179,6 +190,7 @@ final class NotchViewModel: ObservableObject {
             let size = geometry.notificationSize(count: notifications.count, hasReply: true)
             return CGSize(width: size.width, height: notificationsHeight ?? size.height)
         }
+        if isShowingSwitcher { return switcherSize }
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
@@ -216,6 +228,7 @@ final class NotchViewModel: ObservableObject {
             holdsForPreview = false
         }
         if !expanded {
+            isShowingSwitcher = false
             isShowingClipboardPicker = false
             isClipboardInline = false
         }

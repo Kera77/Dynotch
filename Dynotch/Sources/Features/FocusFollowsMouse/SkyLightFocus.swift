@@ -28,6 +28,39 @@ enum SkyLightFocus {
         return address.map { unsafeBitCast($0, to: T.self) }
     }
 
+    /// The app's Accessibility window with this window id, e.g. to raise it (spec AS-13).
+    static func axWindow(pid: pid_t, windowID: CGWindowID) -> AXUIElement? {
+        guard let getWindow else { return nil }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.3)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &value) == .success,
+              let windows = value as? [AXUIElement]
+        else { return nil }
+        return windows.first { window in
+            var id: UInt32 = 0
+            return getWindow(window, &id) == .success && id == windowID
+        }
+    }
+
+    /// The ids of an app's minimized windows (Accessibility), for the switcher (spec AS-3).
+    static func minimizedWindowIDs(of pid: pid_t) -> [CGWindowID] {
+        guard let getWindow else { return [] }
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.2)
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &value) == .success,
+              let windows = value as? [AXUIElement]
+        else { return [] }
+        return windows.compactMap { window in
+            var minimized: CFTypeRef?
+            AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized)
+            var id: UInt32 = 0
+            guard minimized as? Bool == true, getWindow(window, &id) == .success, id != 0 else { return nil }
+            return id
+        }
+    }
+
     /// The window id of the focused window of an app (needs Accessibility).
     static func focusedWindowID(of pid: pid_t) -> CGWindowID? {
         guard let getWindow else { return nil }

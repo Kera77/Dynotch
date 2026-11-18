@@ -14,6 +14,7 @@ struct SettingsView: View {
     let devices: DeviceWatcher
     let chat: ClaudeChatService
     let tasks: TaskIndicator
+    var switcher: SwitcherSettings?
 
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
@@ -53,6 +54,8 @@ struct SettingsView: View {
             TraySettingsView(tray: tray)
         case .focus:
             FocusSettingsView(settings: settings)
+        case .switcher:
+            if let switcher { SwitcherSettingsView(settings: switcher) }
         case .permissions:
             PermissionsSettingsView(notifications: notifications)
         case .about:

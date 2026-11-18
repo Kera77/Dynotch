@@ -69,6 +69,27 @@ final class NotchManager {
         }
     }
 
+    /// The window switcher, on the display under the pointer (spec AS-6).
+    func showSwitcher(_ shown: Bool) {
+        let pointer = NSEvent.mouseLocation
+        if shown {
+            let controller = controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+            controller?.showSwitcher(services.switcher)
+        } else {
+            controllers.filter(\.model.isShowingSwitcher).forEach { $0.hideSwitcher() }
+        }
+    }
+
+    /// The pointer's display in window-list coordinates (top-left origin), for "only this display".
+    static func pointerDisplayFrame() -> CGRect? {
+        let pointer = NSEvent.mouseLocation
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(pointer) }),
+              let primary = NSScreen.screens.first
+        else { return nil }
+        let frame = screen.frame
+        return CGRect(x: frame.minX, y: primary.frame.maxY - frame.maxY, width: frame.width, height: frame.height)
+    }
+
     func togglePin() {
         let pointer = NSEvent.mouseLocation
         let controller = controllers.first { $0.model.isExpanded }
