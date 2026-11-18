@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.57 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.58 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -803,6 +803,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.58** | Értesítő sáv X-szel; stabil almenük; Retina képernyőképek szálkereszttel; memória footprinttel; Beeper-jelvény olvasatlan csevegésekkel; AirPods hangerő; számváltás borítóval és futó szöveggel; beállítások lenyitott sora a látótérbe görget; AirPods füles és tok töltöttsége ikonokkal |
 | **v0.57** | Képmetsző (⌃⇧S módváltással: terület, ablak, teljes képernyő, görgetett, videó; szerkesztő a notchban; tálca Screenshots fül); borító a notch bal oldalán lenyíló lejátszóval; a menük nem zárják be a notchot; System: több érték, kapcsolható és elrejthető figyelmeztetések, swap-értesítés, összevont appfolyamatok; jelvénylista küldőnként; Reminders két választható oszloppal; nagyobb szintkör; switcher: csak takart ablakok |
 | **v0.56** | Zenelejátszó (Spotify): borító a notch mellett a haladás karikájával, lejátszó modul, borító és lista kapcsolói, elrejtés szünetnél; rendszerstatisztika modul (CPU, memória, hálózat, lemez, akku, folyamatok, érték és figyelmeztetés a notch mellett); Reminders: legújabb felül, „i” részletek panel dátummal és időponttal; a böngészős (Google Chat) értesítések megmaradnak; csoport fejlécében kuka és X |
 | **v0.55** | Jelvény: kattintásra az értesítései, hoverre lenyíló lista; Google Chat-válasz a tér nevével és szigorúbb ellenőrzéssel; a váltó kijelölése animál, a swipe-távolság egyértelmű és nem fordul körbe |

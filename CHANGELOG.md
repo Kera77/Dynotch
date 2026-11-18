@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.58.0] - 2026-11-18
+
 ### Fixed
 - The notice under the notch (e.g. "Dynotch updated") has the small X instead of the arrow.
 - Submenus in the System options and the music player stay open while choosing.
