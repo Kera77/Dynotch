@@ -16,6 +16,11 @@ xcodebuild test -project Dynotch.xcodeproj -scheme Dynotch -destination 'platfor
 # switch can end up on it instead of /Applications/Dynotch.app (notifications then denied).
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
   -u "$out/DerivedData/Build/Products/Debug/Dynotch.app" 2>/dev/null
+# Tests make UserDefaults suites named "<Suite>-<UUID>" (e.g. "V045Tests-…"); remove their files,
+# which otherwise pile up by thousands. Only names ending in a UUID, never an app's own file.
+uuid='[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
+find -E "$HOME/Library/Preferences" -maxdepth 1 -type f \
+  -regex ".*/(DynotchTests|[A-Za-z]*Tests[A-Za-z-]*|V0[0-9]{2}[A-Za-z-]*)-$uuid\.plist" -delete 2>/dev/null
 grep -E "(warning|error):" "$out/lint.log" | head -40
 grep -E "error:|✘|Test run with|recorded an issue" "$out/test.log" | grep -v "linkd" | sort -u | head -40
 echo "CHECK lint=$lint tests=$tests"
