@@ -11,6 +11,16 @@ struct AppearanceSettingsView: View {
                     ForEach(NotchDesign.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                LabeledContent("Open panel opacity") {
+                    HStack(spacing: 8) {
+                        Slider(value: $settings.panelOpacity, in: AppSettings.panelOpacityRange, step: 0.05)
+                            .frame(width: 160)
+                        Text("\(Int((settings.panelOpacity * 100).rounded())) %")
+                            .monospacedDigit()
+                            .frame(width: 48, alignment: .trailing)
+                    }
+                }
+                Toggle("Resize modules from the bottom right corner", isOn: $settings.resizableModules)
                 Picker("Displays without a notch", selection: $settings.externalStyle) {
                     ForEach(ExternalNotchStyle.allCases, id: \.self) { Text($0.title).tag($0) }
                 }

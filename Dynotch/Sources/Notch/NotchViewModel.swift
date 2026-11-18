@@ -82,9 +82,13 @@ final class NotchViewModel: ObservableObject {
     let settings: AppSettings
     let geometry: NotchGeometry
     let screenName: String
+    let moduleSizes: ModuleSizes
+    /// The size while the resize handle is dragged; saved when the drag ends (spec RS-1).
+    @Published var resizingSize: CGSize?
 
-    init(settings: AppSettings, geometry: NotchGeometry, screenName: String) {
+    init(settings: AppSettings, geometry: NotchGeometry, screenName: String, moduleSizes: ModuleSizes = ModuleSizes()) {
         self.settings = settings
+        self.moduleSizes = moduleSizes
         self.geometry = geometry
         self.screenName = screenName
         currentFeature = settings.initialFeature
@@ -137,8 +141,14 @@ final class NotchViewModel: ObservableObject {
         if shown != isShowingDropZone { isShowingDropZone = shown }
     }
 
-    /// Size of the panel while it is open.
+    /// Size of the panel while it is open: the module's resized size, or its normal one.
     var openSize: CGSize {
+        if canResize, let size = resizingSize ?? savedModuleSize { return size }
+        return normalOpenSize
+    }
+
+    /// Size of the panel while it is open, without a resized module (spec RS-1).
+    var normalOpenSize: CGSize {
         // Room at the bottom for the reply field, or the "open to reply" button.
         if isShowingNotifications { return geometry.notificationSize(count: notifications.count, hasReply: true) }
         if isShowingOverlayPage {

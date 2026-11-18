@@ -44,7 +44,8 @@ final class TrayStore: ObservableObject {
     static let retentionChoices = [0, 1, 3, 7, 14, 30]
     private static let retentionKey = "trayRetentionDays"
     private let defaults: UserDefaults
-    private let folder: URL
+    /// Dynotch's own tray folder, where files without a lasting place are copied (spec FT-2).
+    let folder: URL
 
     init(defaults: UserDefaults = .standard, folder: URL? = nil) {
         self.defaults = defaults

@@ -31,6 +31,8 @@ final class AppSettings: ObservableObject {
         static let hideInFullScreen = "hideInFullScreen"
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let design = "design"
+        static let panelOpacity = "panelOpacity"
+        static let resizableModules = "resizableModules"
         static let externalStyle = "externalStyle"
         static let moduleStrip = "moduleStrip"
         static let moduleStripDelay = "moduleStripDelay"
@@ -159,6 +161,18 @@ final class AppSettings: ObservableObject {
     /// The look of the open notch and the menu bar panels (spec D-1).
     @Published var design: NotchDesign {
         didSet { defaults.set(design.rawValue, forKey: Key.design) }
+    }
+
+    /// How opaque the open panel's background is; the closed notch stays black (spec D-13).
+    @Published var panelOpacity: Double {
+        didSet { defaults.set(panelOpacity, forKey: Key.panelOpacity) }
+    }
+
+    static let panelOpacityRange: ClosedRange<Double> = 0.4...1
+
+    /// Modules can be resized from their bottom right corner (spec RS-4).
+    @Published var resizableModules: Bool {
+        didSet { defaults.set(resizableModules, forKey: Key.resizableModules) }
     }
 
     /// Resting the pointer at the notch's bottom edge shows the modules under it (spec MS-1).
@@ -292,9 +306,10 @@ final class AppSettings: ObservableObject {
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
+        resizableModules = defaults.object(forKey: Key.resizableModules) as? Bool ?? true
+        panelOpacity = Self.stored(defaults, Key.panelOpacity, default: 1, in: Self.panelOpacityRange)
         moduleStrip = defaults.object(forKey: Key.moduleStrip) as? Bool ?? true
-        let storedStripDelay = defaults.object(forKey: Key.moduleStripDelay) as? Double ?? 0.3
-        moduleStripDelay = min(max(storedStripDelay, Self.moduleStripDelayRange.lowerBound), Self.moduleStripDelayRange.upperBound)
+        moduleStripDelay = Self.stored(defaults, Key.moduleStripDelay, default: 0.3, in: Self.moduleStripDelayRange)
         // The lower half by default (v0.42); a band below a quarter from 0.41 was too thin.
         let storedBand = (defaults.object(forKey: Key.moduleStripBand) as? Double).flatMap { $0 < 0.25 ? nil : $0 } ?? 0.5
         moduleStripBand = min(max(storedBand, Self.moduleStripBandRange.lowerBound), Self.moduleStripBandRange.upperBound)
@@ -304,14 +319,12 @@ final class AppSettings: ObservableObject {
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)
-        let storedPreviewDelay = defaults.object(forKey: Key.previewDelay) as? Double ?? 1.5
-        previewDelay = min(max(storedPreviewDelay, Self.previewDelayRange.lowerBound), Self.previewDelayRange.upperBound)
+        previewDelay = Self.stored(defaults, Key.previewDelay, default: 1.5, in: Self.previewDelayRange)
         previewOpensOnClick = defaults.object(forKey: Key.previewClick) as? Bool ?? true
         claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true
-        let storedFocusDelay = defaults.object(forKey: Key.focusDelay) as? Double ?? 0.1
-        focusDelay = min(max(storedFocusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound)
+        focusDelay = Self.stored(defaults, Key.focusDelay, default: 0.1, in: Self.focusDelayRange)
         settingsPresentation = defaults.string(forKey: Key.settingsPresentation)
             .flatMap(SettingsPresentation.init(rawValue:)) ?? .notch
         let storedLead = defaults.object(forKey: Key.calendarLeadMinutes) as? Int ?? Self.defaultCalendarLeadMinutes
@@ -364,36 +377,5 @@ extension AppSettings {
 
     func setNotificationApp(_ identifier: String, enabled: Bool) {
         notificationApps[identifier] = enabled
-    }
-
-    /// Moves an enabled feature to a position among the enabled ones (menu bar drag, spec M-6).
-    /// Disabled features keep their places in `featureOrder`.
-    func moveActiveFeature(_ feature: FeatureID, toActiveIndex index: Int) {
-        var active = activeFeatures
-        guard let from = active.firstIndex(of: feature) else { return }
-        active.remove(at: from)
-        active.insert(feature, at: min(max(index, 0), active.count))
-        guard active != activeFeatures else { return }
-        var remaining = active.makeIterator()
-        featureOrder = featureOrder.map { enabledFeatures.contains($0) ? (remaining.next() ?? $0) : $0 }
-    }
-
-    func moveFeatures(from source: IndexSet, to destination: Int) {
-        var order = featureOrder
-        let moving = source.sorted().map { order[$0] }
-        for index in source.sorted(by: >) { order.remove(at: index) }
-        let insertAt = destination - source.filter { $0 < destination }.count
-        order.insert(contentsOf: moving, at: max(0, min(insertAt, order.count)))
-        featureOrder = order
-    }
-
-    static func normalizedDelay(_ value: Double) -> Double {
-        let clamped = min(max(value, closeDelayRange.lowerBound), closeDelayRange.upperBound)
-        return (clamped * 10).rounded() / 10
-    }
-
-    private static func deduplicated(_ list: [FeatureID]) -> [FeatureID] {
-        var seen = Set<FeatureID>()
-        return list.filter { seen.insert($0).inserted }
     }
 }

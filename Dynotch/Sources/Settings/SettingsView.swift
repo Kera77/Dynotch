@@ -47,7 +47,9 @@ struct SettingsView: View {
         case .badges:
             BadgeSettingsView(service: badges)
         case .clipboard:
-            ClipboardSettingsView(clipboard: clipboard, tray: tray)
+            ClipboardSettingsView(clipboard: clipboard)
+        case .tray:
+            TraySettingsView(tray: tray)
         case .focus:
             FocusSettingsView(settings: settings)
         case .permissions:

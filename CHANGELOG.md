@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+- Resize modules like on an iPad: rest the pointer in the bottom right corner and drag the arc;
+  ↺ restores the normal size. Kept per module and display; for now the AI module. Can be turned
+  off in Settings › Appearance.
+- Open panel opacity slider (40–100 %) in Settings › Appearance; the closed notch stays black.
+- The tray has its own Settings tab, with a button that shows the tray folder in Finder.
+- Calendar: hovering a bar on the day timeline shows the meeting's name and time.
+
+### Changed
+- Calendar: the day timeline's bars show only the calendar colour, without the name.
+- App badges: background helpers (e.g. AddressBookUrlForwarder) are no longer offered.
+- The "swipe up to dismiss" arrow under the notch is smaller and sharper.
+- Focus follows mouse follows windows, not apps: another window of the active app (e.g. the
+  same browser on two displays) gets the focus too; dialogs, sheets and pop-ups are left alone.
+
+### Fixed
+- Clicking the X (or Join) of an announced meeting under the notch clicked the app behind it.
+
 ## [0.44.0] - 2026-11-18
 
 ### Added

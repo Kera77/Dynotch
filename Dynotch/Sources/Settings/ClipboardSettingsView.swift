@@ -1,10 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// Settings › Clipboard: the clipboard's shortcuts and size, and the file tray (spec CB-7, FT-6).
+/// Settings › Clipboard: the clipboard's shortcuts and size (spec CB-7).
 struct ClipboardSettingsView: View {
     @ObservedObject var clipboard: ClipboardStore
-    @ObservedObject var tray: TrayStore
 
     var body: some View {
         Form {
@@ -48,20 +47,6 @@ struct ClipboardSettingsView: View {
                 Button("Add App…", action: addExcludedApp)
             } header: {
                 Text("Not kept from these apps")
-            }
-            Section {
-                Picker("Files leave the tray", selection: $tray.retentionDays) {
-                    ForEach(TrayStore.retentionChoices, id: \.self) { days in
-                        Text(days == 0 ? "Never" : "After \(days) day\(days == 1 ? "" : "s")").tag(days)
-                    }
-                }
-            } header: {
-                Text("File tray")
-            } footer: {
-                Text("The tray keeps references to the files, not copies; files without a lasting place (e.g. dragged from a "
-                    + "browser) are copied into Dynotch's tray folder.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

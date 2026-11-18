@@ -8,6 +8,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case notifications
     case badges
     case clipboard
+    case tray
     case focus
     case permissions
     case about
@@ -23,6 +24,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .notifications: "Notifications"
         case .badges: "App badges"
         case .clipboard: "Clipboard"
+        case .tray: "Tray"
         case .focus: "Focus"
         case .permissions: "Permissions"
         case .about: "About"
@@ -38,6 +40,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .notifications: "bell"
         case .badges: "app.badge"
         case .clipboard: "doc.on.clipboard"
+        case .tray: "tray"
         case .focus: "cursorarrow.rays"
         case .permissions: "lock.shield"
         case .about: "info.circle"
@@ -53,7 +56,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "meetings countdown lead time"
         case .notifications: "banner beeper token sources websites reply unread"
         case .badges: "dock badge unread apps icons"
-        case .clipboard: "clipboard paste saved tray airdrop files"
+        case .clipboard: "clipboard paste saved copy"
+        case .tray: "tray files folder airdrop retention drop"
         case .focus: "focus follows mouse autoraise"
         case .permissions: "privacy access full disk accessibility calendar reminders contacts bluetooth"
         case .about: "version update diagnostics quit"

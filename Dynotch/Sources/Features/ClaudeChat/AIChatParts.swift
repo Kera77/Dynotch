@@ -296,3 +296,79 @@ struct AIContextBar: View {
         if panel.runModal() == .OK { service.attachments += panel.urls }
     }
 }
+
+/// Three dots lighting up in turn: Claude is working (spec CC-4).
+struct WorkingDots: View {
+    var color: Color = .white
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 15)) { context in
+            let step = context.date.timeIntervalSinceReferenceDate * 2.2
+            HStack(spacing: 3) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(color)
+                        .frame(width: 4, height: 4)
+                        .opacity(0.3 + 0.7 * max(0, sin(step - Double(index) * 0.9)))
+                }
+            }
+        }
+    }
+}
+
+/// The sidebar button's mark: a rounded frame with a short bar at its left edge.
+struct SidebarGlyph: View {
+    var body: some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 3.5, style: .continuous)
+                .stroke(lineWidth: 1.5)
+            Capsule()
+                .frame(width: 2, height: 6)
+                .padding(.leading, 3.5)
+        }
+        .frame(width: 16, height: 12)
+    }
+}
+
+/// The service's own app icon (from the installed Claude or ChatGPT app), Claude's mark or a
+/// symbol when the app is not installed (spec AI-13).
+struct AIGlyph: View {
+    let provider: AIProvider
+    var size: CGFloat = 14
+
+    var body: some View {
+        if let icon = provider.appIcon {
+            Image(nsImage: icon).resizable().scaledToFit().frame(width: size + 2, height: size + 2)
+        } else if provider == .claude {
+            BrandGlyphView(glyph: .claude, size: size)
+        } else {
+            Image(systemName: "bubble.left.and.text.bubble.right.fill")
+                .font(.system(size: size * 0.85, weight: .semibold))
+                .foregroundStyle(.white)
+        }
+    }
+}
+
+extension AIProvider {
+    /// The app's identifiers, newest first: the ChatGPT app now runs as `com.openai.codex`.
+    var bundleIdentifiers: [String] {
+        switch self {
+        case .claude: ["com.anthropic.claudefordesktop"]
+        case .chatgpt: ["com.openai.codex", "com.openai.chat"]
+        }
+    }
+
+    private var appPath: String {
+        switch self {
+        case .claude: "/Applications/Claude.app"
+        case .chatgpt: "/Applications/ChatGPT.app"
+        }
+    }
+
+    /// The installed app's icon, if the app is there.
+    var appIcon: NSImage? {
+        let url = bundleIdentifiers.lazy.compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }.first
+            ?? (FileManager.default.fileExists(atPath: appPath) ? URL(fileURLWithPath: appPath) : nil)
+        return url.map { NSWorkspace.shared.icon(forFile: $0.path) }
+    }
+}

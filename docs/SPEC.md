@@ -193,9 +193,11 @@
 | K-8f | **Bejelentés:** amikor egy meeting bekerül az előjelzési időbe (alapból 10 perccel a kezdés előtt), a notch magától lenyílik a meeting nevével, ugyanúgy, mint hovernél. **Nyitva marad, amíg két ujjal felfelé nem söpröd** (a lenyitott név fölött); ezután csak a visszaszámláló marad, a név akkor sem nyílik ki újra, ha az egér még ott van (csak ha elhagyta és visszatér). Minden meeting egyszer kerül bejelentésre. |
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-8h | (v0.40) A meeting-visszaszámláló (előjelzés és „folyamatban”) **hover-sorában** a név és az idő mellett, az **X-től balra** a **Join** gomb is ott van, ha a meetingnek van linkje; a meetinget nyitja meg. |
+| K-8i | (v0.45) A **bejelentett** meeting sorában (K-8f, hover nélkül is látszik) az X és a Join gomb fölött a notch átveszi az egeret: a kattintás nem megy át a notch mögötti appra. |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 | K-14 | (v0.43, v0.44-ben bővítve) **Napi idővonal** a napi nézetben: az események színes sávként (ha elég széles, a nevükkel) 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
 | K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. |
+| K-14b | (v0.45) Az idővonal sávjain **nincs felirat**, csak a naptár saját színe. Egy sávra mutatva a sáv alatt, az órák sorában buborék jelenik meg a meeting nevével és idejével (a rendszer lassú súgója helyett). |
 
 ---
 
@@ -331,6 +333,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-10 | (v0.35, **v0.36.1-ben visszavonva**) A kattintás körüli szünet (lenyomáskor a függő váltás megszakítása, utána 0,5 mp szünet) után a fókusz alig követte az egeret, ezért a korábbi működés állt vissza. Helyette a `focus.log` rögzíti, miért marad el egy váltás (Dynotch-ablaké a billentyűzet; az ablak kétszer sem tartotta meg a fókuszt; a WindowServer elutasította), okonként legfeljebb percenként egyszer, app- és ablaknevek nélkül. |
 | F-11 | (v0.37) A notch panelje bezárás után is „billentyűzetet fogadónak” jelezte magát (nem aktiválja az appot, így semmi nem veszi el tőle ezt az állapotot), ezért gépelés után (beállítások, számológép, jegyzet) a fókusz sokáig nem követte az egeret, főleg kijelzők közötti váltáskor. A notch panelje mostantól csak akkor számít, amikor nyitva van és valóban kéri a billentyűzetet. |
 | F-12 | (v0.38) **A szoftveresen rajzolt egérmutató nem akadály:** amikor a macOS szoftveresen rajzolja a mutatót (pl. amíg egy iPad kijelzőként csatlakozik), az egy saját ablak a mutató alatt, a legfelső szinten. Ezt (és a fölötte lévő szinteket) a választás átnézi; korábban emiatt a fókusz egyáltalán nem követte az egeret. |
+| F-13 | (v0.45, az F-8 első mondatát felváltja) **Ablakokat követ, nem appokat:** az aktív app egy másik ablakára is vált (pl. ugyanaz a böngésző két monitoron, két ablakban). Az appon belül nem vált, ha az app fókuszált ablaka párbeszédablak, sheet vagy modális, ha a célablak kisebb 120 × 80 pt-nál (felugró ablak), és ha a fókuszált ablak nem állapítható meg (Kisegítő hozzáférés nélkül). Az F-8 kétszeri próbálkozási korlátja marad. |
 
 ---
 
@@ -364,6 +367,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-6 | **Bal kattintás** az ikonra megnyitja az alkalmazást (v0.24). **Jobb kattintás** lenyitja a notchot az Értesítések funkcióval, és csak **az adott app még meg nem nyitott értesítéseit** mutatja (a legfrissebbeket, annyit, amennyit a jelvény számol); „All” gombbal vissza a teljes listára, „Open <app>” gombbal megnyitható az alkalmazás. Ha az Értesítések funkció ki van kapcsolva, a kattintás az appot nyitja meg. |
 | B-7 | **Sorrend** fogd-és-vidd módszerrel módosítható a notchon (az ikonok húzásával) és a beállítások listájában is. |
 | B-8 | (v0.31) **Nem takarja a menüsort:** az app méri, hol ér véget a menüsor a notch bal oldalán (az aktív app menüi Kisegítő hozzáféréssel, a menüikonok a rendszer ablaklistájából), appváltáskor és 3 másodpercenként. Ha a jelvények belelógnának, csak annyi látszik, amennyi kifér (a sorrend elejéről), a többit a bal szélen egy **„‹ +N”** jel mutatja. **Hoverre** az összes kinyílik (ilyenkor ideiglenesen takarhatják a menüt), és visszacsukódik, ha az egér elhagyja a notch bal oldalát. Mérések között egy pillanatra előfordulhat átfedés. |
+| B-9 | (v0.45) A hozzáadható appok listájában **nincsenek háttér-segédappok**: kimaradnak az `LSUIElement` / `LSBackgroundOnly` appok (nincs Dock-ikonjuk, így jelvényük sem), és a `/System/Library/CoreServices` mappából csak a Finder jelenik meg (pl. AddressBookUrlForwarder nem). Az *Utilities* mappa appjai maradnak. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -408,6 +412,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CN-1 | Amikor a Claude Code befejez egy feladatot, a becsukott notch alatt megjelenik egy sor: fehér Claude-ikon, „Claude finished”, a projekt neve és az időpont. **Csak kétujjas felfelé swipe-ra tűnik el.** Ha egy jelző részletei (hover, meeting-bejelentés) nyitva vannak, azok látszanak helyette. |
 | CN-3 | A jelzés **csak akkor jelenik meg, ha a Claude Code mindennel végzett**: ha a leállás pillanatában még fut háttérfeladata (a munkamenet naplója szerint elindult, de nem jelentett vissza és nem lett leállítva), nincs jelzés; az a végső leálláskor jön. A Dynotch saját chatjének futásai nem váltják ki. |
 | CN-4 | (v0.26) A jelzés azt a projektet nevezi meg, amelyben a munkamenet **ténylegesen dolgozott** (a napló utolsó szakaszában legtöbbet érintett git-repó), nem azt a mappát, ahonnan a munkamenet indult. |
+| CN-5 | (v0.45) A becsukott notch alatti jelzések (pl. „Dynotch updated”) jobb szélén a „két ujjal felfelé eltüntethető” jelzés **kisebb, élesebb, hegyesebb szögű nyíl** (a korábbi lapos chevron helyett). |
 | CN-2 | Működés: a Beállítások › General kapcsolója egy „Stop” hookot ír a `~/.claude/settings.json` fájlba (biztonsági másolattal), amely a `dynotch://claude-finished?project=…` hivatkozást nyitja meg. Kikapcsolva a hook törlődik. |
 
 ## 4n. Claude a notchban (v0.24)
@@ -489,6 +494,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-10 | (v0.43) Egyforma **kapszula-választó**: értesítés-fülek, vágólap-fülek, AI-szolgáltató, AI usage, tálca nézete. |
 | D-11 | (v0.43) Egyforma **üres állapot**: ikon, egy mondat és ha van, a teendő gombja (pl. *Open Beeper*). |
 | D-12 | (v0.43) A **menüsor-buborékok** mindig az eredeti fekete designt kapják, Liquid Glass nélkül, a notch designjától függetlenül. Minden ikongombnak van VoiceOver-címkéje. |
+| D-13 | (v0.45) *Settings › Appearance*: **Open panel opacity** csúszka, 40–100% (alapból 100%). Csak a lenyitott panel hátterére hat, minden designnál; a becsukott notch, a lelógó értesítés és az előnézet fekete marad. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -580,6 +586,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
 | FT-12 | (v0.43) A kihúzott fájl a behúzáskori nevét tartja meg (a tálca mappánként tárolja). |
 | FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). |
+| FT-14 | (v0.45) A tálca beállításai **saját *Tray* fülre** kerültek (eddig a Clipboard fülön voltak): lejárat (FT-6) és **Show in Finder** gomb, ami megnyitja a Dynotch tálcamappáját. |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
 
@@ -611,6 +618,16 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-14 | (v0.43) **Diktálás:** mikrofon gomb a beviteli mező mellett, a macOS diktálását indítja (saját mikrofonengedély nélkül). |
 | AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
 | AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
+
+## 4ö. Modulok átméretezése (v0.45)
+
+| # | Követelmény |
+|---|-------------|
+| RS-1 | iPad-szerű átméretezés: a lenyitott modul **jobb alsó sarkában** (16 × 16 pt) 0,4 mp-ig nyugvó egérre a sarok ívét követő **fehér ív** jelenik meg; ezt húzva a modul **szabadon** méretezhető, a notch élőben követi. Mellette egy **↺ gomb** (csak ha a méret eltér a normáltól) visszaállítja a normál méretet. |
+| RS-2 | A notch középen marad: a szélesség **mindkét oldalra szimmetrikusan** nő (a sarok az egérrel együtt mozog), a magasság lefelé. Legkisebb a modul normál mérete, legnagyobb a kijelző szélessége − 40 pt és magasságának 75%-a. A notch ablaka ehhez a legnagyobb mérethez igazodik. |
+| RS-3 | A beállított méretet **modulonként és kijelzőnként** megjegyzi (újraindítás után is). |
+| RS-4 | *Settings › Appearance*: **Resize modules from the bottom right corner** kapcsoló (alapból be). Kikapcsolva minden modul a normál méretén nyílik. |
+| RS-5 | Egyelőre az **AI** modul méretezhető; a csevegéslista szélessége a modullal nő (a szélesség 24%-a, 160–260 pt). A többi modul később, egyenként, reszponzív elrendezéssel követi. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
 
 ## 5. Nyitott kérdések
 

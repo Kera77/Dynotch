@@ -52,7 +52,6 @@ enum WindowPicker {
 
 /// When focus must not follow the pointer (spec F-8).
 enum FocusRules {
-    /// Focus only moves to another app, never between the windows of the active one.
     /// A Dynotch window someone may be typing in. The notch panel keeps reporting itself as
     /// key after it closed (it never activates the app, so nothing takes that from it); it only
     /// counts while it asks for the keyboard (spec F-4, F-11).
@@ -62,8 +61,16 @@ enum FocusRules {
         return (window as? NotchPanel)?.allowsKey ?? true
     }
 
-    static func shouldSwitch(targetPID: pid_t, frontPID: pid_t?) -> Bool {
-        targetPID != frontPID
+    /// Windows smaller than this inside the active app are taken for pop-ups (spec F-13).
+    static let minimumSwitchSize = CGSize(width: 120, height: 80)
+
+    /// Focus follows windows, not apps (spec F-13): another app's window always; another window
+    /// of the active app only when that app's focused window is known and is not a dialog or
+    /// sheet (which want to keep the focus), and the target is not a small pop-up.
+    static func shouldSwitch(target: ScreenWindow, frontPID: pid_t?, focusedWindow: CGWindowID?, focusedIsDialog: Bool) -> Bool {
+        guard target.pid == frontPID else { return true }
+        guard let focusedWindow, focusedWindow != target.id, !focusedIsDialog else { return false }
+        return target.bounds.width >= minimumSwitchSize.width && target.bounds.height >= minimumSwitchSize.height
     }
 
     static func isDialog(subrole: String) -> Bool {

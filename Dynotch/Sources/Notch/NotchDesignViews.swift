@@ -58,6 +58,8 @@ struct DesignBackground<S: Shape>: View {
     var layer = DesignLayer.content
     /// The solid colour of the black design.
     var solid = Color.black
+    /// The open panel's opacity (spec D-13); the closed notch is always fully black.
+    var openOpacity = 1.0
 
     /// Black to glass: black over the top row, then fading out.
     static var blendMask: LinearGradient {
@@ -69,18 +71,19 @@ struct DesignBackground<S: Shape>: View {
 
     var body: some View {
         let glass = isOpen && design != .black
+        let open = isOpen ? openOpacity : 1
         switch layer {
         case .glass:
             GlassFill(shape: shape)
-                .opacity(glass ? 1 : 0)
+                .opacity(glass ? open : 0)
         case .content:
             ZStack {
                 shape.fill(solid)
-                    .opacity(glass ? 0 : 1)
+                    .opacity(glass ? 0 : open)
                 if design == .blend {
                     shape.fill(solid)
                         .mask(Self.blendMask)
-                        .opacity(glass ? 1 : 0)
+                        .opacity(glass ? open : 0)
                 }
             }
         }

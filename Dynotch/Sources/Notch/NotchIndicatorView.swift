@@ -234,9 +234,11 @@ extension NotchIndicatorView {
                 .foregroundStyle(Color.white.opacity(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
-            Image(systemName: "chevron.compact.up")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.4))
+            SwipeUpArrow()
+                .stroke(Color.white.opacity(0.45), style: StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .miter))
+                .frame(width: 8, height: 6)
+                .padding(.horizontal, 2.5)
+                .accessibilityElement()
                 .help("Swipe up with two fingers to dismiss")
                 .accessibilityLabel("Swipe up with two fingers to dismiss")
         }
@@ -362,5 +364,16 @@ private struct OverflowChip: View {
         .background(Capsule(style: .continuous).fill(Color.white.opacity(0.14)))
         .frame(height: IndicatorLayout.iconHeight)
         .help("\(count) more app\(count == 1 ? "" : "s") with notifications")
+    }
+}
+
+/// The "swipe up to dismiss" hint: a small, sharp chevron with a narrow angle (spec CN-5).
+struct SwipeUpArrow: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        return path
     }
 }

@@ -29,6 +29,9 @@ struct DayTimelineView: View {
     let now: Date
     let join: (CalendarEvent) -> Void
 
+    /// The bar under the pointer, whose name shows over the hours (spec K-14b).
+    @State private var hovered: CalendarEvent?
+
     private var hours: ClosedRange<Int> { TimelineRange.hours(for: events, on: day) }
 
     private var nextMeeting: CalendarEvent? {
@@ -56,6 +59,9 @@ struct DayTimelineView: View {
                         .frame(width: 2, height: 20)
                         .offset(x: TimelineRange.position(of: now, in: hours, on: day) * width - 1)
                 }
+                if let hovered {
+                    nameBubble(hovered, width: width)
+                }
             }
         }
         .frame(height: 32)
@@ -74,21 +80,48 @@ struct DayTimelineView: View {
         return RoundedRectangle(cornerRadius: 3, style: .continuous)
             .fill(event.color.color.opacity(event.hasEnded(at: now) ? 0.35 : 0.9))
             .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).stroke(Color.white, lineWidth: isNext ? 1.5 : 0))
-            // The meeting's name on its bar when there is room for a few letters (spec K-14).
-            .overlay(alignment: .leading) {
-                if end - start >= 28 {
-                    Text(event.title)
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(.white.opacity(event.hasEnded(at: now) ? 0.6 : 1))
-                        .shadow(color: .black.opacity(0.5), radius: 1)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .padding(.horizontal, 4)
+            // Only the colour on the bar; the name shows on hover (spec K-14b).
+            .frame(width: max(end - start, 3), height: 14)
+            .contentShape(Rectangle())
+            .onHover { inside in
+                if inside {
+                    hovered = event
+                } else if hovered?.id == event.id {
+                    hovered = nil
                 }
             }
-            .frame(width: max(end - start, 3), height: 14)
             .offset(x: start, y: 3)
-            .help(event.title + (isNext ? " – click to join" : ""))
             .onTapGesture { if event.meetingURL != nil { join(event) } }
+            .accessibilityLabel(event.title)
+    }
+
+    /// The hovered meeting's name and time, over the hours under its bar, kept inside the line.
+    private func nameBubble(_ event: CalendarEvent, width: Double) -> some View {
+        let start = TimelineRange.position(of: event.start, in: hours, on: day) * width
+        let end = TimelineRange.position(of: event.end, in: hours, on: day) * width
+        let time = event.start.formatted(date: .omitted, time: .shortened) + "–" + event.end.formatted(date: .omitted, time: .shortened)
+        let bubbleWidth = min(width, 240)
+        let center = min(max((start + end) / 2, bubbleWidth / 2), width - bubbleWidth / 2)
+        return HStack(spacing: 4) {
+            Circle().fill(event.color.color).frame(width: 6, height: 6)
+            Text(event.title)
+                .font(.system(size: 10, weight: .semibold))
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text(time)
+                .font(.system(size: 9, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.6))
+                .fixedSize()
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 6)
+        .frame(height: 14)
+        .background(Capsule().fill(Color(white: 0.16)))
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: bubbleWidth)
+        .position(x: center, y: 26)
+        .allowsHitTesting(false)
+        .transition(.opacity)
     }
 }

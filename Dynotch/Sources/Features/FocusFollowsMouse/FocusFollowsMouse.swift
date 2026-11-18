@@ -71,13 +71,17 @@ final class FocusFollowsMouse {
         guard let target = WindowPicker.window(at: point, in: windows, ownPID: getpid()) else { return }
 
         let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        // Inside the active app nothing is done: the app decides which of its windows has the
-        // focus. Switching there fought with dialogs and pop-ups and made them flicker (spec F-8).
-        guard FocusRules.shouldSwitch(targetPID: target.pid, frontPID: frontPID) else {
+        let focusedWindow = frontPID.flatMap(SkyLightFocus.focusedWindowID(of:))
+        // Windows, not apps (spec F-13): inside the active app too, but never away from a
+        // dialog or sheet, nor onto a small pop-up, which made them flicker before (spec F-8).
+        let sameApp = target.pid == frontPID
+        let focusedIsDialog = sameApp && frontPID.map(SkyLightFocus.hasFocusedDialog(pid:)) == true
+        guard FocusRules.shouldSwitch(
+            target: target, frontPID: frontPID, focusedWindow: focusedWindow, focusedIsDialog: focusedIsDialog
+        ) else {
             attempts.reset()
             return
         }
-        let focusedWindow = frontPID.flatMap(SkyLightFocus.focusedWindowID(of:))
         guard attempts.shouldTry(target.id) else {
             logSkip("the window did not keep the focus twice; waiting for another window")
             return

@@ -197,6 +197,10 @@ struct NotchView: View {
                 } else if model.isExpanded {
                     expandedContent
                         .frame(width: model.openSize.width, height: model.openSize.height)
+                        .overlay(alignment: .bottomTrailing) {
+                            // The resize handle (spec RS-1).
+                            if layer == .content, model.canResize { ResizeCorner(model: model, radius: cornerRadius) }
+                        }
                         .transition(Self.contentTransition)
                 }
             }
@@ -206,7 +210,9 @@ struct NotchView: View {
         // The capsule may reach beyond the content (spec N-11); the content stays in place.
         .offset(x: -capsule.shift)
         .frame(width: capsule.width, height: size.height - pillTrim)
-        .background(DesignBackground(design: settings.design, shape: shape, isOpen: showsDesign, layer: layer))
+        .background(DesignBackground(
+            design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity
+        ))
         .clipShape(shape)
         .offset(x: collapsedOffset + capsule.shift)
         .opacity(isHiddenForFullScreen ? 0 : 1)
@@ -234,6 +240,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: settings.roundedNotch)
         .animation(NotchController.animation, value: settings.roundOnlyWhereShown)
         .animation(NotchController.animation, value: settings.design)
+        .animation(Self.quickAnimation, value: settings.panelOpacity)
         .animation(NotchController.animation, value: settings.externalStyle)
         .environment(\.colorScheme, .dark)
         .environment(\.notchDesign, settings.design)

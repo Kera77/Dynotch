@@ -44,14 +44,23 @@ extension NotchController {
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             setHoveredIndicator(slot)
-        } else if let hovered = model.hoveredIndicator, items.indices.contains(hovered),
-                  layout.rect(notchRect: geometry.notchRect, labelHeight: items[hovered].labelHeight)
-                    .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance).contains(point) {
-            // Moving down onto the details keeps them visible.
-            return
         } else {
-            setHoveredIndicator(nil)
+            setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
+    }
+
+    /// The item whose details under the notch are under the pointer: the hovered one (moving down
+    /// onto its details keeps them), or the announced meeting, which shows without hover (spec
+    /// K-8f). The panel then takes the mouse, so a click on its X or Join never reaches the app
+    /// behind the notch (spec K-8i).
+    private func labelIndex(at point: CGPoint, items: [IndicatorItem], layout: IndicatorLayout) -> Int? {
+        let announced = calendar.announcement.flatMap { announcement in
+            items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }
+        }
+        guard let index = model.hoveredIndicator.flatMap({ items.indices.contains($0) ? $0 : nil }) ?? announced else { return nil }
+        let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
+            .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
+        return area.contains(point) ? index : nil
     }
 
     /// While a countdown is hovered the closed panel takes the mouse (for the X button) and the

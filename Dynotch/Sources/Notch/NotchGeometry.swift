@@ -107,12 +107,22 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
-    /// Size of the (constant) panel window: big enough for every panel size.
+    /// Size of the (constant) panel window: big enough for every panel size, a resized module
+    /// included (spec RS-2).
     var windowSize: CGSize {
         CGSize(
-            width: max(largeSize.width, settingsSize.width, maxNotificationSize.width),
-            height: max(largeSize.height, settingsSize.height, maxNotificationSize.height, usageSize.height, chatPanelSize.height)
+            width: max(largeSize.width, settingsSize.width, maxNotificationSize.width, maxModuleSize.width),
+            height: max(
+                largeSize.height, settingsSize.height, maxNotificationSize.height, usageSize.height, chatPanelSize.height,
+                maxModuleSize.height
+            )
         )
+    }
+
+    /// The largest a module can be resized to: nearly the display's width, three quarters of its
+    /// height (spec RS-2).
+    var maxModuleSize: CGSize {
+        CGSize(width: max(screenFrame.width - 40, expandedSize.width), height: max(screenFrame.height * 0.75, Self.expandedHeight))
     }
 
     /// The panel showing the AI usage: tall enough for every limit without scrolling (spec CL-3).

@@ -123,12 +123,21 @@ struct V025Tests {
         #expect(announced == 1)
     }
 
-    // MARK: - Focus (spec F-8)
+    // MARK: - Focus (spec F-8, F-13)
 
-    @Test func focusNeverMovesInsideTheActiveApp() {
-        #expect(!FocusRules.shouldSwitch(targetPID: 10, frontPID: 10))
-        #expect(FocusRules.shouldSwitch(targetPID: 11, frontPID: 10))
-        #expect(FocusRules.shouldSwitch(targetPID: 11, frontPID: nil))
+    @Test func focusFollowsWindowsButNotOntoPopUpsOrAwayFromDialogs() {
+        let big = CGRect(x: 0, y: 0, width: 800, height: 600)
+        let other = ScreenWindow(id: 5, pid: 11, bounds: big, layer: 0, alpha: 1)
+        #expect(FocusRules.shouldSwitch(target: other, frontPID: 10, focusedWindow: 1, focusedIsDialog: false))
+        #expect(FocusRules.shouldSwitch(target: other, frontPID: nil, focusedWindow: nil, focusedIsDialog: false))
+        // The same app's other window, e.g. on the other display.
+        let sibling = ScreenWindow(id: 6, pid: 10, bounds: big, layer: 0, alpha: 1)
+        #expect(FocusRules.shouldSwitch(target: sibling, frontPID: 10, focusedWindow: 1, focusedIsDialog: false))
+        #expect(!FocusRules.shouldSwitch(target: sibling, frontPID: 10, focusedWindow: 6, focusedIsDialog: false))
+        #expect(!FocusRules.shouldSwitch(target: sibling, frontPID: 10, focusedWindow: 1, focusedIsDialog: true))
+        #expect(!FocusRules.shouldSwitch(target: sibling, frontPID: 10, focusedWindow: nil, focusedIsDialog: false))
+        let popUp = ScreenWindow(id: 7, pid: 10, bounds: CGRect(x: 0, y: 0, width: 200, height: 40), layer: 0, alpha: 1)
+        #expect(!FocusRules.shouldSwitch(target: popUp, frontPID: 10, focusedWindow: 1, focusedIsDialog: false))
     }
 
     // MARK: - Preview on hover (spec PV-1…PV-3)
