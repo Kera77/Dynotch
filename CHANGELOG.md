@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.47.0] - 2026-11-18
+
 ### Changed
 - The meeting line under the notch: the time in the calendar's blue, a grey Join button.
 - A left click on Google Chat's badge opens the Google Chat tab in the notch (like Beeper's).
