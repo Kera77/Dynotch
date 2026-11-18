@@ -44,6 +44,7 @@
 | N-17 | (v0.43) Modulváltáskor és egy értesítés bezárása után a tartalom **nem marad homályos**: átúszik és kicsit elmozdul, nem méreteződik. |
 | N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
 | N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
+| N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 

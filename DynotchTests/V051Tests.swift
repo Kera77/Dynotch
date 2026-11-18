@@ -23,4 +23,12 @@ struct V051Tests {
         // A name Beeper does not know stays in the list.
         #expect(!ChatSources.isRead(chatNamed: "Cecil", in: chats))
     }
+
+    @Test func shrinkingIsTellingNarrowerOrLower() {
+        let wide = CGRect(x: 0, y: 0, width: 760, height: 420)
+        #expect(NotchController.shrank(from: wide, to: CGRect(x: 100, y: 0, width: 560, height: 420)))
+        #expect(NotchController.shrank(from: wide, to: CGRect(x: 0, y: 100, width: 760, height: 320)))
+        #expect(!NotchController.shrank(from: wide, to: wide))
+        #expect(!NotchController.shrank(from: wide, to: CGRect(x: 0, y: 0, width: 800, height: 500)))
+    }
 }

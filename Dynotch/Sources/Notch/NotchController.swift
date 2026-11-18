@@ -32,6 +32,9 @@ final class NotchController {
     var gatherStarted: Date?
     /// Opened with a shortcut: stays open until the pointer has been on the panel (spec SC-1).
     var isHeldOpen = false
+    /// The larger area of before a size change made by a click in the panel: still "inside"
+    /// until the pointer leaves it (spec N-20).
+    var stickyZone: CGRect?
     var previewTask: Task<Void, Never>?
     let openSettings: () -> Void
     let model: NotchViewModel
@@ -179,8 +182,12 @@ final class NotchController {
         guard model.isExpanded else { return }
         if model.isShowingDropZone { endDropZoneIfDragEnded() } else { showDropZoneOverOpenNotch() }
         followFocusOntoNotch()
+        // A panel that just shrank under the pointer keeps its former area until the pointer
+        // leaves it (spec N-20).
+        let inSticky = stickyZone?.contains(NSEvent.mouseLocation) ?? false
+        if !inSticky { stickyZone = nil }
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
-        let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || NSEvent.pressedMouseButtons != 0
+        let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || inSticky || NSEvent.pressedMouseButtons != 0
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
         if isInside { isHeldOpen = false }
@@ -215,6 +222,7 @@ final class NotchController {
     }
 
     func collapse() {
+        stickyZone = nil
         cancelClose()
         stopHoverTimer()
         graceUntil = nil
@@ -338,10 +346,18 @@ extension NotchController {
                 MainActor.assumeIsolated { self?.callChanged() }
             }
         }
-        // Fires before the change; look at the new state on the next run loop turn.
+        observeModel()
+    }
+
+    /// Fires before the change; the new state is looked at on the next run loop turn.
+    private func observeModel() {
         settingsObserver = model.objectWillChange.sink { [weak self] in
+            let before = MainActor.assumeIsolated { self?.model.isExpanded == true ? self?.keepOpenZone : nil }
             DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.updateKeyboardFocus() }
+                MainActor.assumeIsolated {
+                    self?.updateKeyboardFocus()
+                    self?.keepShrunkArea(before)
+                }
             }
         }
     }

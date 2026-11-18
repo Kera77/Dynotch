@@ -7,6 +7,10 @@
 - Beeper tab: with the chat list closed it shows the unread chats as cards; opening the list
   slides in the chats and the conversation.
 
+### Fixed
+- Switching from the wide Beeper tab to All closed the notch: the smaller panel left the
+  pointer outside. The former area now counts until the pointer leaves it.
+
 ## [0.51.0] - 2026-11-18
 
 ### Added

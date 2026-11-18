@@ -130,3 +130,21 @@ extension NotchController {
         }
     }
 }
+
+// MARK: - Shrinking under the pointer (spec N-20)
+
+extension NotchController {
+    /// The panel got smaller (a tab or module with a smaller size was picked) while the pointer
+    /// was inside: the former area keeps counting as inside, so the panel does not close.
+    func keepShrunkArea(_ before: CGRect?) {
+        guard let before, model.isExpanded else { return }
+        let now = keepOpenZone
+        let pointer = NSEvent.mouseLocation
+        guard Self.shrank(from: before, to: now), before.contains(pointer), !now.contains(pointer) else { return }
+        stickyZone = stickyZone.map { $0.union(before) } ?? before
+    }
+
+    nonisolated static func shrank(from before: CGRect, to now: CGRect) -> Bool {
+        now.width < before.width - 0.5 || now.height < before.height - 0.5
+    }
+}
