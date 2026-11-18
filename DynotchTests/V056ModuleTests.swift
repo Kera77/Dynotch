@@ -83,6 +83,20 @@ struct MusicModuleTests {
     }
 }
 
+struct DeviceLevelTests {
+    @Test func earbudsShowEachSideAndTheCase() throws {
+        let json = Data("""
+        {"SPBluetoothDataType":[{"device_connected":[{"Peter's AirPods Pro":{"device_batteryLevelCase":"74%",
+        "device_batteryLevelLeft":"90%","device_batteryLevelRight":"89%"}},{"Mouse":{"device_batteryLevelMain":"15%"}}]}]}
+        """.utf8)
+        let airPods = DeviceBattery.structuredLevels(named: "Peter's AirPods Pro", json: json)
+        #expect(airPods.map(\.part) == [.left, .right, .caseBattery])
+        #expect(airPods.map(\.percent) == [90, 89, 74])
+        #expect(DeviceBattery.structuredLevels(named: "Mouse", json: json) == [DeviceLevel(part: .main, percent: 15)])
+        #expect(DeviceBattery.structuredLevels(named: "Unknown", json: json).isEmpty)
+    }
+}
+
 struct VolumeStepTests {
     @Test func aLevelJustSetWinsOverAnOldReading() {
         let now = Date(timeIntervalSince1970: 100)

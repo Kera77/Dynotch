@@ -13,6 +13,8 @@
 - A new track shows its cover and name, not a squeezed player; a long title and artist line
   runs through, then closes a second after its end.
 - Opening a row in Settings scrolls it into view.
+- Connecting AirPods shows each earbud's and the case's battery with icons; the levels are
+  asked for until they arrive, and the sound output notice no longer replaces it.
 
 ## [0.57.0] - 2026-11-18
 

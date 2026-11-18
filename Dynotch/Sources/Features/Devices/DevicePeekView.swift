@@ -23,11 +23,18 @@ struct DevicePeekView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                    Text(event.detail ?? (event.isConnected ? "Connected" : "Disconnected"))
-                        .font(.system(size: 11))
-                        .monospacedDigit()
-                        .foregroundStyle(Color.white.opacity(0.6))
-                        .lineLimit(1)
+                    if event.levels.isEmpty {
+                        Text(event.detail ?? (event.isConnected ? "Connected" : "Disconnected"))
+                            .font(.system(size: 11))
+                            .monospacedDigit()
+                            .foregroundStyle(Color.white.opacity(0.6))
+                            .lineLimit(1)
+                    } else {
+                        // Each earbud and the case with its own icon (spec DV-8).
+                        HStack(spacing: 10) {
+                            ForEach(event.levels) { level in levelView(level) }
+                        }
+                    }
                 }
                 Spacer(minLength: 6)
                 ForEach(Array(event.actions.enumerated()), id: \.offset) { _, action in
@@ -43,6 +50,19 @@ struct DevicePeekView: View {
             .padding(.horizontal, 14)
             .frame(maxHeight: .infinity)
         }
+    }
+
+    private func levelView(_ level: DeviceLevel) -> some View {
+        HStack(spacing: 3) {
+            if let symbol = level.symbols.first(where: { NSImage(systemSymbolName: $0, accessibilityDescription: nil) != nil }) {
+                Image(systemName: symbol).font(.system(size: 11))
+            } else {
+                Text(level.title).font(.system(size: 10, weight: .semibold))
+            }
+            Text("\(level.percent)%").font(.system(size: 11, weight: .medium)).monospacedDigit()
+        }
+        .foregroundStyle(level.percent <= 20 ? BatteryFeatureView.red : Color.white.opacity(0.75))
+        .help(level.title.isEmpty ? "Battery" : level.title)
     }
 
     private func button(_ title: String, _ action: DeviceEvent.Action) -> some View {

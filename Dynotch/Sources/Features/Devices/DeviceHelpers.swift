@@ -22,8 +22,77 @@ enum DeviceSymbols {
     }
 }
 
+/// One battery of a device: an earbud, the case, or the device itself (spec DV-8).
+struct DeviceLevel: Equatable, Sendable, Identifiable {
+    enum Part: String, Sendable {
+        case left, right, caseBattery, main
+    }
+
+    let part: Part
+    let percent: Int
+    var id: String { part.rawValue }
+
+    var title: String {
+        switch part {
+        case .left: "L"
+        case .right: "R"
+        case .caseBattery: "Case"
+        case .main: ""
+        }
+    }
+
+    var symbols: [String] {
+        switch part {
+        case .left: ["airpod.left", "airpodpro.left"]
+        case .right: ["airpod.right", "airpodpro.right"]
+        case .caseBattery: ["airpodspro.chargingcase.wireless.fill", "airpods.chargingcase.fill", "earbuds.case.fill"]
+        case .main: ["battery.75percent"]
+        }
+    }
+}
+
 /// "L 80%  R 78%  Case 100%" for earbuds, or one level, from Bluetooth's report.
 enum DeviceBattery {
+    /// Each earbud, the case and the main level, from Bluetooth's report.
+    nonisolated static func structuredLevels(named name: String) -> [DeviceLevel] {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
+        process.arguments = ["SPBluetoothDataType", "-json"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        guard (try? process.run()) != nil else { return [] }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        return structuredLevels(named: name, json: data)
+    }
+
+    nonisolated static func structuredLevels(named name: String, json: Data) -> [DeviceLevel] {
+        guard let root = try? JSONSerialization.jsonObject(with: json) as? [String: Any],
+              let sections = root["SPBluetoothDataType"] as? [[String: Any]]
+        else { return [] }
+        for section in sections {
+            for list in section.values.compactMap({ $0 as? [[String: Any]] }) {
+                for entry in list {
+                    guard let info = entry[name] as? [String: Any] else { continue }
+                    return levels(from: info)
+                }
+            }
+        }
+        return []
+    }
+
+    nonisolated static func levels(from info: [String: Any]) -> [DeviceLevel] {
+        let keys: [(DeviceLevel.Part, String)] = [
+            (.left, "device_batteryLevelLeft"), (.right, "device_batteryLevelRight"),
+            (.caseBattery, "device_batteryLevelCase"), (.main, "device_batteryLevelMain")
+        ]
+        return keys.compactMap { part, key in
+            guard let text = info[key] as? String, let value = Int(text.replacingOccurrences(of: "%", with: "")) else { return nil }
+            return DeviceLevel(part: part, percent: value)
+        }
+    }
+
     nonisolated static func levels(named name: String) -> String? {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")

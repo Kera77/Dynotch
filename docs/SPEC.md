@@ -562,6 +562,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | DV-5 | **Zajszűrés:** ébredés után 30 mp-ig és indításkor nincs értesítés (a rendszer ilyenkor mindent újracsatlakoztat); ugyanarról az eszközről 10 mp-en belüli le-fel csatlakozás egy értesítés; az iPhone/iPad (Continuity, Sidecar) és a Mac saját belső eszközei kimaradnak. |
 | DV-6 | Megjelenési idő: mint az értesítéseké (E-3, beállítható). Nem kerül az értesítéslistába és a jelvényekbe; a hover nem nyitja az értesítéskártyát, hanem az Akkumulátorok modult (ha be van kapcsolva). |
 | DV-7 | *Settings › Devices* (vagy a General fülön): be/ki, kategóriánként (Bluetooth, USB, kijelző, meghajtó, audio) és **lecsatlakozás is** kapcsoló. |
+| DV-8 | (v0.58) Bluetooth-eszköz csatlakozásakor a felugró az eszköz ikonjával és nevével jelenik meg; fülhallgatónál **bal és jobb füles, valamint a tok töltöttsége** külön ikonnal (20% alatt piros), egyéb eszköznél a szintje. A szinteket csatlakozás után 1–8 mp-en át többször lekéri, és amikor megjöttek, onnan számítva látszik a felugró. Ha közben a hangkimenet is erre az eszközre vált, a Bluetooth-felugró marad (nem cseréli le a „Sound now plays here”). |
 | DV-8 | (v0.42.1) A Bluetooth-figyeléshez az Info.plist-ben ott a használat leírása (`NSBluetoothAlwaysUsageDescription`); nélküle a macOS indításkor leállította az appot. Első indításkor a macOS engedélyt kér a Bluetooth-hoz. |
 
 ## 4w. Olvasatlan üzenetek a notchban (v0.42)

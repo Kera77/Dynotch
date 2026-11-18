@@ -38,8 +38,10 @@ struct DeviceEvent: Identifiable, Equatable {
     let isConnected: Bool
     var detail: String?
     var actions: [Action] = []
+    /// Each earbud, the case, or the one level (spec DV-8).
+    var levels: [DeviceLevel] = []
 
-    static func == (lhs: DeviceEvent, rhs: DeviceEvent) -> Bool { lhs.id == rhs.id && lhs.detail == rhs.detail }
+    static func == (lhs: DeviceEvent, rhs: DeviceEvent) -> Bool { lhs.id == rhs.id && lhs.detail == rhs.detail && lhs.levels == rhs.levels }
 }
 
 /// Watches Bluetooth, USB, displays, drives and the sound output; shows each change under the
@@ -146,12 +148,18 @@ final class DeviceWatcher: NSObject, ObservableObject {
         }
         show(event, key: "bt:" + name)
         guard connected else { return }
-        // The levels arrive a moment after the connection.
+        // The levels arrive a moment after the connection: asked a few times (spec DV-8).
         Task { [weak self] in
-            try? await Task.sleep(for: .seconds(3))
-            let levels = await Task.detached { DeviceBattery.levels(named: name) }.value
-            guard let self, let levels, self.current?.name == name else { return }
-            self.current?.detail = levels
+            for wait in [1.0, 1, 1, 2, 3] {
+                try? await Task.sleep(for: .seconds(wait))
+                let found = await Task.detached { DeviceBattery.structuredLevels(named: name) }.value
+                guard let self, self.current?.name == name else { return }
+                guard !found.isEmpty else { continue }
+                self.current?.levels = found
+                // Shown long enough to read, from when they arrived.
+                self.keepShowing()
+                return
+            }
         }
     }
 
@@ -191,6 +199,11 @@ final class DeviceWatcher: NSObject, ObservableObject {
         let name = AudioOutputs.defaultOutputName()
         defer { audioOutput = name }
         guard let name, name != audioOutput else { return }
+        // Headphones just connected: their notice stays, with the levels (spec DV-8).
+        if current?.category == .bluetooth, current?.name == name {
+            current?.actions.removeAll { if case .useForAudio = $0 { true } else { false } }
+            return
+        }
         let event = DeviceEvent(
             category: .audio, name: name, symbol: "speaker.wave.2.fill", isConnected: true, detail: "Sound now plays here"
         )
@@ -207,6 +220,11 @@ final class DeviceWatcher: NSObject, ObservableObject {
         if let last = lastSeen[key], now.timeIntervalSince(last) < Self.flapTime { return }
         DiagnosticsLog.append("devices", "\(event.category.rawValue) \(event.isConnected ? "connected" : "disconnected")")
         current = event
+        keepShowing()
+    }
+
+    /// Hides the notice after the notification time, counted from now.
+    private func keepShowing() {
         hideTask?.cancel()
         let duration = settings.notificationDuration
         hideTask = Task { [weak self] in
