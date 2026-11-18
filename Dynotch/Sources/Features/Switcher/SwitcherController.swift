@@ -66,7 +66,7 @@ final class SwitcherController: ObservableObject {
         options.coverThreshold = settings.coverThreshold
         items = SwitcherWindows.list(options)
         guard !items.isEmpty else { return }
-        // Covered windows only: the front one is not listed, so the first is the way back (spec AS-13).
+        // Covered windows only: the front one is not listed, so the first is the way back (spec AS-14).
         selection = items.count > 1 && !settings.onlyCovered ? 1 : 0
         previews = [:]
         isShown = true

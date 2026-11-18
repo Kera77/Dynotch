@@ -64,7 +64,7 @@ final class SwitcherSettings: ObservableObject {
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
     @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
     @Published private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
-    /// Only windows mostly covered by others, with either scope (spec AS-13).
+    /// Only windows mostly covered by others, with either scope (spec AS-14).
     @Published var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
     /// How much of a window must be covered, 0.25…0.9.
     @Published var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }

@@ -29,7 +29,7 @@ enum SwitcherWindows {
         var display: CGRect?
         var excluded: [String] = []
         /// Only windows mostly hidden behind others; minimized, hidden and other Spaces' count
-        /// as hidden (spec AS-13).
+        /// as hidden (spec AS-14).
         var onlyCovered = false
         /// The share of a window that must be covered.
         var coverThreshold = 0.5
@@ -65,7 +65,7 @@ enum SwitcherWindows {
     ) -> [SwitcherItem] {
         var result: [SwitcherItem] = []
         var seenApps: Set<pid_t> = []
-        // Front to back: what lies above each window (spec AS-13).
+        // Front to back: what lies above each window (spec AS-14).
         let covers = coveringRects(info, ownPID: ownPID)
         for (index, entry) in info.enumerated() {
             guard let id = entry[kCGWindowNumber as String] as? CGWindowID,
