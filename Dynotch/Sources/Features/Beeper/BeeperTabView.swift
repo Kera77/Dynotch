@@ -145,13 +145,27 @@ struct BeeperTabView: View {
         .onDisappear { service.stopReading() }
     }
 
+    /// With the list open: the chats beside the conversation; closed: the unread chats as cards,
+    /// like the All tab (spec BP-1c). The two slide into each other.
     private var content: some View {
-        HStack(spacing: 0) {
+        ZStack {
             if service.showsChatList {
-                BeeperChatList(service: service)
-                    .frame(width: BeeperStyle.listWidth(for: width))
-                Divider().overlay(Color.white.opacity(0.08))
+                conversations
+                    .transition(.opacity.combined(with: .move(edge: .leading)))
+            } else {
+                unread
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
+        }
+        .animation(Motion.quick, value: service.showsChatList)
+        .readWidth($width)
+    }
+
+    private var conversations: some View {
+        HStack(spacing: 0) {
+            BeeperChatList(service: service)
+                .frame(width: BeeperStyle.listWidth(for: width))
+            Divider().overlay(Color.white.opacity(0.08))
             VStack(spacing: 0) {
                 header
                 if let chat = service.selectedChat {
@@ -162,24 +176,54 @@ struct BeeperTabView: View {
                 }
             }
         }
-        .readWidth($width)
+    }
+
+    private var unread: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                listToggle
+                Text("Unread").font(.system(size: 13, weight: .semibold))
+                Spacer()
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            if service.unreadChats.isEmpty {
+                note("No unread chats", symbol: "checkmark.bubble")
+            } else {
+                ScrollView(.vertical) {
+                    VStack(spacing: 6) {
+                        BeeperUnreadCards(beeper: service) { chat in
+                            // A card's arrow opens the chat with the list.
+                            service.showsChatList = true
+                            service.open(chat.id)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                }
+                .scrollIndicators(.never)
+            }
+        }
+    }
+
+    private var listToggle: some View {
+        Button {
+            service.showsChatList.toggle()
+        } label: {
+            Image(systemName: "sidebar.left").foregroundStyle(Color.white.opacity(service.showsChatList ? 0.9 : 0.55))
+        }
+        .buttonStyle(.plain)
+        .help(service.showsChatList ? "Hide the chat list" : "Show the chats")
+        .accessibilityLabel(service.showsChatList ? "Hide the chat list" : "Show the chats")
     }
 
     private var header: some View {
         HStack(spacing: 8) {
-            Button {
-                withAnimation(Motion.quick) { service.showsChatList.toggle() }
-            } label: {
-                Image(systemName: "sidebar.left").foregroundStyle(Color.white.opacity(service.showsChatList ? 0.9 : 0.55))
-            }
-            .buttonStyle(.plain)
-            .help(service.showsChatList ? "Hide the chat list" : "Show the chat list")
-            if !service.showsChatList { chatPicker }
+            listToggle
             if let chat = service.selectedChat {
-                if service.showsChatList {
-                    BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
-                    Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                }
+                BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
+                Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer()
                 BeeperReminderMenu(service: service, chat: chat)
                 Button {
@@ -197,31 +241,6 @@ struct BeeperTabView: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 12)
         .frame(height: 34)
-    }
-
-    /// Without the list: the chats in a menu, unread first (spec BP-1b).
-    private var chatPicker: some View {
-        Menu {
-            ForEach(service.sortedChats) { chat in
-                Button(chat.unread > 0 ? "\(chat.name) (\(chat.unread))" : chat.name) { service.open(chat.id) }
-            }
-        } label: {
-            HStack(spacing: 6) {
-                if let chat = service.selectedChat {
-                    BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 22)
-                    Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                }
-                Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
-                if service.unreadTotal > 0 {
-                    Text("\(service.unreadTotal)").font(.system(size: 10, weight: .bold))
-                        .padding(.horizontal, 5).background(Capsule().fill(BeeperStyle.blue))
-                }
-            }
-        }
-        .menuStyle(.button)
-        .buttonStyle(.plain)
-        .menuIndicator(.hidden)
-        .fixedSize()
     }
 
     private func note(_ text: String, symbol: String) -> some View {

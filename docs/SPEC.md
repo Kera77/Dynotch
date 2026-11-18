@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.51 elfogadva** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.51 elfogadva, v0.52 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -565,6 +565,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | BP-1 | **Beeper-fül** (UM-8): **nagyobb panel**, kb. 760 × 420 pt, a Beeper elrendezésével: **balra a csevegések listája** (kb. 240 pt; olvasatlanok elöl, utána a legutóbbi aktivitás szerint), **jobbra a kiválasztott beszélgetés**, alul a válaszmezővel. |
 | BP-1b | A **csevegéslista kikapcsolható**: a fül fejlécének oldalsáv-ikonjával és *Settings › Notifications › Beeper › Show the chat list*; lista nélkül a fejlécben legördülő választó mutatja a csevegéseket (olvasatlanok elöl). |
+| BP-1c | (v0.52) A **Beeper** fülön bezárt csevegőlistánál az olvasatlan csevegések kártyái látszanak (mint a Chats fülön, soronkénti válasszal); a lista gombjával kinyitva a csevegőlista és a beszélgetés. A kettő között áttűnés és csúszás. A kártya nyila a listát kinyitva a csevegést nyitja meg. |
 | BP-2 | **Design a Beeperét követi:** sötét felület; a listában kerek profilkép, a sarkában a hálózat kis jelvényével (WhatsApp, Messenger, Telegram, Signal, iMessage, Slack…), név, az utolsó üzenet egy sora, idő, olvasatlanságnál vastag név és kék számos pirula; a beszélgetésben a bejövő üzenetek balra szürke, a sajátok jobbra kék buborékban, csoportban a feladó neve a buborék fölött; a reakciók kis pirulaként a buborék alatt (emoji + szám); a válasz-idézet vékony csíkkal a buborék tetején; napelválasztók („Today”, „Yesterday”). |
 | BP-3 | **Profilképek** (7): a csevegés és a feladó képe a Beeperből (`imgURL`, szükség esetén `assets/download`), memóriában gyorsítótárazva; ha nincs kép, monogram színes körben, mint a Beeperben. Az értesítéskártyákon (E-4) is ezek látszanak az app ikonja helyett. |
 | BP-4 | **Reakció egy kattintással** (1): üzenetre vitt egérnél a buborék mellett kis sor: 👍 ❤️ 😂 😮 😢 🙏 és egy „+” az emoji-választóhoz (E-18). Kattintásra elküldi (`POST …/messages/{id}/reactions`), saját reakcióra kattintva visszavonja. Csak ahol a csevegés engedi (`capabilities.allowedReactions`). |
@@ -622,6 +623,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GC-3 | Válasz a meglévő módon (a beszélgetés megnyitása és begépelés); a notchból küldött válaszok kék buborékként a beszélgetésben látszanak, amíg a Dynotch fut. |
 | GC-4 | „Open Google Chat” gomb a fejlécben. |
 | GC-5 | (v0.47) A Google Chat app-jelvényére (B-1, a név alapján felismert web app) **bal kattintás** a notchot a **Google Chat fülön** nyitja meg, ahogy a Beeper-jelvény a Beeper fülön (BP-12). |
+| GC-6 | (v0.52) A **Google Chat** fülön nincs oldalsáv és beszélgetésnézet: csak az olvasatlan Google Chat-értesítések, ugyanúgy, mint az All fülön (kártyák, válaszmező). A panel normál szélességű. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 

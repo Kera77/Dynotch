@@ -42,7 +42,7 @@ struct BeeperDevicesTests {
     @Test func networksGetTheirColourAndTheWideTabs() {
         #expect(BeeperStyle.network("WhatsApp").symbol == "phone.fill")
         #expect(BeeperStyle.network(nil).symbol == "bubble.left.and.bubble.right.fill")
-        #expect(NotificationsTab.beeper.isWide && NotificationsTab.googleChat.isWide)
+        #expect(NotificationsTab.beeper.isWide && !NotificationsTab.googleChat.isWide)
         #expect(!NotificationsTab.all.isWide && !NotificationsTab.chats.isWide)
         #expect(MIMEType.kind(of: MIMEType.of(URL(fileURLWithPath: "/x/a.gif"))) == "gif")
         #expect(MIMEType.kind(of: MIMEType.of(URL(fileURLWithPath: "/x/a.pdf"))) == "file")

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+- Google Chat tab: only the unread messages, like the All tab, without the side list.
+- Beeper tab: with the chat list closed it shows the unread chats as cards; opening the list
+  slides in the chats and the conversation.
+
 ## [0.51.0] - 2026-11-18
 
 ### Added

@@ -16,8 +16,8 @@ enum NotificationsTab: String, CaseIterable, Sendable {
         }
     }
 
-    /// The Beeper and Google Chat tabs need the larger panel (spec BP-1).
-    var isWide: Bool { self == .beeper || self == .googleChat }
+    /// The Beeper tab needs the larger panel (spec BP-1); Google Chat is a list like All (spec GC-6).
+    var isWide: Bool { self == .beeper }
 }
 
 @MainActor
@@ -39,25 +39,6 @@ enum ChatSources {
         }
         let name = catalog.app(for: notification.appIdentifier).name.lowercased()
         return name.contains("google chat") || (name == "chat" && notification.appIdentifier.lowercased().contains("webapp"))
-    }
-}
-
-/// Answers sent to Google Chat from the notch, shown in the conversation (spec GC-3).
-@MainActor
-final class GoogleChatReplies: ObservableObject {
-    static let shared = GoogleChatReplies()
-
-    struct Reply: Identifiable {
-        let id = UUID()
-        let conversation: String
-        let text: String
-        let date: Date
-    }
-
-    @Published private(set) var replies: [Reply] = []
-
-    func add(_ text: String, to conversation: String) {
-        replies.append(Reply(conversation: conversation, text: text, date: Date()))
     }
 }
 
@@ -107,7 +88,8 @@ struct NotificationsTabsView: View {
         case .beeper:
             BeeperTabView(service: beeper)
         case .googleChat:
-            GoogleChatTabView(service: service, showsList: beeper.showsChatList) { beeper.showsChatList.toggle() }
+            // Only the unread messages, like the All tab (spec GC-6).
+            NotificationsFeatureView(service: service, isActive: isActive) { ChatSources.isGoogleChat($0, catalog: service.catalog) }
         }
     }
 
@@ -120,130 +102,5 @@ struct NotificationsTabsView: View {
     private func open(_ chat: BeeperChatInfo) {
         withAnimation(Motion.quick) { tab = .beeper }
         beeper.open(chat.id)
-    }
-}
-
-/// Google Chat without its API (spec GC-1…GC-4): the conversations from the notifications that
-/// are still in Notification Center, answered by typing into Google Chat.
-struct GoogleChatTabView: View {
-    @ObservedObject var service: NotificationService
-    let showsList: Bool
-    let toggleList: () -> Void
-    @ObservedObject private var replies = GoogleChatReplies.shared
-    @State private var selected: String?
-    /// The conversation list grows with a resized module (spec RS-5).
-    @State private var width: CGFloat = 0
-
-    private var conversations: [(name: String, messages: [AppNotification])] {
-        let chats = service.recent.filter { ChatSources.isGoogleChat($0, catalog: service.catalog) }
-        let grouped = Dictionary(grouping: chats) { service.content(for: $0).sender }
-        return grouped.map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
-            .sorted { ($0.messages.last?.date ?? .distantPast) > ($1.messages.last?.date ?? .distantPast) }
-    }
-
-    var body: some View {
-        let all = conversations
-        let current = all.first { $0.name == selected } ?? all.first
-        HStack(spacing: 0) {
-            if showsList {
-                ScrollView(.vertical) {
-                    LazyVStack(spacing: 2) {
-                        ForEach(all, id: \.name) { conversation in
-                            listRow(conversation, isSelected: conversation.name == current?.name)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-                .frame(width: BeeperStyle.listWidth(for: width))
-                Divider().overlay(Color.white.opacity(0.08))
-            }
-            VStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Button(action: toggleList) { Image(systemName: "sidebar.left") }.buttonStyle(.plain)
-                    if let current {
-                        BeeperAvatar(image: nil, name: current.name, network: "google", size: 24)
-                        Text(current.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                        Spacer()
-                        Button {
-                            if let last = current.messages.last { service.catalog.open(last.appIdentifier) }
-                        } label: { Image(systemName: "arrow.up.forward.app") }
-                            .buttonStyle(.plain)
-                            .help("Open Google Chat")
-                            .accessibilityLabel("Open Google Chat")
-                    } else {
-                        Spacer()
-                    }
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12)
-                .frame(height: 34)
-                if let current {
-                    conversation(current)
-                } else {
-                    EmptyStateView(symbol: "bubble.left", text: "Unread Google Chat messages appear here.")
-                }
-            }
-        }
-        .readWidth($width)
-    }
-
-    private func listRow(_ conversation: (name: String, messages: [AppNotification]), isSelected: Bool) -> some View {
-        Button {
-            selected = conversation.name
-        } label: {
-            HStack(spacing: 10) {
-                BeeperAvatar(image: nil, name: conversation.name, network: "google")
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(conversation.name).font(.system(size: 13, weight: .bold)).lineLimit(1)
-                    Text(conversation.messages.last.map { service.content(for: $0).detail } ?? "")
-                        .font(.system(size: 11)).opacity(0.75).lineLimit(1)
-                }
-                Spacer(minLength: 4)
-                Text("\(conversation.messages.count)").font(.system(size: 10, weight: .bold))
-                    .padding(.horizontal, 6).background(Capsule().fill(BeeperStyle.blue))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isSelected ? 0.12 : 0)))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func conversation(_ current: (name: String, messages: [AppNotification])) -> some View {
-        VStack(spacing: 6) {
-            ScrollView(.vertical) {
-                LazyVStack(alignment: .leading, spacing: 4) {
-                    ForEach(current.messages) { message in
-                        HStack {
-                            Text(service.content(for: message).detail)
-                                .font(.system(size: 13)).foregroundStyle(.white)
-                                .padding(.horizontal, 10).padding(.vertical, 6)
-                                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(BeeperStyle.incoming))
-                            Spacer(minLength: 60)
-                        }
-                    }
-                    ForEach(replies.replies.filter { $0.conversation == current.name }) { reply in
-                        HStack {
-                            Spacer(minLength: 60)
-                            Text(reply.text)
-                                .font(.system(size: 13)).foregroundStyle(.white)
-                                .padding(.horizontal, 10).padding(.vertical, 6)
-                                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(BeeperStyle.blue))
-                        }
-                    }
-                }
-                .padding(.horizontal, 10)
-            }
-            .scrollIndicators(.never)
-            if let last = current.messages.last {
-                NotificationReplyField(service: service, target: last, sent: { text in
-                    replies.add(text, to: current.name)
-                })
-                .padding(.horizontal, 10)
-                .padding(.bottom, 14)
-            }
-        }
     }
 }
