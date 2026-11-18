@@ -50,4 +50,6 @@ approved package so the git status at session start stays short.
   `check.sh` once per coherent set of changes, not after every tiny edit.
 - Before adding a SPEC row, `grep` that its number is free.
 - Keep replies short: the result, the risks, the open questions.
-- Do not start subagents unless the owner asks.
+- Do not start subagents on your own. When one would clearly help (e.g. two independent
+  features in parallel), propose it with the reason and the extra cost; start it only after the
+  owner approves.
