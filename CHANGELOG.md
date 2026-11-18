@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-11-18
+
 ### Changed
 - Tray: long file names are shortened in the middle, so their end (a shot's time, the extension) shows; tiles are wider with larger text, and the whole name shows under a tile while the mouse is on it.
 - Tray: tiles or list is kept for each tab separately.
