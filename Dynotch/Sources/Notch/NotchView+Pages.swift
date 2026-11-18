@@ -28,7 +28,7 @@ extension NotchView {
             ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
         case .battery:
             BatteryFeatureView(service: battery, isActive: model.isExpanded && model.currentFeature == .battery)
-        case .clipboard, .tray, .info:
+        case .clipboard, .tray, .info, .music, .stats:
             morePage(for: feature)
         }
     }
@@ -40,6 +40,10 @@ extension NotchView {
             ClipboardFeatureView(store: clipboard, close: closeNotifications)
         case .tray:
             TrayFeatureView(store: tray)
+        case .music:
+            MusicFeatureView(service: music, isActive: model.isExpanded && model.currentFeature == .music)
+        case .stats:
+            StatsFeatureView(service: stats, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats)
         default:
             InfoFeatureView(geometry: geometry, screenName: model.screenName)
         }

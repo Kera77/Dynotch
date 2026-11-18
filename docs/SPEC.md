@@ -697,6 +697,31 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 
 ---
 
+## 4ü. Zenelejátszó – Spotify (v0.56)
+
+| # | Követelmény |
+|---|---|
+| MU-1 | A *Music* modul a **Spotify**t mutatja és vezérli AppleScripttel (más lejátszót nem). Csak akkor szól a Spotifyhoz, ha fut (különben elindítaná); a Spotify változásjelzésére és néhány másodpercenként frissít. A modul a többihez hasonlóan kikapcsolható. |
+| MU-2 | Amíg a Spotifyban van szám (szól vagy szünetel), a csukott notch **jobb oldalán, a notch mellett** megjelenik a **lemezborító** kerek kivágásban. **Rámutatásra lenyílik a zenelejátszó modul.** Bal oldalt nincs hangszínsáv. |
+| MU-3 | A borító körül egy **karika** az óramutató járásával egyezően, felülről indulva telik, és a szám haladását mutatja. A karika színe a borító **domináns színe** (fekete háttéren is látható fényerővel; szürke borítónál halvány fehér). |
+| MU-4 | Számváltáskor a notch alatt pár másodpercre megjelenik a cím és az előadó. |
+| MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
+| MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
+| MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
+
+## 4ű. Rendszerstatisztika (v0.56)
+
+| # | Követelmény |
+|---|---|
+| SY-1 | A *System* modul csempéken mutatja: **CPU** (kihasználtság, grafikon az utolsó másodpercekről), **memória** (használt / összes, a nyomás szerinti színnel, swap). A modul közepes méretben nyílik és átméretezhető. |
+| SY-2 | **Hálózat:** le- és feltöltési sebesség grafikonnal, a Mac helyi IP-címe. Csak a Wi-Fi és az Ethernet számít (a VPN ugyanazt a forgalmat duplán mutatná). Publikus IP nincs (külső szolgáltatást kellene hívni). |
+| SY-3 | **Lemez:** szabad hely az összesből, olvasási és írási sebesség. |
+| SY-4 | Hőmérséklet és ventilátor nincs. |
+| SY-5 | **Akku** (ha van): töltöttség, állapot (töltődik / hálózaton / akkuról), hátralévő idő, teljesítmény wattban, akku-egészség és ciklusszám. |
+| SY-6 | **Legtöbbet használó folyamatok** (6), CPU vagy memória szerint rendezve; az X gomb első kattintásra „Quit”-re vált, a második kilépteti (appot szabályosan, más folyamatot TERM jellel). A legtöbb energiát fogyasztó appokat a CPU szerinti lista mutatja. |
+| SY-7 | A modul fejlécében választható, mit mutasson a csukott notch jobb oldala: **semmit** (alap), a **CPU**-t vagy a **letöltési sebességet**. Rámutatásra a modul nyílik le. Nyitott modulnál másodpercenként, a csukott notch értékéhez két másodpercenként, egyébként félpercenként mér. |
+| SY-8 | **Figyelmeztető piros pötty** a csukott notch mellett, ha kevés a memória, majdnem tele a lemez (10 GB vagy 5% alatt), vagy a Mac lassít, hogy lehűljön. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.

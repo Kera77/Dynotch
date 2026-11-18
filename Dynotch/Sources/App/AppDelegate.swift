@@ -34,7 +34,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tray: TrayStore(),
         beeper: BeeperService(),
         devices: DeviceWatcher(settings: settings),
-        switcher: SwitcherController(settings: SwitcherSettings())
+        switcher: SwitcherController(settings: SwitcherSettings()),
+        music: MusicService(settings: settings),
+        stats: StatsService(settings: settings)
     )
     private lazy var settingsWindow = SettingsWindowController(
         services: services
@@ -70,6 +72,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notifications.present(title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier)
         }
         services.battery.start()
+        services.music.start()
+        services.stats.start()
         services.updates.start()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in

@@ -9,7 +9,7 @@ extension NotchController {
     func updateHoveredIndicator() {
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings, tasks: tasks.shown
+            lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.isShown
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         let shownBadges = fit.shown
@@ -43,6 +43,12 @@ extension NotchController {
             setHoveredIndicator(nil)
             return
         }
+        hoverIndicator(at: point, items: items, layout: layout)
+    }
+
+    /// The indicator under the pointer, or the details it has moved down onto.
+    private func hoverIndicator(at point: CGPoint, items: [IndicatorItem], layout: IndicatorLayout) {
+        let geometry = model.geometry
         if suppressIndicatorHover {
             let area = layout.rect(notchRect: geometry.notchRect, labelHeight: IndicatorLayout.labelHeight)
                 .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
@@ -53,10 +59,23 @@ extension NotchController {
             suppressIndicatorHover = false
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
+            // The cover and the stats open their module (spec MU-2, SY-7).
+            if let feature = items[slot].opensModule {
+                openFromIndicator(feature)
+                return
+            }
             setHoveredIndicator(slot)
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
+    }
+
+    private func openFromIndicator(_ feature: FeatureID) {
+        guard settings.isEnabled(feature) else { return }
+        setHoveredIndicator(nil)
+        setHoveredBadge(nil)
+        expand()
+        withAnimation(Self.animation) { model.select(feature, remember: false) }
     }
 
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).

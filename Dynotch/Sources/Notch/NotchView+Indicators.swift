@@ -30,6 +30,7 @@ extension NotchView {
                     case .working: break
                     case .battery(let device): battery.dismissWarning(for: device)
                     case .tasks: tasks.hide()
+                    case .music, .stats: break
                     }
                 }
             },
@@ -42,6 +43,8 @@ extension NotchView {
             openBadgeApp: { badges.open($0.app) }
         )
         row.showsBadgeList = showsBadgeList
+        row.music = music
+        row.stats = stats
         return row
     }
 

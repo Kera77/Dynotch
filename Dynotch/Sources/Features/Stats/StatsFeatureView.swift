@@ -1,0 +1,181 @@
+import SwiftUI
+
+/// The System Stats module (spec SY-1…SY-7): tiles for CPU, memory, network, disk and battery,
+/// and the busiest processes with a Quit button.
+struct StatsFeatureView: View {
+    @ObservedObject var service: StatsService
+    let isActive: Bool
+    @State private var width: CGFloat = 720
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                header
+                ScrollView(.vertical) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 8)], spacing: 8) {
+                        cpuCard
+                        memoryCard
+                        networkCard
+                        diskCard
+                        if let battery = service.snapshot.battery { batteryCard(battery) }
+                    }
+                }
+                .scrollIndicators(.never)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            StatsProcessList(service: service)
+                .frame(width: Responsive.share(0.36, of: width, in: 220...340))
+                .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .readWidth($width)
+        .onAppear { service.setVisible(isActive) }
+        .onChange(of: isActive) { _, active in service.setVisible(active) }
+        .onDisappear { service.setVisible(false) }
+    }
+
+    private var header: some View {
+        HStack {
+            Text("System").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+            Spacer()
+            Picker("Beside the notch", selection: $service.mode) {
+                ForEach(StatsIndicatorMode.allCases, id: \.self) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .fixedSize()
+            .help("What the closed notch shows")
+        }
+    }
+
+    private var cpuCard: some View {
+        StatsCard(title: "CPU", symbol: "cpu", value: StatsFormat.percent(service.snapshot.cpu)) {
+            StatsSparkline(values: service.cpuHistory, top: 1, color: Theme.blue).frame(height: 34)
+        }
+    }
+
+    private var memoryCard: some View {
+        let memory = service.snapshot.memory
+        let fraction = memory.map { Double($0.used) / Double(max($0.total, 1)) } ?? 0
+        let color: Color = switch memory?.pressure ?? 1 {
+        case 4...: Theme.red
+        case 2...: .orange
+        default: Theme.green
+        }
+        return StatsCard(title: "Memory", symbol: "memorychip", value: StatsFormat.percent(fraction)) {
+            StatsBar(fraction: fraction, color: color)
+            if let memory {
+                StatsDetail("\(StatsFormat.bytes(Double(memory.used))) of \(StatsFormat.bytes(Double(memory.total)))")
+                StatsDetail("Swap \(StatsFormat.bytes(Double(memory.swapUsed)))")
+            }
+        }
+    }
+
+    private var networkCard: some View {
+        let snapshot = service.snapshot
+        return StatsCard(title: "Network", symbol: "network", value: "↓ " + StatsFormat.rate(snapshot.download)) {
+            ZStack {
+                StatsSparkline(values: service.downloadHistory, color: Theme.blue)
+                StatsSparkline(values: service.uploadHistory, color: Theme.green.opacity(0.8))
+            }
+            .frame(height: 22)
+            StatsDetail("↑ \(StatsFormat.rate(snapshot.upload)) · IP \(snapshot.address ?? "–")")
+        }
+    }
+
+    private var diskCard: some View {
+        let disk = service.snapshot.disk
+        let used = disk.map { 1 - Double($0.free) / Double(max($0.total, 1)) } ?? 0
+        return StatsCard(title: "Disk", symbol: "internaldrive", value: disk.map { StatsFormat.bytes(Double($0.free)) + " free" } ?? "–") {
+            StatsBar(fraction: used, color: used > 0.95 ? Theme.red : Theme.blue)
+            StatsDetail("Read \(StatsFormat.rate(service.snapshot.diskRead)) · Write \(StatsFormat.rate(service.snapshot.diskWrite))")
+        }
+    }
+
+    private func batteryCard(_ battery: MacBattery) -> some View {
+        let state = battery.isCharging ? "Charging" : battery.isOnPower ? "On power" : "On battery"
+        let left = battery.minutesLeft.map { " · " + StatsFormat.minutes($0) + (battery.isCharging ? " to full" : " left") } ?? ""
+        let details = [
+            battery.watts.map { String(format: "%.1f W", abs($0)) },
+            battery.health.map { "Health " + StatsFormat.percent($0) },
+            battery.cycles.map { "\($0) cycles" }
+        ].compactMap { $0 }
+        return StatsCard(title: "Battery", symbol: battery.isCharging ? "battery.100percent.bolt" : "battery.75percent",
+                         value: "\(battery.level)%") {
+            StatsBar(fraction: Double(battery.level) / 100, color: battery.level <= 20 ? Theme.red : Theme.green)
+            StatsDetail(state + left)
+            StatsDetail(details.joined(separator: " · "))
+        }
+    }
+}
+
+/// The busiest processes, by CPU or memory; Quit asks once more (spec SY-6).
+struct StatsProcessList: View {
+    @ObservedObject var service: StatsService
+    @State private var confirming: pid_t?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Top processes").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.white.opacity(0.6))
+                Spacer()
+                Picker("Sort", selection: $service.sortsByMemory) {
+                    Text("CPU").tag(false)
+                    Text("Memory").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.mini)
+                .fixedSize()
+            }
+            ForEach(service.processes) { row($0) }
+            if service.processes.isEmpty {
+                StatsDetail("Reading…")
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous).fill(Theme.fill))
+    }
+
+    private func row(_ process: ProcessUsage) -> some View {
+        HStack(spacing: 7) {
+            if let icon = NSRunningApplication(processIdentifier: process.id)?.icon {
+                Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+            } else {
+                Image(systemName: "gearshape").font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.5)).frame(width: 16)
+            }
+            Text(process.name).font(.system(size: 11)).foregroundStyle(.white).lineLimit(1)
+            Spacer(minLength: 4)
+            Text(service.sortsByMemory ? StatsFormat.bytes(Double(process.memory)) : StatsFormat.percent(process.cpu))
+                .font(.system(size: 11, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(Color.white.opacity(0.7))
+            quitButton(process)
+        }
+        .frame(height: 22)
+    }
+
+    private func quitButton(_ process: ProcessUsage) -> some View {
+        let isConfirming = confirming == process.id
+        return Button {
+            if isConfirming {
+                service.quit(process)
+                confirming = nil
+            } else {
+                confirming = process.id
+            }
+        } label: {
+            Text(isConfirming ? "Quit" : "✕")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(isConfirming ? .white : Color.white.opacity(0.6))
+                .padding(.horizontal, isConfirming ? 7 : 0)
+                .frame(minWidth: 20, minHeight: 18)
+                .background(Capsule().fill(isConfirming ? Theme.red : Color.white.opacity(0.1)))
+        }
+        .buttonStyle(.plain)
+        .help(isConfirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
+    }
+}

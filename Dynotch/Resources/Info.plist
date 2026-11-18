@@ -38,7 +38,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Dynotch reads and saves your notes in Notes, and sends a text through Messages when you reply to a call.</string>
+	<string>Dynotch reads and saves your notes in Notes, sends a text through Messages when you reply to a call, and shows and controls what Spotify plays.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Dynotch shows a notice when a Bluetooth device connects or disconnects, with its battery.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>

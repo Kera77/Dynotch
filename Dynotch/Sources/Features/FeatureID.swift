@@ -14,6 +14,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case tray
     case info
+    case music
+    case stats
 
     var id: String { rawValue }
 
@@ -31,6 +33,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "Clipboard"
         case .tray: "Tray"
         case .info: "Info"
+        case .music: "Music"
+        case .stats: "System"
         }
     }
 
@@ -48,6 +52,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .clipboard: "doc.on.clipboard"
         case .tray: "tray.full"
         case .info: "info.circle.fill"
+        case .music: "music.note"
+        case .stats: "chart.bar.xaxis"
         }
     }
 }

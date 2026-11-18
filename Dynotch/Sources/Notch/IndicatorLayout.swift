@@ -34,6 +34,10 @@ enum IndicatorItem: Identifiable, Equatable {
     case battery(BatteryDevice)
     /// Today's or the open tasks (spec R-10).
     case tasks(TaskCount)
+    /// Spotify's cover with the track's progress (spec MU-2).
+    case music(MusicIndicator.Glance)
+    /// CPU, network speed or a warning (spec SY-7, SY-8).
+    case stats
 
     var id: String {
         switch self {
@@ -42,13 +46,24 @@ enum IndicatorItem: Identifiable, Equatable {
         case .working: "claude-working"
         case .battery(let device): "battery-\(device.id)"
         case .tasks: "tasks"
+        case .music: "music"
+        case .stats: "stats"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks: false
+        case .meeting, .battery, .tasks, .music, .stats: false
+        }
+    }
+
+    /// Hovering these opens their module instead of writing details (spec MU-2, SY-7).
+    var opensModule: FeatureID? {
+        switch self {
+        case .music: .music
+        case .stats: .stats
+        default: nil
         }
     }
 
@@ -63,26 +78,30 @@ enum IndicatorItem: Identifiable, Equatable {
         case .usage, .working: IndicatorLayout.ringSlotWidth
         case .battery: IndicatorLayout.batterySlotWidth
         case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
+        case .music: IndicatorLayout.ringSlotWidth
+        case .stats: IndicatorLayout.statsSlotWidth
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .music, .stats: IndicatorLayout.labelHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count): IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * 22 + 6
         case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
 
-    /// Meetings first, then the usage, low batteries, and the tasks at the far right.
+    /// The cover next to the notch, then meetings, the usage, low batteries, the stats, and the
+    /// tasks at the far right.
     static func items(
         meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
-        tasks: TaskCount? = nil
+        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Bool = false
     ) -> [IndicatorItem] {
-        meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? []) + (working ? [.working] : [])
-            + lowBatteries.map(IndicatorItem.battery) + (tasks.map { [.tasks($0)] } ?? [])
+        (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
+            + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats ? [.stats] : [])
+            + (tasks.map { [.tasks($0)] } ?? [])
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
@@ -108,6 +127,8 @@ struct IndicatorLayout: Equatable {
     static let batterySlotWidth: CGFloat = 34
     /// The checklist icon and a one-digit count, like the menu bar's (spec R-10).
     static let tasksSlotWidth: CGFloat = 34
+    /// "↓12M" or "100%", with room for a warning dot (spec SY-7).
+    static let statsSlotWidth: CGFloat = 50
     static let iconWidth: CGFloat = 24
     static let iconHeight: CGFloat = 22
     static let capsuleHeight: CGFloat = 20

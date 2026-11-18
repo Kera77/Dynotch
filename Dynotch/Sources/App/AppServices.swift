@@ -27,4 +27,6 @@ struct AppServices {
     let beeper: BeeperService
     let devices: DeviceWatcher
     let switcher: SwitcherController
+    let music: MusicService
+    let stats: StatsService
 }

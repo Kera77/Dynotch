@@ -26,6 +26,8 @@ final class NotchController {
     let notices: NoticeService
     let chat: ClaudeChatService
     let battery: BatteryService
+    let music: MusicService
+    let stats: StatsService
     private var chatObserver: AnyCancellable?
     private var spaceObserver: NSObjectProtocol?
     var gatherTask: Task<Void, Never>?
@@ -89,6 +91,8 @@ final class NotchController {
         notices = services.notices
         chat = services.chat
         battery = services.battery
+        music = services.music
+        stats = services.stats
         self.openSettings = openSettings
         let geometry = Self.geometry(for: screen)
         model = NotchViewModel(settings: settings, geometry: geometry, screenName: screen.localizedName)
@@ -98,28 +102,9 @@ final class NotchController {
         panel = NotchPanel(contentRect: windowRect)
         glassPanel = GlassPanel(level: panel.level)
 
-        var rootView = NotchView(
-            model: model, settings: settings, calendar: calendar,
-            notifications: notifications, calculator: services.calculator, notes: services.notes,
-            reminders: services.reminders, tasks: services.tasks, claudeUsage: services.claudeUsage, hud: services.hud,
-            badges: services.badges,
-            calls: services.calls, keyboardLock: services.keyboardLock,
-            notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
-            updates: services.updates, tablets: services.tablets, clipboard: services.clipboard,
-            clipboardPicker: services.clipboardPicker, tray: services.tray, beeper: services.beeper, devices: services.devices
-        ) { [weak self] in
-            self?.settingsButtonPressed()
-        }
-        rootView.switcher = services.switcher
-        rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
+        let rootView = makeRootView(services)
         observeBeeperList(services.beeper)
-        rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
-        rootView.openFully = { [weak self] in self?.openFully() }
-        rootView.openModule = { [weak self] in self?.openFromStrip($0) }
-        rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
         model.requestCollapse = { [weak self] in self?.collapse() }
-        rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }
-        rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
         var glassView = rootView
         glassView.layer = .glass
         glassPanel.contentView = NSHostingView(rootView: glassView)

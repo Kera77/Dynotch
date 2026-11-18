@@ -87,6 +87,10 @@ extension NotchView {
         case .tray:
             let count = tray.trayFiles.count
             detail = count == 0 ? "Drop files on the notch" : "\(count) file\(count == 1 ? "" : "s") in the tray"
+        case .music:
+            detail = music.nowPlaying.map { "\($0.title) · \($0.artist)" } ?? "Nothing playing in Spotify"
+        case .stats:
+            detail = "CPU \(StatsFormat.percent(stats.snapshot.cpu)) · ↓ \(StatsFormat.rate(stats.snapshot.download))"
         case .home, .info:
             detail = "Hover longer or click to open"
         }

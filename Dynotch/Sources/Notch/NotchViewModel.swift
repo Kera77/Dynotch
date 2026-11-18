@@ -202,6 +202,8 @@ final class NotchViewModel: ObservableObject {
         if currentFeature == .claudeUsage { return geometry.usageSize }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
+        // The stats' tiles and process list need the room (spec SY-1).
+        if currentFeature == .stats { return geometry.mediumSize }
         return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 

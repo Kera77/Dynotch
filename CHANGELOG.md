@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- Music module for Spotify: the cover beside the closed notch with a ring in its colour showing
+  the track's progress; hovering it opens the player with seek bar, shuffle, previous, play,
+  next, repeat, volume and the Mac's sound output. A new track's name shows for a moment.
+- System module: CPU, memory, network, disk and battery tiles, the busiest processes with Quit,
+  an optional CPU or network value beside the closed notch, and a red dot when memory runs low,
+  the disk fills up or the Mac slows down to cool off.
+
 ### Fixed
 - Google Chat and other website notifications stay in the notch after the page closes them in
   Notification Center a few seconds later; a message posted again replaces the kept copy.

@@ -33,6 +33,12 @@ struct NotchView: View {
     /// Watched by its own views, not by the whole notch (spec N-16).
     let beeper: BeeperService
     @ObservedObject var devices: DeviceWatcher
+    /// Only whether a cover or a value shows beside the notch; the numbers are watched by their
+    /// own views (spec MU-2, SY-7).
+    @ObservedObject var musicIndicator: MusicIndicator
+    @ObservedObject var statsIndicator: StatsIndicator
+    let music: MusicService
+    let stats: StatsService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
@@ -63,7 +69,8 @@ struct NotchView: View {
     var indicatorItems: [IndicatorItem] {
         IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
-            lowBatteries: battery.warnings, tasks: tasks.shown
+            lowBatteries: battery.warnings, tasks: tasks.shown,
+            music: musicIndicator.glance, stats: statsIndicator.isShown
         )
     }
 
@@ -90,10 +97,14 @@ struct NotchView: View {
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     var labelIndex: Int? {
         if let hoveredIndicator { return hoveredIndicator }
-        guard let announcement = calendar.announcement else { return nil }
-        return indicatorItems.firstIndex { item in
-            if case .meeting(let event) = item { event.id == announcement.id } else { false }
+        if let announcement = calendar.announcement {
+            return indicatorItems.firstIndex { item in
+                if case .meeting(let event) = item { event.id == announcement.id } else { false }
+            }
         }
+        // A new track's name, for a moment (spec MU-4).
+        guard musicIndicator.isAnnouncing else { return nil }
+        return indicatorItems.firstIndex { if case .music = $0 { true } else { false } }
     }
 
     private var hoveredIndicator: Int? {
