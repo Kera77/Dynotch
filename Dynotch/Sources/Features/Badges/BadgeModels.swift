@@ -19,6 +19,16 @@ struct BadgeApp: Codable, Identifiable, Equatable, Sendable {
     var icon: BadgeIcon
 
     var id: String { bundleID }
+
+    /// The notch tab a left click on the badge opens instead of the app (spec BP-12, GC-5): Beeper,
+    /// or Google Chat (a web app, found by its name).
+    static func chatTab(for app: BadgeApp) -> NotificationsTab? {
+        let identifier = app.bundleID.lowercased()
+        let name = app.name.lowercased()
+        if identifier.contains("beeper") { return .beeper }
+        if name.contains("google chat") || (name == "chat" && identifier.contains("webapp")) { return .googleChat }
+        return nil
+    }
 }
 
 /// The built-in icons to choose from (spec B-3).

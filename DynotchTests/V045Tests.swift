@@ -150,3 +150,15 @@ struct TaskIndicatorTests {
         #expect(layout.rightWidth > 0)
     }
 }
+
+/// Chat badges open their tab (spec BP-12, GC-5).
+struct ChatBadgeTests {
+    @Test func chatBadgesOpenTheirTab() {
+        let beeper = BadgeApp(bundleID: "com.automattic.beeper.desktop", name: "Beeper Desktop", isEnabled: true, icon: .app)
+        let chat = BadgeApp(bundleID: "com.apple.Safari.WebApp.940A", name: "Google Chat", isEnabled: true, icon: .app)
+        let mail = BadgeApp(bundleID: "com.apple.mail", name: "Mail", isEnabled: true, icon: .app)
+        #expect(BadgeApp.chatTab(for: beeper) == .beeper)
+        #expect(BadgeApp.chatTab(for: chat) == .googleChat)
+        #expect(BadgeApp.chatTab(for: mail) == nil)
+    }
+}

@@ -158,15 +158,15 @@ extension NotchController {
     }
 }
 
-// MARK: - Beeper badge (spec BP-12)
+// MARK: - Chat badges (spec BP-12, GC-5)
 
 extension NotchController {
-    /// A click on Beeper's badge: the notch opens on the Beeper tab instead of the app.
-    func openBeeperTab() {
+    /// A click on Beeper's or Google Chat's badge: the notch opens on its tab instead of the app.
+    func openChatTab(_ tab: NotificationsTab) {
         setHoveredBadge(nil)
         if !model.isExpanded { expand() }
         withAnimation(Self.animation) {
-            model.notificationsTab = .beeper
+            model.notificationsTab = tab
             model.select(.notifications)
         }
     }

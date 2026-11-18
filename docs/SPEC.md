@@ -96,6 +96,7 @@
 | C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
 | C-8 | (v0.43) **Permissions fül:** minden engedély (Teljes lemezelérés, Accessibility, Naptár, Emlékeztetők, Kontaktok, Bluetooth) egy helyen, mire kell; megadva pipa, különben gomb a Rendszerbeállítások megfelelő oldalára. |
 | C-8b | (v0.46) A *Permissions* fül **Grant…** gombja a még soha nem kért engedélyeknél (Contacts, Calendar, Reminders) a rendszer **engedélykérő ablakát** hozza fel – a Rendszerbeállítások listájában az app csak kérés után jelenik meg, ezért a Contacts addig nem volt megadható. Elutasítás után a Rendszerbeállítások megfelelő panelét nyitja. |
+| C-8c | (v0.47) A teszt- és Debug-buildek **saját azonosítót** kapnak (`com.peterkereki.Dynotch.debug`): a macOS az engedélyeket (Full Disk Access, Contacts…) azonosító és aláírás szerint tárolja, és a gyakori tesztfuttatás ugyanazzal az azonosítóval elvitte a telepített app engedélyeit (értesítések „elfelejtve”, Contacts minden hívásnál). Egyszeri újbóli megadás után megmaradnak. |
 | C-9 | (v0.43) A beállítások szakaszai **bal oldali listában**, kereséssel (kulcsszavakra is talál); a C-1b fülnév-kiírását váltja. |
 | C-10 | (v0.44) A beállítások szakaszai közötti váltás becsúszik, mint az értesítés-fülek. |
 
@@ -195,6 +196,7 @@
 | K-8g | *Settings › Calendar*: az előjelzési idő **beírható** (szám a nyilak mellett), és nyilakkal is állítható (1–30 perc). |
 | K-8h | (v0.40) A meeting-visszaszámláló (előjelzés és „folyamatban”) **hover-sorában** a név és az idő mellett, az **X-től balra** a **Join** gomb is ott van, ha a meetingnek van linkje; a meetinget nyitja meg. |
 | K-8i | (v0.45) A **bejelentett** meeting sorában (K-8f, hover nélkül is látszik) az X és a Join gomb fölött a notch átveszi az egeret: a kattintás nem megy át a notch mögötti appra. |
+| K-8j | (v0.47) A becsukott notch alatti meeting-sorban az idő („10:00–10:30 · starting”) a naptár **kékje** (mint K-5c), a Join gomb itt **szürke kapszula** fehér felirattal (a napi nézetben marad zöld). |
 | K-9 | A jelzés kikapcsolható (*Beállítások › Naptár*). A Naptár funkció kikapcsolásakor a jelzés sem jelenik meg. |
 | K-14 | (v0.43, v0.44-ben bővítve) **Napi idővonal** a napi nézetben: az események színes sávként (ha elég széles, a nevükkel) 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
 | K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. |
@@ -601,6 +603,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GC-2 | Ami nem érhető el API nélkül, az nincs a felületen: reakció, emlékeztető, fájlküldés, szerkesztés/visszavonás, profilkép (monogram helyette). |
 | GC-3 | Válasz a meglévő módon (a beszélgetés megnyitása és begépelés); a notchból küldött válaszok kék buborékként a beszélgetésben látszanak, amíg a Dynotch fut. |
 | GC-4 | „Open Google Chat” gomb a fejlécben. |
+| GC-5 | (v0.47) A Google Chat app-jelvényére (B-1, a név alapján felismert web app) **bal kattintás** a notchot a **Google Chat fülön** nyitja meg, ahogy a Beeper-jelvény a Beeper fülön (BP-12). |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 

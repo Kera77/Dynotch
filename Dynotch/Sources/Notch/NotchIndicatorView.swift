@@ -270,16 +270,17 @@ extension NotchIndicatorView {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
+            // The calendar's own blue, as in the day view (spec K-5c, K-8j).
             Text("\(start)–\(end) · \(phase)")
                 .font(.system(size: 11))
                 .monospacedDigit()
-                .foregroundStyle(Self.color(for: status.phase))
+                .foregroundStyle(CalendarStyle.eventTime)
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer(minLength: 8)
             // Left of the X, for meetings with a link (spec K-8g).
             if event.meetingURL != nil {
-                JoinButton(style: .filled) { join(event) }
+                JoinButton(style: .muted) { join(event) }
                     .help("Join the meeting")
                     .accessibilityLabel("Join the meeting")
             }

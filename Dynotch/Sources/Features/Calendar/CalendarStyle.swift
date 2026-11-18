@@ -32,6 +32,8 @@ struct JoinButton: View {
         case filled
         /// Blue text on a dark tile (full calendar).
         case subtle
+        /// Grey capsule, white text: under the closed notch, beside the coloured countdown (spec K-8j).
+        case muted
     }
 
     let style: Style
@@ -47,17 +49,27 @@ struct JoinButton: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .foregroundStyle(style == .filled ? Color.black.opacity(0.85) : CalendarStyle.accent)
+            .foregroundStyle(foreground)
             .background(background)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
+    private var foreground: Color {
+        switch style {
+        case .filled: Color.black.opacity(0.85)
+        case .subtle: CalendarStyle.accent
+        case .muted: Color.white.opacity(0.9)
+        }
+    }
+
     @ViewBuilder private var background: some View {
         switch style {
         case .filled:
             Capsule(style: .continuous).fill(CalendarStyle.joinGreen)
+        case .muted:
+            Capsule(style: .continuous).fill(Color.white.opacity(0.16))
         case .subtle:
             RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.08))
         }

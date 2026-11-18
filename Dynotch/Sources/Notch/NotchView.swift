@@ -43,8 +43,8 @@ struct NotchView: View {
     var openFully: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
-    /// Opens the notch on the Beeper tab (spec BP-12).
-    var openBeeper: () -> Void = {}
+    /// Opens the notch on the Beeper or Google Chat tab (spec BP-12, GC-5).
+    var openChatTab: (NotificationsTab) -> Void = { _ in }
     /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
     var keepInTray: ([URL]) -> Void = { _ in }
     var sendWithAirDrop: ([URL]) -> Void = { _ in }
@@ -141,9 +141,9 @@ struct NotchView: View {
                         hoveredBadge: model.hoveredBadge,
                         notice: shownNotice,
                         openBadge: { badge in
-                            // Beeper's badge opens its chats in the notch (spec BP-12).
-                            if badge.app.bundleID.lowercased().contains("beeper"), settings.isEnabled(.notifications) {
-                                openBeeper()
+                            // Beeper's and Google Chat's badges open their tab in the notch (spec BP-12, GC-5).
+                            if let tab = BadgeApp.chatTab(for: badge.app), settings.isEnabled(.notifications) {
+                                openChatTab(tab)
                             } else {
                                 badges.open(badge.app)
                             }
