@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-11-18
+
 ### Changed
 - Tray tiles: the full name pops up with a spring animation, the icon lifts, and at the left and right edges the name moves inside the tray instead of being cut off.
 - Tray folders: the dot colour can be changed from the tab's right-click menu (Colour).
