@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.50 elfogadva, v0.51 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.51 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -701,6 +701,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.51** | Google Chat-válasz link nélkül (⌘⇧K, név szerinti megerősítés); a Beeperben elolvasott üzenetek kikerülnek a listából; magyarázat a rejtett bannerekről |
 | **v0.50** | Gyorsbillentyűvel nyitott modul nem írja felül a legutóbbit; a feladatszámláló hoverre lenyíló, pipálható feladatlista |
 | **v0.49** | AirDrop-beragadás javítása, billentyűzet vissza csukáskor (görgetés), kattintásig nyitva maradó válaszmező, hover-lenyílók, ⌥V a modul alatt, tálcából kihúzás saját néven „(1)”-gyel, Beeper olvasott a válaszmezőnél, állítható vágólap-késleltetés, blur |
 | **v0.48** | Mission Control az ablaklistából, jelvény: bal klikk app / jobb klikk értesítések, AirDrop jobbra, beállítások a széles fülek fölött, böngésző oldalai a böngésző alatt |

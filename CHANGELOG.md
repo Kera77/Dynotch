@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.51.0] - 2026-11-18
+
 ### Added
 - Replying to Google Chat from the notch when the notification names no conversation: Dynotch
   opens Google Chat, jumps to the conversation by name (⌘⇧K) and sends only once the window or
