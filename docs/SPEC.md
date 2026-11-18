@@ -334,6 +334,8 @@
 | R-10 | (v0.45) **Feladatszámláló a becsukott notch jobb oldalán** (a jelzők sorának jobb végén): a menüsor-ikon (`checklist`) és a szám, kisebben. Ha vannak **mai** (ma esedékes vagy lejárt) feladatok, azokat számolja (fehér), különben az **összes nyitottat** (halványabb), minden listából. Kattintásra a Reminders modul nyílik; hoverre alatta „3 tasks due today”, **Open** gomb és X. Csak Reminders-engedéllyel; *Settings › General › Tasks*-ban kikapcsolható (alapból be). |
 | R-11 | (v0.45) Az X a számlálót a beállított időre **elrejti** (15 perc, 30 perc, 1 óra – alapból –, 2 óra, másnapig; *Settings › General › Tasks*). Hamarabb visszajön, ha közben **új feladat** érkezik. Az elrejtés újraindítás után is megmarad. |
 | R-12 | (v0.50) A feladatszámlálóra hoverelve **lenyílik a feladatlista**: a fejléc (szám, Open, ×) alatt a számolt feladatok (a maiak, ha vannak, különben az összes nyitott) határidő szerint, legfeljebb 6 sor, mindegyik előtt kör, amivel kipipálható, mellette a határidő-pill. |
+| R-13 | (v0.56) A listák alapértelmezett rendezése a **felvétel ideje**, a legújabb felül („Date Added”). A többi rendezés továbbra is választható; a közelgő emlékeztetők határidő szerint maradnak. |
+| R-14 | (v0.56) Egy feladat sorára mutatva megjelenik egy kis **„i”**; rá kattintva a modulon belül megnyílik a részletek panel, mint a Reminders appban: cím, jegyzet, URL, **dátum és időpont** (kapcsolóval), ismétlés, korai emlékeztető, lista, prioritás. A Done a Reminders adatbázisába ír (az appban és iCloudon is megjelenik), csak a módosított mezőket. A zászló, a címkék, a hely, a kép és az „üzenetváltáskor” beállítás EventKitből nem érhető el, ezekhez a panel a Reminders appot nyitja. |
 
 ---
 
@@ -709,6 +711,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
 | MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. |
+| MU-9 | Szüneteltetett zenénél a borító elrejthető. A modul szem ikonos menüjében: **Hide Now** (elrejti, amíg újra nem szól), és **Hide After a Pause**: azonnal, 1, 5 (alap) vagy 15 perc szünet után, vagy soha. Lejátszáskor a borító visszajön. |
 
 ## 4ű. Rendszerstatisztika (v0.56)
 

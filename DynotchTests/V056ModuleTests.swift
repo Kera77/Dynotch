@@ -39,6 +39,16 @@ struct MusicModuleTests {
         #expect(ArtworkColor.dominant(rgba: [120, 120, 120, 255, 30, 30, 30, 255]) == ArtworkColor.fallback)
     }
 
+    @Test func aPausedCoverHidesAfterTheChosenTime() {
+        let now = Date(timeIntervalSince1970: 1000)
+        let paused = now.addingTimeInterval(-120)
+        #expect(!MusicService.hidesCover(isPlaying: true, pausedSince: nil, after: 0, byHand: true, now: now))
+        #expect(MusicService.hidesCover(isPlaying: false, pausedSince: paused, after: 1, byHand: false, now: now))
+        #expect(!MusicService.hidesCover(isPlaying: false, pausedSince: paused, after: 5, byHand: false, now: now))
+        #expect(!MusicService.hidesCover(isPlaying: false, pausedSince: paused, after: nil, byHand: false, now: now))
+        #expect(MusicService.hidesCover(isPlaying: false, pausedSince: paused, after: nil, byHand: true, now: now))
+    }
+
     @Test func theProgressBarMapsClicksToSeconds() {
         #expect(MusicProgressBar.seconds(at: 50, width: 200, duration: 240) == 60)
         #expect(MusicProgressBar.seconds(at: -10, width: 200, duration: 240) == 0)

@@ -33,7 +33,19 @@ final class MusicService: ObservableObject {
     @Published private(set) var outputs: [SoundOutputs.Device] = []
     @Published private(set) var currentOutput: AudioDeviceID?
     let indicator = MusicIndicator()
+    /// Minutes of pause after which the cover goes away; nil: never (spec MU-9).
+    @Published var hidesAfterPause: Int? {
+        didSet {
+            UserDefaults.standard.set(hidesAfterPause ?? -1, forKey: Self.hideKey)
+            updateGlance()
+        }
+    }
+    /// Hidden by hand until the music plays again (spec MU-9).
+    @Published private(set) var isHiddenUntilPlay = false
+    private var pausedSince: Date?
 
+    static let hideChoices: [Int?] = [0, 1, 5, 15, nil]
+    private static let hideKey = "musicHideAfterPause"
     private let settings: AppSettings
     private var timer: Timer?
     private var observers: [NSObjectProtocol] = []
@@ -48,6 +60,21 @@ final class MusicService: ObservableObject {
 
     init(settings: AppSettings) {
         self.settings = settings
+        let stored = UserDefaults.standard.object(forKey: Self.hideKey) as? Int ?? 5
+        hidesAfterPause = stored < 0 ? nil : stored
+    }
+
+    func hideUntilPlay() {
+        isHiddenUntilPlay = true
+        updateGlance()
+    }
+
+    /// The cover is left out while paused long enough, or hidden by hand (spec MU-9).
+    nonisolated static func hidesCover(isPlaying: Bool, pausedSince: Date?, after minutes: Int?, byHand: Bool, now: Date) -> Bool {
+        guard !isPlaying else { return false }
+        if byHand { return true }
+        guard let minutes, let pausedSince else { return false }
+        return now.timeIntervalSince(pausedSince) >= Double(minutes) * 60
     }
 
     var isOn: Bool { settings.isEnabled(.music) }
@@ -111,6 +138,12 @@ final class MusicService: ObservableObject {
     private func apply(_ playing: NowPlaying?) {
         let previous = nowPlaying
         nowPlaying = playing
+        if playing?.isPlaying != false {
+            pausedSince = nil
+            if playing != nil { isHiddenUntilPlay = false }
+        } else if pausedSince == nil {
+            pausedSince = Date()
+        }
         readAt = Date()
         if playing?.trackID != artworkTrack { loadArtwork(for: playing) }
         if let playing, playing.isPlaying, hasRead, playing.trackID != previous?.trackID { announce() }
@@ -120,7 +153,12 @@ final class MusicService: ObservableObject {
 
     private func updateGlance() {
         // The cover can be turned off (spec MU-8).
-        let glance = settings.showsNowPlaying ? nowPlaying.map {
+        let hidden = nowPlaying.map {
+            Self.hidesCover(
+                isPlaying: $0.isPlaying, pausedSince: pausedSince, after: hidesAfterPause, byHand: isHiddenUntilPlay, now: Date()
+            )
+        } ?? true
+        let glance = settings.showsNowPlaying && !hidden ? nowPlaying.map {
             MusicIndicator.Glance(
                 trackID: $0.trackID, title: $0.title, artist: $0.artist, isPlaying: $0.isPlaying, artwork: artwork, tint: tint
             )
@@ -166,6 +204,8 @@ extension MusicService {
             playing.position = position(at: Date())
             playing.state = playing.isPlaying ? .paused : .playing
             nowPlaying = playing
+            pausedSince = playing.isPlaying ? nil : Date()
+            if playing.isPlaying { isHiddenUntilPlay = false }
             readAt = Date()
             updateGlance()
         }

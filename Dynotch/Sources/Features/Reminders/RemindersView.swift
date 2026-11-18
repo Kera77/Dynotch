@@ -22,6 +22,15 @@ struct RemindersView: View {
             switch store.access {
             case .granted:
                 content
+                    // The info panel over the module (spec R-14).
+                    .overlay {
+                        if let id = store.editingID {
+                            ReminderDetailView(store: store, id: id)
+                                .id(id)
+                                .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                        }
+                    }
+                    .animation(Motion.quick, value: store.editingID)
             case .notDetermined:
                 prompt(
                     "Dynotch needs access to your reminders.",
@@ -262,6 +271,7 @@ private struct ReminderRow: View {
     @ObservedObject var store: RemindersStore
     let item: ReminderItem
     let showsList: Bool
+    @State private var isHovered = false
 
     private var isChecked: Bool {
         item.isCompleted || store.completing.contains(item.id)
@@ -306,7 +316,25 @@ private struct ReminderRow: View {
                 }
             }
             Spacer(minLength: 0)
+            // Like the Reminders app: an "i" on hover opens the details (spec R-14).
+            if !item.isCompleted {
+                Button {
+                    store.editingID = item.id
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.blue)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .opacity(isHovered ? 1 : 0)
+                .help("Details")
+                .accessibilityLabel("Details")
+                .padding(.trailing, 4)
+            }
         }
+        .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
         .padding(.vertical, 3)
         // Room left of the circle, so it does not touch the edge (spec R-6).
         .padding(.leading, 6)
@@ -343,31 +371,5 @@ struct RemindersMenuBarView: View {
         .padding(.top, 12)
         .padding(.bottom, 14)
         .popoverChrome(arrowX: state.arrowX)
-    }
-}
-
-/// The due date as a pill coloured by how near it is (spec R-9).
-struct DuePill: View {
-    let text: String
-    let urgency: DueUrgency?
-    var isDone = false
-
-    private var colour: Color {
-        guard !isDone else { return .white.opacity(0.4) }
-        switch urgency {
-        case .overdue: return Theme.red
-        case .today: return .orange
-        case .tomorrow: return Theme.blue
-        case .later, nil: return .white.opacity(0.55)
-        }
-    }
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(colour)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(Capsule().fill(colour.opacity(0.16)))
     }
 }

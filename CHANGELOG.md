@@ -6,6 +6,10 @@
 - Music module for Spotify: the cover beside the closed notch with a ring in its colour showing
   the track's progress; hovering it opens the player with seek bar, shuffle, previous, play,
   next, repeat, volume and the Mac's sound output. A new track's name shows for a moment.
+- The Music cover hides while paused: by hand until it plays again, or after a pause of a set
+  length (5 minutes by default).
+- Reminders: an "i" beside a task opens its details as in the Reminders app (title, notes,
+  link, date and time, repeat, early alert, list, priority), saved to Reminders.
 - Music can stay out of the module list (it then opens from its cover) and its cover can be
   turned off, in Settings › Modules.
 - System module: CPU, memory, network, disk and battery tiles, the busiest processes with Quit,
@@ -17,6 +21,7 @@
   Notification Center a few seconds later; a message posted again replaces the kept copy.
 
 ### Changed
+- Reminders are listed newest first by default ("Date Added").
 - A notification group shows a bin to remove it and, when open, the small X to close it instead
   of the arrow.
 

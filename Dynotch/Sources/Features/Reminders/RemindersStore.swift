@@ -19,7 +19,9 @@ final class RemindersStore: ObservableObject {
     @Published private(set) var recentlyCompleted: [ReminderItem] = []
     /// Checked in the UI, saved a moment later (so the tick can be seen).
     @Published private(set) var completing: Set<String> = []
-    @Published private(set) var errorMessage: String?
+    @Published var errorMessage: String?
+    /// The reminder whose details are open (spec R-14).
+    @Published var editingID: String?
     @Published private(set) var now = Date()
 
     @Published var selectedListID: String? {
@@ -48,13 +50,14 @@ final class RemindersStore: ObservableObject {
 
     private enum Key {
         static let list = "remindersList"
-        static let sort = "remindersSort"
+        // A new key: everyone starts with the newest on top (spec R-13).
+        static let sort = "remindersSortV2"
         static let showCompleted = "remindersShowCompleted"
         static let autoToday = "remindersAutoToday"
         static let removeDate = "remindersRemoveDate"
     }
 
-    private let store = EKEventStore()
+    let store = EKEventStore()
     private let defaults: UserDefaults
     private var storeObserver: NSObjectProtocol?
     private var started = false
@@ -64,7 +67,7 @@ final class RemindersStore: ObservableObject {
         self.defaults = defaults
         access = Self.currentAccess()
         selectedListID = defaults.string(forKey: Key.list)
-        sort = defaults.string(forKey: Key.sort).flatMap(ReminderSort.init(rawValue:)) ?? .due
+        sort = defaults.string(forKey: Key.sort).flatMap(ReminderSort.init(rawValue:)) ?? .created
         showCompleted = defaults.bool(forKey: Key.showCompleted)
         autoToday = defaults.bool(forKey: Key.autoToday)
         removeParsedDate = defaults.object(forKey: Key.removeDate) as? Bool ?? true
@@ -157,7 +160,7 @@ final class RemindersStore: ObservableObject {
         }
     }
 
-    private func reload() {
+    func reload() {
         now = Date()
         guard Self.currentAccess() == .granted else {
             log("reload skipped: no access")

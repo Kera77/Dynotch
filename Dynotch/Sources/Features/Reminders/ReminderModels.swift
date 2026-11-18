@@ -25,12 +25,15 @@ struct ReminderItem: Identifiable, Equatable, Sendable {
 }
 
 enum ReminderSort: String, CaseIterable, Sendable {
+    /// Newest first (spec R-13).
+    case created
     case due
     case priority
     case title
 
     var title: String {
         switch self {
+        case .created: "Date Added"
         case .due: "Due Date"
         case .priority: "Priority"
         case .title: "Title"
@@ -78,6 +81,8 @@ enum ReminderLogic {
                 return lhs.title.localizedCompare(rhs.title) == .orderedAscending
             case .title:
                 return lhs.title.localizedCompare(rhs.title) == .orderedAscending
+            case .created:
+                return (lhs.created ?? .distantPast) > (rhs.created ?? .distantPast)
             }
         }
     }

@@ -233,6 +233,7 @@ struct MusicVolumeRow: View {
             .tint(service.tint.color)
             Image(systemName: "speaker.wave.3.fill").font(.system(size: 10)).foregroundStyle(Color.white.opacity(0.5))
             outputMenu
+            MusicHideMenu(service: service)
         }
         .onAppear { level = Double(volume) }
         .onChange(of: volume) { _, new in if !isEditing { level = Double(new) } }
@@ -264,5 +265,41 @@ struct MusicVolumeRow: View {
         .help("Sound output")
         .accessibilityLabel("Sound output")
         .onAppear(perform: service.refreshOutputs)
+    }
+}
+
+/// Hiding the cover beside the notch while the music is paused (spec MU-9).
+struct MusicHideMenu: View {
+    @ObservedObject var service: MusicService
+
+    var body: some View {
+        Menu {
+            Button("Hide Now, Until It Plays") { service.hideUntilPlay() }
+                .disabled(service.nowPlaying?.isPlaying != false)
+            Picker("Hide After a Pause", selection: $service.hidesAfterPause) {
+                ForEach(MusicService.hideChoices, id: \.self) { Text(Self.title(for: $0)).tag($0) }
+            }
+            .pickerStyle(.menu)
+        } label: {
+            Image(systemName: "eye.slash")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 24, height: 22)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Hide the cover beside the notch while paused")
+        .accessibilityLabel("Hide the cover while paused")
+    }
+
+    static func title(for minutes: Int?) -> String {
+        switch minutes {
+        case nil: "Never"
+        case 0: "Immediately"
+        case 1: "After 1 minute"
+        case let value?: "After \(value) minutes"
+        }
     }
 }
