@@ -13,7 +13,7 @@ extension NotchViewModel {
     /// The full calendar, the large notes and reminders, and the wide chat tabs keep a size of
     /// their own (spec RS-3).
     var moduleVariant: String? {
-        if currentFeature == .notifications, notificationsTab.isWide { return "wide" }
+        if currentFeature == .notifications, showsWideTab { return "wide" }
         return isLarge ? "large" : nil
     }
 

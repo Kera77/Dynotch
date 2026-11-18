@@ -135,6 +135,13 @@ final class NotchViewModel: ObservableObject {
     /// Files are being dragged over the notch (spec FT-1).
     /// Mission Control is showing: no hover opening (spec N-19).
     var isHiddenForMissionControl = false
+    /// The Beeper tab's chat list is open: only then does it need the wide panel (spec BP-1d).
+    @Published var beeperListOpen = true
+
+    var showsWideTab: Bool {
+        notificationsTab.isWide && (notificationsTab != .beeper || beeperListOpen)
+    }
+
     /// The screen is shared or recorded: nothing appears by itself (spec N-21).
     @Published var isScreenShared = false
     @Published private(set) var isShowingDropZone = false
@@ -175,7 +182,7 @@ final class NotchViewModel: ObservableObject {
         // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
-        if currentFeature == .notifications, notificationsTab.isWide { return geometry.chatPanelSize }
+        if currentFeature == .notifications, showsWideTab { return geometry.chatPanelSize }
         if currentFeature == .claudeUsage { return geometry.usageSize }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }

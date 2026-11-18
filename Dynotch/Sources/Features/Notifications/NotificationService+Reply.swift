@@ -21,10 +21,10 @@ extension NotificationService {
 
     // MARK: - Pop-up with the message (spec E-22, E-23)
 
-    /// Whether the pop-up of this notification shows its text: the source's rule, else the
-    /// general setting.
+    /// Whether the pop-up of this notification shows its text: set per app, the name only by
+    /// default (spec E-22b).
     func peekShowsMessage(_ notification: AppNotification) -> Bool {
-        rule(for: catalog.app(for: notification.appIdentifier)).peekShowsMessage ?? preferences.peekShowsMessage
+        rule(for: catalog.app(for: notification.appIdentifier)).peekShowsMessage == true
     }
 
     /// The texts the pop-up shows, oldest first: this conversation's new messages.

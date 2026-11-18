@@ -96,11 +96,17 @@ struct NotificationSourceRow: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            picker("Pop-up", value: rule.peekShowsMessage, labels: ["Default", "With message", "Name only"]) { choice in
+            // The pop-up shows the name, or the message too (spec E-22b).
+            Picker("Pop-up", selection: Binding(get: { rule.peekShowsMessage == true }, set: { shows in
                 var updated = rule
-                updated.peekShowsMessage = choice.value
+                updated.peekShowsMessage = shows ? true : nil
                 service.setRule(updated, for: app)
+            })) {
+                Text("Name only").tag(false)
+                Text("With message").tag(true)
             }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 320)
             picker("Reply field", value: rule.showsReply, labels: ["Default (off)", "Show", "Hide"]) { choice in
                 var updated = rule
                 updated.showsReply = choice.value

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.52 elfogadva, v0.53 fejlesztés alatt** · Utolsó módosítás: 2026-11-18
+> Állapot: **v0.53 elfogadva** · Utolsó módosítás: 2026-11-18
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -266,6 +266,7 @@
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 | E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
+| E-22b | (v0.53, az E-22 globális kapcsolóját felváltja) A „Name only / With message” **csak appokként** állítható (az app szabályai között); alapból minden app „Name only”. Közös marad a *Message lines in pop-ups* (2–8). |
 | E-23 | (v0.52) Hoverre a kártya **a teljes szöveget** mutatja (nincs sorlimit), a válaszmezővel, ha a forrásnál be van kapcsolva. A magassága a mért szöveghez igazodik, 520 pt fölött görgethető, és mindig **a tetejéről** indul. |
 | E-24 | (v0.53) A felugró értesítés **nem takarja el a csukott notch sorát**: a jelvények és a jelzők a helyükön maradnak, az értesítés alattuk nyílik le, legalább olyan szélesen, mint a sor. A sor jelvényei közben kattinthatók (bal klikk: app, jobb klikk: értesítések); a jelzők hover-címkéi addig nem nyílnak le. A notchra vagy az értesítésre vitt egér lenyitja a kártyát. |
 
@@ -571,6 +572,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-1 | **Beeper-fül** (UM-8): **nagyobb panel**, kb. 760 × 420 pt, a Beeper elrendezésével: **balra a csevegések listája** (kb. 240 pt; olvasatlanok elöl, utána a legutóbbi aktivitás szerint), **jobbra a kiválasztott beszélgetés**, alul a válaszmezővel. |
 | BP-1b | A **csevegéslista kikapcsolható**: a fül fejlécének oldalsáv-ikonjával és *Settings › Notifications › Beeper › Show the chat list*; lista nélkül a fejlécben legördülő választó mutatja a csevegéseket (olvasatlanok elöl). |
 | BP-1c | (v0.52) A **Beeper** fülön bezárt csevegőlistánál az olvasatlan csevegések kártyái látszanak (mint a Chats fülön, soronkénti válasszal); a lista gombjával kinyitva a csevegőlista és a beszélgetés. A kettő között áttűnés és csúszás. A kártya nyila a listát kinyitva a csevegést nyitja meg. |
+| BP-1d | (v0.53) Bezárt csevegőlistánál a Beeper fül **ugyanakkora**, mint a Google Chat fül (nem széles); kinyitva széles. |
 | BP-2 | **Design a Beeperét követi:** sötét felület; a listában kerek profilkép, a sarkában a hálózat kis jelvényével (WhatsApp, Messenger, Telegram, Signal, iMessage, Slack…), név, az utolsó üzenet egy sora, idő, olvasatlanságnál vastag név és kék számos pirula; a beszélgetésben a bejövő üzenetek balra szürke, a sajátok jobbra kék buborékban, csoportban a feladó neve a buborék fölött; a reakciók kis pirulaként a buborék alatt (emoji + szám); a válasz-idézet vékony csíkkal a buborék tetején; napelválasztók („Today”, „Yesterday”). |
 | BP-3 | **Profilképek** (7): a csevegés és a feladó képe a Beeperből (`imgURL`, szükség esetén `assets/download`), memóriában gyorsítótárazva; ha nincs kép, monogram színes körben, mint a Beeperben. Az értesítéskártyákon (E-4) is ezek látszanak az app ikonja helyett. |
 | BP-4 | **Reakció egy kattintással** (1): üzenetre vitt egérnél a buborék mellett kis sor: 👍 ❤️ 😂 😮 😢 🙏 és egy „+” az emoji-választóhoz (E-18). Kattintásra elküldi (`POST …/messages/{id}/reactions`), saját reakcióra kattintva visszavonja. Csak ahol a csevegés engedi (`capabilities.allowedReactions`). |
@@ -708,6 +710,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.53** | A felugró értesítés a csukott notch sora alatt; üzenetes mini nézet csak appokként; a Beeper fül bezárt listával kicsi |
 | **v0.52** | Üzenet a mini nézetben (állítható sorszám, forrásonként), teljes szöveg hoverre; képernyőmegosztás alatt semmi a notchból; Google Chat fül csak olvasatlanokkal, Beeper fül olvasatlan kártyákkal; a zsugorodó panel nem csukódik be |
 | **v0.51** | Google Chat-válasz link nélkül (⌘⇧K, név szerinti megerősítés); a Beeperben elolvasott üzenetek kikerülnek a listából; magyarázat a rejtett bannerekről |
 | **v0.50** | Gyorsbillentyűvel nyitott modul nem írja felül a legutóbbit; a feladatszámláló hoverre lenyíló, pipálható feladatlista |

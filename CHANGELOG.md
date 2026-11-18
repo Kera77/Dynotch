@@ -2,7 +2,12 @@
 
 ## [Unreleased]
 
+## [0.53.0] - 2026-11-18
+
 ### Changed
+- "Name only" or "With message" for notification pop-ups is set per app (Settings ›
+  Notifications › an app's rules); the general switch is gone, the number of lines stays.
+- With its chat list closed the Beeper tab is as small as the Google Chat tab.
 - A notification pop-up keeps the closed notch's row (badges, countdowns, counters) and drops
   down under it; the badges stay clickable meanwhile.
 

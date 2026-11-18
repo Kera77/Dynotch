@@ -47,4 +47,19 @@ struct V050Tests {
         #expect(IndicatorItem.tasks(TaskCount(count: 2, isToday: true)).labelHeight == base + 2 * 22 + 6)
         #expect(IndicatorItem.tasks(TaskCount(count: 20, isToday: false)).labelHeight == base + 6 * 22 + 6)
     }
+
+    @Test func beeperTabIsWideOnlyWithItsList() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.notifications)
+        model.notificationsTab = .beeper
+        model.beeperListOpen = true
+        #expect(model.openSize == model.geometry.chatPanelSize)
+        model.beeperListOpen = false
+        #expect(model.openSize != model.geometry.chatPanelSize)
+        model.notificationsTab = .googleChat
+        let googleChat = model.openSize
+        model.notificationsTab = .beeper
+        #expect(model.openSize == googleChat)
+    }
 }

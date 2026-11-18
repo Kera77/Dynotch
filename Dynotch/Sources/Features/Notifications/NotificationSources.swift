@@ -11,7 +11,7 @@ struct NotificationRule: Codable, Equatable, Sendable {
     var showsReply: Bool?
     /// Pops up while a Focus is on (spec E-20); nil: no.
     var popsUpDuringFocus: Bool?
-    /// The pop-up shows the message text too (spec E-22); nil: the general setting.
+    /// The pop-up shows the message text too (spec E-22b); nil: the name only.
     var peekShowsMessage: Bool?
 
     var isDefault: Bool {
@@ -51,11 +51,6 @@ final class NotificationPreferences: ObservableObject {
         didSet { defaults.set(respectsFocus, forKey: "notificationsRespectFocus") }
     }
 
-    /// The pop-up under the notch shows the message text, not only the name (spec E-22).
-    @Published var peekShowsMessage: Bool {
-        didSet { defaults.set(peekShowsMessage, forKey: "notificationPeekShowsMessage") }
-    }
-
     /// Lines of each message in the pop-up before hovering shows all of it.
     @Published var peekLines: Int {
         didSet { defaults.set(peekLines, forKey: "notificationPeekLines") }
@@ -66,7 +61,6 @@ final class NotificationPreferences: ObservableObject {
     init(defaults: UserDefaults) {
         self.defaults = defaults
         respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
-        peekShowsMessage = defaults.object(forKey: "notificationPeekShowsMessage") as? Bool ?? false
         peekLines = defaults.object(forKey: "notificationPeekLines") as? Int ?? 4
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]
         webAppSites = defaults.dictionary(forKey: Self.webAppSitesKey) as? [String: String] ?? [:]

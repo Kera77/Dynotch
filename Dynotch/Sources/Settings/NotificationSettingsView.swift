@@ -207,18 +207,14 @@ struct FocusToggle: View {
     }
 }
 
-/// What the pop-up under the notch shows (spec E-22): the name, or the message too, and how
-/// many lines before hovering shows all of it.
+/// How many lines of a message the pop-up shows before hovering shows all of it (spec E-22b);
+/// whether it shows the message at all is set per app.
 private struct PeekSettingsRows: View {
     @ObservedObject var preferences: NotificationPreferences
 
     var body: some View {
-        Picker("Pop-up shows", selection: $preferences.peekShowsMessage) {
-            Text("Name only").tag(false)
-            Text("With message").tag(true)
-        }
-        .pickerStyle(.segmented)
-        LabeledContent("Message lines") {
+        // Name or message is chosen per app, under each app's rules (spec E-22b).
+        LabeledContent("Message lines in pop-ups") {
             HStack(spacing: 6) {
                 Text("\(preferences.peekLines)")
                     .monospacedDigit()
@@ -226,6 +222,5 @@ private struct PeekSettingsRows: View {
                     .labelsHidden()
             }
         }
-        .disabled(!preferences.peekShowsMessage)
     }
 }

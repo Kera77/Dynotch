@@ -148,3 +148,17 @@ extension NotchController {
         now.width < before.width - 0.5 || now.height < before.height - 0.5
     }
 }
+
+// MARK: - Beeper tab size (spec BP-1d)
+
+extension NotchController {
+    /// With the chat list closed the Beeper tab is as small as Google Chat's.
+    func observeBeeperList(_ beeper: BeeperService) {
+        beeperListObserver = beeper.$showsChatList.removeDuplicates().sink { [weak self] open in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                withAnimation(Self.animation) { self.model.beeperListOpen = open }
+            }
+        }
+    }
+}

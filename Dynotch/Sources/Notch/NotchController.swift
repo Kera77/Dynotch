@@ -48,6 +48,7 @@ final class NotchController {
     private var localMonitor: Any?
     private var sizeObserver: AnyCancellable?
     private var settingsObserver: AnyCancellable?
+    var beeperListObserver: AnyCancellable?
     private var hoverTimer: Timer?
     var fullScreenTimer: Timer?
     private var closeTask: Task<Void, Never>?
@@ -110,6 +111,7 @@ final class NotchController {
             self?.settingsButtonPressed()
         }
         rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
+        observeBeeperList(services.beeper)
         rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
         rootView.openFully = { [weak self] in self?.openFully() }
         rootView.openModule = { [weak self] in self?.openFromStrip($0) }
