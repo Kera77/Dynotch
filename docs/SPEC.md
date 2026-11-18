@@ -120,6 +120,7 @@
 | H-1 | Amikor a hangerő vagy a beépített kijelző fényereje változik, a notch **két oldalra kiszélesedik**, fekete sávként, a notch magasságában. |
 | H-2 | **Bal oldalon** egy fix, fehér ikon: hangszóró (némításkor áthúzott) vagy nap. Szintenként nem cserélődik, nem villog. |
 | H-3 | **Jobb oldalon** egy **fehér kör**, amely a tetejétől **az óramutató járásával megegyezően** mutatja a szintet, **közepén a szint számmal** (0–100). Ugyanez a kör (a szám a közepén) mutatja az AI session-fogyást is. A körök nem Retina kijelzőn is élesek. |
+| H-3b | (v0.57) A szintkör (hangerő, fényerő, AI-használat) **28 pontos**, kitölti a helyét; a szám a kör belsejében margóval áll, a „100” sem ér a körhöz. |
 | H-4 | A HUD az utolsó változás után 1,5 s-mal visszahúzódik. Ha közben újabb változás jön, az időzítés újraindul. |
 | H-5 | Ha a panel éppen nyitva van, a HUD a menüsorban, a notch két oldalán ugyanígy megjelenik, és nem zárja be a panelt. |
 | H-6 | Hangerőt csak akkor mutat, ha a kimeneti eszköz állítható (például HDMI-kimeneten nem). |
@@ -337,6 +338,7 @@
 | R-12 | (v0.50) A feladatszámlálóra hoverelve **lenyílik a feladatlista**: a fejléc (szám, Open, ×) alatt a számolt feladatok (a maiak, ha vannak, különben az összes nyitott) határidő szerint, legfeljebb 6 sor, mindegyik előtt kör, amivel kipipálható, mellette a határidő-pill. |
 | R-13 | (v0.56) A listák alapértelmezett rendezése a **felvétel ideje**, a legújabb felül („Date Added”). A többi rendezés továbbra is választható; a közelgő emlékeztetők határidő szerint maradnak. |
 | R-14 | (v0.56) Egy feladat sorára mutatva megjelenik egy kis **„i”**; rá kattintva a modulon belül megnyílik a részletek panel, mint a Reminders appban: cím, jegyzet, URL, **dátum és időpont** (kapcsolóval), ismétlés, korai emlékeztető, lista, prioritás. A Done a Reminders adatbázisába ír (az appban és iCloudon is megjelenik), csak a módosított mezőket. A zászló, a címkék, a hely, a kép és az „üzenetváltáskor” beállítás EventKitből nem érhető el, ezekhez a panel a Reminders appot nyitja. |
+| R-15 | (v0.57) A modul **két oszlopa** külön választható, az oszlop fejlécében lenyíló menüvel, mint a Reminders appban: okos listák (**Upcoming, Today, Scheduled, All**) vagy bármelyik **lista** (pl. Tasks, Reminders). Alapból balra az Upcoming, jobbra a kiválasztott lista; a választás megmarad. Listát mutató oszlopban „New task” sor (abba a listába ad hozzá); a jobb oldali lista mutatja a 7 napon belül befejezetteket is. Mindkét oszlopban marad a rendezés és az „i” részletek panel. A menüsor panelje ugyanezt a két forrást mutatja egymás alatt. |
 
 ---
 

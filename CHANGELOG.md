@@ -14,6 +14,9 @@
   turned off, and a notification comes when swap goes above a chosen size.
 
 ### Changed
+- Reminders: each of the two columns picks what it shows, as in the Reminders app (Upcoming,
+  Today, Scheduled, All or any list).
+- The level ring (volume, brightness, AI usage) is larger; "100" no longer touches it.
 - The Spotify cover sits left of the notch; hovering it drops the player down under the row,
   which stays visible with its badges and counters.
 - System: an app's helper processes count as the app (e.g. all of Zen's), busiest first.

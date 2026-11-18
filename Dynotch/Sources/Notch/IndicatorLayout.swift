@@ -128,7 +128,7 @@ enum IndicatorItem: Identifiable, Equatable {
 struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
     /// The AI usage is a ring without text (spec CL-6).
-    static let ringSlotWidth: CGFloat = 28
+    static let ringSlotWidth: CGFloat = 32
     /// "18%" in red (spec BT-3).
     static let batterySlotWidth: CGFloat = 34
     /// The checklist icon and a one-digit count, like the menu bar's (spec R-10).

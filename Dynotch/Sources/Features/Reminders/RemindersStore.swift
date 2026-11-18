@@ -20,6 +20,17 @@ final class RemindersStore: ObservableObject {
     /// Checked in the UI, saved a moment later (so the tick can be seen).
     @Published private(set) var completing: Set<String> = []
     @Published var errorMessage: String?
+    /// What the left column shows (spec R-15); the right one shows `rightSource`.
+    @Published var leftSource: ReminderSource {
+        didSet { defaults.set(leftSource.rawValue, forKey: "remindersLeftSource") }
+    }
+    @Published var rightSource: ReminderSource {
+        didSet {
+            defaults.set(rightSource.rawValue, forKey: "remindersRightSource")
+            // A list on the right is the one new tasks go to and whose done tasks show.
+            if case .list(let id) = rightSource, selectedListID != id { selectedListID = id }
+        }
+    }
     /// The reminder whose details are open (spec R-14).
     @Published var editingID: String?
     @Published private(set) var now = Date()
@@ -71,6 +82,9 @@ final class RemindersStore: ObservableObject {
         showCompleted = defaults.bool(forKey: Key.showCompleted)
         autoToday = defaults.bool(forKey: Key.autoToday)
         removeParsedDate = defaults.object(forKey: Key.removeDate) as? Bool ?? true
+        leftSource = defaults.string(forKey: "remindersLeftSource").flatMap(ReminderSource.init(rawValue:)) ?? .upcoming
+        rightSource = defaults.string(forKey: "remindersRightSource").flatMap(ReminderSource.init(rawValue:))
+            ?? .list(defaults.string(forKey: Key.list) ?? "")
     }
 
     // MARK: - Derived
@@ -223,7 +237,7 @@ final class RemindersStore: ObservableObject {
 
     /// Creates a reminder from the quick-add text (spec R-3).
     @discardableResult
-    func add(_ text: String) -> Bool {
+    func add(_ text: String, into list: String? = nil) -> Bool {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         guard access == .granted else {
             log("add skipped: access=\(access)")
@@ -234,7 +248,7 @@ final class RemindersStore: ObservableObject {
         )
         let reminder = EKReminder(eventStore: store)
         reminder.title = parsed.title
-        let listID = parsed.listID ?? selectedListID
+        let listID = parsed.listID ?? list ?? selectedListID
         reminder.calendar = listID.flatMap(store.calendar(withIdentifier:)) ?? store.defaultCalendarForNewReminders()
         if let due = parsed.due {
             let components: Set<Calendar.Component> = parsed.dueHasTime

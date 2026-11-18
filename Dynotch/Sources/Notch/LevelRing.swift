@@ -11,8 +11,11 @@ struct LevelRing: View {
 
     /// Even size and a 3-point line: the ring keeps its shape on non-Retina displays, where every
     /// point is a single pixel.
-    static let size: CGFloat = 24
+    /// Large enough that "100" stays clear of the ring (spec H-3).
+    static let size: CGFloat = 28
     private static let lineWidth: CGFloat = 3
+    /// The ring's inside less a margin on each side.
+    static let textWidth: CGFloat = size - 2 * lineWidth - 6
 
     var body: some View {
         ZStack {
@@ -23,11 +26,13 @@ struct LevelRing: View {
                 .stroke(color, style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text(label)
-                .font(.system(size: 9, weight: .bold, design: .rounded))
+                .font(.system(size: label.count > 2 ? 8 : 9.5, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(color)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.6)
                 .lineLimit(1)
+                // A gap inside the ring, so the digits never touch it.
+                .frame(width: Self.textWidth)
         }
         .padding(Self.lineWidth / 2)
         .frame(width: Self.size, height: Self.size)

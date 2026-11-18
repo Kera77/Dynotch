@@ -4,12 +4,14 @@ import SwiftUI
 /// field ready for the next one (spec R-6b). Dates and "@List" are recognised as in quick add.
 struct NewTaskRow: View {
     @ObservedObject var store: RemindersStore
+    /// The list new tasks go to (spec R-15).
+    var listID: String?
 
     @State private var text = ""
     @FocusState private var isFocused: Bool
 
     private var color: Color {
-        store.selectedList?.color.color ?? RemindersView.blue
+        (listID.flatMap { id in store.lists.first { $0.id == id } } ?? store.selectedList)?.color.color ?? RemindersView.blue
     }
 
     var body: some View {
@@ -32,7 +34,7 @@ struct NewTaskRow: View {
     }
 
     private func add() {
-        guard store.add(text) else { return }
+        guard store.add(text, into: listID) else { return }
         text = ""
         isFocused = true
     }

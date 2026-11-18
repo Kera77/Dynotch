@@ -62,8 +62,8 @@ struct RemindersView: View {
                 QuickAddField(store: store)
                 ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 14) {
-                        UpcomingSection(store: store)
-                        TasksSection(store: store)
+                        ReminderColumn(store: store, side: .left)
+                        ReminderColumn(store: store, side: .right)
                     }
                 }
                 .scrollIndicators(.never)
@@ -74,11 +74,12 @@ struct RemindersView: View {
                 HStack(alignment: .top, spacing: 24) {
                     VStack(alignment: .leading, spacing: 12) {
                         QuickAddField(store: store)
-                        ScrollView(.vertical) { UpcomingSection(store: store) }
+                        // Each column shows what is picked in its header (spec R-15).
+                        ScrollView(.vertical) { ReminderColumn(store: store, side: .left) }
                             .scrollIndicators(.never)
                     }
                     .frame(maxWidth: .infinity)
-                    ScrollView(.vertical) { TasksSection(store: store) }
+                    ScrollView(.vertical) { ReminderColumn(store: store, side: .right) }
                         .scrollIndicators(.never)
                         .frame(maxWidth: .infinity)
                 }
@@ -190,84 +191,8 @@ private struct QuickAddField: View {
     }
 }
 
-private struct UpcomingSection: View {
-    @ObservedObject var store: RemindersStore
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Upcoming reminders")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(RemindersView.red)
-                Spacer()
-                Menu {
-                    Picker("Sort", selection: $store.sort) {
-                        ForEach(ReminderSort.allCases, id: \.self) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.inline)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "calendar")
-                        Text(store.sort.title)
-                        Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
-                    }
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.8))
-                    .contentShape(Rectangle())
-                }
-                .menuStyle(.button)
-                .buttonStyle(.plain)
-                .menuIndicator(.hidden)
-                .fixedSize()
-            }
-            let upcoming = store.upcoming
-            if upcoming.isEmpty {
-                Label("No upcoming reminders", systemImage: "tray")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.75))
-                    .padding(.vertical, 4)
-            } else {
-                ForEach(upcoming) { item in
-                    ReminderRow(store: store, item: item, showsList: true)
-                }
-            }
-        }
-    }
-}
-
-private struct TasksSection: View {
-    @ObservedObject var store: RemindersStore
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(store.selectedList?.title ?? "Tasks")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(store.selectedList?.color.color ?? RemindersView.blue)
-                Spacer()
-                Image(systemName: "folder.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.white.opacity(0.35))
-            }
-            ForEach(store.tasks) { item in
-                ReminderRow(store: store, item: item, showsList: false)
-            }
-            NewTaskRow(store: store)
-            if store.showCompleted, !store.recentlyCompleted.isEmpty {
-                Text("Completed (7 days)")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.45))
-                    .padding(.top, 6)
-                ForEach(store.recentlyCompleted) { item in
-                    ReminderRow(store: store, item: item, showsList: false)
-                }
-            }
-        }
-    }
-}
-
 /// Circle checkbox, title and due date (spec R-5).
-private struct ReminderRow: View {
+struct ReminderRow: View {
     @ObservedObject var store: RemindersStore
     let item: ReminderItem
     let showsList: Bool

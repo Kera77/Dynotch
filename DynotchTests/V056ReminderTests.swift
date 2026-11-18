@@ -50,4 +50,24 @@ struct ReminderDetailsTests {
         details.hasDate = false
         #expect(details.dueComponents(calendar: calendar) == nil)
     }
+
+    @Test func columnsShowSmartListsOrAList() throws {
+        for source in ReminderSource.smart + [.list("abc")] {
+            #expect(ReminderSource(rawValue: source.rawValue) == source)
+        }
+        #expect(ReminderSource(rawValue: "nonsense") == nil)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        func item(_ id: String, list: String, dueIn days: Double?) -> ReminderItem {
+            ReminderItem(
+                id: id, title: id, listID: list, due: days.map { now.addingTimeInterval($0 * 86_400) }, dueHasTime: true,
+                priority: 0, isCompleted: false, created: nil
+            )
+        }
+        let items = [item("a", list: "tasks", dueIn: nil), item("b", list: "reminders", dueIn: 0.01),
+                     item("c", list: "reminders", dueIn: 20)]
+        #expect(ReminderSource.all.filter(items, now: now).count == 3)
+        #expect(ReminderSource.scheduled.filter(items, now: now).map(\.id) == ["b", "c"])
+        #expect(ReminderSource.upcoming.filter(items, now: now).map(\.id) == ["b"])
+        #expect(ReminderSource.list("tasks").filter(items, now: now).map(\.id) == ["a"])
+    }
 }
