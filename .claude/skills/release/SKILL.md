@@ -31,6 +31,8 @@ e-mails the owner); never install a build whose tests have not all passed.
    privacy-sensitive API means a missing `NS…UsageDescription` in `project.yml` (0.42 did this;
    0.42.1 fixed it). A build that crashes at launch cannot update itself: install the fix with
    `./scripts/install.sh`.
+7. Tell the owner it is installed, with a list of what to test in this version (from the
+   CHANGELOG, grouped by feature, with the log to send if something fails).
 
 Homebrew cask: `Packaging/Homebrew/Casks/dynotch.rb`, copied to the tap repo
 `Kera77/homebrew-dynotch` (Homebrew 7 needs `brew trust kera77/dynotch`).

@@ -14,7 +14,9 @@ A new privacy-sensitive API (Bluetooth, Speech, camera…) needs its `NS…Usage
 
 ## Releasing
 
-Only when the owner approves a deploy; then follow the `release` skill step by step.
+Only when the owner approves a deploy; then follow the `release` skill step by step. Once the
+new version is installed and running on the Mac, always send the owner a list of what to test
+in it (grouped by feature, with the log to send if something fails).
 
 ## Where things are
 
