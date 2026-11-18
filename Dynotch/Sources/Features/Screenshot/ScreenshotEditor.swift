@@ -20,6 +20,8 @@ final class ScreenshotEditor: ObservableObject {
     @Published var textAnchor: CGPoint?
     @Published var typedText = ""
     @Published private(set) var message: String?
+    /// Where copies go; tests use their own so they never touch the owner's clipboard.
+    var pasteboard = NSPasteboard.general
 
     private var undoStack: [(annotations: [Annotation], crop: CGRect?)] = []
     private var redoStack: [(annotations: [Annotation], crop: CGRect?)] = []
@@ -138,7 +140,7 @@ final class ScreenshotEditor: ObservableObject {
 
     func copy() {
         guard let result = rendered() else { return }
-        ScreenshotFiles.copy(result, file: nil)
+        ScreenshotFiles.copy(result, file: nil, to: pasteboard)
         flash("Copied")
     }
 
@@ -150,7 +152,7 @@ final class ScreenshotEditor: ObservableObject {
             flash("Couldn't save")
             return false
         }
-        ScreenshotFiles.copy(result, file: url)
+        ScreenshotFiles.copy(result, file: url, to: pasteboard)
         flash("Saved")
         return true
     }

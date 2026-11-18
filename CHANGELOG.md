@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- The screenshot editor test no longer puts its blue test picture on the real clipboard.
+
 ## [0.58.0] - 2026-11-18
 
 ### Fixed

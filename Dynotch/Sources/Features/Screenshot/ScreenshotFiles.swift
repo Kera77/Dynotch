@@ -43,8 +43,7 @@ enum ScreenshotFiles {
 
     /// The image and its file on the clipboard, so it pastes into chats and Finder alike.
     @MainActor
-    static func copy(_ image: CGImage, file: URL?) {
-        let board = NSPasteboard.general
+    static func copy(_ image: CGImage, file: URL?, to board: NSPasteboard = .general) {
         board.clearContents()
         let item = NSPasteboardItem()
         if let data = pngData(image) { item.setData(data, forType: .png) }

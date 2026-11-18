@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 @testable import Dynotch
 import Foundation
@@ -90,6 +91,8 @@ struct ScreenshotTests {
         let image = try #require(context.makeImage())
         #expect(ScreenshotFiles.save(image, to: url))
         let editor = try #require(ScreenshotEditor(url: url, tools: EditorTool.allCases))
+        // Never the real clipboard: a test once replaced the owner's copy with its blue picture.
+        editor.pasteboard = NSPasteboard(name: NSPasteboard.Name("DynotchTests"))
         editor.tool = .counter
         editor.endDrag(at: CGPoint(x: 20, y: 20), start: CGPoint(x: 20, y: 20))
         editor.endDrag(at: CGPoint(x: 60, y: 20), start: CGPoint(x: 60, y: 20))
