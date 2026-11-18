@@ -13,7 +13,30 @@ struct TrayFeatureView: View {
     @State private var chosen: URL?
     @FocusState private var isFocused: Bool
 
-    static let dotColours: [Color] = [.red, .green, .blue, .orange, .purple, .pink]
+    /// The folder dots; new colours go at the end so stored indices keep their colour (spec FT-4b).
+    static let dotColours: [(name: String, colour: NSColor)] = [
+        ("Red", .systemRed), ("Green", .systemGreen), ("Blue", .systemBlue), ("Orange", .systemOrange),
+        ("Purple", .systemPurple), ("Pink", .systemPink), ("Yellow", .systemYellow), ("Teal", .systemTeal),
+        ("Grey", .systemGray)
+    ]
+
+    static func dotColour(_ index: Int) -> Color {
+        Color(nsColor: dotColours[index % dotColours.count].colour)
+    }
+
+    /// A coloured dot for the menu, not tinted like a template image.
+    static func dotImage(_ colour: NSColor) -> NSImage {
+        let image = NSImage(size: NSSize(width: 12, height: 12), flipped: false) { rect in
+            colour.setFill()
+            NSBezierPath(ovalIn: rect.insetBy(dx: 1, dy: 1)).fill()
+            return true
+        }
+        image.isTemplate = false
+        return image
+    }
+
+    /// The grid's width, so a tile's full name stays inside it (spec FT-11d).
+    @State private var gridWidth: CGFloat = 0
 
     private var selected: TrayFolder? {
         store.folders.first { $0.id == store.selectedFolder }
@@ -44,11 +67,11 @@ struct TrayFeatureView: View {
                 chip(title: "Screenshots", colour: .orange, isOn: isScreenshots) { store.selectedFolder = TrayStore.screenshotsID }
             }
             ForEach(store.folders) { folder in
-                let colour = Self.dotColours[folder.colour % Self.dotColours.count]
-                chip(title: folder.name, colour: colour, isOn: store.selectedFolder == folder.id) {
+                chip(title: folder.name, colour: Self.dotColour(folder.colour), isOn: store.selectedFolder == folder.id) {
                     store.selectedFolder = folder.id
                 }
                 .contextMenu {
+                    colourMenu(for: folder)
                     Button("Show in Finder") { store.url(of: folder).map { NSWorkspace.shared.activateFileViewerSelecting([$0]) } }
                     Button("Detach") { store.detach(folder) }
                 }
@@ -78,11 +101,28 @@ struct TrayFeatureView: View {
         }
     }
 
+    private func colourMenu(for folder: TrayFolder) -> some View {
+        Menu("Colour") {
+            ForEach(Self.dotColours.indices, id: \.self) { index in
+                Button {
+                    store.setColour(index, of: folder)
+                } label: {
+                    let isOn = folder.colour % Self.dotColours.count == index
+                    Label {
+                        Text(isOn ? "\(Self.dotColours[index].name) ✓" : Self.dotColours[index].name)
+                    } icon: {
+                        Image(nsImage: Self.dotImage(Self.dotColours[index].colour))
+                    }
+                }
+            }
+        }
+    }
+
     private func cell(_ url: URL) -> some View {
         let trayItem = selected == nil ? store.trayFiles.first(where: { $0.url == url })?.item : nil
         // Out of the tray a file moves; out of an attached folder it is copied (spec FT-12b).
         return TrayFileCell(
-            url: url, isChosen: chosen == url, isRow: store.showsList, move: trayItem != nil,
+            url: url, isChosen: chosen == url, isRow: store.showsList, gridWidth: gridWidth, move: trayItem != nil,
             moved: { if let trayItem { store.remove(trayItem) } },
             // A double click opens a shot in the editor (spec SH-11).
             open: isScreenshots && ScreenshotFiles.isEditable(url) ? { edit(url) } : nil,
@@ -134,6 +174,8 @@ struct TrayFeatureView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .coordinateSpace(.named(TrayFileCell.gridSpace))
+            .readWidth($gridWidth)
             // Switching between the tray and the folders slides, like the notification tabs (spec FT-10).
             .id(store.selectedFolder)
             .transition(.opacity.combined(with: .move(edge: .trailing)))
@@ -175,6 +217,8 @@ struct TrayFileCell: View {
     var isChosen = false
     /// One line with a small icon (list), or a tile.
     var isRow = false
+    /// The grid's width; 0 when unknown.
+    var gridWidth: CGFloat = 0
     /// Dragged out, the file moves (a tray file) or is copied (an attached folder's).
     var move = false
     var moved: @MainActor () -> Void = {}
@@ -182,14 +226,34 @@ struct TrayFileCell: View {
     var open: (() -> Void)?
     var choose: () -> Void = {}
     @State private var isHovering = false
+    /// The tile's place in the grid, so its full name can be moved inside the grid (spec FT-11d).
+    @State private var frameInGrid: CGRect = .zero
+
+    static let gridSpace = "trayGrid"
+    private static let nameWidth: CGFloat = 150
+    private static let pop = Animation.spring(response: 0.28, dampingFraction: 0.78)
 
     var body: some View {
         content
-            // A tile shows its whole name while the mouse is over it (spec FT-11c).
-            .overlay(alignment: .top) { if isHovering && !isRow { fullName } }
             .padding(4)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(isChosen ? 0.16 : 0)))
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(isChosen ? 0.16 : isHovering && !isRow ? 0.07 : 0))
+            )
+            // A tile shows its whole name while the mouse is over it (spec FT-11c, FT-11d).
+            .overlay(alignment: .top) {
+                if isHovering && !isRow {
+                    fullName
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale(scale: 0.85, anchor: .top).combined(with: .opacity).combined(with: .offset(y: -6)),
+                                removal: .opacity
+                            )
+                        )
+                }
+            }
             .contentShape(Rectangle())
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.gridSpace)) } action: { frameInGrid = $0 }
             // Dragged out under its own name, "(1)" when taken (spec FT-12, FT-12b).
             .overlay {
                 TrayDragSource(url: url, move: move, moved: moved) { clicks in
@@ -201,8 +265,15 @@ struct TrayFileCell: View {
                 }
             }
             .help(url.path)
-            .onHover { isHovering = $0 }
+            .onHover { hovering in withAnimation(Self.pop) { isHovering = hovering } }
             .zIndex(isHovering ? 1 : 0)
+    }
+
+    /// How far the name moves sideways so it stays inside the grid at the left and right edges.
+    private var nameShift: CGFloat {
+        guard gridWidth > Self.nameWidth else { return 0 }
+        let left = frameInGrid.midX - Self.nameWidth / 2
+        return min(max(left, 0), gridWidth - Self.nameWidth) - left
     }
 
     private var fullName: some View {
@@ -211,12 +282,23 @@ struct TrayFileCell: View {
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
             .lineLimit(5)
-            .frame(width: 140)
+            .frame(width: Self.nameWidth - 16)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.black.opacity(0.9)))
-            .offset(y: 52)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Color(white: 0.13).opacity(0.97))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(colors: [.white.opacity(0.28), .white.opacity(0.06)], startPoint: .top, endPoint: .bottom),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.5), radius: 10, y: 4)
+            }
+            .offset(x: nameShift, y: 54)
             .allowsHitTesting(false)
     }
 
@@ -231,7 +313,11 @@ struct TrayFileCell: View {
             }
         } else {
             VStack(spacing: 4) {
+                // The icon lifts a little under the mouse.
                 icon.frame(width: 44, height: 44)
+                    .scaleEffect(isHovering ? 1.1 : 1)
+                    .offset(y: isHovering ? -2 : 0)
+                    .shadow(color: .black.opacity(isHovering ? 0.35 : 0), radius: 6, y: 3)
                 // The middle is cut, so the end of the name (a shot's time, the extension) stays (spec FT-11c).
                 Text(url.lastPathComponent)
                     .font(.system(size: 11, weight: .medium))

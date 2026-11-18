@@ -131,13 +131,17 @@ private struct EditorCanvas: View {
     @ObservedObject var editor: ScreenshotEditor
     @State private var dragStart: CGPoint?
     @FocusState private var typing: Bool
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         GeometryReader { proxy in
             let visible = editor.visibleRect
-            let scale = min(proxy.size.width / visible.width, proxy.size.height / visible.height, 2)
-            let size = CGSize(width: visible.width * scale, height: visible.height * scale)
-            let origin = CGPoint(x: (proxy.size.width - size.width) / 2, y: (proxy.size.height - size.height) / 2)
+            // Never larger than one image pixel per screen pixel, so a small shot is not blown up
+            // and blurred (spec SH-3c).
+            let scale = min(proxy.size.width / visible.width, proxy.size.height / visible.height, 1 / max(displayScale, 1))
+            let size = CGSize(width: snap(visible.width * scale), height: snap(visible.height * scale))
+            // On whole screen pixels: half a pixel off blurs every line on a non-Retina display.
+            let origin = CGPoint(x: snap((proxy.size.width - size.width) / 2), y: snap((proxy.size.height - size.height) / 2))
             ZStack(alignment: .topLeading) {
                 canvas(visible: visible, scale: scale)
                     .frame(width: size.width, height: size.height)
@@ -154,9 +158,14 @@ private struct EditorCanvas: View {
         }
     }
 
+    private func snap(_ value: CGFloat) -> CGFloat {
+        (value * displayScale).rounded() / max(displayScale, 1)
+    }
+
     private func canvas(visible: CGRect, scale: CGFloat) -> some View {
         Canvas { context, _ in
             context.withCGContext { cgContext in
+                cgContext.interpolationQuality = .high
                 cgContext.scaleBy(x: scale, y: scale)
                 cgContext.translateBy(x: -visible.minX, y: -visible.minY)
                 var shown = editor.annotations

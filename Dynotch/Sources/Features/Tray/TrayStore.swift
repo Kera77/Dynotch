@@ -14,8 +14,8 @@ struct TrayFolder: Codable, Identifiable, Equatable, Sendable {
     var id = UUID()
     let bookmark: Data
     let name: String
-    /// Index into the dot colours.
-    let colour: Int
+    /// Index into the dot colours; changeable from the tab's menu (spec FT-4b).
+    var colour: Int
 }
 
 /// The file tray: dropped files and attached folders (spec FT-1…FT-7).
@@ -167,6 +167,12 @@ final class TrayStore: ObservableObject {
         folders.append(added)
         listByTab[added.id.uuidString] = false
         selectedFolder = added.id
+        persist()
+    }
+
+    func setColour(_ colour: Int, of folder: TrayFolder) {
+        guard let index = folders.firstIndex(where: { $0.id == folder.id }) else { return }
+        folders[index].colour = colour
         persist()
     }
 
