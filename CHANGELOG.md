@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.52.0] - 2026-11-18
+
 ### Added
 - Notification pop-ups can show the message, not only the sender: Settings › Notifications ›
   Pop-up shows (and the number of lines), or per app. Messages arriving one after the other
