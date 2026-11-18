@@ -76,4 +76,26 @@ struct SwitcherTests {
         #expect(SwitcherController.steps(travel: 0.3, step: 0.25) == 1)
         #expect(SwitcherController.steps(travel: -0.12, step: 0.05) == -2)
     }
+
+    @Test func onlyCoveredLeavesOutTheWindowsYouCanSee() {
+        func placed(_ id: CGWindowID, pid: pid_t, x: Int, onScreen: Bool = true) -> [String: Any] {
+            var entry = window(id, pid: pid, onScreen: onScreen)
+            entry[kCGWindowBounds as String] = ["X": x, "Y": 0, "Width": 800, "Height": 600]
+            return entry
+        }
+        // Front to back: 1 in front, 2 fully under it, 3 mostly beside it, 4 on another Space.
+        let info = [placed(1, pid: 10, x: 0), placed(2, pid: 20, x: 0), placed(3, pid: 10, x: 600),
+                    placed(4, pid: 20, x: 0, onScreen: false)]
+        var options = SwitcherWindows.Options()
+        options.onlyCovered = true
+        options.scope = .allSpaces
+        let ids = SwitcherWindows.items(from: info, apps: apps, minimized: [], ownPID: 1, options: options).map(\.windowID)
+        #expect(ids == [2, 4])
+        // Window 3 lies a quarter under the windows in front of it.
+        #expect(SwitcherWindows.coverage(of: CGRect(x: 600, y: 0, width: 800, height: 600),
+                                         by: [CGRect(x: 0, y: 0, width: 800, height: 600)]) == 0.25)
+        options.coverThreshold = 0.2
+        let lower = SwitcherWindows.items(from: info, apps: apps, minimized: [], ownPID: 1, options: options).map(\.windowID)
+        #expect(lower == [2, 3, 4])
+    }
 }

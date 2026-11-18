@@ -43,6 +43,16 @@ struct SwitcherSettingsView: View {
                 Toggle("Minimized windows", isOn: $settings.showsMinimized)
                 Toggle("Hidden apps", isOn: $settings.showsHidden)
                 Toggle("Only the display under the pointer", isOn: $settings.currentDisplayOnly)
+                Toggle("Only covered windows", isOn: $settings.onlyCovered)
+                    .help("Leaves out the windows you can see; minimized, hidden and other Spaces' windows stay")
+                if settings.onlyCovered {
+                    LabeledContent("Covered at least") {
+                        HStack {
+                            Slider(value: $settings.coverThreshold, in: SwitcherSettings.coverRange, step: 0.05)
+                            Text("\(Int((settings.coverThreshold * 100).rounded()))%").monospacedDigit().frame(width: 40)
+                        }
+                    }
+                }
             }
             Section {
                 LabeledContent("Shortcut") {

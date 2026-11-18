@@ -64,15 +64,20 @@ final class SwitcherSettings: ObservableObject {
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
     @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
     @Published private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
+    /// Only windows mostly covered by others, with either scope (spec AS-13).
+    @Published var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
+    /// How much of a window must be covered, 0.25…0.9.
+    @Published var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }
 
     static let swipeStepRange: ClosedRange<Double> = 0.05...0.25
+    static let coverRange: ClosedRange<Double> = 0.25...0.9
 
     private enum Key {
         static let isOn = "switcherOn", style = "switcherStyle", size = "switcherSize", scope = "switcherScope"
         static let groups = "switcherGroupsByApp", minimized = "switcherMinimized", hidden = "switcherHidden"
         static let display = "switcherCurrentDisplay", hold = "switcherHold", previews = "switcherPreviews"
         static let shortcut = "switcherShortcut", fingers = "switcherFingers", step = "switcherStep"
-        static let excluded = "switcherExcluded"
+        static let excluded = "switcherExcluded", covered = "switcherOnlyCovered", coverThreshold = "switcherCoverThreshold"
     }
 
     private let defaults: UserDefaults
@@ -93,6 +98,8 @@ final class SwitcherSettings: ObservableObject {
         swipeFingers = defaults.object(forKey: Key.fingers) as? Int ?? 3
         swipeStep = defaults.object(forKey: Key.step) as? Double ?? 0.08
         excluded = defaults.stringArray(forKey: Key.excluded) ?? []
+        onlyCovered = defaults.bool(forKey: Key.covered)
+        coverThreshold = defaults.object(forKey: Key.coverThreshold) as? Double ?? 0.5
     }
 
     func exclude(_ bundleID: String) {

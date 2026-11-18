@@ -10,6 +10,8 @@
   line, pencil, highlighter, pixelate and numbered steps, colours, widths and undo. Recordings
   can include the Mac's sound and the microphone. The tray has a Screenshots tab with the ten
   newest, which open in the editor.
+- Window switcher: "Only covered windows" lists just the windows mostly hidden behind others
+  (50% by default, adjustable), with Current Space or All apps.
 - System: the closed notch can show CPU, memory and network speed together; each alert can be
   turned off, and a notification comes when swap goes above a chosen size.
 

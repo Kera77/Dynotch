@@ -62,9 +62,12 @@ final class SwitcherController: ObservableObject {
         options.showsHidden = settings.showsHidden
         options.display = settings.currentDisplayOnly ? displayFrame() : nil
         options.excluded = settings.excluded
+        options.onlyCovered = settings.onlyCovered
+        options.coverThreshold = settings.coverThreshold
         items = SwitcherWindows.list(options)
         guard !items.isEmpty else { return }
-        selection = items.count > 1 ? 1 : 0
+        // Covered windows only: the front one is not listed, so the first is the way back (spec AS-13).
+        selection = items.count > 1 && !settings.onlyCovered ? 1 : 0
         previews = [:]
         isShown = true
         present(true)
