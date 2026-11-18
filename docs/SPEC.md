@@ -631,7 +631,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | RS-2 | A notch középen marad: a szélesség **mindkét oldalra szimmetrikusan** nő (a sarok az egérrel együtt mozog), a magasság lefelé. Legkisebb a modul normál mérete, legnagyobb a kijelző szélessége − 40 pt és magasságának 75%-a. A notch ablaka ehhez a legnagyobb mérethez igazodik. |
 | RS-3 | A beállított méretet **modulonként és kijelzőnként** megjegyzi (újraindítás után is). |
 | RS-4 | *Settings › Appearance*: **Resize modules from the bottom right corner** kapcsoló (alapból be). Kikapcsolva minden modul a normál méretén nyílik. |
-| RS-5 | Egyelőre az **AI** modul méretezhető; a csevegéslista szélessége a modullal nő (a szélesség 24%-a, 160–260 pt). A többi modul később, egyenként, reszponzív elrendezéssel követi. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
+| RS-5 | (v0.45: csak az AI; **v0.46: minden modul**) A modulok kitöltik a kapott méretet; az oldalsó listák arányosan nőnek: AI csevegéslista (24%, 160–260 pt), Notes jegyzetlista (26%, 210–320 pt), Beeper/Google Chat lista (30%, 240–360 pt), teljes naptár havi rácsa (30%, 256–380 pt). A naptár napsávján a swipe a megnövelt szélességben is működik. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
+| RS-6 | (v0.46) **Minden modul méretezhető, az újak is** (az új modul automatikusan méretezhető, a nézetének ezt követnie kell; fejlesztői szabály a `CLAUDE.md`-ben). A nagy nézetek (teljes naptár, nagy Notes / Reminders) és a széles csevegőfülek **külön méretet** jegyeznek meg, hogy a kis nézet ne nőjön meg velük. |
 
 ## 5. Nyitott kérdések
 

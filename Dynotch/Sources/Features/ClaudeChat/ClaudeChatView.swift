@@ -45,7 +45,7 @@ struct ClaudeChatView: View {
     private var sidebarWidth: CGFloat { Self.sidebarWidth(for: width) }
 
     nonisolated static func sidebarWidth(for width: CGFloat) -> CGFloat {
-        min(max((width * 0.24).rounded(), 160), 260)
+        Responsive.share(0.24, of: width, in: 160...260)
     }
 
     var body: some View {
@@ -62,11 +62,7 @@ struct ClaudeChatView: View {
                 .padding(.leading, service.showsSidebar ? 12 : 0)
         }
         .clipped()
-        .background(GeometryReader { proxy in
-            Color.clear
-                .onAppear { width = proxy.size.width }
-                .onChange(of: proxy.size.width) { _, new in width = new }
-        })
+        .readWidth($width)
         .onAppear {
             service.refreshCodeSessions()
             // Opened (also by its shortcut): ready to type (spec AI-4).

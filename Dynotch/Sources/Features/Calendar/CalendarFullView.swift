@@ -6,6 +6,12 @@ struct CalendarFullView: View {
     let collapse: () -> Void
 
     @State private var displayedMonth = Date()
+    /// The month grows with a resized module (spec RS-5).
+    @State private var width: CGFloat = 0
+
+    nonisolated static func monthWidth(for width: CGFloat) -> CGFloat {
+        Responsive.share(0.3, of: width, in: 256...380)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 28) {
@@ -17,7 +23,7 @@ struct CalendarFullView: View {
                 select: select,
                 changeMonth: changeMonth
             )
-            .frame(width: 256)
+            .frame(width: Self.monthWidth(for: width))
 
             AgendaListView(
                 days: service.agenda(startingAt: service.selectedDay),
@@ -27,6 +33,7 @@ struct CalendarFullView: View {
             )
         }
         .padding(.top, 6)
+        .readWidth($width)
         .onAppear { displayedMonth = service.selectedDay }
     }
 

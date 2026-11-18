@@ -73,8 +73,28 @@ struct ResizeTests {
         model.settings.resizableModules = false
         #expect(!model.canResize)
         model.settings.resizableModules = true
+        // Every module, a new one too (spec RS-6); not the settings.
+        #expect(ModuleSizes.resizable == Set(FeatureID.allCases))
         model.select(.calendar)
+        #expect(model.canResize)
+        model.setShowingSettings(true)
         #expect(!model.canResize)
+    }
+
+    @Test func largeViewsKeepTheirOwnSize() throws {
+        let defaults = try #require(UserDefaults(suiteName: "V045Variant-\(UUID().uuidString)"))
+        let sizes = ModuleSizes(defaults: defaults)
+        sizes.set(CGSize(width: 1100, height: 500), of: .calendar, variant: "large", on: "A")
+        #expect(sizes.size(of: .calendar, on: "A") == nil)
+        #expect(ModuleSizes(defaults: defaults).size(of: .calendar, variant: "large", on: "A") == CGSize(width: 1100, height: 500))
+    }
+
+    @Test func sidebarsGrowWithTheModule() {
+        #expect(Responsive.share(0.3, of: 500, in: 240...360) == 240)
+        #expect(Responsive.share(0.3, of: 1000, in: 240...360) == 300)
+        #expect(NotesWorkspaceView.sidebarWidth(for: 2000) == 320)
+        #expect(CalendarFullView.monthWidth(for: 960) == 288)
+        #expect(BeeperStyle.listWidth(for: 700) == 240)
     }
 
     @Test func chatListGrowsWithTheWidth() {

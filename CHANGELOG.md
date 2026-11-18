@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- Every module can be resized from its bottom right corner; side lists (notes, chats, the full
+  calendar's month) grow with it. The full calendar and the wide chat tabs keep their own size.
 - A see-through black panel (opacity below 100 %) blurs what is behind it.
 
 ### Fixed

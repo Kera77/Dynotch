@@ -17,7 +17,12 @@ struct NotesWorkspaceView: View {
     @StateObject private var editorController = RichNoteController()
 
     static let accent = Color(red: 0.98, green: 0.78, blue: 0.16)
-    private static let sidebarWidth: CGFloat = 210
+    /// The notes list grows with a resized module (spec RS-5).
+    @State private var width: CGFloat = 0
+
+    nonisolated static func sidebarWidth(for width: CGFloat) -> CGFloat {
+        Responsive.share(0.26, of: width, in: 210...320)
+    }
 
     var body: some View {
         Group {
@@ -47,7 +52,7 @@ struct NotesWorkspaceView: View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 NotesSidebar(store: store)
-                    .frame(width: Self.sidebarWidth)
+                    .frame(width: Self.sidebarWidth(for: width))
                 Rectangle()
                     .fill(Color.white.opacity(0.1))
                     .frame(width: 1)
@@ -55,6 +60,7 @@ struct NotesWorkspaceView: View {
             }
             bottomBar
         }
+        .readWidth($width)
     }
 
     private var editor: some View {

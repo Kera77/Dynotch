@@ -22,7 +22,7 @@ extension NotchController {
         // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4) —
         // but not the rest of a swipe that just switched to the calendar: that needs a new one.
         if model.currentFeature == .calendar, !model.isLarge,
-           model.geometry.dayStripZone.contains(NSEvent.mouseLocation) {
+           model.geometry.dayStripZone(panel: model.openSize).contains(NSEvent.mouseLocation) {
             if gestureSwitchedFeature { return true }
             return stepDays(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY)
         }

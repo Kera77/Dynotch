@@ -114,6 +114,8 @@ struct BeeperComposer: View {
 
 /// The Beeper tab (spec BP-1): the chat list beside the conversation, Beeper's look.
 struct BeeperTabView: View {
+    /// The chat list grows with a resized module (spec RS-5).
+    @State private var width: CGFloat = 0
     @ObservedObject var service: BeeperService
 
     var body: some View {
@@ -143,7 +145,7 @@ struct BeeperTabView: View {
         HStack(spacing: 0) {
             if service.showsChatList {
                 BeeperChatList(service: service)
-                    .frame(width: BeeperStyle.listWidth)
+                    .frame(width: BeeperStyle.listWidth(for: width))
                 Divider().overlay(Color.white.opacity(0.08))
             }
             VStack(spacing: 0) {
@@ -156,6 +158,7 @@ struct BeeperTabView: View {
                 }
             }
         }
+        .readWidth($width)
     }
 
     private var header: some View {

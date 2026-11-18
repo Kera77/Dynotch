@@ -7,6 +7,11 @@ enum BeeperStyle {
     static let incoming = Color.white.opacity(0.12)
     static let listWidth: CGFloat = 240
 
+    /// The chat list grows with a resized module (spec RS-5).
+    nonisolated static func listWidth(for width: CGFloat) -> CGFloat {
+        Responsive.share(0.3, of: width, in: listWidth...360)
+    }
+
     /// Words in the network's name → its colour and an SF Symbol; no brand logos.
     private struct NetworkLook {
         let words: [String]

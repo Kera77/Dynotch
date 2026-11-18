@@ -23,6 +23,13 @@ Only when the owner approves a deploy; then follow the `release` skill step by s
   `App/Theme.swift` the shared colours, motion and controls.
 - Logs: `~/Library/Logs/Dynotch/*.log` (no message content is logged).
 
+## New modules
+
+Every module is resizable from its bottom right corner (spec RS-1…RS-6): a new `FeatureID` is
+resizable automatically, so its view must fill the size it gets (`maxWidth/maxHeight: .infinity`,
+lists and grids that grow, no fixed panel-wide frames). Side lists scale with
+`Responsive.share(_:of:in:)` and `.readWidth(_:)` (`App/Responsive.swift`). Check it small and large.
+
 ## Privacy
 
 - Never read the Claude Code credentials (keychain) from the shell; only the app reads them.

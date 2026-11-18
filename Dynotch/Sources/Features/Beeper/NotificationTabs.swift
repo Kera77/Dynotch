@@ -163,6 +163,8 @@ struct GoogleChatTabView: View {
     let toggleList: () -> Void
     @ObservedObject private var replies = GoogleChatReplies.shared
     @State private var selected: String?
+    /// The conversation list grows with a resized module (spec RS-5).
+    @State private var width: CGFloat = 0
 
     private var conversations: [(name: String, messages: [AppNotification])] {
         let chats = service.recent.filter { ChatSources.isGoogleChat($0, catalog: service.catalog) }
@@ -184,7 +186,7 @@ struct GoogleChatTabView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .frame(width: BeeperStyle.listWidth)
+                .frame(width: BeeperStyle.listWidth(for: width))
                 Divider().overlay(Color.white.opacity(0.08))
             }
             VStack(spacing: 0) {
@@ -214,6 +216,7 @@ struct GoogleChatTabView: View {
                 }
             }
         }
+        .readWidth($width)
     }
 
     private func listRow(_ conversation: (name: String, messages: [AppNotification]), isSelected: Bool) -> some View {

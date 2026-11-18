@@ -185,7 +185,12 @@ struct NotchGeometry: Equatable, Sendable {
     /// The calendar day strip in the normal-size panel; horizontal scrolling there scrolls the
     /// days instead of switching features.
     var dayStripZone: CGRect {
-        let panel = expandedRect
+        dayStripZone(panel: expandedSize)
+    }
+
+    /// The day strip in a panel of the given size, e.g. a resized calendar (spec RS-5).
+    func dayStripZone(panel size: CGSize) -> CGRect {
+        let panel = rect(for: size)
         return CGRect(
             x: panel.minX,
             y: panel.maxY - menuBarHeight - Self.dayStripHeight,
