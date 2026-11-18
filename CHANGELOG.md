@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.49.0] - 2026-11-18
+
 ### Added
 - Settings › Clipboard: how long ⌥ is held before the items show (default 120 ms, was 250 ms).
 
