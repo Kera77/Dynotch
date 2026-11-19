@@ -48,12 +48,16 @@ final class TrackpadSwipe: @unchecked Sendable {
     nonisolated(unsafe) private static var startX: Float?
     nonisolated(unsafe) private static var startY: Float = 0
     nonisolated(unsafe) private static var isActive = false
+    /// Cancelled by a vertical swipe: nothing more until the fingers lift.
+    nonisolated(unsafe) private static var isSpent = false
     nonisolated(unsafe) private static var lastX: Float = 0
     nonisolated(unsafe) private static var lastY: Float = 0
     nonisolated(unsafe) private static var started = false
 
     /// Minimum horizontal travel before the switcher opens, so a resting hand does nothing.
     private static let openDistance: Float = 0.04
+    /// Vertical travel (up or down) that cancels an open switcher at once (spec AS-11c).
+    private static let cancelDistance: Float = 0.2
 
     /// Starts listening once; `handler` gets the events on the main queue.
     static func start(_ handler: @escaping @Sendable (Event) -> Void) {
@@ -106,15 +110,23 @@ final class TrackpadSwipe: @unchecked Sendable {
                 return
             }
             let travel = x - origin
-            if !isActive, abs(travel) >= openDistance, abs(travel) > abs(y - startY) {
+            if isActive, abs(y - startY) >= cancelDistance {
+                // Swiped up or down: cancel now, without switching.
+                isActive = false
+                isSpent = true
+                send(.ended(cancelled: true))
+                return
+            }
+            if !isActive, !isSpent, abs(travel) >= openDistance, abs(travel) > abs(y - startY) {
                 isActive = true
                 send(.began)
             }
             if isActive { send(.moved(Double(travel))) }
         } else if count == 0 || count < wanted {
-            // Fingers lifted: switch; an upward swipe cancels.
-            if isActive { send(.ended(cancelled: lastY - startY > 0.25)) }
+            // Fingers lifted: switch.
+            if isActive { send(.ended(cancelled: false)) }
             isActive = false
+            isSpent = false
             startX = nil
         }
     }

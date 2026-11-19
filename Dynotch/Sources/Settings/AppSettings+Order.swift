@@ -7,14 +7,19 @@ extension AppSettings {
     /// Disabled features keep their places in `featureOrder`.
     func moveActiveFeature(_ feature: FeatureID, toActiveIndex index: Int) {
         // The indices are those of the icons shown, so modules left out of the list keep their places.
-        let listed = listedFeatures
-        var active = listed
-        guard let from = active.firstIndex(of: feature) else { return }
-        active.remove(at: from)
-        active.insert(feature, at: min(max(index, 0), active.count))
-        guard active != listed else { return }
-        var remaining = active.makeIterator()
-        featureOrder = featureOrder.map { listed.contains($0) ? (remaining.next() ?? $0) : $0 }
+        moveFeature(feature, to: index, among: listedFeatures)
+    }
+
+    /// Moves a feature to a position within `shown` (the menu bar icons or the module strip, spec MS-6);
+    /// every other feature keeps its place in `featureOrder`.
+    func moveFeature(_ feature: FeatureID, to index: Int, among shown: [FeatureID]) {
+        var moved = shown
+        guard let from = moved.firstIndex(of: feature) else { return }
+        moved.remove(at: from)
+        moved.insert(feature, at: min(max(index, 0), moved.count))
+        guard moved != shown else { return }
+        var remaining = moved.makeIterator()
+        featureOrder = featureOrder.map { shown.contains($0) ? (remaining.next() ?? $0) : $0 }
     }
 
     func moveFeatures(from source: IndexSet, to destination: Int) {

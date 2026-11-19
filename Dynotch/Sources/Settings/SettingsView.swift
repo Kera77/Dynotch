@@ -19,21 +19,35 @@ struct SettingsView: View {
 
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
+    /// The last pick was lower in the sidebar than the one before it.
+    @State private var movesDown = true
 
     /// Sections with something to fix: a permission a module in use needs (spec C-8d).
     private var warnings: Set<SettingsTab> {
         Permission.missing(settings: settings, notificationsReadable: notifications.status == .running).isEmpty ? [] : [.permissions]
     }
 
+    /// The sidebar's selection; notes the direction before the section changes.
+    private var selection: Binding<SettingsTab> {
+        Binding(get: { selectedTab }, set: { tab in
+            let order = SettingsTab.allCases
+            movesDown = (order.firstIndex(of: tab) ?? 0) >= (order.firstIndex(of: selectedTab) ?? 0)
+            selectedTab = tab
+        })
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            SettingsSidebar(selected: $selectedTab, search: $search, warnings: warnings)
+            SettingsSidebar(selected: selection, search: $search, warnings: warnings)
             Divider()
-            // Changing sections slides in, like the notification tabs (spec C-10).
+            // The new section swims in from below or above, as the sidebar runs (spec C-10).
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .id(selectedTab)
-                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: movesDown ? .bottom : .top)),
+                    removal: .opacity
+                ))
                 .clipped()
         }
         .animation(Motion.quick, value: selectedTab)

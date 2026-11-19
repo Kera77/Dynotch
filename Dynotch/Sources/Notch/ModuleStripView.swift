@@ -7,9 +7,13 @@ struct ModuleStripView: View {
     /// Where the pointer was, from the notch's middle: the icons swim out from there (spec MS-1b).
     var origin: CGFloat = 0
     let open: (FeatureID) -> Void
+    /// Dragging an icon sideways puts it to a new place (spec MS-6).
+    var move: (FeatureID, Int) -> Void = { _, _ in }
 
     @State private var hovered: FeatureID?
     @State private var isOut = false
+    @State private var dragged: FeatureID?
+    @State private var dragX: CGFloat = 0
 
     var body: some View {
         HStack(spacing: NotchGeometry.stripSpacing) {
@@ -29,6 +33,9 @@ struct ModuleStripView: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .offset(x: dragOffset(of: feature, at: index))
+                .zIndex(dragged == feature ? 1 : 0)
+                .highPriorityGesture(drag(feature, from: index))
                 .offset(x: isOut ? 0 : origin - slotX(index))
                 .scaleEffect(isOut ? 1 : 0.4)
                 .opacity(isOut ? 1 : 0)
@@ -50,10 +57,42 @@ struct ModuleStripView: View {
         .transition(.opacity)
     }
 
+    private var step: CGFloat { NotchGeometry.stripIconSize + NotchGeometry.stripSpacing }
+
+    /// Where the dragged icon would land.
+    private func target(from index: Int) -> Int {
+        min(max(index + Int((dragX / step).rounded()), 0), features.count - 1)
+    }
+
+    /// The dragged icon follows the pointer; the ones it passes step aside.
+    private func dragOffset(of feature: FeatureID, at index: Int) -> CGFloat {
+        guard let dragged, let from = features.firstIndex(of: dragged) else { return 0 }
+        if feature == dragged { return dragX }
+        let landing = target(from: from)
+        if from < landing, index > from, index <= landing { return -step }
+        if landing < from, index >= landing, index < from { return step }
+        return 0
+    }
+
+    private func drag(_ feature: FeatureID, from index: Int) -> some Gesture {
+        DragGesture(minimumDistance: 4)
+            .onChanged { value in
+                if dragged == nil { withAnimation(Motion.hover) { dragged = feature } }
+                withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.86)) { dragX = value.translation.width }
+            }
+            .onEnded { _ in
+                let landing = target(from: index)
+                withAnimation(.spring(response: 0.26, dampingFraction: 0.84)) {
+                    if landing != index { move(feature, landing) }
+                    dragged = nil
+                    dragX = 0
+                }
+            }
+    }
+
     /// An icon's centre, from the strip's middle.
     private func slotX(_ index: Int) -> CGFloat {
-        let step = NotchGeometry.stripIconSize + NotchGeometry.stripSpacing
-        return (CGFloat(index) - CGFloat(features.count - 1) / 2) * step
+        (CGFloat(index) - CGFloat(features.count - 1) / 2) * step
     }
 }
 

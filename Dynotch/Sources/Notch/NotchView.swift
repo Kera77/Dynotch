@@ -221,7 +221,9 @@ struct NotchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .top) {
             if layer == .content, model.isShowingStrip, !model.isExpanded {
-                ModuleStripView(features: stripFeatures, origin: model.stripOrigin, open: openModule)
+                ModuleStripView(features: stripFeatures, origin: model.stripOrigin, open: openModule) { feature, index in
+                    settings.moveFeature(feature, to: index, among: stripFeatures)
+                }
                     .padding(.top, geometry.notchSize.height + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
             }
         }
