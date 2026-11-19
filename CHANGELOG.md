@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.67.0] - 2026-11-19
+
 ### Added
 - Module strip: drag an icon sideways to reorder the modules; the menu bar, top row and swipes follow the new order.
 - Switcher: while swiping, moving the fingers up or down cancels at once, without switching.
