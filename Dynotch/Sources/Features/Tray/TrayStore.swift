@@ -32,6 +32,8 @@ final class TrayStore: ObservableObject {
     static let screenshotsID = UUID(uuidString: "5C2E5C2E-0000-4000-8000-000000000001") ?? UUID()
     /// Whether the screenshot tool is on, so its tab shows.
     @Published var showsScreenshots = true
+    /// The pointer is over the tabs: a swipe there steps between them (spec FT-4d).
+    var isOverTabs = false
     /// Days after which a file leaves the tray; 0: never (spec FT-6).
     @Published var retentionDays: Int {
         didSet {

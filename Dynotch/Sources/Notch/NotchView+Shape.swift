@@ -89,3 +89,20 @@ extension NotchView {
     /// The bottom corners of the closed notch when it is not rounded.
     static var restingRadius: CGFloat { 10 }
 }
+
+// MARK: - Design (spec D-1, D-14)
+
+extension NotchView {
+    var designBackground: some View {
+        DesignBackground(
+            design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity,
+            refined: settings.refinedDesign, topRow: geometry.menuBarHeight,
+            glassTint: wallpaperTone.tint(for: geometry.screenFrame)
+        )
+    }
+
+    /// Lifts the open panel off the windows below (spec D-14a).
+    @ViewBuilder var designShadow: some View {
+        if layer == .content, settings.refinedDesign, showsDesign { OuterShadow(shape: shape).transition(.opacity) }
+    }
+}

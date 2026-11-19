@@ -50,6 +50,10 @@ final class TrackpadSwipe: @unchecked Sendable {
     nonisolated(unsafe) private static var isActive = false
     /// Cancelled by a vertical swipe: nothing more until the fingers lift.
     nonisolated(unsafe) private static var isSpent = false
+    /// Most fingers down since the trackpad was last empty: a 4-finger swipe passes through 3.
+    nonisolated(unsafe) private static var mostFingers = 0
+    /// Frames with exactly the wanted fingers, so fingers still landing do not start it.
+    nonisolated(unsafe) private static var steadyFrames = 0
     nonisolated(unsafe) private static var lastX: Float = 0
     nonisolated(unsafe) private static var lastY: Float = 0
     nonisolated(unsafe) private static var started = false
@@ -58,6 +62,8 @@ final class TrackpadSwipe: @unchecked Sendable {
     private static let openDistance: Float = 0.04
     /// Vertical travel (up or down) that cancels an open switcher at once (spec AS-11c).
     private static let cancelDistance: Float = 0.2
+    /// Frames (~8 ms each) the fingers must stay exactly the wanted number before it opens.
+    private static let steadyNeeded = 6
 
     /// Starts listening once; `handler` gets the events on the main queue.
     static func start(_ handler: @escaping @Sendable (Event) -> Void) {
@@ -93,42 +99,63 @@ final class TrackpadSwipe: @unchecked Sendable {
         let wanted = fingers
         guard wanted > 0, let data else { return }
         let touches = data.bindMemory(to: Touch.self, capacity: max(count, 1))
-        if count == wanted {
+        mostFingers = max(mostFingers, count)
+        if count > wanted || mostFingers > wanted {
+            // More fingers than the switcher's: a Space swipe or the like, not ours (spec AS-11d).
+            if isActive { send(.ended(cancelled: true)) }
+            isActive = false
+            isSpent = true
+            lifted(count: count, wanted: wanted)
+        } else if count == wanted {
+            steadyFrames += 1
             var sumX: Float = 0
             var sumY: Float = 0
             for index in 0..<count {
                 sumX += touches[index].normalizedX
                 sumY += touches[index].normalizedY
             }
-            let x = sumX / Float(count)
-            let y = sumY / Float(count)
-            lastX = x
-            lastY = y
-            guard let origin = startX else {
-                startX = x
-                startY = y
-                return
-            }
-            let travel = x - origin
-            if isActive, abs(y - startY) >= cancelDistance {
-                // Swiped up or down: cancel now, without switching.
-                isActive = false
-                isSpent = true
-                send(.ended(cancelled: true))
-                return
-            }
-            if !isActive, !isSpent, abs(travel) >= openDistance, abs(travel) > abs(y - startY) {
-                isActive = true
-                send(.began)
-            }
-            if isActive { send(.moved(Double(travel))) }
-        } else if count == 0 || count < wanted {
+            moved(x: sumX / Float(count), y: sumY / Float(count))
+        } else {
             // Fingers lifted: switch.
             if isActive { send(.ended(cancelled: false)) }
             isActive = false
-            isSpent = false
-            startX = nil
+            lifted(count: count, wanted: wanted)
         }
+    }
+
+    /// The fingers' average position, with exactly the wanted number down.
+    private static func moved(x: Float, y: Float) {
+        lastX = x
+        lastY = y
+        guard let origin = startX else {
+            startX = x
+            startY = y
+            return
+        }
+        let travel = x - origin
+        if isActive, abs(y - startY) >= cancelDistance {
+            // Swiped up or down: cancel now, without switching (spec AS-11c).
+            isActive = false
+            isSpent = true
+            send(.ended(cancelled: true))
+            return
+        }
+        if !isActive, !isSpent, steadyFrames >= steadyNeeded, abs(travel) >= openDistance, abs(travel) > abs(y - startY) {
+            isActive = true
+            send(.began)
+        }
+        if isActive { send(.moved(Double(travel))) }
+    }
+
+    private static func lifted(count: Int, wanted: Int) {
+        startX = nil
+        steadyFrames = 0
+        if count < wanted { reset() }
+    }
+
+    private static func reset() {
+        isSpent = false
+        mostFingers = 0
     }
 
     private static func send(_ event: Event) {

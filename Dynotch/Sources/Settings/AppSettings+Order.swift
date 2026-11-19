@@ -93,5 +93,6 @@ extension AppSettings {
         unlistedFeatures = Set((defaults.stringArray(forKey: "unlistedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         mergedFeatures = Set((defaults.stringArray(forKey: "mergedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         showsNowPlaying = defaults.object(forKey: "musicShowsNowPlaying") as? Bool ?? true
+        refinedDesign = defaults.object(forKey: "refinedDesign") as? Bool ?? true
     }
 }

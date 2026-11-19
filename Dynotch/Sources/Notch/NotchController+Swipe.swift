@@ -38,8 +38,8 @@ extension NotchController {
                withAnimation(Self.animation, { model.stepNotificationsTab(by: direction == .next ? 1 : -1) }) {
                 return true
             }
-            // In the tray a swipe steps between the tray and the folders first (spec FT-4).
-            if model.currentFeature == .tray, !gestureSwitchedFeature,
+            // Over the tray's tabs a swipe steps between the tray and the folders first (spec FT-4, FT-4d).
+            if model.currentFeature == .tray, tray.isOverTabs, !gestureSwitchedFeature,
                withAnimation(Self.animation, { tray.step(by: direction == .next ? 1 : -1) }) {
                 return true
             }

@@ -543,6 +543,11 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-13 | (v0.45) *Settings › Appearance*: **Open panel opacity** csúszka, 40–100% (alapból 100%). Csak a lenyitott panel hátterére hat, minden designnál; a becsukott notch, a lelógó értesítés és az előnézet fekete marad. |
 | D-13b | (v0.46) 100% alatti átlátszóságnál a fekete panel mögött **elmosás** (blur) van: az asztal és a mögötte lévő ablakok elmosva látszanak át. Az üveg-designokon az üveg eleve elmos. |
 | D-13c | (v0.49) A fekete design 100% alatt enyhén átlátszó: a blur a csúszkával együtt halványul (a csúszka 40%-tól). A Liquid Glass alatt egy külön blur réteg erősebbé teszi az üveg elmosását. |
+| D-14 | (v0.67) *Settings › Appearance › Look*: **Refined** (alap) vagy **Original**. A Refined mindhárom designon finomít (D-14a…d), az Original a korábbi megjelenés. |
+| D-14a | (v0.67) Refined: a lenyitott panel szélén vékony **fényperem**, amely a notch-csal találkozó tetején láthatatlan, a felső sor alatt a legerősebb, lefelé halványul; a panel körül **lágy árnyék** emeli el az alatta lévő ablakoktól. A becsukott notch-on egyik sincs. |
+| D-14b | (v0.67) Refined Black: fent tiszta fekete (egybeolvad a notch-csal), lefelé alig világosodik. |
+| D-14c | (v0.67) Refined Liquid glass: az üveg sötétítése a kijelző háttérképének fényességét követi (sötét háttérnél ~32%, világosnál ~55%); a háttérkép Space- és kijelzőváltáskor újra mérődik. |
+| D-14d | (v0.67) Refined Black to glass: a felső sor magasságáig fekete, alatta ~80 pt alatt lágy (ease) átmenettel üveg, a panel magasságától függetlenül. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -594,6 +599,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-7 | **Beállítás:** *Settings › Notifications*: „Keep unread chats in the notch” forrásonként (Beeper, Google Chat); a lekérdezési gyakoriság 10–60 mp. Csak a csevegések neve, az üzenetek szövege és ideje kerül a memóriába; lemezre és a naplóba nem. |
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
 | UM-8b | (v0.49) Az **All** fülön nincsenek „Unread” buborékok; az olvasatlan Beeper-csevegések a Chats fülön kártyaként vannak. |
+| UM-8c | (v0.67) Az értesítés modul alapmérete 40 ponttal magasabb, hogy a fülválasztó és egy kártya is kiférjen; a fülválasztó kis méretnél is látszik. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 | UM-10 | (v0.51) A Beeper-értesítések (All és Chats fül) eltűnnek, amint a Beeper a csevegésüket már nem tartja olvasatlannak (a Beeper API alapján, a csevegés neve szerint). Ismeretlen nevű csevegésé marad. |
 
@@ -645,6 +651,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-4 | A **Tray** modulban fülek: „Tray” és a „+”-szal csatolt mappák (színes ponttal); swipe-pal is váltható, a végén a következő modulra lép. |
 | FT-4b | (v0.60) A csatolt mappa pöttyének **színe** a fül jobb klikk menüjében (**Colour**) állítható: piros, zöld, kék, narancs, lila, rózsaszín, sárga, türkiz, szürke; a választás megmarad. |
 | FT-4c | (v0.61) A **Tray** és a **Screenshots** fül pöttyének színe is állítható ugyanígy (alap: kék, narancs). |
+| FT-4d | (v0.67) A Tray füleinek swipe-pal váltása csak akkor, ha az egér a fülek során van; máshol a swipe modult vált. |
 | FT-5 | Fájlok kihúzhatók bármely appba; mappára vagy a rácsra ejtve **másolás**, ⌥-tal **áthelyezés**; dupla kattintás megnyit; jobb klikk: Quick Look, Open, Show in Finder, Remove. |
 | FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
 | FT-8 | **Quick Look:** kijelölt fájlon szóköz megnyitja / bezárja. |
@@ -726,6 +733,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-11 | **Swipe:** alapból **háromujjas vízszintes** (3 vagy 4 ujj, vagy ki). Az első mozdulatra megnyílik, az ujjak oldalra mozgatásával lépked a kijelölés (állítható érzékenység), de **amíg az ujjak a trackpaden vannak, csak kiemel**; felemeléskor vált. Esc: megszakítás (swipe-nál lásd AS-11c). A trackpad nyers érintéseiből (MultitouchSupport). |
 | AS-11b | (v0.55) A *Distance per window* (a trackpad szélességének 5–25%-a) megadja, mennyit kell mozdítani egy ablaknyi lépéshez; swipe közben a kijelölés a lista végein megáll, nem fordul körbe. A mért elmozdulás a naplóba kerül. |
 | AS-11c | (v0.67) Swipe közben az ujjakat **felfelé vagy lefelé** húzva (a trackpad magasságának ~20%-a) a váltó azonnal bezárul váltás nélkül; az ujjak felemeléséig a mozdulat nem nyitja újra. |
+| AS-11d | (v0.67) A switcher csak tisztán a beállított számú ujjal indul: ha közben több ujj is a trackpadre kerül (pl. 4 ujjas Space-váltás), a mozdulat az ujjak felemeléséig nem nyitja meg, és a nyitott váltót bezárja. Az ujjaknak néhány képkockáig stabilan kell lenniük indulás előtt. |
 | AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. A *Switcher* beállításoknál ezt egy megjegyzés jelzi, és gomb visz a Trackpad-beállításokhoz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. A trackpadet csak bekapcsolt váltónál figyeli. |
 | AS-14 | (v0.57) **Only covered windows** kapcsoló (alapból ki), a Current Space / All apps választással és a többi szűrővel együtt használható: csak azok az ablakok kerülnek a váltóba, amelyek legalább **X%-ban takarva** vannak a fölöttük lévő ablakoktól (X csúszkával 25–90%, alapból **50%**). Az előtérben lévő ablak így kimarad; a kis méretű, a rejtett appok és a más Space-en lévő ablakok (ha be vannak kapcsolva) mindig a takartak közé számítanak. Ilyenkor a váltó az első takart ablakon nyílik. |
 | AS-15 | (v0.61) A váltó a notchból **jóval gyorsabban** nyílik le (rövidebb rugó), mint a notch más módon. |

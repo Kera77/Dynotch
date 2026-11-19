@@ -164,6 +164,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(claudeSessionPinned, forKey: Key.claudeSessionPinned) }
     }
 
+    /// The refined look of the designs, or the original one (spec D-14).
+    @Published var refinedDesign = true {
+        didSet { defaults.set(refinedDesign, forKey: "refinedDesign") }
+    }
+
     /// Trackpad taps when the notch opens and on swipes (spec H-7).
     @Published var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
@@ -240,18 +245,6 @@ final class AppSettings: ObservableObject {
     /// Features whose menu bar icon is turned off (they stay in the notch).
     @Published private(set) var hiddenFromMenuBar: Set<FeatureID> {
         didSet { defaults.set(hiddenFromMenuBar.map(\.rawValue).sorted(), forKey: Key.hiddenFromMenuBar) }
-    }
-
-    func showsInMenuBar(_ feature: FeatureID) -> Bool {
-        Self.menuBarFeatures.contains(feature) && !hiddenFromMenuBar.contains(feature)
-    }
-
-    func setShowsInMenuBar(_ feature: FeatureID, _ shows: Bool) {
-        if shows {
-            hiddenFromMenuBar.remove(feature)
-        } else {
-            hiddenFromMenuBar.insert(feature)
-        }
     }
 
     /// Usage indicator beside the notch (spec CL-6).
@@ -383,5 +376,21 @@ extension AppSettings {
 
     func setNotificationApp(_ identifier: String, enabled: Bool) {
         notificationApps[identifier] = enabled
+    }
+}
+
+// MARK: - Menu bar icons
+
+extension AppSettings {
+    func showsInMenuBar(_ feature: FeatureID) -> Bool {
+        Self.menuBarFeatures.contains(feature) && !hiddenFromMenuBar.contains(feature)
+    }
+
+    func setShowsInMenuBar(_ feature: FeatureID, _ shows: Bool) {
+        if shows {
+            hiddenFromMenuBar.remove(feature)
+        } else {
+            hiddenFromMenuBar.insert(feature)
+        }
     }
 }

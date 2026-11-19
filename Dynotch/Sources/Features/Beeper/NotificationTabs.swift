@@ -58,8 +58,11 @@ struct NotificationsTabsView: View {
                 Spacer()
             }
             .padding(.horizontal, 14)
+            // The picker stays in sight however small the panel is (spec UM-8c).
+            .layoutPriority(1)
             // Changing tabs slides, like the tray's folders (spec UM-8).
             content
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .id(tab)
                 .transition(.opacity.combined(with: .move(edge: .trailing)))
         }

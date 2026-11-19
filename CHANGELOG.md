@@ -5,9 +5,15 @@
 ### Added
 - Module strip: drag an icon sideways to reorder the modules; the menu bar, top row and swipes follow the new order.
 - Switcher: while swiping, moving the fingers up or down cancels at once, without switching.
+- Appearance › Look: Refined (default) or Original. Refined adds a rim light and a soft shadow to the open panel, a black that deepens slightly towards the bottom, liquid glass tinted to the wallpaper's brightness, and an even black-to-glass fade below the top row.
 
 ### Changed
 - Settings: the new section swims in from below or above, following the direction in the sidebar.
+- Notifications module: opens 40 pt taller so the tab picker and a card fit; the picker stays visible when small.
+- Tray: a swipe steps between the tabs only with the pointer over them; elsewhere it switches modules.
+
+### Fixed
+- Switcher: a 4-finger Space swipe no longer opens the 3-finger switcher.
 
 ## [0.66.1] - 2026-11-19
 

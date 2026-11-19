@@ -52,7 +52,11 @@ struct TrayFeatureView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // Only a swipe over the tabs steps between them; elsewhere it switches modules (spec FT-4d).
             chips
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onHover { store.isOverTabs = $0 }
             grid
         }
         .padding(.horizontal, 16)

@@ -229,6 +229,8 @@ final class NotchViewModel: ObservableObject {
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .notifications, showsWideTab { return geometry.chatPanelSize }
+        // Room for the tab picker above a card (spec UM-8c).
+        if currentFeature == .notifications, !isLarge { return geometry.notificationsModuleSize }
         if currentFeature == .claudeUsage { return mergedAIWidth(geometry.usageSize) }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : mergedAIWidth(geometry.expandedSize) }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }

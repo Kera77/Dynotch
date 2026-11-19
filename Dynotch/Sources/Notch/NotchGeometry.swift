@@ -70,6 +70,11 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// The Notifications module: the normal panel plus the row of its tab picker (spec UM-8c).
+    var notificationsModuleSize: CGSize {
+        CGSize(width: expandedSize.width, height: Self.expandedHeight + 40)
+    }
+
     /// Size of the opened panel in the full calendar view.
     var largeSize: CGSize {
         let width = min(max(Self.largeWidth, expandedSize.width), max(screenFrame.width - 40, expandedSize.width))

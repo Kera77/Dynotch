@@ -3,6 +3,7 @@ import SwiftUI
 struct NotchView: View {
     @ObservedObject var model: NotchViewModel
     @ObservedObject var settings: AppSettings
+    @ObservedObject var wallpaperTone = WallpaperTone.shared
     /// The day view watches the calendar itself; the notch only the meetings beside it.
     let calendar: CalendarService
     @ObservedObject var calendarIndicator: CalendarIndicator
@@ -206,10 +207,9 @@ struct NotchView: View {
         // The capsule may reach beyond the content (spec N-11); the content stays in place.
         .offset(x: -capsule.shift)
         .frame(width: capsule.width, height: size.height - pillTrim)
-        .background(DesignBackground(
-            design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity
-        ))
+        .background(designBackground)
         .clipShape(shape)
+        .background { designShadow }
         .offset(x: collapsedOffset + capsule.shift)
         .opacity(isHiddenForFullScreen ? 0 : 1)
         .animation(NotchController.animation, value: isHiddenForFullScreen)

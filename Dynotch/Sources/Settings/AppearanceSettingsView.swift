@@ -11,6 +11,11 @@ struct AppearanceSettingsView: View {
                     ForEach(NotchDesign.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Picker("Look", selection: $settings.refinedDesign) {
+                    Text("Refined").tag(true)
+                    Text("Original").tag(false)
+                }
+                .pickerStyle(.segmented)
                 LabeledContent("Open panel opacity") {
                     HStack(spacing: 8) {
                         Slider(value: $settings.panelOpacity, in: AppSettings.panelOpacityRange, step: 0.05)
@@ -137,6 +142,8 @@ struct AppearanceSettingsView: View {
     private var designNote: String {
         var note = "For the open notch, notifications and the menu bar panels; the closed notch stays black like the "
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
+        note += " Refined adds a soft rim light and shadow, a black that deepens towards the bottom, glass tinted to "
+            + "the wallpaper, and an even black-to-glass fade."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
     }
