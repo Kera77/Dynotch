@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.69.2 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.70 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -616,6 +616,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
 | UM-8b | (v0.49) Az **All** fülön nincsenek „Unread” buborékok; az olvasatlan Beeper-csevegések a Chats fülön kártyaként vannak. |
 | UM-8c | (v0.67, v0.67.1: 110 pt) Az értesítés modul alapmérete 110 ponttal magasabb, hogy a fülválasztó és egy kártya is kiférjen; a fülválasztó kis méretnél is látszik. |
+| UM-8d | (v0.70, mint FT-4d) Az értesítés-nézet fülei (All, Chats, Beeper, Google Chat) között a swipe **csak akkor vált fület, ha az egér a fülválasztó során van**; máshol a swipe modult vált. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 | UM-10 | (v0.51) A Beeper-értesítések (All és Chats fül) eltűnnek, amint a Beeper a csevegésüket már nem tartja olvasatlannak (a Beeper API alapján, a csevegés neve szerint). Ismeretlen nevű csevegésé marad. |
 
@@ -710,6 +711,9 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-5c | (v0.69.1) **Név és szöveg:** a beszélgetés neve az oldalsáv feliratai közül az „Olvasatlan” jelzés, a privát üzenetek állapota („Nincs a gépnél”) és a darabszám („1 értesítés”) nélkül: csoportnál az első, privát üzenetnél az utolsó megmaradt felirat. A kártya szövege „N unread message(s) in Google Chat”. **A kártya lenyitásakor** a Dynotch a háttérben megnyitja a beszélgetést a webappban (mint GW-8, a Chatben is olvasott lesz), és a kártyába beírja az utolsó olvasatlan üzeneteket (legfeljebb 8). |
 | GW-6 | **Frissítés:** a Dynotch 10 mp-enként (beállítható 5–30 mp) újraolvassa a webappot, és minden Google Chat-értesítéskor azonnal. Egy változás legfeljebb 30 mp alatt megjelenik a notchban. |
 | GW-6b | (v0.69.2, hiba) A webapp bejárása **nem rekurzív** (saját veremmel, oldalsorrendben), mert a Chat oldala mélyebb, mint amit egy háttérszál verme elbír: 0.69.0-ban ez összeomlást okozott. |
+| GW-17 | (v0.70) **Kártya megnyitása = beszélgetés megnyitása:** a Google Chat-kártyára (All, Chats, Google Chat fül) kattintva a Dynotch a háttérben megnyitja a beszélgetést a webappban (GW-8), és a kártyában a „N unread message(s)” helyett **az olvasatlan üzenetek szövege** látszik (feladó, szöveg, idő; legfeljebb 8, a régebbiekre „+N earlier”). Ekkor a beszélgetés a Chatben is olvasott lesz (máshogy a szöveg nem olvasható ki). **Ha nem válaszolsz** (a kártyát vagy a notchot válasz nélkül bezárod), a Dynotch a webappban a beszélgetést **visszajelöli olvasatlanra** („Mark as unread” a kisegítő felületen), és a kártya olvasatlan marad. Válasz után olvasott marad. Ha a visszajelölés nem sikerül, a naplóba kerül (tartalom nélkül). Figyelem: a küldő a köztes időben olvasottnak láthatja. Betöltés közben a kártyán rövid töltésjelzés. |
+| GW-18 | (v0.70) **Válasz a kártyáról:** ha a beszélgetés a webappban írható (GW-9 feltételei teljesülnek), a szövegek alatt **válaszmező** (Enter küld, ⇧Enter új sor), a küldés GW-9 és GW-10 szerint. |
+| GW-19 | (v0.70) **Ha a notchból nem megy:** ha a beszélgetés nem nyitható meg a háttérben, a szöveg nem olvasható ki, vagy a válaszmező nem írható (pl. Zen, nem fut a webapp, GW-12), a kártyán a válaszmező helyett **„Open in Google Chat”** gomb: előtérbe hozza a Chat webappot, és megnyitja benne az adott beszélgetést (név alapján az oldalsávban; ha nem egyértelmű, csak a webappot). Hogy miért nem megy, a `notifications.log`-ba kerül (tartalom nélkül). |
 | GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben (vagy máshol, pl. telefonon) elolvasol, a Google Chat-értesítései eltűnnek a notchból: ha a beszélgetést az értesítés óta olvasatlannak látta, vagy az értesítés 90 mp-nél régebbi. Ismeretlen vagy több beszélgetésre illő név esetén az értesítés marad. |
 | GW-8 | **Változás a notchból a Chatbe:** ha a notchban a válaszmezőbe kattintasz vagy válaszolsz (UM-3b), a Dynotch a webappban a háttérben megnyitja a beszélgetést (kattintás a kisegítő felületen, az ablak előtérbe hozása nélkül, ha a böngésző engedi), így a Chatben is olvasott lesz. Ha a háttérben nem megy, a beszélgetés olvasatlan marad, amíg meg nem nyitod. |
 | GW-9 | **Válasz:** a Dynotch a háttérben megnyitja a beszélgetést, és **csak akkor** ír, ha a webapp címe a cél beszélgetés azonosítóját mutatja, és az üzenetmező üres. A szöveget közvetlenül a mezőbe írja, és az engedélyezett „Send message” gombot nyomja meg, vágólap és billentyűleütés nélkül. Ha a beszélgetés név alapján nem azonosítható egyértelműen, vagy a mező nem írható, semmi nem megy el, és a meglévő begépelés jön (E-11b, E-11d). |
@@ -779,6 +783,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. A *Switcher* beállításoknál ezt egy megjegyzés jelzi, és gomb visz a Trackpad-beállításokhoz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. A trackpadet csak bekapcsolt váltónál figyeli. |
 | AS-14 | (v0.57) **Only covered windows** kapcsoló (alapból ki), a Current Space / All apps választással és a többi szűrővel együtt használható: csak azok az ablakok kerülnek a váltóba, amelyek legalább **X%-ban takarva** vannak a fölöttük lévő ablakoktól (X csúszkával 25–90%, alapból **50%**). Az előtérben lévő ablak így kimarad; a kis méretű, a rejtett appok és a más Space-en lévő ablakok (ha be vannak kapcsolva) mindig a takartak közé számítanak. Ilyenkor a váltó az első takart ablakon nyílik. |
 | AS-15 | (v0.61) A váltó a notchból **jóval gyorsabban** nyílik le (rövidebb rugó), mint a notch más módon. |
+| AS-16 | (v0.70) **Rövid swipe = azonnali váltás:** a váltó csak akkor nyílik le az appokkal, ha az ujjak a *Show switcher after* idő után is a trackpaden vannak (*Settings › Switcher*, 0–1 mp, 0,05 mp-es lépés, alapból **0,15 mp**). Ha előtte felemeled őket, a váltó meg sem jelenik, és a mozdulat szerinti ablakra vált (legalább az előzőre, mint egy gyors ⌘⇥). *Short swipe switches to previous app* kapcsoló (alapból ki): bekapcsolva a rövid swipe (a váltó megjelenése előtt felemelt ujjak) **mindig az előző appra** vált (a legutóbb használt másik app előtérbe jön), az elmozdulás nagyságától függetlenül. A felfelé/lefelé megszakítás (AS-11c) és a tiszta ujjszám (AS-11d) ilyenkor is érvényes. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
 ---
@@ -813,6 +818,8 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-9 | (v0.57) Az Options menüben a figyelmeztetések **egyenként kikapcsolhatók** (memória, lemez, lassítás hő miatt, swap). Beállítható, hogy a **swap** hány GB felett (1, 2, 4, 8, 16, 32 vagy soha) küldjön **értesítést** és tegyen piros pöttyöt a notch mellé; átlépésenként egyszer értesít. |
 | SY-10 | (v0.57) Ha van figyelmeztetés, a notch melletti piros pöttyre mutatva a modul helyett egy sor nyílik le a figyelmeztetéssel, **Open** gombbal (megnyitja a System modult) és **X**-szel. Az X elrejti a figyelmeztetést, **amíg az el nem múlik**; ha később újra jelentkezik, ismét látszik. Új fajta figyelmeztetés azonnal megjelenik. Figyelmeztetés nélkül rámutatásra a modul nyílik. |
 | SY-11 | (v0.58) A folyamatok memóriája a **memory footprint**, mint az Activity Monitorban (nem a rezidens méret). |
+| SY-12b | (v0.70) A **memória** és a **swap** külön figyelmeztetés: a „kevés a memória” csak a memórianyomásból jön, a swap csak a beállított GB-határ (SY-9) átlépéséből. Így a memória kikapcsolható, miközben a swapra továbbra is jön figyelmeztetés. |
+| SY-12 | (v0.70, hiba) A kikapcsolt figyelmeztetés **soha nem jelenik meg**: ha a memória-figyelmeztetés ki van kapcsolva (SY-9), vagy a *Dynotch alerts › System* (E-25), a „kevés a memória” sem felugróként, sem az Értesítések listában, sem piros pöttyként, sem a lenyíló figyelmeztető sorban (SY-10) nem jön elő, időközönként sem. A *Dynotch alerts* listában a régi *System* helyett három kapcsoló: **Low memory**, **Swap above the limit**, **Disk full, Mac slowing down**; a régi kikapcsolt *System* a memóriát kapcsolja ki, a swap bekapcsolva indul. |
 
 ## 4ő. Képmetsző (v0.57)
 
@@ -834,6 +841,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SH-10 | A rajzok a kép pixeleiben tárolódnak, így a mentett kép ugyanúgy néz ki, mint a szerkesztőben; a vágás nem veszi el a rajzokat. |
 | SH-11 | A **tálcán** „Screenshots” fül a mappa **legutóbbi 10** képével és felvételével (a mappából semmi nem törlődik). Képre duplán kattintva vagy a jobb klikk menü **Edit** pontjával megnyílik a szerkesztő. Kikapcsolt képmetszőnél a fül nem látszik. |
 | SH-12 | Minden kép és hiba a `screenshots.log`-ba kerül (tartalom nélkül). |
+| SH-13 | (v0.70) **Területfelvétel** (*Area Recording*), új mód az SH-2 listájában (átrendezhető, kikapcsolható): a terület kijelölése az *Area* módhoz hasonlóan (szálkereszt, méretkijelzés, Esc vagy jobb kattintás megszakít), utána **csak a kijelölt terület** kerül a videóra, a kijelző teljes (Retina) felbontásában, egész pixelekre igazítva (SH-3d). Felvétel közben vékony keret jelzi a területet (a keret nem kerül a videóra), a többi SH-5 szerint: `.mov` a Screenshots mappába, vágólapra, Mac hangja és mikrofon kapcsolói, piros pötty és idő a notch mellett, Stop rámutatásra vagy a gyorsbillentyűvel, a Dynotch nem kerül a felvételre. |
 
 ## 4ő+. Menüsor-hézagok (v0.62)
 
@@ -846,10 +854,12 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MB-5 | A beállításokban a hézagok listája: stílus, szélesség, eltávolítás. A hézagok megmaradnak újraindítás után. |
 | MB-6 | A notch alá eső hézag (mint minden menüikon) nem látszik. |
 | MB-7 | (v0.69) **Színezett menüsor:** *Settings › Menu bar › Color*: **Off** (alap) / **Solid** (egy szín) / **Gradient** (két szín, iránya vízszintes vagy függőleges), átlátszóság csúszkával (10–80%, alapból 50%). Néhány kész minta és egyedi színválasztó. |
+| MB-7b | (v0.70) **Háromszínű átmenet (opcionális):** a *Gradient* módban *Middle color* kapcsoló (alapból ki); bekapcsolva egy harmadik szín kerül a két szín közé, az átmenet a közepén halad át rajta. A középső szín is külön állítható világos és sötét megjelenéshez (MB-8). |
 | MB-8 | (v0.69) Külön szín (vagy színpár) **világos és sötét megjelenéshez**; a *Same in Light and Dark* kapcsolóval egy közös. Megjelenésváltáskor a szín áttűnik. |
 | MB-9 | (v0.69.1) Működés: minden kijelzőn egy kattintásokat átengedő, áttetsző színréteg **a menüsor fölött**, a menüsor ablakának pontos magasságában (a menüsor saját háttere – *Show menu bar background* – mindent eltakar, ami mögötte van, ezért alá tenni nem lehet). A menüsor feliratai és ikonjai átlátszanak rajta és kattinthatók, a lenyíló menük és a notch-panel fölötte vannak; **a notch helye kimarad** (fekete). |
 | MB-10 | (v0.69) Teljes képernyős appnál, Mission Controlban és automatikusan elrejtett menüsornál a sáv nem látszik. Kijelző csatlakoztatásakor, felbontás- vagy elrendezésváltáskor a sáv követi a menüsort. |
 | MB-11 | (v0.69) A menüsor szövegének és ikonjainak színét a macOS választja (a háttérkép alapján), a Dynotch nem írja át; a beállításokban előnézet mutatja a menüsort a választott színnel, és egy megjegyzés kéri, hogy olvasható színt válassz. A beállítás újraindítás után megmarad. |
+| MB-12 | (v0.70, hiba) A *Solid* és a *Gradient* módban is minden színmező **színválasztója lenyílik**, és bármilyen szín választható (kész minták és egyedi szín). |
 
 ## 4ő++. Modulok összevonása (v0.66)
 
@@ -909,6 +919,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.70.0** | Google Chat-kártya: üzenetek a webappból, válasz vagy „Open in Google Chat”, válasz nélkül vissza olvasatlanba; háromszínű menüsor-átmenet, nyíló színválasztók; switcher: rövid swipe csak vált, késleltetés, előző app; területfelvétel; értesítés-fülek swipe csak a füleken; külön memória- és swap-figyelmeztetés |
 | **v0.69.2** | Összeomlás javítása a Google Chat-webapp olvasásakor (túl mély rekurzió) |
 | **v0.69.1** | A színezés a menüsoron (fölötte, áttetszőn, a notch kihagyásával); Google Chat-kártyák helyes névvel, lenyitva az üzenetekkel |
 | **v0.69.0** | „Kész” sor kattintásra az appra visz (Claude, ChatGPT/Codex), színezett menüsor, Join után eltűnő meeting-sor, a Dynotch saját értesítései kapcsolhatók; hibák: Dock-hover, BT-befagyás, megosztásban látszó notch, jelvény-elcsúszás, Google Chat értesítés nélkül |

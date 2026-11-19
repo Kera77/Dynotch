@@ -30,6 +30,9 @@ final class SwitcherController: ObservableObject {
     private var lastTravel = 0.0
     private var observer: AnyCancellable?
     private var registered: KeyShortcut?
+    /// A swipe's list, not shown yet: it drops down after `settings.showDelay` (spec AS-16).
+    private var isPending = false
+    private var showTimer: Timer?
 
     private enum Action: UInt32 {
         case open = 1, back, left, right, cancel, cancelPlain, close, minimize, quit, hide, confirm
@@ -52,7 +55,13 @@ final class SwitcherController: ObservableObject {
     /// Lists the windows and shows them; the second one is chosen, so one step goes back to the
     /// previous window (spec AS-2).
     func open() {
-        guard settings.isOn, !isShown else { return }
+        guard prepare() else { return }
+        show()
+    }
+
+    /// Lists the windows and chooses the way back, without showing them.
+    private func prepare() -> Bool {
+        guard settings.isOn, !isShown, !isPending else { return false }
         var options = SwitcherWindows.Options()
         options.scope = settings.scope
         options.groupsByApp = settings.groupsByApp
@@ -63,10 +72,17 @@ final class SwitcherController: ObservableObject {
         options.onlyCovered = settings.onlyCovered
         options.coverThreshold = settings.coverThreshold
         items = SwitcherWindows.list(options)
-        guard !items.isEmpty else { return }
+        guard !items.isEmpty else { return false }
         // Covered windows only: the front one is not listed, so the first is the way back (spec AS-14).
         selection = items.count > 1 && !settings.onlyCovered ? 1 : 0
         previews = [:]
+        return true
+    }
+
+    private func show() {
+        isPending = false
+        showTimer?.invalidate()
+        showTimer = nil
         isShown = true
         present(true)
         if settings.showsPreviews {
@@ -113,16 +129,27 @@ final class SwitcherController: ObservableObject {
 
     // MARK: - Swipe (spec AS-11)
 
+    /// The list is ready at once, but drops down only if the fingers stay longer than
+    /// `settings.showDelay`; a quicker swipe just switches (spec AS-16).
     func swipeBegan() {
-        guard settings.isOn else { return }
-        open()
+        guard settings.isOn, prepare() else { return }
         swipeStart = selection
+        lastTravel = 0
+        let delay = settings.showDelay
+        guard delay > 0 else { return show() }
+        isPending = true
+        showTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.isPending else { return }
+                self.show()
+            }
+        }
     }
 
     /// `travel` in trackpad widths since the swipe began; one window per `settings.swipeStep`.
     /// Only the choice moves until the fingers lift, and it stops at either end (spec AS-11b).
     func swipeMoved(travel: Double) {
-        guard isShown, !items.isEmpty else { return }
+        guard isShown || isPending, !items.isEmpty else { return }
         lastTravel = travel
         let steps = Self.steps(travel: travel, step: settings.swipeStep)
         selection = min(max(swipeStart + steps, 0), items.count - 1)
@@ -135,11 +162,34 @@ final class SwitcherController: ObservableObject {
     }
 
     func swipeEnded(cancelled: Bool) {
+        if isPending {
+            quickSwipeEnded(cancelled: cancelled)
+            return
+        }
         guard isShown else { return }
         DiagnosticsLog.append(
             "spaces", "switcher swipe: travel=\(String(format: "%.2f", lastTravel)) step=\(String(format: "%.2f", settings.swipeStep))"
         )
         finish(switching: !cancelled)
+    }
+
+    /// Lifted before the switcher showed: switch without it, to the chosen window or, with the
+    /// option on, the previous app (spec AS-16).
+    private func quickSwipeEnded(cancelled: Bool) {
+        isPending = false
+        showTimer?.invalidate()
+        showTimer = nil
+        DiagnosticsLog.append("spaces", "switcher quick swipe: travel=\(String(format: "%.2f", lastTravel)) cancelled=\(cancelled)")
+        guard !cancelled else { return }
+        let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let target = settings.quickSwipeToPreviousApp ? Self.previousApp(items, front: front) : selected
+        if let target { SwitcherWindows.activate(target) }
+    }
+
+    /// The most recently used window of another app than the front one.
+    nonisolated static func previousApp(_ items: [SwitcherItem], front: pid_t?) -> SwitcherItem? {
+        let front = front ?? items.first?.pid
+        return items.first { $0.pid != front }
     }
 
     // MARK: - Keys (spec AS-8…AS-10)

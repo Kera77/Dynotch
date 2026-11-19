@@ -245,6 +245,8 @@ final class NotchController {
         previewTask = nil
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
+        // Google Chat cards closed without a reply go back to unread (spec GW-17).
+        if model.isExpanded { notifications.allCardsClosed() }
         // Only an open panel ends the filter; the closed panels of other displays leave it.
         if model.isExpanded { notifications.clearFocus() }
         OpenMenus.closeAll()

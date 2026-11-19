@@ -28,6 +28,8 @@ final class StatsService: ObservableObject {
     let options: StatsOptions
     /// Sends Dynotch's own notification (spec SY-9).
     var notify: (String, String) -> Void = { _, _ in }
+    /// Whether Settings › Notifications › Dynotch alerts turned a warning's kind off (spec SY-12).
+    var isAlertOff: (StatsAlert) -> Bool = { _ in false }
     private var swapNotified = false
     /// Warnings hidden with the X, until they clear (spec SY-10).
     private var dismissed: Set<String> = []
@@ -150,12 +152,13 @@ final class StatsService: ObservableObject {
             memoryPressure: next.memory?.pressure, diskFree: next.disk?.free, diskTotal: next.disk?.total,
             thermal: ProcessInfo.processInfo.thermalState, swapUsed: next.memory?.swapUsed ?? 0, swapLimit: options.swapLimit
         )
-        active = StatsWarnings.warnings(reading, off: options.alertsOff)
+        let off = options.alertsOff.union(StatsAlert.allCases.filter(isAlertOff))
+        active = StatsWarnings.warnings(reading, off: off)
         let warnings = Self.shown(active, dismissed: &dismissed)
         if indicator.warnings != warnings { indicator.warnings = warnings }
         // One notification per crossing of the swap limit (spec SY-9).
         let isOver = StatsWarnings.isOverSwap(reading)
-        if isOver, !swapNotified, !options.alertsOff.contains(.swap), let limit = options.swapLimit {
+        if isOver, !swapNotified, !off.contains(.swap), let limit = options.swapLimit {
             notify("Swap is above \(limit) GB", "\(StatsFormat.bytes(Double(reading.swapUsed))) of swap in use")
         }
         swapNotified = isOver

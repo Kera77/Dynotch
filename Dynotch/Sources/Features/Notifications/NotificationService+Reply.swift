@@ -16,15 +16,20 @@ extension NotificationService {
         if isGoogleChat {
             // Straight into the web app's message box when it can be read (spec GW-9).
             do {
-                return try await chatWeb.reply(text, toTitle: notification.title)
+                let note = try await chatWeb.reply(text, toTitle: notification.title)
+                // Answered: the conversation stays read (spec GW-17).
+                chatCardAnswered(notification)
+                return note
             } catch is GoogleChatWebService.Unavailable {
                 DiagnosticsLog.write("google-chat-web", "reply: web app not usable, typing instead")
             }
         }
-        return try await TypedReply.send(
+        let note = try await TypedReply.send(
             text, link: notification.link, sourceApp: source, fallbackApp: notification.appIdentifier,
             conversation: isGoogleChat ? notification.title : nil
         )
+        if isGoogleChat { chatCardAnswered(notification) }
+        return note
     }
 
     // MARK: - Pop-up with the message (spec E-22, E-23)

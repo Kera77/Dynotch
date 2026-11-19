@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.70.0] - 2026-11-19
+
+### Added
+- Google Chat cards from the web app: opening one shows its unread messages (read in the web app in the background), with a reply field when the web app can write there, otherwise "Open in Google Chat", which brings the web app forward with that conversation. Closed without a reply, the conversation is marked unread again.
+- Menu bar color: an optional middle color for a three-color gradient.
+- Switcher: a quick swipe only switches; the switcher drops down after "Show switcher after" (0.15 s by default). Optionally a quick swipe always goes to the previous app.
+- Screenshots: Area Recording, a screen recording of a picked area only.
+- Settings › Notifications › Dynotch alerts: Low memory and Swap above the limit are separate switches.
+
+### Fixed
+- The menu bar color wells open (Solid and Gradient), with ready-made colors and Custom….
+- In Notifications a swipe changes the tab only over the tabs; elsewhere it switches modules.
+- A memory warning turned off no longer comes back now and then, neither as a pop-up nor as the red dot.
+
 ## [0.69.2] - 2026-11-19
 
 ### Fixed

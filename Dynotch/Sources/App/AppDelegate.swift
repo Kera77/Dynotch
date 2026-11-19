@@ -239,7 +239,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.battery.start()
         services.music.start()
         services.stats.notify = { [notifications] title, body in
-            notifications.present(title: title, body: body, appIdentifier: AppInfo.bundleIdentifier, kind: .system)
+            notifications.present(title: title, body: body, appIdentifier: AppInfo.bundleIdentifier, kind: .swap)
+        }
+        services.stats.isAlertOff = { [notifications] alert in
+            switch alert {
+            case .memory: !notifications.preferences.isOn(.memory)
+            case .swap: !notifications.preferences.isOn(.swap)
+            case .disk, .heat: !notifications.preferences.isOn(.system)
+            }
         }
         services.stats.start()
         services.screenshots.start()

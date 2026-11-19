@@ -89,6 +89,19 @@ struct SwitcherSettingsView: View {
                     }
                 }
                 .disabled(settings.swipeFingers == 0)
+                // A swipe shorter than this only switches; longer drops the switcher down (spec AS-16).
+                LabeledContent("Show switcher after") {
+                    HStack(spacing: 8) {
+                        Slider(value: $settings.showDelay, in: SwitcherSettings.showDelayRange, step: 0.05)
+                            .frame(width: 160)
+                        Text(String(format: "%.2f s", settings.showDelay))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(settings.swipeFingers == 0)
+                Toggle("Short swipe switches to the previous app", isOn: $settings.quickSwipeToPreviousApp)
+                    .disabled(settings.swipeFingers == 0)
                 Button("Open Trackpad Settings…") {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.Trackpad-Settings.extension") {
                         NSWorkspace.shared.open(url)

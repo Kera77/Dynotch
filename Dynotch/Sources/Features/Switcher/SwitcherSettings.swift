@@ -63,6 +63,10 @@ final class SwitcherSettings: ObservableObject {
     @Published var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
     @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
+    /// Seconds the fingers stay down before the switcher drops down; a quicker swipe only switches (spec AS-16).
+    @Published var showDelay: Double { didSet { save(showDelay, Key.showDelay) } }
+    /// A quick swipe always goes to the previous app (spec AS-16).
+    @Published var quickSwipeToPreviousApp: Bool { didSet { save(quickSwipeToPreviousApp, Key.quickPrevious) } }
     @Published private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
     /// Only windows mostly covered by others, with either scope (spec AS-14).
     @Published var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
@@ -70,6 +74,7 @@ final class SwitcherSettings: ObservableObject {
     @Published var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }
 
     static let swipeStepRange: ClosedRange<Double> = 0.05...0.25
+    static let showDelayRange: ClosedRange<Double> = 0...1
     static let coverRange: ClosedRange<Double> = 0.25...0.9
 
     private enum Key {
@@ -77,6 +82,7 @@ final class SwitcherSettings: ObservableObject {
         static let groups = "switcherGroupsByApp", minimized = "switcherMinimized", hidden = "switcherHidden"
         static let display = "switcherCurrentDisplay", hold = "switcherHold", previews = "switcherPreviews"
         static let shortcut = "switcherShortcut", fingers = "switcherFingers", step = "switcherStep"
+        static let showDelay = "switcherShowDelay", quickPrevious = "switcherQuickPrevious"
         static let excluded = "switcherExcluded", covered = "switcherOnlyCovered", coverThreshold = "switcherCoverThreshold"
     }
 
@@ -97,6 +103,8 @@ final class SwitcherSettings: ObservableObject {
         shortcut = defaults.data(forKey: Key.shortcut).flatMap { try? JSONDecoder().decode(KeyShortcut.self, from: $0) }
         swipeFingers = defaults.object(forKey: Key.fingers) as? Int ?? 3
         swipeStep = defaults.object(forKey: Key.step) as? Double ?? 0.08
+        showDelay = defaults.object(forKey: Key.showDelay) as? Double ?? 0.15
+        quickSwipeToPreviousApp = defaults.bool(forKey: Key.quickPrevious)
         excluded = defaults.stringArray(forKey: Key.excluded) ?? []
         onlyCovered = defaults.bool(forKey: Key.covered)
         coverThreshold = defaults.object(forKey: Key.coverThreshold) as? Double ?? 0.5

@@ -18,6 +18,8 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
     struct Pair: Codable, Equatable, Sendable {
         var start: String
         var end: String
+        /// Optional third colour between the two (spec MB-7b); missing in older settings.
+        var middle: String?
     }
 
     var kind: Kind = .off
@@ -27,10 +29,25 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
     var sameInBoth = true
     /// 0.1…0.8: the menu bar's titles and icons show through the tint (spec MB-9).
     var opacity: Double = 0.5
+    /// A third colour in the middle of the gradient (spec MB-7b); optional so older settings decode.
+    var usesMiddle: Bool?
+
+    static let defaultMiddle = "#FFFFFF"
 
     static let opacityRange = 0.1...0.8
 
     func pair(dark isDark: Bool) -> Pair { isDark && !sameInBoth ? dark : light }
+
+    /// The colours drawn, left to right or top to bottom (spec MB-7, MB-7b).
+    func colors(dark isDark: Bool) -> [String] {
+        let pair = pair(dark: isDark)
+        switch kind {
+        case .off, .solid: return [pair.start, pair.start]
+        case .gradient:
+            guard usesMiddle == true else { return [pair.start, pair.end] }
+            return [pair.start, pair.middle ?? Self.defaultMiddle, pair.end]
+        }
+    }
 
     /// Ready-made gradients for the settings.
     static let presets: [(name: String, pair: Pair)] = [
@@ -210,11 +227,9 @@ struct MenuBarTintView: View {
 
     private var tint: some View {
         let style = service.style
-        let pair = style.pair(dark: colorScheme == .dark)
-        let end: Color = TintColor.color(style.kind == .gradient ? pair.end : pair.start)
         let vertical = style.direction == .vertical
         return LinearGradient(
-            colors: [TintColor.color(pair.start), end],
+            colors: style.colors(dark: colorScheme == .dark).map(TintColor.color),
             startPoint: vertical ? .top : .leading, endPoint: vertical ? .bottom : .trailing
         )
         .opacity(min(max(style.opacity, MenuBarTintStyle.opacityRange.lowerBound), MenuBarTintStyle.opacityRange.upperBound))

@@ -48,6 +48,8 @@ struct NotificationsTabsView: View {
     @ObservedObject var beeper: BeeperService
     @Binding var tab: NotificationsTab
     var isActive = false
+    /// The pointer is over the tab picker: only there a swipe steps between the tabs (spec UM-8d).
+    var onHoverTabs: (Bool) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 6) {
@@ -58,6 +60,8 @@ struct NotificationsTabsView: View {
                 Spacer()
             }
             .padding(.horizontal, 14)
+            .contentShape(Rectangle())
+            .onHover(perform: onHoverTabs)
             // The picker stays in sight however small the panel is (spec UM-8c).
             .layoutPriority(1)
             // Changing tabs slides, like the tray's folders (spec UM-8).

@@ -108,6 +108,12 @@ final class NotificationService: ObservableObject {
     @Published var chatWebTexts: [Int64: [String]] = [:]
     /// Cards opened whose conversation is being opened in the web app, by conversation id.
     var chatWebPending: [String: Int64] = [:]
+    /// Cards whose conversation Dynotch read in the web app to show them: card id → conversation
+    /// id. Closed without a reply, the conversation is marked unread again (spec GW-17).
+    var chatWebOpened: [Int64: String] = [:]
+    /// Cards kept although the web app shows their conversation read: open, or just marked
+    /// unread again (spec GW-17); card id → until when.
+    var chatWebHeld: [Int64: Date] = [:]
     /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
     var chatUnreadCarded: Set<String> = []
     /// The web app was read once since launch: unread conversations found later pop up.

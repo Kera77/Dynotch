@@ -33,8 +33,8 @@ extension NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
-            // In the notifications a swipe steps through the tabs first (spec UM-8).
-            if model.currentFeature == .notifications, !gestureSwitchedFeature,
+            // Over the notifications' tabs a swipe steps through them first (spec UM-8, UM-8d).
+            if model.currentFeature == .notifications, model.isOverNotificationsTabs, !gestureSwitchedFeature,
                withAnimation(Self.animation, { model.stepNotificationsTab(by: direction == .next ? 1 : -1) }) {
                 return true
             }

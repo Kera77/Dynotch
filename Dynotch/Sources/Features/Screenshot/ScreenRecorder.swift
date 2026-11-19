@@ -2,8 +2,9 @@ import AppKit
 import AVFoundation
 import ScreenCaptureKit
 
-/// Records the display under the pointer into the Screenshots folder (spec SH-5), with the Mac's
-/// sound and the microphone when switched on. Dynotch itself is left out of the video.
+/// Records the display under the pointer, or only an area of it, into the Screenshots folder
+/// (spec SH-5, SH-13), with the Mac's sound and the microphone when switched on. Dynotch itself
+/// is left out of the video.
 @MainActor
 final class ScreenRecorder: NSObject {
     private var stream: SCStream?
@@ -14,15 +15,24 @@ final class ScreenRecorder: NSObject {
     var isRecording: Bool { stream != nil }
 
     /// - Returns: false if it could not start.
-    func start(on screen: NSScreen, systemAudio: Bool, microphone: Bool) async -> Bool {
+    /// - Parameter area: in global screen points (AppKit); nil: the whole display.
+    func start(on screen: NSScreen, area: CGRect? = nil, systemAudio: Bool, microphone: Bool) async -> Bool {
         guard #available(macOS 15.0, *) else {
             DiagnosticsLog.append("screenshots", "recording needs macOS 15")
             return false
         }
         guard let (filter, display) = await ScreenCapture.displayFilter(for: screen) else { return false }
         let configuration = SCStreamConfiguration()
-        configuration.width = Int(CGFloat(display.width) * screen.backingScaleFactor)
-        configuration.height = Int(CGFloat(display.height) * screen.backingScaleFactor)
+        let scale = screen.backingScaleFactor
+        if let area, let source = Self.sourceRect(area, screen: screen.frame, scale: scale) {
+            // Only the area, in the display's own pixels, nothing scaled (spec SH-13, SH-3d).
+            configuration.sourceRect = source
+            configuration.width = Int((source.width * scale).rounded())
+            configuration.height = Int((source.height * scale).rounded())
+        } else {
+            configuration.width = Int(CGFloat(display.width) * scale)
+            configuration.height = Int(CGFloat(display.height) * scale)
+        }
         configuration.minimumFrameInterval = CMTime(value: 1, timescale: 60)
         configuration.showsCursor = true
         configuration.capturesAudio = systemAudio
@@ -45,6 +55,21 @@ final class ScreenRecorder: NSObject {
         self.output = output
         url = target
         return true
+    }
+
+    /// The area in the display's top-left points, on whole pixels, with an even pixel size
+    /// (video encoders want one); nil when too small.
+    nonisolated static func sourceRect(_ area: CGRect, screen: CGRect, scale: CGFloat) -> CGRect? {
+        let local = area.intersection(screen).offsetBy(dx: -screen.minX, dy: -screen.minY)
+        guard !local.isNull else { return nil }
+        let top = screen.height - local.maxY
+        let minX = (local.minX * scale).rounded(.down), minY = (top * scale).rounded(.down)
+        var width = (local.maxX * scale).rounded(.up) - minX
+        var height = ((top + local.height) * scale).rounded(.up) - minY
+        width -= width.truncatingRemainder(dividingBy: 2)
+        height -= height.truncatingRemainder(dividingBy: 2)
+        guard width >= 16, height >= 16 else { return nil }
+        return CGRect(x: minX / scale, y: minY / scale, width: width / scale, height: height / scale)
     }
 
     /// Stops and waits until the file is written.

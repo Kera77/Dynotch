@@ -34,7 +34,7 @@ extension NotificationService {
     /// notch (spec GW-7). Unknown or ambiguous conversations stay.
     func dropReadInChat(_ snapshot: ChatWebSnapshot, now: Date = Date()) {
         let gone = Set(recent.filter { notification in
-            guard isGoogleChat(notification),
+            guard isGoogleChat(notification), (chatWebHeld[notification.id] ?? .distantPast) < now,
                   let conversation = GoogleChatWebService.match(notification.title, in: snapshot.conversations)
             else { return false }
             return Self.isRead(
@@ -90,14 +90,69 @@ extension NotificationService {
     }
 
     /// Opening a card made without a notification opens its conversation in the web app in the
-    /// background (it is read there too, as with a reply, GW-8), so its messages can be shown
-    /// (spec GW-5c).
+    /// background (read there too, GW-8), so its messages can be shown (spec GW-5c, GW-17).
     func cardOpened(_ stack: [AppNotification]) {
-        for card in stack where card.sourceIdentifier == Self.chatWebSource && chatWebTexts[card.id] == nil {
-            guard let conversation = chatWeb.conversation(forTitle: card.title), conversation.isUnread else { continue }
-            chatWebPending[conversation.id] = card.id
+        for card in stack where card.sourceIdentifier == Self.chatWebSource {
+            guard chatWebOpened[card.id] == nil,
+                  let conversation = chatWeb.conversation(forTitle: card.title), conversation.isUnread
+            else { continue }
+            chatWebOpened[card.id] = conversation.id
+            chatWebHeld[card.id] = .distantFuture
+            if chatWebTexts[card.id] == nil {
+                chatWebPending[conversation.id] = card.id
+                giveUpLoading(conversation.id, card: card.id)
+            }
             chatWeb.markRead(title: card.title)
         }
+    }
+
+    /// The messages did not come in time: the card shows its count again (spec GW-19).
+    private func giveUpLoading(_ conversationID: String, card: Int64) {
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(8))
+            guard let self, self.chatWebPending[conversationID] == card else { return }
+            self.chatWebPending[conversationID] = nil
+            DiagnosticsLog.append("google-chat-web", "card messages not read in time")
+            self.objectWillChange.send()
+        }
+    }
+
+    /// Closed without a reply: the conversation goes back to unread in the web app, and its card
+    /// stays (spec GW-17).
+    func cardsClosed(_ cards: [AppNotification]) {
+        for card in cards {
+            guard let conversationID = chatWebOpened.removeValue(forKey: card.id) else { continue }
+            chatWebPending[conversationID] = nil
+            chatWebHeld[card.id] = Date().addingTimeInterval(Self.unreadAgainGrace)
+            chatWeb.markUnread(conversationID: conversationID)
+        }
+    }
+
+    /// Every open card is closed with the notch.
+    func allCardsClosed() {
+        cardsClosed(recent.filter { chatWebOpened[$0.id] != nil })
+    }
+
+    /// Answered: it stays read, and the card goes as any read one (spec GW-17, GW-7).
+    func chatCardAnswered(_ notification: AppNotification) {
+        for card in recent where chatWebOpened[card.id] != nil
+            && GoogleChatJump.conversationName(from: card.title) == GoogleChatJump.conversationName(from: notification.title) {
+            chatWebOpened[card.id] = nil
+            chatWebHeld[card.id] = nil
+        }
+    }
+
+    /// Time for "Mark as unread" to show in the web app before a read look drops the card.
+    private nonisolated static let unreadAgainGrace: TimeInterval = 15
+
+    /// Whether the card is still loading its messages from the web app (spec GW-17).
+    func isLoadingChatTexts(_ notification: AppNotification) -> Bool {
+        chatWebPending.values.contains(notification.id)
+    }
+
+    /// "Open in Google Chat": the web app in front with the conversation, or the app (spec GW-19).
+    func openInGoogleChat(_ notification: AppNotification) {
+        if !chatWeb.openInApp(title: notification.title) { catalog.open(notification.appIdentifier) }
     }
 
     /// The opened conversation's last messages go into its card: as many as were unread (1…8).

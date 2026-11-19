@@ -1,6 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 import Combine
+import SwiftUI
 
 /// A shot or recording that was just made: shown under the notch for a moment (spec SH-6).
 struct ScreenshotShot: Identifiable, Equatable {
@@ -18,6 +19,7 @@ final class ScreenshotService: ObservableObject {
     @Published private(set) var choosing: CaptureMode?
     @Published private(set) var peek: ScreenshotShot?
     @Published private(set) var recordingSince: Date?
+    private var areaFrame: NSWindow?
     /// Tells the notch to open the editor for a file (spec SH-7, SH-11).
     var openEditor: (URL) -> Void = { _ in }
 
@@ -119,18 +121,8 @@ final class ScreenshotService: ObservableObject {
     private func perform(_ mode: CaptureMode) async {
         let screen = ScreenCapture.screen(at: NSEvent.mouseLocation)
         switch mode {
-        case .area, .scrolling:
-            guard case let .area(rect, picked) = await SelectionOverlay.run(.area) else { return }
-            // Let the overlay leave the screen first.
-            try? await Task.sleep(for: .milliseconds(120))
-            if mode == .area {
-                finish(await ScreenCapture.capture(rect, on: picked))
-            } else {
-                let capture = ScrollCapture(rect: rect, screen: picked)
-                scrolling = capture
-                finish(await capture.run())
-                scrolling = nil
-            }
+        case .area, .scrolling, .areaRecording:
+            await performArea(mode)
         case .window:
             guard case let .window(id, _) = await SelectionOverlay.run(.window) else { return }
             try? await Task.sleep(for: .milliseconds(120))
@@ -141,6 +133,25 @@ final class ScreenshotService: ObservableObject {
         case .recording:
             guard let screen else { return }
             await startRecording(on: screen)
+        }
+    }
+
+    /// The modes that start by picking an area (spec SH-2, SH-4, SH-13).
+    private func performArea(_ mode: CaptureMode) async {
+        guard case let .area(rect, picked) = await SelectionOverlay.run(.area) else { return }
+        // Let the overlay leave the screen first.
+        try? await Task.sleep(for: .milliseconds(120))
+        switch mode {
+        case .scrolling:
+            let capture = ScrollCapture(rect: rect, screen: picked)
+            scrolling = capture
+            finish(await capture.run())
+            scrolling = nil
+        case .areaRecording:
+            // Only the picked area goes on the video (spec SH-13).
+            await startRecording(on: picked, area: rect)
+        default:
+            finish(await ScreenCapture.capture(rect, on: picked))
         }
     }
 
@@ -172,16 +183,34 @@ final class ScreenshotService: ObservableObject {
 
     // MARK: - Recording (spec SH-5)
 
-    private func startRecording(on screen: NSScreen) async {
+    private func startRecording(on screen: NSScreen, area: CGRect? = nil) async {
         let started = await recorder.start(
-            on: screen, systemAudio: settings.recordsSystemAudio, microphone: settings.recordsMicrophone
+            on: screen, area: area, systemAudio: settings.recordsSystemAudio, microphone: settings.recordsMicrophone
         )
-        if started { recordingSince = Date() }
+        guard started else { return }
+        recordingSince = Date()
+        if let area { showAreaFrame(area) }
+    }
+
+    /// A thin frame just outside the recorded area; Dynotch is left out of the video (spec SH-13).
+    private func showAreaFrame(_ area: CGRect) {
+        let window = NSWindow(contentRect: area.insetBy(dx: -3, dy: -3), styleMask: .borderless, backing: .buffered, defer: false)
+        window.level = .screenSaver
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.ignoresMouseEvents = true
+        window.sharingType = .none
+        window.isReleasedWhenClosed = false
+        window.contentView = NSHostingView(rootView: RoundedRectangle(cornerRadius: 3).stroke(Color.red.opacity(0.85), lineWidth: 2))
+        window.orderFrontRegardless()
+        areaFrame = window
     }
 
     func stopRecording() {
         guard recorder.isRecording else { return }
         recordingSince = nil
+        areaFrame?.orderOut(nil)
+        areaFrame = nil
         Task { [weak self] in
             guard let self, let url = await self.recorder.stop() else { return }
             ScreenshotFiles.copyFile(url)

@@ -33,6 +33,10 @@ struct NotificationGroupRow: View {
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isExpanded ? 0.1 : 0.07)))
+        // A Google Chat card opened reads its conversation; closed without a reply it is unread again (spec GW-17).
+        .onChange(of: isExpanded, initial: true) { _, open in
+            if open { service.cardOpened(group.notifications) } else { service.cardsClosed(group.notifications) }
+        }
     }
 
     private var header: some View {
@@ -78,7 +82,7 @@ struct NotificationGroupRow: View {
     }
 
     private func message(_ notification: AppNotification) -> some View {
-        let detail = service.content(for: notification).detail
+        let detail = service.isLoadingChatTexts(notification) ? "Loading messages…" : service.content(for: notification).detail
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(detail.isEmpty ? "—" : detail)
                 .font(.system(size: 12))
@@ -97,10 +101,12 @@ struct NotificationGroupRow: View {
 
     /// For apps that cannot be answered from here (mail, system notices).
     private var openButton: some View {
-        Button {
-            service.catalog.open(group.latest.appIdentifier)
+        let isChat = service.isGoogleChat(group.latest)
+        return Button {
+            // Google Chat: the web app in front with this conversation (spec GW-19).
+            if isChat { service.openInGoogleChat(group.latest) } else { service.catalog.open(group.latest.appIdentifier) }
         } label: {
-            Label("Open \(app.name)", systemImage: "arrow.up.forward.app")
+            Label(isChat ? "Open in Google Chat" : "Open \(app.name)", systemImage: "arrow.up.forward.app")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Color.white.opacity(0.75))
                 .padding(.horizontal, 10)

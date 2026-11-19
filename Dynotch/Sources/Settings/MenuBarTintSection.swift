@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings › Menu bar › Color (spec MB-7, MB-8, MB-11).
+/// Settings › Menu bar › Color (spec MB-7, MB-7b, MB-8, MB-11, MB-12).
 struct MenuBarTintSection: View {
     @ObservedObject var tint: MenuBarTintService
 
@@ -16,6 +16,10 @@ struct MenuBarTintSection: View {
                         ForEach(MenuBarTintStyle.Direction.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                     }
                     presets
+                    Toggle("Middle color", isOn: Binding(
+                        get: { tint.style.usesMiddle == true },
+                        set: { tint.style.usesMiddle = $0 }
+                    ))
                 }
                 Toggle("Same in Light and Dark", isOn: $tint.style.sameInBoth)
                 colorRow(tint.style.sameInBoth ? "Colors" : "Light", pair: $tint.style.light)
@@ -61,8 +65,10 @@ struct MenuBarTintSection: View {
             HStack(spacing: 6) {
                 ForEach(MenuBarTintStyle.presets, id: \.name) { preset in
                     Button {
-                        tint.style.light = preset.pair
-                        if tint.style.sameInBoth { tint.style.dark = preset.pair }
+                        var pair = preset.pair
+                        pair.middle = tint.style.light.middle
+                        tint.style.light = pair
+                        if tint.style.sameInBoth { tint.style.dark = pair }
                     } label: {
                         LinearGradient(
                             colors: [TintColor.color(preset.pair.start), TintColor.color(preset.pair.end)],
@@ -81,16 +87,18 @@ struct MenuBarTintSection: View {
 
     private func colorRow(_ title: String, pair: Binding<MenuBarTintStyle.Pair>) -> some View {
         LabeledContent(title) {
-            ColorPicker("Start", selection: hexBinding(pair.start), supportsOpacity: false)
-                .labelsHidden()
-            if tint.style.kind == .gradient {
-                ColorPicker("End", selection: hexBinding(pair.end), supportsOpacity: false)
-                    .labelsHidden()
+            HStack(spacing: 8) {
+                TintSwatchPicker(title: tint.style.kind == .gradient ? "Start" : "Color", hex: pair.start)
+                if tint.style.kind == .gradient {
+                    if tint.style.usesMiddle == true {
+                        TintSwatchPicker(title: "Middle", hex: Binding(
+                            get: { pair.wrappedValue.middle ?? MenuBarTintStyle.defaultMiddle },
+                            set: { pair.wrappedValue.middle = $0 }
+                        ))
+                    }
+                    TintSwatchPicker(title: "End", hex: pair.end)
+                }
             }
         }
-    }
-
-    private func hexBinding(_ hex: Binding<String>) -> Binding<Color> {
-        Binding(get: { TintColor.color(hex.wrappedValue) }, set: { hex.wrappedValue = TintColor.hex(of: $0) })
     }
 }

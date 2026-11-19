@@ -53,6 +53,15 @@ final class NotificationPreferences: ObservableObject {
 
     func isOn(_ alert: DynotchAlert) -> Bool { !alertsOff.contains(alert.rawValue) }
 
+    /// v0.70 split "System" into memory, swap and the rest (spec SY-12b): whoever had it off had it
+    /// off for the memory warning, so that stays off; swap starts on.
+    nonisolated static func splitSystemAlert(_ off: Set<String>, defaults: UserDefaults) -> Set<String> {
+        let key = "dynotchAlertsSplit"
+        guard !defaults.bool(forKey: key) else { return off }
+        defaults.set(true, forKey: key)
+        return off.contains(DynotchAlert.system.rawValue) ? off.union([DynotchAlert.memory.rawValue]) : off
+    }
+
     func set(_ alert: DynotchAlert, isOn: Bool) {
         if isOn { alertsOff.remove(alert.rawValue) } else { alertsOff.insert(alert.rawValue) }
     }
@@ -78,7 +87,7 @@ final class NotificationPreferences: ObservableObject {
     init(defaults: UserDefaults) {
         self.defaults = defaults
         respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
-        alertsOff = Set(defaults.stringArray(forKey: "dynotchAlertsOff") ?? [])
+        alertsOff = Self.splitSystemAlert(Set(defaults.stringArray(forKey: "dynotchAlertsOff") ?? []), defaults: defaults)
         peekLines = defaults.object(forKey: "notificationPeekLines") as? Int ?? 4
         ignoredFocus = defaults.string(forKey: "notificationsIgnoredFocus") ?? "Dynotch"
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]
@@ -166,6 +175,8 @@ extension NotificationService {
     /// Whether the card gets a reply field (spec E-11): off unless the source's rule shows it
     /// (spec E-16b).
     func canReply(to notification: AppNotification) -> Bool {
+        // A card from the web app's sidebar: only when the web app can write there (spec GW-18, GW-19).
+        if notification.sourceIdentifier == Self.chatWebSource { return chatWeb.canWrite(title: notification.title) }
         let app = catalog.app(for: notification.appIdentifier)
         return rule(for: app).showsReply ?? false
     }

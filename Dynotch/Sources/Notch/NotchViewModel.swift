@@ -138,6 +138,8 @@ final class NotchViewModel: ObservableObject {
     }
 
     private static let tabKey = "notificationsTab"
+    /// The pointer is over the notifications' tab picker (spec UM-8d); not published, read by the swipe.
+    var isOverNotificationsTabs = false
     private static var storedTab: NotificationsTab {
         UserDefaults.standard.string(forKey: tabKey).flatMap(NotificationsTab.init(rawValue:)) ?? .all
     }

@@ -116,6 +116,30 @@ enum GoogleChatWebReader {
         return AXUIElementPerformAction(link, kAXPressAction as CFString) == .success
     }
 
+    /// The sidebar item's options menu (its "Beállítások" / "Options" pop-up button) opens; the
+    /// menu then offers "Mark as unread" (spec GW-17).
+    nonisolated static func openOptions(_ conversationID: String, pid: pid_t, windowToken: UInt64?) -> Bool {
+        var walker = Walker()
+        for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
+        guard let link = walker.links[conversationID],
+              let button = AXRead.first(in: link, role: "AXPopUpButton")
+        else { return false }
+        return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
+    }
+
+    static let markUnreadTitles: Set<String> = ["Megjelölés olvasatlanként", "Mark as unread"]
+
+    /// Presses "Mark as unread" in the open options menu; only that item, nothing else.
+    nonisolated static func pressMarkUnread(pid: pid_t, windowToken: UInt64?) -> Bool {
+        for window in AXWindows.all(pid: pid, hint: windowToken).0 {
+            let item = AXRead.first(in: window, role: "AXMenuItem") { element in
+                markUnreadTitles.contains(AXRead.string(element, kAXTitleAttribute) ?? "")
+            }
+            if let item { return AXUIElementPerformAction(item, kAXPressAction as CFString) == .success }
+        }
+        return false
+    }
+
     /// Writes into the open conversation's message box; true when it then holds the text.
     nonisolated static func write(_ text: String, pid: pid_t, windowToken: UInt64?) -> Bool {
         var walker = Walker()
@@ -235,6 +259,20 @@ enum AXRead {
     nonisolated static func children(_ element: AXUIElement) -> [AXUIElement] {
         guard let list = value(element, kAXChildrenAttribute), CFGetTypeID(list) == CFArrayGetTypeID() else { return [] }
         return (list as? [AXUIElement]) ?? []
+    }
+
+    /// The first element with the role under `root` (page order, without recursion) that passes `test`.
+    nonisolated static func first(
+        in root: AXUIElement, role: String, limit: Int = 8000, where test: (AXUIElement) -> Bool = { _ in true }
+    ) -> AXUIElement? {
+        var stack = [root]
+        var visited = 0
+        while let element = stack.popLast(), visited < limit {
+            visited += 1
+            if string(element, kAXRoleAttribute) == role, test(element) { return element }
+            stack += children(element).reversed()
+        }
+        return nil
     }
 
     /// The static texts under an element, in order.

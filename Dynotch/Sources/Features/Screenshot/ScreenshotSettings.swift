@@ -8,6 +8,7 @@ enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
     case screen
     case scrolling
     case recording
+    case areaRecording
 
     var id: String { rawValue }
 
@@ -18,6 +19,7 @@ enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
         case .screen: "Full Screen"
         case .scrolling: "Scrolling"
         case .recording: "Screen Recording"
+        case .areaRecording: "Area Recording"
         }
     }
 
@@ -28,6 +30,7 @@ enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
         case .screen: "display"
         case .scrolling: "arrow.up.and.down.text.horizontal"
         case .recording: "record.circle"
+        case .areaRecording: "rectangle.dashed.badge.record"
         }
     }
 }

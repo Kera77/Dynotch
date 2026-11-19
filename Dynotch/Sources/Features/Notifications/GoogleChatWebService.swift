@@ -146,6 +146,42 @@ final class GoogleChatWebService: ObservableObject {
         return loose.count == 1 ? loose[0] : nil
     }
 
+    /// Marks the conversation unread again in the web app: its options menu, then "Mark as
+    /// unread" (spec GW-17). Logged without names.
+    func markUnread(conversationID id: String) {
+        guard state == .reading, let pid = Self.webAppPID() else { return }
+        let hint = windowTokenHint
+        Task {
+            let opened = await Task.detached { GoogleChatWebReader.openOptions(id, pid: pid, windowToken: hint) }.value
+            var marked = false
+            if opened {
+                try? await Task.sleep(for: .milliseconds(600))
+                marked = await Task.detached { GoogleChatWebReader.pressMarkUnread(pid: pid, windowToken: hint) }.value
+            }
+            DiagnosticsLog.append("google-chat-web", "mark unread: options=\(opened) marked=\(marked)")
+            try? await Task.sleep(for: .milliseconds(800))
+            refresh()
+        }
+    }
+
+    /// Brings the web app forward with the conversation open (spec GW-19).
+    /// - Returns: false when the web app is not running.
+    @discardableResult
+    func openInApp(title: String) -> Bool {
+        guard let pid = Self.webAppPID(), let app = NSRunningApplication(processIdentifier: pid) else { return false }
+        app.activate()
+        guard let conversation = conversation(forTitle: title) else { return true }
+        let hint = windowTokenHint
+        let id = conversation.id
+        Task.detached { _ = GoogleChatWebReader.open(id, pid: pid, windowToken: hint) }
+        return true
+    }
+
+    /// The web app can write into this conversation: it is read and the name is unambiguous (spec GW-18).
+    func canWrite(title: String) -> Bool {
+        state == .reading && conversation(forTitle: title) != nil
+    }
+
     /// Opens the conversation in the web app, in the background, so it is read there too (spec GW-8).
     func markRead(title: String) {
         guard state == .reading, let conversation = conversation(forTitle: title), conversation.isUnread,

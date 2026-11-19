@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// Dynotch's own notifications, each kind can be turned off (spec E-25).
+/// Dynotch's own notifications, each kind can be turned off (spec E-25, SY-12b).
 enum DynotchAlert: String, CaseIterable, Sendable {
+    case memory
+    case swap
     case system
     case aiUsage
     case batteries
@@ -9,7 +11,9 @@ enum DynotchAlert: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .system: "System (swap, memory…)"
+        case .memory: "Low memory"
+        case .swap: "Swap above the limit"
+        case .system: "Disk full, Mac slowing down"
         case .aiUsage: "AI usage"
         case .batteries: "Batteries charged"
         case .updates: "Dynotch updated"
@@ -32,8 +36,8 @@ struct DynotchAlertsSection: View {
         } header: {
             Text("Dynotch alerts")
         } footer: {
-            Text("Turned off, that kind does not pop up in the notch and is not listed. "
-                + "The red dot beside the notch is set in the System module's Options.")
+            Text("Turned off, that kind does not pop up in the notch and is not listed; for the system "
+                + "warnings neither is the red dot beside the notch.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
