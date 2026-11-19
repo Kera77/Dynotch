@@ -147,7 +147,7 @@ struct NotchView: View {
                     .transition(.opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
-                        .frame(width: geometry.peekSize.width, height: geometry.peekSize.height)
+                        .frame(width: geometry.devicePeekSize.width, height: geometry.devicePeekSize.height)
                         .transition(.opacity)
                 } else if !model.isExpanded, showsScreenshotPeek {
                     screenshotPeek
@@ -326,7 +326,7 @@ extension NotchView {
             let row = indicatorLayout.isEmpty ? 0 : indicatorLayout.size(notch: geometry.notchSize, labelHeight: nil).width
             return CGSize(width: max(peek.width, row), height: peek.height)
         }
-        if devices.current != nil { return geometry.peekSize }
+        if devices.current != nil { return geometry.devicePeekSize }
         if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
             ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)

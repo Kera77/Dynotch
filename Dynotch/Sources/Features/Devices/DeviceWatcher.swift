@@ -29,6 +29,8 @@ struct DeviceEvent: Identifiable, Equatable {
         case open(URL)
         case useForAudio(String)
         case displaySettings
+        /// The macOS banner's own button ("Move to iPhone"), done here (spec DV-10).
+        case bluetoothButton(title: String, device: String)
     }
 
     let id = UUID()
@@ -41,7 +43,9 @@ struct DeviceEvent: Identifiable, Equatable {
     /// Each earbud, the case, or the one level (spec DV-8b).
     var levels: [DeviceLevel] = []
 
-    static func == (lhs: DeviceEvent, rhs: DeviceEvent) -> Bool { lhs.id == rhs.id && lhs.detail == rhs.detail && lhs.levels == rhs.levels }
+    static func == (lhs: DeviceEvent, rhs: DeviceEvent) -> Bool {
+        lhs.id == rhs.id && lhs.detail == rhs.detail && lhs.levels == rhs.levels && lhs.actions == rhs.actions
+    }
 }
 
 /// Watches Bluetooth, USB, displays, drives and the sound output; shows each change under the
@@ -75,6 +79,7 @@ final class DeviceWatcher: NSObject, ObservableObject {
     private var audioOutput: String?
     private var bluetoothNotification: IOBluetoothUserNotification?
     private let usb = USBWatcher()
+    private let banners = BluetoothBannerWatcher()
 
     init(settings: AppSettings, defaults: UserDefaults = .standard) {
         self.settings = settings
@@ -119,6 +124,9 @@ final class DeviceWatcher: NSObject, ObservableObject {
             }
         ]
         usb.start { [weak self] name, added in self?.usbChanged(name, added: added) }
+        banners.isEnabled = { [weak self] in self?.hidesBluetoothBanners ?? false }
+        banners.onCatch = { [weak self] in self?.bannerCaught($0) }
+        if hidesBluetoothBanners { banners.start() }
         AudioOutputs.watchDefault { [weak self] in self?.audioChanged() }
     }
 
@@ -147,6 +155,8 @@ final class DeviceWatcher: NSObject, ObservableObject {
             event.actions = [.useForAudio(name)]
         }
         show(event, key: "bt:" + name)
+        // macOS's own banner about it is closed; the notch says it instead (spec DV-9).
+        if hidesBluetoothBanners { banners.expect(name) }
         guard connected else { return }
         // The levels arrive a moment after the connection: asked a few times (spec DV-8b).
         Task { [weak self] in
@@ -161,6 +171,25 @@ final class DeviceWatcher: NSObject, ObservableObject {
                 return
             }
         }
+    }
+
+    private var hidesBluetoothBanners: Bool { isOn && shows(.bluetooth) && settings.hideNativeBanners }
+
+    /// A macOS Bluetooth banner was closed: its button moves to the notch, in blue (spec DV-10).
+    private func bannerCaught(_ caught: BluetoothBannerWatcher.Caught) {
+        guard let title = caught.callToAction else { return }
+        let action = DeviceEvent.Action.bluetoothButton(title: title, device: caught.deviceName)
+        if current?.category == .bluetooth, current?.name == caught.deviceName {
+            current?.actions = [action]
+        } else {
+            let kind = BatteryDevice.Kind.detect(caught.deviceName)
+            let connected = BluetoothConnection.isConnected(caught.deviceName)
+            current = DeviceEvent(
+                category: .bluetooth, name: caught.deviceName, symbol: DeviceSymbols.symbol(for: kind), isConnected: connected,
+                actions: [action]
+            )
+        }
+        keepShowing()
     }
 
     private func volume(_ url: URL, mounted: Bool) {
@@ -253,8 +282,29 @@ final class DeviceWatcher: NSObject, ObservableObject {
         case .useForAudio(let name):
             AudioOutputs.setDefaultOutput(named: name)
             dismiss()
+        case .bluetoothButton(_, let device):
+            dismiss()
+            Task.detached { BluetoothConnection.toggle(device) }
         case .displaySettings:
             if let url = URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension") { NSWorkspace.shared.open(url) }
         }
+    }
+}
+
+/// Connecting and disconnecting a paired Bluetooth device by name (spec DV-10).
+enum BluetoothConnection {
+    nonisolated static func isConnected(_ name: String) -> Bool {
+        device(named: name)?.isConnected() ?? false
+    }
+
+    /// "Move to iPhone" lets the device go from this Mac; "Connect" / "Move to Mac" takes it here.
+    nonisolated static func toggle(_ name: String) {
+        guard let device = device(named: name) else { return }
+        let result = device.isConnected() ? device.closeConnection() : device.openConnection()
+        DiagnosticsLog.append("devices", "bluetooth button: \(device.isConnected() ? "connected" : "disconnected") result=\(result)")
+    }
+
+    nonisolated private static func device(named name: String) -> IOBluetoothDevice? {
+        ((IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []).first { $0.name == name }
     }
 }

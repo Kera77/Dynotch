@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+- Bluetooth devices: the notice shows the device's icon, its name and "Connected"; for AirPods each earbud's and the case's battery on its own line.
+- macOS's own Bluetooth banners ("AirPods connected", "Move to iPhone"…) are closed and shown only in the notch; their button becomes the notice's blue button.
+
+### Fixed
+- The device notice is taller with room at the bottom, so its text no longer touches the notch's lower edge.
+
 ## [0.62.1] - 2026-11-19
 
 ### Fixed

@@ -81,6 +81,11 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: max(notchSize.width + 140, 320), height: notchSize.height + 30)
     }
 
+    /// A device notice under the notch (spec DV-1, DV-9): name, state and batteries in room.
+    var devicePeekSize: CGSize {
+        CGSize(width: max(notchSize.width + 200, 420), height: notchSize.height + 66)
+    }
+
     /// The closed notch opened for an incoming call (spec P-1), taller with the message field.
     func callSize(composing: Bool) -> CGSize {
         CGSize(

@@ -6,7 +6,7 @@ import ApplicationServices
 /// tree and its close action is performed. Needs Accessibility permission.
 @MainActor
 final class NativeBannerDismisser {
-    private static let notificationCenterBundleID = "com.apple.notificationcenterui"
+    static let notificationCenterBundleID = "com.apple.notificationcenterui"
     private static let maxDepth = 14
     private static let maxElements = 600
 
@@ -206,26 +206,26 @@ final class NativeBannerDismisser {
         }
     }
 
-    private static func children(of element: AXUIElement, attribute: String) -> [AXUIElement] {
+    static func children(of element: AXUIElement, attribute: String) -> [AXUIElement] {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return [] }
         return (value as? [AXUIElement]) ?? []
     }
 
-    private static func actionNames(of element: AXUIElement) -> [String] {
+    static func actionNames(of element: AXUIElement) -> [String] {
         var names: CFArray?
         guard AXUIElementCopyActionNames(element, &names) == .success else { return [] }
         return (names as? [String]) ?? []
     }
 
-    private static func string(of element: AXUIElement, _ attribute: String) -> String? {
+    static func string(of element: AXUIElement, _ attribute: String) -> String? {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
         return value as? String
     }
 
     /// Texts of the banner and its descendants (a few levels).
-    private static func text(of element: AXUIElement, depth: Int = 0) -> String {
+    static func text(of element: AXUIElement, depth: Int = 0) -> String {
         var parts = [kAXDescriptionAttribute, kAXTitleAttribute, kAXValueAttribute]
             .compactMap { string(of: element, $0) }
         if depth < 4 {

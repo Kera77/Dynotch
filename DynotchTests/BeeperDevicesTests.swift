@@ -55,3 +55,26 @@ struct BeeperDevicesTests {
         #expect(ChatSources.isBeeper(note))
     }
 }
+
+/// macOS's own Bluetooth banners moved into the notch (spec DV-9, DV-10).
+struct BluetoothBannerTests {
+    @Test func bannerNamesItsDevice() {
+        let names = ["AirPods", "Peter’s AirPods Pro", "Magic Mouse"]
+        #expect(BluetoothBanner.deviceName(in: "Bluetooth Peter's AirPods Pro Connected", names: names) == "Peter’s AirPods Pro")
+        #expect(BluetoothBanner.deviceName(in: "Messages Anna: hello", names: names) == nil)
+    }
+
+    @Test func bannerButtonBecomesTheCallToAction() {
+        #expect(BluetoothBanner.callToAction(from: ["AXPress", "Close", "Show Details", "Move to iPhone"]) == "Move to iPhone")
+        #expect(BluetoothBanner.callToAction(from: ["AXPress", "Bezárás"]) == nil)
+    }
+
+    @Test func devicePeekHasRoomBelowTheNotch() {
+        let geometry = NotchGeometry.make(
+            screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
+            auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
+        )
+        #expect(geometry.devicePeekSize.height >= geometry.notchSize.height + 60)
+        #expect(geometry.devicePeekSize.width >= 420)
+    }
+}
