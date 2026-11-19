@@ -88,7 +88,9 @@ enum IndicatorItem: Identifiable, Equatable {
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
-        case .meeting, .working, .battery, .stats, .recording: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .stats: IndicatorLayout.labelHeight
+        // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
+        case .recording: 0
         case .music: IndicatorLayout.musicDropdownHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count): IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * 22 + 6

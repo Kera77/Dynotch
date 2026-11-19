@@ -33,8 +33,7 @@ extension NotchController {
         if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
-        let hasLine = notices.notice != nil || screenshots.recordingSince != nil
-        setOverNotice(hasLine && notifications.peek == nil && model.hoveredIndicator == nil
+        setOverNotice(notices.notice != nil && notifications.peek == nil && model.hoveredIndicator == nil
             && noticeArea(for: layout).contains(point))
         guard !layout.isEmpty else {
             setHoveredIndicator(nil)
@@ -237,9 +236,7 @@ extension NotchController {
         }
         guard let announced else {
             // No announcement: the notice is what is written under the notch.
-            guard notices.notice != nil, screenshots.recordingSince == nil,
-                  noticeArea(for: layout).contains(NSEvent.mouseLocation)
-            else { return false }
+            guard notices.notice != nil, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
             if isSwipeUp(event) {
                 withAnimation(NotchView.quickAnimation) { notices.dismiss() }
             }

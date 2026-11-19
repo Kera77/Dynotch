@@ -134,75 +134,41 @@ extension NotchIndicatorView {
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
     }
-
-    /// A recording is running: Stop ends it (spec SH-5).
-    var recordingLabel: some View {
-        HStack(spacing: 7) {
-            Circle().fill(Theme.red).frame(width: 8, height: 8)
-            Text("Recording the screen").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
-            Spacer(minLength: 8)
-            Button("Stop", action: stopRecording)
-                .buttonStyle(.plain)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 10)
-                .frame(height: 20)
-                .background(Capsule().fill(Theme.red))
-        }
-        .padding(.horizontal, 12)
-        .frame(height: IndicatorLayout.labelHeight - 4)
-    }
 }
 
-extension NotchIndicatorView {
-    /// Under the notch while recording, like a notice: the time so far on the left, Stop on the
-    /// right (spec SH-5b).
-    func recordingStripLabel(since: Date, now: Date) -> some View {
-        let seconds = max(Int(now.timeIntervalSince(since)), 0)
-        return HStack(spacing: 7) {
-            Circle().fill(Theme.red).frame(width: 8, height: 8)
-            Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(.white)
-            Text("Recording")
-                .font(.system(size: 11))
-                .foregroundStyle(Color.white.opacity(0.6))
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Button(action: stopRecording) {
-                Label("Stop", systemImage: "stop.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .frame(height: 20)
-                    .background(Capsule().fill(Theme.red))
-                    .contentShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .help("Stop recording")
-            .accessibilityLabel("Stop recording")
-        }
-        .padding(.horizontal, 12)
-        .frame(height: IndicatorLayout.labelHeight - 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-/// A red dot and the time recorded so far (spec SH-5).
+/// A red dot and the time recorded so far (spec SH-5). Hovered, the dot grows into a red
+/// circle with a white square that stops the recording, like the iPhone's (spec SH-5b).
 struct RecordingSlot: View {
     let since: Date
     let now: Date
+    var isHovered = false
+    var stop: () -> Void = {}
 
     var body: some View {
         let seconds = max(Int(now.timeIntervalSince(since)), 0)
         HStack(spacing: 4) {
-            Circle().fill(Theme.red).frame(width: 7, height: 7)
+            Button(action: stop) {
+                ZStack {
+                    Circle().fill(Theme.red)
+                        .frame(width: isHovered ? 18 : 7, height: isHovered ? 18 : 7)
+                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                        .fill(Color.white)
+                        .frame(width: 6, height: 6)
+                        .scaleEffect(isHovered ? 1 : 0.01)
+                        .opacity(isHovered ? 1 : 0)
+                }
+                .frame(width: 18, height: 18)
+                .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Stop recording")
+            .accessibilityLabel("Stop recording")
             Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white)
         }
+        .animation(.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
         .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
     }
 }

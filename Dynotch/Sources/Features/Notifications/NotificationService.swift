@@ -109,7 +109,7 @@ final class NotificationService: ObservableObject {
     /// Cards opened whose conversation is being opened in the web app, by conversation id.
     var chatWebPending: [String: Int64] = [:]
     /// Cards whose conversation Dynotch read in the web app to show them: card id → conversation
-    /// id. Closed without a reply, the conversation is marked unread again (spec GW-17).
+    /// id. Opened there, it stays read (spec GW-17c).
     var chatWebOpened: [Int64: String] = [:]
     /// Cards kept although the web app shows their conversation read: open, or just marked
     /// unread again (spec GW-17); card id → until when.

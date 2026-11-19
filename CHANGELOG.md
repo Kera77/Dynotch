@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.72.0] - 2026-11-19
+
+### Changed
+- Recording: nothing drops down under the notch any more; the red dot and the time stay beside it. Hovered, the dot grows into a red circle with a white square (like the iPhone's screen recorder); a click stops the recording.
+- Google Chat: a card opened from the notch leaves its conversation read. Marking it unread again is dropped, as the web app opens that menu only in its active window.
+
+### Fixed
+- Google Chat cards in the Notifications list show the messages loaded from the web app (the card did not redraw), and keep them after being closed.
+
 ## [0.71.0] - 2026-11-19
 
 ### Added

@@ -146,32 +146,6 @@ final class GoogleChatWebService: ObservableObject {
         return loose.count == 1 ? loose[0] : nil
     }
 
-    /// Marks the conversation unread again in the web app: its options menu, then "Mark as
-    /// unread" (spec GW-17). Logged without names.
-    func markUnread(conversationID id: String) {
-        guard state == .reading, let pid = Self.webAppPID() else { return }
-        let hint = windowTokenHint
-        Task {
-            let known = await Task.detached { GoogleChatWebReader.menus(pid: pid, windowToken: hint).count }.value
-            let opened = await Task.detached { GoogleChatWebReader.openOptions(id, pid: pid, windowToken: hint) }.value
-            var marked = false
-            // The menu is built on its first opening: it may take a few seconds.
-            let deadline = ContinuousClock.now + Self.menuTimeout
-            while opened, ContinuousClock.now < deadline {
-                try? await Task.sleep(for: .milliseconds(300))
-                let pressed = await Task.detached { GoogleChatWebReader.pressMarkUnread(after: known, pid: pid, windowToken: hint) }.value
-                guard let pressed else { continue }
-                marked = pressed
-                break
-            }
-            DiagnosticsLog.append("google-chat-web", "mark unread: options=\(opened) marked=\(marked)")
-            try? await Task.sleep(for: .milliseconds(800))
-            refresh()
-        }
-    }
-
-    private static let menuTimeout: Duration = .seconds(5)
-
     /// Opens the conversation in the background and gives its messages once the page shows
     /// them, not the previous conversation's (spec GW-17); nil when it did not open in time.
     func openAndRead(conversationID id: String) async -> [ChatWebMessage]? {

@@ -119,8 +119,9 @@ extension NotificationService {
     /// The opened conversation's last messages go into its card: as many as were unread (1…8);
     /// none read in time, the card shows its count again (spec GW-17, GW-19).
     private func fill(_ cardID: Int64, conversationID: String, from messages: [ChatWebMessage]?, wanted: Int) {
-        guard chatWebPending[conversationID] == cardID else { return }
-        chatWebPending[conversationID] = nil
+        // Kept even when the card was closed meanwhile: it shows them when opened again (spec GW-17c).
+        if chatWebPending[conversationID] == cardID { chatWebPending[conversationID] = nil }
+        guard chatWebTexts[cardID] == nil else { return }
         let texts = (messages ?? []).suffix(min(max(wanted, 1), 8)).map(\.text).filter { !$0.isEmpty }
         guard !texts.isEmpty else {
             DiagnosticsLog.append("google-chat-web", "card messages not read in time")
@@ -131,14 +132,13 @@ extension NotificationService {
         DiagnosticsLog.append("notification-records", "Google Chat card filled from the web app: \(texts.count) message(s)")
     }
 
-    /// Closed without a reply: the conversation goes back to unread in the web app, and its card
-    /// stays (spec GW-17).
+    /// Closed: the conversation stays read (the web app's menu for "Mark as unread" opens only
+    /// in its active window), so the card goes as any read one (spec GW-17c, GW-7).
     func cardsClosed(_ cards: [AppNotification]) {
         for card in cards {
             guard let conversationID = chatWebOpened.removeValue(forKey: card.id) else { continue }
-            chatWebPending[conversationID] = nil
-            chatWebHeld[card.id] = Date().addingTimeInterval(Self.unreadAgainGrace)
-            chatWeb.markUnread(conversationID: conversationID)
+            if chatWebPending[conversationID] == card.id { chatWebPending[conversationID] = nil }
+            chatWebHeld[card.id] = nil
         }
     }
 
@@ -155,9 +155,6 @@ extension NotificationService {
             chatWebHeld[card.id] = nil
         }
     }
-
-    /// Time for "Mark as unread" to show in the web app before a read look drops the card.
-    private nonisolated static let unreadAgainGrace: TimeInterval = 15
 
     /// Whether the card is still loading its messages from the web app (spec GW-17).
     func isLoadingChatTexts(_ notification: AppNotification) -> Bool {

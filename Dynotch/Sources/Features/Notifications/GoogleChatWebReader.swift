@@ -116,54 +116,6 @@ enum GoogleChatWebReader {
         return AXUIElementPerformAction(link, kAXPressAction as CFString) == .success
     }
 
-    /// The sidebar item's options menu (its "Beállítások" / "Options" pop-up button) opens; the
-    /// menu then offers "Mark as unread" (spec GW-17).
-    nonisolated static func openOptions(_ conversationID: String, pid: pid_t, windowToken: UInt64?) -> Bool {
-        var walker = Walker()
-        for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
-        guard let link = walker.links[conversationID],
-              let button = AXRead.first(in: link, role: "AXPopUpButton")
-        else { return false }
-        return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
-    }
-
-    static let markUnreadTitles: Set<String> = ["Megjelölés olvasatlanként", "Mark as unread"]
-
-    /// The options menus on the page. Every opening adds a new one at the end of the page and
-    /// the old ones stay (hidden), so only a menu beyond the count seen before is the new one.
-    nonisolated static func menus(pid: pid_t, windowToken: UInt64?) -> [AXUIElement] {
-        var found: [AXUIElement] = []
-        var visited = 0
-        var stack = AXWindows.all(pid: pid, hint: windowToken).0.reversed() as [AXUIElement]
-        while let element = stack.popLast(), visited < menuElementLimit {
-            visited += 1
-            if AXRead.string(element, kAXRoleAttribute) == "AXMenu" {
-                found.append(element)
-                continue
-            }
-            // Sidebar items hold no menu: skipped for speed.
-            if conversationID(fromDOM: AXRead.string(element, "AXDOMIdentifier") ?? "") != nil { continue }
-            stack += AXRead.children(element).reversed()
-        }
-        return found
-    }
-
-    private static let menuElementLimit = 30000
-
-    /// Presses "Mark as unread" in the menu opened after `known` menus were on the page; only
-    /// that item of that menu, never one of an older menu (another conversation's).
-    nonisolated static func pressMarkUnread(after known: Int, pid: pid_t, windowToken: UInt64?) -> Bool? {
-        let menus = menus(pid: pid, windowToken: windowToken)
-        guard menus.count > known, let menu = menus.last else { return nil }
-        let item = AXRead.children(menu).first { element in
-            AXRead.string(element, kAXRoleAttribute) == "AXMenuItem"
-                && (markUnreadTitles.contains(AXRead.string(element, kAXTitleAttribute) ?? "")
-                    || markUnreadTitles.contains(AXRead.string(element, kAXDescriptionAttribute) ?? ""))
-        }
-        guard let item else { return false }
-        return AXUIElementPerformAction(item, kAXPressAction as CFString) == .success
-    }
-
     /// Writes into the open conversation's message box; true when it then holds the text.
     nonisolated static func write(_ text: String, pid: pid_t, windowToken: UInt64?) -> Bool {
         var walker = Walker()

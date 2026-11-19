@@ -43,8 +43,8 @@ struct NotchIndicatorView: View {
     var showsMusicPlayer = false
     /// Stops a screen recording (spec SH-5).
     var stopRecording: () -> Void = {}
-    /// A recording since this time: it hangs under the notch with its time and Stop (spec SH-5b).
-    var recordingStrip: Date?
+    /// The recording's dot is hovered: it grows into a stop button (spec SH-5b).
+    var recordingHovered = false
     /// The cover's progress and the stats' numbers (spec MU-3, SY-7).
     var music: MusicService?
     var stats: StatsService?
@@ -86,8 +86,6 @@ struct NotchIndicatorView: View {
                         rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) },
                         hide: { hideBadge(badge, $0) }
                     )
-                } else if let recordingStrip {
-                    recordingStripLabel(since: recordingStrip, now: context.date)
                 } else if let notice {
                     noticeLabel(notice)
                 }
@@ -197,7 +195,7 @@ struct NotchIndicatorView: View {
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
         case .recording(let since):
-            RecordingSlot(since: since, now: now)
+            RecordingSlot(since: since, now: now, isHovered: recordingHovered, stop: stopRecording)
         }
     }
 
@@ -241,7 +239,8 @@ extension NotchIndicatorView {
         case .music(let glance):
             musicLabel(glance)
         case .recording:
-            recordingLabel
+            // Nothing drops down: the dot itself becomes Stop (spec SH-5b).
+            EmptyView()
         case .stats:
             statsLabel(item)
         case .working:
