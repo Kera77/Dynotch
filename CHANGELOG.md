@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.67.2] - 2026-11-19
+
 ### Fixed
 - After a module with a text field was open in the notch, the app in front gets the keyboard back for real, whether the notch closes or you click the app; before, its caret blinked but typing beeped until a click.
 
