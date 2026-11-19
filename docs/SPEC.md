@@ -630,10 +630,12 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-3b | (v0.49) Az AirDrop-ablak csak a ledobás befejezése után nyílik meg (előtérbe hozva); a ledobáson belül megnyitva a rendszer húzása beragadt (utána nem ment a Finder-húzás és a Space-váltás). A „Keep in Tray” is a ledobás után fut. |
 | FT-4 | A **Tray** modulban fülek: „Tray” és a „+”-szal csatolt mappák (színes ponttal); swipe-pal is váltható, a végén a következő modulra lép. |
 | FT-4b | (v0.60) A csatolt mappa pöttyének **színe** a fül jobb klikk menüjében (**Colour**) állítható: piros, zöld, kék, narancs, lila, rózsaszín, sárga, türkiz, szürke; a választás megmarad. |
+| FT-4c | (v0.61) A **Tray** és a **Screenshots** fül pöttyének színe is állítható ugyanígy (alap: kék, narancs). |
 | FT-5 | Fájlok kihúzhatók bármely appba; mappára vagy a rácsra ejtve **másolás**, ⌥-tal **áthelyezés**; dupla kattintás megnyit; jobb klikk: Quick Look, Open, Show in Finder, Remove. |
 | FT-6 | Opcionális lejárat: a fájlok N nap után kikerülnek (Never, 1, 3, 7, 14, 30 nap). |
 | FT-8 | **Quick Look:** kijelölt fájlon szóköz megnyitja / bezárja. |
 | FT-8b | (v0.54) Amíg egy tálcafájl Quick Look-előnézete nyitva van, a notch nyitva marad, akkor is, ha az egér elmegy róla. Az előnézet bezárása után a notch a következő máshova kattintásra zárul be, nem az egér elvitelére. |
+| FT-8c | (v0.61) **Quick Look kattintás nélkül:** az egér alatti fájl a kijelölt, a szóköz azt mutatja; nyitott előnézetnél egy másik fájlra mutatva az előnézet arra vált. |
 | FT-9 | A kiválasztott csatolt mappa változásait (más appból hozzáadott / törölt fájl) azonnal mutatja. |
 | FT-10 | (v0.43) A tálca és a csatolt mappák közötti váltás becsúszik, mint az értesítés-fülek. |
 | FT-11 | (v0.43) **Mozaik / lista** nézet a mappák sorának jobb szélén; megjegyzi. |
@@ -710,6 +712,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-11b | (v0.55) A *Distance per window* (a trackpad szélességének 5–25%-a) megadja, mennyit kell mozdítani egy ablaknyi lépéshez; swipe közben a kijelölés a lista végein megáll, nem fordul körbe. A mért elmozdulás a naplóba kerül. |
 | AS-12 | **Ütközés:** a macOS alapból háromujjas vízszintes swipe-pal vált Space-t. A *Switcher* beállításoknál ezt egy megjegyzés jelzi, és gomb visz a Trackpad-beállításokhoz (ott 4 ujjra kell állítani); a Dynotch Space-váltás animációja (N-10) a 4 ujjas swipe-pal működik tovább. A trackpadet csak bekapcsolt váltónál figyeli. |
 | AS-14 | (v0.57) **Only covered windows** kapcsoló (alapból ki), a Current Space / All apps választással és a többi szűrővel együtt használható: csak azok az ablakok kerülnek a váltóba, amelyek legalább **X%-ban takarva** vannak a fölöttük lévő ablakoktól (X csúszkával 25–90%, alapból **50%**). Az előtérben lévő ablak így kimarad; a kis méretű, a rejtett appok és a más Space-en lévő ablakok (ha be vannak kapcsolva) mindig a takartak közé számítanak. Ilyenkor a váltó az első takart ablakon nyílik. |
+| AS-15 | (v0.61) A váltó a notchból **jóval gyorsabban** nyílik le (rövidebb rugó), mint a notch más módon. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
 ---
@@ -754,10 +757,12 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SH-3 | A kép **PNG**-ként a `~/Pictures/Screenshots` mappába kerül („Screenshot 2026-11-18 at 17.45.12.png”), és **azonnal a vágólapra** (kép és fájl). A Dynotch saját ablakai nem kerülnek a képre. Képernyőfelvételi engedély kell. |
 | SH-3b | (v0.58) A kép a kijelző **teljes (Retina) felbontásában** készül, nem kicsinyítve; kijelölés közben az egér **szálkereszt**, utána újra nyíl. |
 | SH-3c | (v0.60) A szerkesztő a képet **legfeljebb 1:1** pixelben mutatja (képpixel = kijelzőpixel), egész pixelre igazítva, így a kis kivágás nem nagyítódik fel és nem homályos; a kicsinyített nagy kép jó minőségben skálázódik. |
+| SH-3d | (v0.61) A kijelölt területhez a Dynotch a **teljes kijelzőt** veszi fel a saját pixeleiben, és abból vágja ki a részt **egész pixelekre** kerekítve, átméretezés nélkül; így a szöveg a képen ugyanolyan éles, mint a kijelzőn. |
 | SH-4 | **Görgetett kép, kézi görgetéssel:** a terület kijelölése után kék keret jelzi a területet, alatta „Scroll, then Done” sáv. Görgetés közben a Dynotch másodpercenként négyszer képet készít, megkeresi, mennyit mozdult a tartalom, és az új sorokat alulra illeszti. Done (vagy a gyorsbillentyű újra) befejezi, Esc/Cancel elveti. |
 | SH-5 | **Képernyőfelvétel** (macOS 15+): az egér alatti kijelzőről `.mov` a Screenshots mappába („Screen Recording … .mov”), a fájl a vágólapra kerül. Kapcsolható a **Mac hangja** (alap: be) és a **mikrofon** (alap: ki). Felvétel közben a csukott notch mellett piros pötty és az eltelt idő; rámutatva **Stop**. A gyorsbillentyű is leállítja. A Dynotch nem kerül a felvételre. |
 | SH-6 | Kép után a notch alatt pár másodpercre **felugró**: bélyegkép, „Copied · Saved”. A felugróra mutatva (vagy a notchot lenyitva) **megnyílik a szerkesztő**. |
 | SH-7 | **Szerkesztő:** a notch szinte a kijelző méretére nagyul, benne a kép. Nyitva marad, amíg a Close (Esc) vagy a Done (⌘S) be nem zárja; alatta nem vált modult nyíllal vagy húzással. |
+| SH-7b | (v0.61) A szerkesztő bezárásakor (Close, Esc, Done) az előtte használt app **visszakapja a billentyűzetet**: a kurzor nemcsak villog, gépelni is lehet kattintás nélkül. |
 | SH-8 | **Eszközök** (Beállítások › Screenshots › Editor tools, egyenként kikapcsolhatók): Copy, Save, Crop, Text, Arrow, Rectangle, Ellipse, Line, Pencil, Highlighter, Pixelate, Numbered Step. Mellettük szín (8 szín) és vonalvastagság (3 fokozat, a kép méretéhez igazítva), visszavonás ⌘Z, újra ⇧⌘Z. |
 | SH-9 | **Mentés:** a Save és a Done (ha volt változás) **felülírja a fájlt** és a vágólapra teszi az eredményt; a Copy csak a vágólapra teszi. |
 | SH-10 | A rajzok a kép pixeleiben tárolódnak, így a mentett kép ugyanúgy néz ki, mint a szerkesztőben; a vágás nem veszi el a rajzokat. |

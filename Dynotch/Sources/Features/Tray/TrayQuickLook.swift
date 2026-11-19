@@ -52,6 +52,16 @@ final class TrayQuickLook: NSObject, QLPreviewPanelDataSource {
         follow()
     }
 
+    /// While the preview is open, the file under the mouse takes its place (spec FT-8c).
+    func follow(_ url: URL) {
+        guard isShown, urls != [url], QLPreviewPanel.sharedPreviewPanelExists(),
+              let panel = QLPreviewPanel.shared(), panel.isVisible
+        else { return }
+        urls = [url]
+        panel.reloadData()
+        panel.currentPreviewItemIndex = 0
+    }
+
     func close() {
         guard QLPreviewPanel.sharedPreviewPanelExists(), let panel = QLPreviewPanel.shared(), panel.isVisible else { return }
         panel.orderOut(nil)

@@ -62,16 +62,24 @@ struct TrayFeatureView: View {
 
     private var chips: some View {
         HStack(spacing: 8) {
-            chip(title: "Tray", colour: Theme.blue, isOn: store.selectedFolder == nil) { store.selectedFolder = nil }
+            chip(title: "Tray", colour: Self.dotColour(store.colour(ofFixed: "tray")), isOn: store.selectedFolder == nil) {
+                store.selectedFolder = nil
+            }
+            .contextMenu { colourMenu(current: store.colour(ofFixed: "tray")) { store.setColour($0, ofFixed: "tray") } }
             if store.showsScreenshots {
-                chip(title: "Screenshots", colour: .orange, isOn: isScreenshots) { store.selectedFolder = TrayStore.screenshotsID }
+                chip(title: "Screenshots", colour: Self.dotColour(store.colour(ofFixed: "screenshots")), isOn: isScreenshots) {
+                    store.selectedFolder = TrayStore.screenshotsID
+                }
+                .contextMenu {
+                    colourMenu(current: store.colour(ofFixed: "screenshots")) { store.setColour($0, ofFixed: "screenshots") }
+                }
             }
             ForEach(store.folders) { folder in
                 chip(title: folder.name, colour: Self.dotColour(folder.colour), isOn: store.selectedFolder == folder.id) {
                     store.selectedFolder = folder.id
                 }
                 .contextMenu {
-                    colourMenu(for: folder)
+                    colourMenu(current: folder.colour) { store.setColour($0, of: folder) }
                     Button("Show in Finder") { store.url(of: folder).map { NSWorkspace.shared.activateFileViewerSelecting([$0]) } }
                     Button("Detach") { store.detach(folder) }
                 }
@@ -101,13 +109,14 @@ struct TrayFeatureView: View {
         }
     }
 
-    private func colourMenu(for folder: TrayFolder) -> some View {
+    /// The dot colour of a tab, from its right-click menu (spec FT-4b, FT-4c).
+    private func colourMenu(current: Int, set: @escaping (Int) -> Void) -> some View {
         Menu("Colour") {
             ForEach(Self.dotColours.indices, id: \.self) { index in
                 Button {
-                    store.setColour(index, of: folder)
+                    set(index)
                 } label: {
-                    let isOn = folder.colour % Self.dotColours.count == index
+                    let isOn = current % Self.dotColours.count == index
                     Label {
                         Text(isOn ? "\(Self.dotColours[index].name) ✓" : Self.dotColours[index].name)
                     } icon: {
@@ -129,6 +138,12 @@ struct TrayFeatureView: View {
             choose: {
                 chosen = url
                 isFocused = true
+            },
+            // The file under the mouse is the one Space shows, no click needed (spec FT-8c).
+            hovered: {
+                chosen = url
+                isFocused = true
+                TrayQuickLook.shared.follow(url)
             }
         )
         .contextMenu {
@@ -225,6 +240,7 @@ struct TrayFileCell: View {
     /// What a double click does instead of opening the file.
     var open: (() -> Void)?
     var choose: () -> Void = {}
+    var hovered: () -> Void = {}
     @State private var isHovering = false
     /// The tile's place in the grid, so its full name can be moved inside the grid (spec FT-11d).
     @State private var frameInGrid: CGRect = .zero
@@ -265,7 +281,10 @@ struct TrayFileCell: View {
                 }
             }
             .help(url.path)
-            .onHover { hovering in withAnimation(Self.pop) { isHovering = hovering } }
+            .onHover { hovering in
+                withAnimation(Self.pop) { isHovering = hovering }
+                if hovering { hovered() }
+            }
             .zIndex(isHovering ? 1 : 0)
     }
 
@@ -328,65 +347,5 @@ struct TrayFileCell: View {
                     .frame(width: 90)
             }
         }
-    }
-}
-
-/// Dragging files over the notch (spec FT-1, FT-3): the tray on the left two thirds, AirDrop on
-/// the right third, each a rounded section with its icon in the middle.
-struct TrayDropZoneView: View {
-    let notchHeight: CGFloat
-    let keep: ([URL]) -> Void
-    let airDrop: ([URL]) -> Void
-
-    @State private var overKeep = false
-    @State private var overAirDrop = false
-
-    private static let airDropIcon = NSWorkspace.shared.icon(
-        forFile: "/System/Library/CoreServices/Finder.app/Contents/Applications/AirDrop.app"
-    )
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Color.clear.frame(height: notchHeight)
-            GeometryReader { geometry in
-                let spacing: CGFloat = 12
-                let third = (geometry.size.width - spacing) / 3
-                HStack(spacing: spacing) {
-                    section(title: "Keep in Tray", isOver: overKeep) {
-                        Image(systemName: "tray.and.arrow.down.fill").font(.system(size: 34, weight: .semibold))
-                    }
-                    .frame(width: third * 2)
-                    .dropDestination(for: URL.self) { urls, _ in
-                        keep(urls)
-                        return true
-                    } isTargeted: { overKeep = $0 }
-                    section(title: "AirDrop", isOver: overAirDrop) {
-                        Image(nsImage: Self.airDropIcon).resizable().scaledToFit().frame(width: 44, height: 44)
-                    }
-                    .frame(width: third)
-                    .dropDestination(for: URL.self) { urls, _ in
-                        airDrop(urls)
-                        return true
-                    } isTargeted: { overAirDrop = $0 }
-                }
-            }
-            .padding(14)
-        }
-    }
-
-    private func section<Icon: View>(title: String, isOver: Bool, @ViewBuilder icon: () -> Icon) -> some View {
-        VStack(spacing: 8) {
-            icon()
-            Text(title).font(.system(size: 13, weight: .semibold))
-        }
-        .foregroundStyle(.white.opacity(isOver ? 1 : 0.8))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.white.opacity(isOver ? 0.2 : 0.08)))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(Color.white.opacity(isOver ? 0.7 : 0.22), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
-        )
-        .scaleEffect(isOver ? 1.02 : 1)
-        .animation(Motion.hover, value: isOver)
     }
 }

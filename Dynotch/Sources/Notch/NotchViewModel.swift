@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import SwiftUI
 
@@ -174,6 +175,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var editor: ScreenshotEditor?
     /// Opened from the pop-up: closing it closes the notch too.
     private(set) var editorClosesNotch = false
+    /// The app that had the keyboard before the editor took it; it gets it back on closing (spec SH-7b).
+    var appBeforeEditor: NSRunningApplication?
 
     func setEditor(_ editor: ScreenshotEditor?, closesNotch: Bool = false) {
         self.editor = editor

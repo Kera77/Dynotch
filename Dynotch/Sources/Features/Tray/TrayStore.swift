@@ -46,6 +46,20 @@ final class TrayStore: ObservableObject {
     }
     private let sharedList: Bool
 
+    /// The dot colours of the Tray and Screenshots tabs, by "tray" / "screenshots" (spec FT-4c).
+    @Published private var fixedColours: [String: Int] {
+        didSet { defaults.set(fixedColours, forKey: "trayTabColours") }
+    }
+
+    /// Blue for the tray, orange for screenshots until changed.
+    func colour(ofFixed tab: String) -> Int {
+        fixedColours[tab] ?? (tab == "tray" ? 2 : 3)
+    }
+
+    func setColour(_ colour: Int, ofFixed tab: String) {
+        fixedColours[tab] = colour
+    }
+
     /// The open tab's files as a list instead of tiles.
     var showsList: Bool {
         get { listByTab[selectedFolder?.uuidString ?? "tray"] ?? sharedList }
@@ -66,6 +80,7 @@ final class TrayStore: ObservableObject {
         retentionDays = defaults.object(forKey: Self.retentionKey) as? Int ?? 0
         sharedList = defaults.bool(forKey: "trayShowsList")
         listByTab = defaults.dictionary(forKey: "trayListByTab") as? [String: Bool] ?? [:]
+        fixedColours = defaults.dictionary(forKey: "trayTabColours") as? [String: Int] ?? [:]
         load()
         dropExpired()
     }

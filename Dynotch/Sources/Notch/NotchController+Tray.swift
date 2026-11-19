@@ -236,9 +236,9 @@ extension NotchController {
             count: switcher.items.count, style: settings.style, scale: settings.size.scale,
             notchHeight: model.geometry.notchSize.height, room: room
         )
-        if !model.isExpanded { expand() }
+        if !model.isExpanded { expand(animation: Self.switcherAnimation) }
         isHeldOpen = true
-        withAnimation(Self.animation) { model.setSwitcher(true, size: size) }
+        withAnimation(Self.switcherAnimation) { model.setSwitcher(true, size: size) }
     }
 
     func hideSwitcher() {

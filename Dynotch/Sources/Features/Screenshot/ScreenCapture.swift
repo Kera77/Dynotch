@@ -23,17 +23,41 @@ enum ScreenCapture {
     static func capture(_ rect: CGRect, on screen: NSScreen) async -> CGImage? {
         guard let (filter, _) = await displayFilter(for: screen) else { return nil }
         let frame = screen.frame
-        // ScreenCaptureKit wants the part in the display's points, from its top left.
-        let local = CGRect(x: rect.minX - frame.minX, y: frame.maxY - rect.maxY, width: rect.width, height: rect.height)
+        let scale = screen.backingScaleFactor
+        // The whole display in its own pixels, then the part cut out on whole pixels: asking
+        // ScreenCaptureKit for the part resamples it and blurs the text (spec SH-3d).
         let configuration = SCStreamConfiguration()
-        configuration.sourceRect = local
-        configuration.width = max(Int(local.width * screen.backingScaleFactor), 1)
-        configuration.height = max(Int(local.height * screen.backingScaleFactor), 1)
+        configuration.width = max(Int((frame.width * scale).rounded()), 1)
+        configuration.height = max(Int((frame.height * scale).rounded()), 1)
         configuration.showsCursor = false
-        // Full Retina pixels, not a scaled-down copy (spec SH-3).
         configuration.captureResolution = .best
         configuration.scalesToFit = false
-        return await image(filter, configuration)
+        guard let full = await image(filter, configuration) else { return nil }
+        let local = CGRect(x: rect.minX - frame.minX, y: frame.maxY - rect.maxY, width: rect.width, height: rect.height)
+        return crop(full, to: local, scale: scale)
+    }
+
+    /// `rect` (display points from the top left) cut out of a whole-display image on whole pixels.
+    nonisolated static func crop(_ image: CGImage, to rect: CGRect, scale: CGFloat) -> CGImage? {
+        let bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
+        let pixels = CGRect(x: rect.minX * scale, y: rect.minY * scale, width: rect.width * scale, height: rect.height * scale)
+        let snapped = CGRect(
+            x: pixels.minX.rounded(), y: pixels.minY.rounded(),
+            width: max(pixels.width.rounded(), 1), height: max(pixels.height.rounded(), 1)
+        ).intersection(bounds)
+        guard !snapped.isNull, snapped.width >= 1, snapped.height >= 1 else { return nil }
+        if snapped == bounds { return image }
+        // Copied pixel for pixel, so the part does not keep the whole display's buffer alive.
+        guard let part = image.cropping(to: snapped),
+              let context = CGContext(
+                  data: nil, width: part.width, height: part.height, bitsPerComponent: 8, bytesPerRow: 0,
+                  space: image.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
+                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+              )
+        else { return image.cropping(to: snapped) }
+        context.interpolationQuality = .none
+        context.draw(part, in: CGRect(x: 0, y: 0, width: part.width, height: part.height))
+        return context.makeImage()
     }
 
     static func captureScreen(_ screen: NSScreen) async -> CGImage? {

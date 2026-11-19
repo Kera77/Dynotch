@@ -6,6 +6,8 @@ import SwiftUI
 @MainActor
 final class NotchController {
     static let animation = Motion.spring
+    /// The window switcher drops down much faster than the notch opens (spec AS-15).
+    static let switcherAnimation = Animation.spring(response: 0.2, dampingFraction: 0.86)
     /// After the panel shrinks from the large size, the pointer may be outside the smaller
     /// panel; keep it open this long so it doesn't close under the user's hand.
     private static let shrinkGracePeriod: TimeInterval = 2.5
@@ -204,7 +206,7 @@ final class NotchController {
 
     /// - Parameter preview: show only the small preview first (spec PV-1).
     ///   - smart: opened by hover: the module may follow what is going on (spec SO-1).
-    func expand(preview: Bool = false, smart: Bool = false) {
+    func expand(preview: Bool = false, smart: Bool = false, animation: Animation = NotchController.animation) {
         cancelClose()
         graceUntil = nil
         panel.ignoresMouseEvents = false
@@ -215,7 +217,7 @@ final class NotchController {
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
         if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
         let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
-        withAnimation(Self.animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
+        withAnimation(animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
         notifications.clearPeek()
         startHoverTimer()
         if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }

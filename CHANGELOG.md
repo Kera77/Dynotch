@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+- Tray: Quick Look needs no click; Space shows the file under the mouse, and an open preview follows the mouse to another file.
+- Tray: the Tray and Screenshots tabs' dot colours can be changed too.
+- Window switcher drops down from the notch much faster.
+
+### Fixed
+- Screenshots are sharp: the whole display is taken in its own pixels and the part is cut out on whole pixels, without resampling.
+- Closing the screenshot editor gives the keyboard back to the app used before; typing no longer beeps until a click.
+
 ## [0.60.0] - 2026-11-18
 
 ### Changed

@@ -26,6 +26,9 @@ extension NotchController {
         withAnimation(Self.animation) { model.setEditor(editor, closesNotch: fromPeek || !model.isExpanded) }
         // The editor types text and takes ⌘Z: the panel needs the keyboard.
         panel.allowsKey = true
+        if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() {
+            model.appBeforeEditor = front
+        }
         NSApp.activate()
         panel.makeKey()
     }
@@ -34,5 +37,19 @@ extension NotchController {
         let closesNotch = model.editorClosesNotch
         withAnimation(Self.animation) { model.setEditor(nil) }
         if closesNotch { collapse() }
+        // The app from before gets the keyboard back for real; otherwise its caret blinks but
+        // typing only beeps until it is clicked (spec SH-7b).
+        let before = model.appBeforeEditor
+        model.appBeforeEditor = nil
+        if closesNotch || !model.wantsKeyboard {
+            panel.makeFirstResponder(nil)
+            panel.allowsKey = model.wantsKeyboard && model.isExpanded
+            panel.resignKey()
+            if let before, !before.isTerminated {
+                before.activate()
+            } else {
+                NSApp.deactivate()
+            }
+        }
     }
 }
