@@ -50,6 +50,8 @@ final class NotchController {
 
     private var globalMonitor: Any?
     private var scrollMonitor: Any?
+    /// A click in another app takes the keyboard from the panel (spec F-15b).
+    private var keyClickMonitor: Any?
     var announcementSwipe = VerticalSwipe()
     private var localMonitor: Any?
     private var sizeObserver: AnyCancellable?
@@ -315,6 +317,9 @@ extension NotchController {
         scrollMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.scrollWheel]) { [weak self] event in
             MainActor.assumeIsolated { _ = self?.handleCollapsedScroll(event) }
         }
+        keyClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            MainActor.assumeIsolated { self?.clickedInAnotherApp() }
+        }
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel, .keyDown]) { [weak self] event in
             guard let self else { return event }
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
@@ -360,6 +365,7 @@ extension NotchController {
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         if let scrollMonitor { NSEvent.removeMonitor(scrollMonitor) }
+        if let keyClickMonitor { NSEvent.removeMonitor(keyClickMonitor) }
         scrollMonitor = nil
         globalMonitor = nil
         localMonitor = nil

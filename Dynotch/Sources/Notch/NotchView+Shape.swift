@@ -101,8 +101,9 @@ extension NotchView {
         )
     }
 
-    /// Lifts the open panel off the windows below (spec D-14a).
+    /// Lifts the open panel off the windows below (spec D-14a). Drawn in the glass window, which
+    /// lets every click through: in the content window it would catch clicks meant for other apps.
     @ViewBuilder var designShadow: some View {
-        if layer == .content, settings.refinedDesign, showsDesign { OuterShadow(shape: shape).transition(.opacity) }
+        if layer == .glass, settings.refinedDesign, showsDesign { OuterShadow(shape: shape).transition(.opacity) }
     }
 }

@@ -111,7 +111,7 @@ struct AppearanceSettingsView: View {
                 }
             }
             .disabled(!settings.moduleStrip)
-            StripModulesRows(features: settings.listedFeatures)
+            StripModulesRows(settings: settings)
                 .disabled(!settings.moduleStrip)
         } header: {
             Text("Module strip")
@@ -151,21 +151,59 @@ struct AppearanceSettingsView: View {
 
 /// Which modules the strip shows (spec MS-5).
 private struct StripModulesRows: View {
-    let features: [FeatureID]
+    @ObservedObject var settings: AppSettings
     @State private var hidden = ModuleStripChoice.hidden
     @State private var isOpen = false
+    /// The row being dragged to a new place (spec MS-6b).
+    @State private var dragged: FeatureID?
 
     var body: some View {
         DisclosureGroup("Modules in the strip", isExpanded: $isOpen) {
-            ForEach(features) { feature in
-                Toggle(isOn: Binding(get: { !hidden.contains(feature) }, set: { shown in
-                    ModuleStripChoice.setShown(feature, shown)
-                    hidden = ModuleStripChoice.hidden
-                })) {
-                    Label(feature.title, systemImage: feature.symbolName)
+            ForEach(settings.listedFeatures) { feature in
+                HStack {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                        .help("Drag to reorder")
+                        .accessibilityLabel("Drag to reorder")
+                    Toggle(isOn: Binding(get: { !hidden.contains(feature) }, set: { shown in
+                        ModuleStripChoice.setShown(feature, shown)
+                        hidden = ModuleStripChoice.hidden
+                    })) {
+                        Label(feature.title, systemImage: feature.symbolName)
+                    }
                 }
+                .contentShape(Rectangle())
+                .opacity(dragged == feature ? 0.4 : 1)
+                .onDrag {
+                    dragged = feature
+                    return NSItemProvider(object: feature.rawValue as NSString)
+                }
+                .onDrop(of: [.text], delegate: StripDropDelegate(target: feature, settings: settings, dragged: $dragged))
             }
         }
         .revealWhenOpened(isOpen)
+    }
+}
+
+/// Dragging a strip row over another moves it there; the module order follows (spec MS-6b).
+private struct StripDropDelegate: DropDelegate {
+    let target: FeatureID
+    let settings: AppSettings
+    @Binding var dragged: FeatureID?
+
+    func dropEntered(info: DropInfo) {
+        let listed = settings.listedFeatures
+        guard let dragged, dragged != target, let index = listed.firstIndex(of: target) else { return }
+        withAnimation(Motion.quick) { settings.moveFeature(dragged, to: index, among: listed) }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        dragged = nil
+        return true
     }
 }

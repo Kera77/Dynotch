@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Settings › Appearance › Modules in the strip: drag a row to reorder, like the Modules list.
+
+### Fixed
+- After typing in the notch, clicking another app gives it the keyboard right away; before, its caret blinked but the keys went nowhere.
+- The refined design's shadow no longer catches clicks meant for the apps around the notch.
+
 ## [0.67.0] - 2026-11-19
 
 ### Added

@@ -69,6 +69,18 @@ extension NotchController {
         }
     }
 
+    /// A click in another app while the panel has the keyboard: that app gets it, for real. The
+    /// panel never activates Dynotch, so the clicked app, already in front, would show its caret
+    /// while the keys still came here (spec F-15b).
+    func clickedInAnotherApp() {
+        guard panel.isKeyWindow else { return }
+        Task { [weak self] in
+            // Let the click activate its app first, so that one gets the keyboard back.
+            try? await Task.sleep(for: .milliseconds(120))
+            self?.giveKeyboardBack()
+        }
+    }
+
     /// Focus follows the mouse onto the open notch too, when the pointer comes back (spec F-15).
     func followFocusOntoNotch() {
         guard settings.focusFollowsMouse, model.isExpanded, model.wantsKeyboard, panel.allowsKey, !panel.isKeyWindow,
