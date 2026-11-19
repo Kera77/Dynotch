@@ -3,7 +3,6 @@ import SwiftUI
 /// Settings › Appearance: everything about how Dynotch looks (spec D-5).
 struct AppearanceSettingsView: View {
     @ObservedObject var settings: AppSettings
-    @AppStorage(AppleStyle.key) private var appleStyle = false
 
     var body: some View {
         Form {
@@ -17,13 +16,6 @@ struct AppearanceSettingsView: View {
                     Text("Original").tag(false)
                 }
                 .pickerStyle(.segmented)
-                // Temporary: to compare the Apple style with the current look (spec D-15).
-                Picker("Style", selection: $appleStyle) {
-                    Text("Apple").tag(true)
-                    Text("Current").tag(false)
-                }
-                .pickerStyle(.segmented)
-                .help("Apple: system type sizes, colours, label levels, corners, motion and buttons in the notch")
                 LabeledContent("Open panel opacity") {
                     HStack(spacing: 8) {
                         Slider(value: $settings.panelOpacity, in: AppSettings.panelOpacityRange, step: 0.05)

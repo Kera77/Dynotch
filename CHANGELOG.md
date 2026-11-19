@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+- The Apple style is now the only look: the Style switch in Settings › Appearance is gone, and the former look's code with it.
+- DyNotch Wings spread out of the middle of the notch to the left and right on hover, and slide back in when it closes.
+- DyNotch Wings: a two-finger swipe left or right on the wings switches to the next or previous module (round the end); a swipe up over the open panel's top row folds it back into the wings.
+- DyNotch Wings: a new notification shows beside the notch (the app and who wrote at the left, the first line at the right) instead of dropping down; a swipe up puts it away, a swipe down opens it.
+- DyNotch Wings: files dragged onto the notch no longer open the panel: the wings spread with Keep in Tray at the left and AirDrop at the right; a file kept in the tray shows in the wings.
+
 ## [0.74.0] - 2026-11-19
 
 ### Changed

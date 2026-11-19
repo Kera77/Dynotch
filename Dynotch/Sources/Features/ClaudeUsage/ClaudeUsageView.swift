@@ -141,8 +141,8 @@ private struct UsageRow: View {
     private var color: Color {
         switch limit.level {
         case .normal: ClaudeUsageView.blue
-        case .high: Color(red: 1, green: 0.62, blue: 0.1).apple(.orange)
-        case .critical: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
+        case .high: Color.orange
+        case .critical: Color.red
         }
     }
 

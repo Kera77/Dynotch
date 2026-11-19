@@ -38,7 +38,7 @@ extension NotchIndicatorView {
             Text(notice.title)
                 .font(.notch(size: 12, weight: .semibold))
                 // A question waits for an answer (spec CQ-2).
-                .foregroundStyle(notice.isQuestion ? Color(red: 1, green: 0.62, blue: 0.1).apple(.orange) : .white)
+                .foregroundStyle(notice.isQuestion ? Color.orange : .white)
                 .lineLimit(1)
             Text([notice.detail, notice.date.formatted(date: .omitted, time: .shortened)].filter { !$0.isEmpty }.joined(separator: " · "))
                 .font(.notch(size: 11))

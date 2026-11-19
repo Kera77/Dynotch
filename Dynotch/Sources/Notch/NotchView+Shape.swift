@@ -16,7 +16,9 @@ extension NotchView {
 
     /// A notification, a call or a line hanging below makes the closed notch taller.
     private var isTall: Bool {
-        notifications.peek != nil || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
+        // In Wings mode a notification stays at the notch's height (spec PV-13).
+        (notifications.peek != nil && !settings.hoverPreview)
+            || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
     }
 
     /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon
@@ -31,7 +33,9 @@ extension NotchView {
 
     /// The strip under the closed notch, or under the preview (spec MS-1, PV-6).
     var showsStrip: Bool {
-        if model.isExpanded { return model.isPreview && settings.moduleStrip && stripFeatures.count > 1 }
+        if model.isExpanded {
+            return model.isPreview && !model.isShowingDropZone && settings.moduleStrip && stripFeatures.count > 1
+        }
         return model.isShowingStrip
     }
 

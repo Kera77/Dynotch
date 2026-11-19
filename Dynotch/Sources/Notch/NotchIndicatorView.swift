@@ -341,8 +341,8 @@ extension NotchIndicatorView {
 
     static func color(for phase: EventStatus.Phase) -> Color {
         switch phase {
-        case .upcoming: Color(red: 1, green: 0.8, blue: 0.25).apple(.yellow)
-        case .imminent: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
+        case .upcoming: Color.yellow
+        case .imminent: Color.red
         case .ongoing: Color(red: 0.45, green: 0.78, blue: 1)
         }
     }
@@ -350,8 +350,8 @@ extension NotchIndicatorView {
     static func color(for level: UsageLevel) -> Color {
         switch level {
         case .normal: ClaudeUsageView.blue
-        case .high: Color(red: 1, green: 0.62, blue: 0.1).apple(.orange)
-        case .critical: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
+        case .high: Color.orange
+        case .critical: Color.red
         }
     }
 }

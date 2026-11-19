@@ -70,6 +70,8 @@ extension NotchController {
     func opens(at point: CGPoint) -> Bool {
         guard openingZone.contains(point) else { return false }
         guard notifications.peek != nil else { return true }
+        // A notification in the wings opens only with a swipe down (spec PV-13).
+        if settings.hoverPreview { return false }
         let notch = model.geometry.notchRect
         let inRowBeside = point.y >= notch.minY && !notch.insetBy(dx: -4, dy: 0).contains(point)
         return !inRowBeside

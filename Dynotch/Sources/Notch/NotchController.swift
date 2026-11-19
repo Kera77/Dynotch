@@ -43,6 +43,7 @@ final class NotchController {
     /// until the pointer leaves it (spec N-20).
     var stickyZone: CGRect?
     var previewSwipe = VerticalSwipe()
+    var wingsSwipes = WingsSwipes()
     let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
@@ -298,8 +299,8 @@ final class NotchController {
         switch event.type {
         case .scrollWheel:
             // No module switching under the screenshot editor (spec SH-7).
-            // Over the preview a swipe down opens the panel fully (spec PV-5).
-            if model.isPreview { return handlePreviewScroll(event) }
+            // Wings: a swipe down opens fully, up on the top row folds back (spec PV-5, PV-12).
+            if let handled = handleWingsScroll(event) { return handled }
             return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)

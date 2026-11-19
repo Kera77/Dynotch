@@ -153,18 +153,10 @@ extension NotchController {
         withAnimation(Self.animation) { model.setPreview(false) }
     }
 
-    /// A two-finger swipe down over the preview opens the panel fully (spec PV-5).
-    func handlePreviewScroll(_ event: NSEvent) -> Bool {
-        let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
-        if previewSwipe.handle(phase: Self.phase(of: event), fingerUp: fingerDown, deltaX: event.scrollingDeltaX) {
-            openFully()
-        }
-        return true
-    }
-
-    /// The module strip under the preview (spec PV-6).
+    /// The module strip under the preview (spec PV-6); not while files are dropped on the wings.
     var showsPreviewStrip: Bool {
-        model.isPreview && settings.moduleStrip && ModuleStripChoice.features(from: settings.listedFeatures).count > 1
+        model.isPreview && !model.isShowingDropZone && settings.moduleStrip
+            && ModuleStripChoice.features(from: settings.listedFeatures).count > 1
     }
 }
 

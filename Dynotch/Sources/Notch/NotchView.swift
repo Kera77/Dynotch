@@ -147,13 +147,14 @@ struct NotchView: View {
                     // The closed notch's row stays; the notification drops down under it (spec E-24).
                     ZStack(alignment: .top) {
                         peekView(notification, width: naturalCollapsedSize.width)
-                        if !indicatorLayout.isEmpty {
+                        // In Wings mode the notification stands beside the notch, over the row (spec PV-13).
+                        if !indicatorLayout.isEmpty, !settings.hoverPreview {
                             indicatorRow(hoveredIndex: nil, notice: nil, showsBadgeList: false)
                                 .frame(width: naturalCollapsedSize.width, height: geometry.notchSize.height, alignment: .top)
                         }
                     }
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
-                    .transition(.opacity)
+                    .transition(settings.hoverPreview ? .wingsSpread : .opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
                         .frame(width: geometry.devicePeekSize.width, height: geometry.devicePeekSize.height)
@@ -173,7 +174,7 @@ struct NotchView: View {
                 }
 
                 if model.isExpanded, model.isShowingOverlayPage {
-                    overlayPage.frame(width: model.openSize.width, height: model.openSize.height).transition(.opacity)
+                    overlayPage.frame(width: model.openSize.width, height: model.openSize.height).transition(.wingsOr(model.isPreview))
                 } else if model.isExpanded, model.isShowingNotifications {
                     NotificationStackView(
                         service: notifications,
@@ -193,7 +194,7 @@ struct NotchView: View {
                         right: { wingsRight }
                     )
                     .frame(width: model.openSize.width, height: model.openSize.height)
-                    .transition(.opacity)
+                    .transition(.wingsSpread)
                 } else if model.isExpanded {
                     expandedContent
                         .frame(width: model.openSize.width, height: model.openSize.height)
@@ -336,6 +337,7 @@ extension NotchView {
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
         if model.isScreenShared { return geometry.notchSize }
+        if notifications.peek != nil, settings.hoverPreview { return geometry.previewSize(side: WingsPeekView.side) }
         if notifications.peek != nil {
             // As wide as the row above it, when that is wider (spec E-24).
             let peek = notifications.peekSize(in: geometry)

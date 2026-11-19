@@ -25,6 +25,8 @@ struct WingsView<Left: View, Right: View>: View {
 
     @State private var leftWidth: CGFloat = 0
     @State private var rightWidth: CGFloat = 0
+    /// Both sides slide out of the notch as it widens (spec PV-11).
+    @Environment(\.wingsSpread) private var spread
 
     static var padding: CGFloat { 14 }
 
@@ -37,6 +39,7 @@ struct WingsView<Left: View, Right: View>: View {
                     .padding(.horizontal, Self.padding)
                     .frame(width: side, alignment: .leading)
                     .clipped()
+                    .wingSpread(spread, towardsNotch: side / 2)
                 Color.clear
                     .frame(width: notchWidth)
                     .contentShape(Rectangle())
@@ -46,6 +49,7 @@ struct WingsView<Left: View, Right: View>: View {
                     .padding(.horizontal, Self.padding)
                     .frame(width: side, alignment: .trailing)
                     .clipped()
+                    .wingSpread(spread, towardsNotch: -side / 2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

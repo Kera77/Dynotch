@@ -14,7 +14,7 @@ struct RemindersView: View {
     let isActive: Bool
     var pin: PinControl?
 
-    static var red: Color { Color(red: 1, green: 0.27, blue: 0.27).apple(.red) }
+    static var red: Color { Color.red }
     static var blue: Color { Theme.blue }
 
     var body: some View {

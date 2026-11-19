@@ -61,7 +61,8 @@ extension NotchController {
               hoverZone.insetBy(dx: -20, dy: -10).contains(point)
         else { return false }
         hideStrip()
-        expand()
+        // In Wings mode the notch only spreads to the sides: tray left, AirDrop right (spec PV-14).
+        expand(preview: settings.hoverPreview)
         DiagnosticsLog.append("tray", "drop zone")
         withAnimation(Self.animation) { model.setDropZone(true) }
         return true
@@ -73,9 +74,14 @@ extension NotchController {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             tray.add(urls)
+            let inWings = model.isPreview
             withAnimation(Self.animation) { model.setDropZone(false) }
             if settings.isEnabled(.tray) {
-                withAnimation(Self.animation) { model.select(.tray) }
+                // Dropped on the wings: the wings show the tray (spec PV-14).
+                withAnimation(Self.animation) {
+                    model.select(.tray)
+                    if inWings { model.setPreview(true) }
+                }
             } else {
                 collapse()
             }
@@ -111,9 +117,11 @@ extension NotchController {
     }
 
     /// The hover opened the notch before the drag was recognised: files over it still get the
-    /// drop zone, except over the tray module, which takes them itself (spec FT-13).
+    /// drop zone, except over the tray module, which takes them itself (spec FT-13); the wings
+    /// always get it (spec PV-14).
     func showDropZoneOverOpenNotch() {
-        guard model.isExpanded, !model.isShowingDropZone, !model.isShowingClipboardPicker, model.currentFeature != .tray,
+        guard model.isExpanded, !model.isShowingDropZone, !model.isShowingClipboardPicker,
+              model.currentFeature != .tray || model.isPreview,
               FileDragWatcher.shared.isDraggingFiles, keepOpenZone.contains(NSEvent.mouseLocation)
         else { return }
         DiagnosticsLog.append("tray", "drop zone over the open notch")

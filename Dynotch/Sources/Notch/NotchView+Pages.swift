@@ -95,15 +95,33 @@ extension NotchView {
             )
         } else if model.isShowingClipboardPicker {
             ClipboardPickerView(picker: clipboardPicker, store: clipboard, notchHeight: geometry.notchSize.height)
+        } else if model.isPreview {
+            // Files dropped on the wings: tray left, AirDrop right (spec PV-14).
+            WingsDropView(notchWidth: geometry.notchSize.width, keep: keepInTray, airDrop: sendWithAirDrop)
         } else {
             TrayDropZoneView(notchHeight: geometry.notchSize.height, keep: keepInTray, airDrop: sendWithAirDrop)
         }
     }
 
-    /// A new notification under the closed notch: the name, or its messages too (spec E-3, E-22).
-    func peekView(_ notification: AppNotification, width: CGFloat) -> some View {
+    /// A new notification under the closed notch: the name, or its messages too (spec E-3, E-22);
+    /// in Wings mode beside the notch (spec PV-13).
+    @ViewBuilder func peekView(_ notification: AppNotification, width: CGFloat) -> some View {
         let peekSize = notifications.peekSize(in: geometry)
-        return NotificationPeekView(
+        if settings.hoverPreview {
+            WingsPeekView(
+                app: notifications.catalog.app(for: notification.appIdentifier),
+                content: notifications.content(for: notification),
+                notchWidth: geometry.notchSize.width,
+                newCount: notifications.unseen.count
+            )
+            .frame(width: width, height: geometry.notchSize.height)
+        } else {
+            standardPeek(notification, width: width, size: peekSize)
+        }
+    }
+
+    private func standardPeek(_ notification: AppNotification, width: CGFloat, size peekSize: CGSize) -> some View {
+        NotificationPeekView(
             app: notifications.catalog.app(for: notification.appIdentifier),
             content: notifications.content(for: notification),
             notchHeight: geometry.notchSize.height,

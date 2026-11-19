@@ -41,6 +41,12 @@ extension NotchController {
             return
         }
         let geometry = model.geometry
+        if notifications.peek != nil, settings.hoverPreview {
+            // The notification in the wings covers the row (spec PV-13).
+            setHoveredIndicator(nil)
+            setHoveredBadge(nil)
+            return
+        }
         if notifications.peek != nil {
             // Over a notification the row stays clickable, but no details drop down (spec E-24).
             setHoveredIndicator(nil)
@@ -215,6 +221,7 @@ extension NotchController {
     /// A two-finger swipe up over the announced meeting's name, or over a sticky notice, closes
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
+        if handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         // A device notice is flicked away upwards (spec DV-14).
         if devices.current != nil,

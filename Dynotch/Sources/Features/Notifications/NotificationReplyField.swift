@@ -40,7 +40,7 @@ struct NotificationReplyField: View {
             if let note = statusNote {
                 Text(note.text)
                     .font(.notch(size: 10))
-                    .foregroundStyle(note.isError ? Color(red: 1, green: 0.45, blue: 0.4).apple(.red) : Color.white.level(0.5))
+                    .foregroundStyle(note.isError ? Color.red : Color.white.level(0.5))
                     .lineLimit(1)
                     .padding(.horizontal, 2)
                     .offset(y: 13)

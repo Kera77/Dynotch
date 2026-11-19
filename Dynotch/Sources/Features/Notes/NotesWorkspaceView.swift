@@ -16,7 +16,7 @@ struct NotesWorkspaceView: View {
 
     @StateObject private var editorController = RichNoteController()
 
-    static var accent: Color { Color(red: 0.98, green: 0.78, blue: 0.16).apple(.yellow) }
+    static var accent: Color { Color.yellow }
     /// The notes list grows with a resized module (spec RS-5).
     @State private var width: CGFloat = 0
 
@@ -172,7 +172,7 @@ struct NotesWorkspaceView: View {
 
     private var statusColor: Color {
         switch store.saveState {
-        case .conflict, .failed: Color(red: 1, green: 0.45, blue: 0.4).apple(.red)
+        case .conflict, .failed: Color.red
         default: Color.white.level(store.readOnlyReason == nil ? 0.6 : 0.8)
         }
     }

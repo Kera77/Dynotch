@@ -56,7 +56,7 @@ struct BeeperComposer: View {
                 .disabled(isSending || (text.trimmingCharacters(in: .whitespaces).isEmpty && file == nil))
             }
             if let error = service.actionError {
-                Text(error).font(.notch(size: 10)).foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4).apple(.red)).lineLimit(1)
+                Text(error).font(.notch(size: 10)).foregroundStyle(Color.red).lineLimit(1)
             }
         }
         .padding(.horizontal, 10)

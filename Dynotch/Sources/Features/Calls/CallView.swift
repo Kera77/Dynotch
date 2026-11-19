@@ -9,8 +9,8 @@ struct CallView: View {
 
     static let rowHeight: CGFloat = 58
     static let composeHeight: CGFloat = 44
-    private static var red: Color { Color(red: 1, green: 0.27, blue: 0.23).apple(.red) }
-    private static var green: Color { Color(red: 0.2, green: 0.78, blue: 0.35).apple(.green) }
+    private static var red: Color { Color.red }
+    private static var green: Color { Color.green }
 
     @FocusState private var isFieldFocused: Bool
 
@@ -95,7 +95,7 @@ struct CallView: View {
             if let error = service.sendError {
                 Text(error)
                     .font(.notch(size: 10))
-                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4).apple(.red))
+                    .foregroundStyle(Color.red)
                     .lineLimit(1)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 1)

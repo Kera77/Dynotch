@@ -225,6 +225,8 @@ final class NotchViewModel: ObservableObject {
         }
         if isShowingSwitcher { return switcherSize }
         if editor != nil { return geometry.maxModuleSize }
+        // Files over the wings: they stay at the notch's height (spec PV-14).
+        if isShowingDropZone, isPreview { return geometry.previewSize(side: WingsDropView.side) }
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }

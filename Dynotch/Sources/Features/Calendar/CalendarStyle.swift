@@ -6,7 +6,7 @@ enum CalendarStyle {
     static let weekend = Color(red: 0.86, green: 0.42, blue: 0.4)
     /// Date and time under a meeting's name (spec K-5).
     static let eventTime = Color(red: 0.3, green: 0.62, blue: 1)
-    static var joinGreen: Color { Color(red: 0.19, green: 0.74, blue: 0.33).apple(.green) }
+    static var joinGreen: Color { Color.green }
 
     /// "Today", "Tomorrow", otherwise the weekday name.
     static func dayTitle(_ date: Date, now: Date, calendar: Calendar = .current) -> String {

@@ -27,8 +27,8 @@ struct BatteryFeatureView: View {
     @ObservedObject var service: BatteryService
     let isActive: Bool
 
-    static var green: Color { Color(red: 0.2, green: 0.78, blue: 0.35).apple(.green) }
-    static var red: Color { Color(red: 1, green: 0.3, blue: 0.3).apple(.red) }
+    static var green: Color { Color.green }
+    static var red: Color { Color.red }
 
     var body: some View {
         Group {

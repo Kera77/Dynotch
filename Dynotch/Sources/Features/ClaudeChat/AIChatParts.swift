@@ -170,7 +170,7 @@ struct AIMessageContent: View {
                 case .text(let paragraph):
                     Text(Self.formatted(paragraph))
                         .font(.notch(size: 13))
-                        .foregroundStyle(isError ? Color(red: 1, green: 0.5, blue: 0.45).apple(.red) : Color.white.level(0.92))
+                        .foregroundStyle(isError ? Color.red : Color.white.level(0.92))
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 case .code(let code):
