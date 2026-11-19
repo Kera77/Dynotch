@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - DyNotch Wings content per module, v0.75 (spec PV-15, PV-17, PV-19, PV-22)
+// MARK: - DyNotch Wings content per module (spec PV-15, PV-32, PV-34, PV-35)
 
 extension NotchView {
     // MARK: AI usage (spec PV-15)
@@ -54,26 +54,36 @@ extension NotchView {
             WingLabel(symbol: "bell", text: "No new notifications")
         } else {
             let active = activeWingsApp(in: apps)?.id
-            // The newest stands innermost, next to the notch; the others go outwards.
+            // The newest stands innermost, next to the notch; the others go outwards. The order
+            // never changes: the hovered one's name opens in place and the others step aside.
+            let shown = Array(apps.reversed())
+            let activeIndex = shown.firstIndex { $0.id == active } ?? shown.count - 1
             HStack(spacing: 8) {
-                ForEach(apps.reversed()) { entry in
+                ForEach(Array(shown.enumerated()), id: \.element.id) { index, entry in
                     WingsAppIcon(
                         entry: entry, isActive: entry.id == active,
-                        hover: { model.wings.hoveredApp = entry.id },
+                        hover: {
+                            guard entry.id != active else { return }
+                            model.wings.stepsLeft = index < activeIndex
+                            model.wings.hoveredApp = entry.id
+                        },
                         open: { openWingsApp(entry) }
                     )
                 }
             }
-            .animation(Motion.quick, value: active)
+            .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active)
         }
     }
 
     @ViewBuilder var notificationsWingRightV2: some View {
         if let active = activeWingsApp(in: wingsApps) {
-            WingText(active.line)
-                .id(active.id)
-                .transition(.opacity)
-                .animation(Motion.quick, value: active.id)
+            // The line steps the way the pointer went (spec PV-32).
+            ZStack(alignment: .leading) {
+                WingText(active.line)
+                    .id(active.id)
+                    .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
+            }
+            .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active.id)
         }
     }
 
@@ -88,17 +98,17 @@ extension NotchView {
         openFully()
     }
 
-    // MARK: Notes (spec PV-19)
+    // MARK: Notes (spec PV-34)
 
     @ViewBuilder var notesWingLeftV2: some View {
         Group {
             if let latest = notes.latest {
                 HStack(spacing: 6) {
                     WingSymbol("note.text")
-                    WingsMarquee(text: "\(latest.folder) › \(latest.name)", bold: true)
+                    WingText(latest.name, bold: true)
                 }
             } else {
-                WingLabel(symbol: "note.text", text: noteFirstLine ?? "Empty note")
+                WingLabel(symbol: "note.text", text: noteFirstLine ?? "Notes")
             }
         }
         .onAppear { notes.refreshLatest() }
@@ -107,7 +117,8 @@ extension NotchView {
     @ViewBuilder var notesWingRightV2: some View {
         let body = notes.latest.map { Self.noteBody($0.text) } ?? ""
         if !body.isEmpty {
-            WingsMarquee(text: body, dim: true)
+            // Runs once to its end and stays there.
+            WingsMarquee(text: body, dim: true, repeats: false)
         }
     }
 
@@ -124,7 +135,7 @@ extension NotchView {
             .joined(separator: " · ")
     }
 
-    // MARK: Clipboard (spec PV-22)
+    // MARK: Clipboard (spec PV-22, PV-35)
 
     /// The three newest, the newest next to the notch.
     @ViewBuilder var clipboardWingLeftV2: some View {
@@ -132,42 +143,87 @@ extension NotchView {
         if items.isEmpty {
             WingLabel(symbol: "doc.on.clipboard", text: "Nothing copied yet")
         } else {
-            HStack(spacing: 6) {
-                ForEach(items.reversed()) { item in clipChip(item) }
-            }
+            clipRow(items.reversed())
         }
     }
 
     /// The next three, outwards from the notch.
     var clipboardWingRightV2: some View {
-        HStack(spacing: 6) {
-            ForEach(Array(clipboard.history.dropFirst(3).prefix(3))) { item in clipChip(item) }
-        }
+        clipRow(Array(clipboard.history.dropFirst(3).prefix(3)))
     }
 
-    private func clipChip(_ item: ClipItem) -> some View {
-        Button { clipboard.copy(item) } label: {
-            Group {
-                if item.kind == .image, let image = clipboard.image(of: item) {
-                    Image(nsImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 26, height: 16)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                } else {
-                    Text(item.text.trimmingCharacters(in: .whitespacesAndNewlines))
-                        .font(.notch(size: 11, weight: .medium))
-                        .foregroundStyle(Color.white.level(0.85))
-                        .lineLimit(1)
-                        .frame(maxWidth: 90)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.white.level(0.12)))
+    /// Hovered, an item opens as far as its wing allows; the row's others shrink to dots at the edges.
+    private func clipRow(_ items: [ClipItem]) -> some View {
+        let hovered = model.wings.hoveredClip
+        let rowHasHover = items.contains { $0.id.uuidString == hovered }
+        return HStack(spacing: 6) {
+            ForEach(items) { item in
+                let key = item.id.uuidString
+                WingsClip(
+                    item: item, image: item.kind == .image ? clipboard.image(of: item) : nil,
+                    isOpen: key == hovered, isDot: rowHasHover && key != hovered
+                ) { clipboard.copy(item) }
+                .onHover { inside in
+                    if inside, model.wings.hoveredClip != key {
+                        withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.86)) { model.wings.hoveredClip = key }
+                    }
                 }
             }
         }
+        .contentShape(Rectangle())
+        .onHover { inside in
+            if !inside, rowHasHover {
+                withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.86)) { model.wings.hoveredClip = nil }
+            }
+        }
+    }
+}
+
+/// A clipboard item in the wings: a chip, opened wide while hovered, or a dot (spec PV-35).
+struct WingsClip: View {
+    let item: ClipItem
+    let image: NSImage?
+    let isOpen: Bool
+    let isDot: Bool
+    let copy: () -> Void
+
+    var body: some View {
+        Button(action: copy) {
+            Group {
+                if isDot {
+                    Circle()
+                        .fill(Color.white.level(0.55))
+                        .frame(width: 6, height: 6)
+                        .frame(width: 14, height: 18)
+                } else if let image {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: isOpen ? 40 : 26, height: isOpen ? 18 : 16)
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                } else {
+                    Text(text)
+                        .font(.notch(size: 11, weight: .medium))
+                        .foregroundStyle(Color.white.level(isOpen ? 1 : 0.85))
+                        .lineLimit(1)
+                        .frame(maxWidth: isOpen ? nil : 90, alignment: .leading)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.white.level(isOpen ? 0.2 : 0.12)))
+                }
+            }
+            .contentShape(Rectangle())
+        }
         .buttonStyle(.notch)
+        .layoutPriority(isOpen ? 1 : 0)
         .help("Copy")
+    }
+
+    /// One line of the text.
+    private var text: String {
+        item.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(whereSeparator: \.isNewline)
+            .joined(separator: " ")
     }
 }
 
@@ -196,7 +252,7 @@ struct WingsAppIcon: View {
 
     var body: some View {
         Button(action: open) {
-            HStack(spacing: 5) {
+            HStack(spacing: 0) {
                 WingCount(count: entry.count) {
                     if let app = entry.app {
                         AppIconView(app: app, size: 16)
@@ -204,13 +260,13 @@ struct WingsAppIcon: View {
                         WingSymbol("envelope.fill")
                     }
                 }
-                if isActive {
-                    WingText(entry.name, bold: true)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                }
+                // The name opens and closes in place, so the icons beside it step aside (spec PV-32).
+                WingText(entry.name, bold: true)
+                    .fixedSize()
+                    .padding(.leading, 5)
+                    .frame(width: isActive ? nil : 0, alignment: .leading)
+                    .clipped()
+                    .opacity(isActive ? 1 : 0)
             }
             .contentShape(Rectangle())
         }

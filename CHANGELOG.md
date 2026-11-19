@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed
+- DyNotch Wings: a click on the notch opens the panel fully, a second click on the open panel's notch folds it back into the wings; the wings go when the pointer leaves the notch.
+- DyNotch Wings: each side is only as wide as its own content, so the wings no longer take empty room.
+- DyNotch Wings: closing, the wings' text slides into the notch at once and only then do the notch's own items (countdowns, badges) swim out; opening fully, the wings' text goes at once too.
+- DyNotch Wings: the module strip comes down from above, and sits under anything that hangs below the wings.
+- DyNotch Wings, Calendar: always the next event, also on a later day ("Tomorrow", the weekday, or the date).
+- DyNotch Wings, AI: the session usage shows even when the AI module's chat tab is the one that opens.
+- DyNotch Wings, Stats: four devices next to the notch, always with room for 100%; "+N" opens the others to the left on hover.
+- DyNotch Wings, Notifications: the newest app stays next to the notch and open; hovering another opens its name in place, the icons step aside and the message slides the way the pointer moved.
+- DyNotch Wings, Reminders: no drop-down list; the newest item at the left, the next due one (or the second newest) at the right, each with a ring in its list's colour. A click ticks it with a few seconds of Undo, then completes it in Reminders and the next one swims out of the notch.
+- DyNotch Wings, Notes: the note's name at the left, its text at the right running once to its end; the latest note now loads even before the Notes panel was opened.
+- DyNotch Wings, Clipboard: hovering an item opens it as wide as its wing allows, the other two in that wing shrink to dots at the edges.
+- DyNotch Wings, Tray: "Drop files on the notch" is the same capsule as AirDrop.
+
 ## [0.75.0] - 2026-11-19
 
 ### Changed

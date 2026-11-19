@@ -14,10 +14,10 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
     @Published private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() } } }
-    /// What the wider side of the preview needs (spec PV-8).
-    @Published var previewSide: CGFloat = 200
-    /// What the Wings' content asks of the panel: wider, a drop-down, the hovered app (spec PV-16…PV-18).
+    /// What the Wings' content asks of the panel: wider, the hovered app or clip (spec PV-31…PV-35).
     @Published var wings = WingsState()
+    /// What outlives one opening of the Wings: each side's need, the reminders ticked (spec PV-24, PV-33).
+    @Published var wingsLasting = WingsLasting()
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
@@ -232,7 +232,7 @@ final class NotchViewModel: ObservableObject {
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
-        if isPreview { return geometry.wingsSize(side: previewSide, state: wings) }
+        if isPreview { return geometry.wingsSize(wingsSides) }
         // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }

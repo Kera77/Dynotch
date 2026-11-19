@@ -1,45 +1,74 @@
 import SwiftUI
 
-/// What the Wings' content asks of the panel (spec PV-16…PV-18).
+/// What the Wings' content asks of the panel (spec PV-31…PV-35).
 struct WingsState: Equatable, Sendable {
-    /// Stats: the wings reach the display's edges to list every device (spec PV-16).
+    /// Stats: the left wing widens to show every device (spec PV-31).
     var isWide = false
-    /// Reminders: the task drop-down hangs under the wings (spec PV-18).
-    var dropHeight: CGFloat = 0
-    /// Notifications: the app the pointer is on; nil: the newest (spec PV-17).
+    /// Notifications: the app the pointer is on; nil: the newest (spec PV-32).
     var hoveredApp: String?
-    /// Widened: the furthest the pointer went from the notch's middle.
-    var furthest: CGFloat = 0
-    /// The pointer is on the drop-down.
-    var isOnDrop = false
+    /// Notifications: the pointer last moved towards the left (spec PV-32).
+    var stepsLeft = false
+    /// Clipboard: the item the pointer is on (spec PV-35).
+    var hoveredClip: String?
+}
 
-    mutating func closeDrop() {
-        dropHeight = 0
-        isOnDrop = false
-    }
+/// What outlives one opening of the Wings (spec PV-24, PV-33).
+struct WingsLasting: Equatable, Sendable {
+    /// What each side needs, margins included.
+    var needs = WingsSides(left: 200, right: 200)
+    /// Reminders ticked in the Wings, waiting for their Undo to run out.
+    var ticked: Set<String> = []
+    /// Reminders whose Undo ran out: hidden until Reminders drops them.
+    var done: Set<String> = []
+}
+
+/// The width of each wing, content and margins included (spec PV-24).
+struct WingsSides: Equatable, Sendable {
+    var left: CGFloat
+    var right: CGFloat
+
+    /// How far the black shape's middle moves from the notch's middle.
+    var offset: CGFloat { (right - left) / 2 }
 }
 
 extension NotchGeometry {
-    /// The Wings' size: as wide as the content wants (spec PV-8), the display's width while
-    /// widened (spec PV-16), taller by a drop-down under it (spec PV-18).
-    func wingsSize(side: CGFloat, state: WingsState) -> CGSize {
-        let base = previewSize(side: side)
-        let width = state.isWide ? maxModuleSize.width : base.width
-        return CGSize(width: width, height: base.height + state.dropHeight)
+    /// The narrowest a wing gets: its margins.
+    static var wingsMinSide: CGFloat { 2 * WingsLayout.padding }
+
+    /// Each side as wide as its content wants, at most to two thirds of the display; the left
+    /// side widened for every device reaches the display's edge (spec PV-24, PV-31).
+    func wingsSides(left: CGFloat, right: CGFloat, wideLeft: Bool = false) -> WingsSides {
+        let notchFrame = notchRect
+        let twoThirds = max((screenFrame.width * 2 / 3 - notchSize.width) / 2, Self.wingsMinSide)
+        let leftLimit = wideLeft ? max(notchFrame.minX - screenFrame.minX, twoThirds) : twoThirds
+        return WingsSides(
+            left: min(max(left, Self.wingsMinSide), leftLimit),
+            right: min(max(right, Self.wingsMinSide), twoThirds)
+        )
     }
 
-    /// How much content one side holds before the wings would pass two thirds of the display (spec PV-4).
-    var wingsMaxContent: CGFloat {
-        max((screenFrame.width * 2 / 3 - notchSize.width) / 2 - 2 * WingsLayout.padding, 0)
+    /// The Wings' size at the notch's height (spec PV-24).
+    func wingsSize(_ sides: WingsSides) -> CGSize {
+        CGSize(width: notchSize.width + sides.left + sides.right, height: notchSize.height)
     }
 }
 
-extension View {
-    /// The wings at the notch's height with a drop-down under them (spec PV-18).
-    func wingsFrame<Drop: View>(_ size: CGSize, drop: CGFloat, @ViewBuilder dropDown: () -> Drop) -> some View {
-        frame(width: size.width, height: size.height - drop)
-            .frame(height: size.height, alignment: .top)
-            .overlay(alignment: .bottom) { dropDown() }
+// MARK: - DyNotch Wings sides (spec PV-24)
+
+extension NotchViewModel {
+    /// Each wing's width as shown.
+    var wingsSides: WingsSides {
+        geometry.wingsSides(left: wingsLasting.needs.left, right: wingsLasting.needs.right, wideLeft: wings.isWide)
+    }
+
+    /// How far the open panel's middle moves from the notch's: only the Wings are asymmetric.
+    var openOffset: CGFloat {
+        isExpanded && isPreview && !isShowingDropZone ? wingsSides.offset : 0
+    }
+
+    /// The open panel on the display, the Wings' asymmetry included.
+    var openRect: CGRect {
+        geometry.rect(for: openSize).offsetBy(dx: openOffset, dy: 0)
     }
 }
 
@@ -48,12 +77,14 @@ enum WingsLayout {
     static let padding: CGFloat = 14
 }
 
-/// A line that runs from right to left when it does not fit (spec PV-20): it waits a second,
-/// runs to its end, rests two seconds, then starts again. With Reduce motion it ends in "…".
+/// A line that runs from right to left when it does not fit (spec PV-20, PV-34): it waits a
+/// second, runs to its end, rests two seconds, then starts again (or stays at its end). With Reduce motion it ends in "…".
 struct WingsMarquee: View {
     let text: String
     var bold = false
     var dim = false
+    /// false: runs once and stays at its end (spec PV-34).
+    var repeats = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var natural: CGFloat = 0
@@ -87,6 +118,7 @@ struct WingsMarquee: View {
             try? await Task.sleep(for: .seconds(1))
             guard !Task.isCancelled else { return }
             withAnimation(.linear(duration: duration)) { offset = -overflow }
+            guard repeats else { return }
             try? await Task.sleep(for: .seconds(duration + 2))
             guard !Task.isCancelled else { return }
             withAnimation(.easeOut(duration: 0.25)) { offset = 0 }

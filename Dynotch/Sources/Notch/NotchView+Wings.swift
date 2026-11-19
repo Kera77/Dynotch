@@ -5,7 +5,7 @@ import SwiftUI
 extension NotchView {
     /// What stands left of the notch for the current module.
     @ViewBuilder var wingsLeft: some View {
-        switch model.currentFeature {
+        switch wingsFeature {
         case .calendar: calendarWingLeft
         case .notifications: notificationsWingLeftV2
         case .calculator: WingLabel(symbol: "equal.square", text: lastCalculation?.line ?? "Empty")
@@ -25,12 +25,12 @@ extension NotchView {
 
     /// What stands right of the notch for the current module.
     @ViewBuilder var wingsRight: some View {
-        switch model.currentFeature {
+        switch wingsFeature {
         case .calendar: calendarWingRight
         case .notifications: notificationsWingRightV2
         case .calculator: calculatorWingRight
         case .notes: notesWingRightV2
-        case .reminders: remindersWingRight
+        case .reminders: remindersWingRightV2
         case .claudeUsage: usageSessionWing
         case .claudeChat: WingText(FeaturePreview.line(of: lastAnswer, fallback: "Ask Claude anything"), dim: true)
         case .battery: batteryWingRight
@@ -43,10 +43,52 @@ extension NotchView {
         }
     }
 
-    // MARK: Calendar
+    /// The top of the module strip: under the notch, or under the Wings and what hangs below them (spec PV-29).
+    var stripTop: CGFloat {
+        model.isExpanded && model.isPreview ? max(model.openSize.height, geometry.notchSize.height) : geometry.notchSize.height
+    }
 
+    /// The Wings in the open panel (spec PV-4, PV-24).
+    var wingsContent: some View {
+        WingsView(
+            notchWidth: geometry.notchSize.width, sides: model.wingsSides, openFully: openFully,
+            measured: wingsMeasured,
+            left: { wingsLeft },
+            right: { wingsRight }
+        )
+        .frame(width: model.openSize.width, height: model.openSize.height)
+    }
+
+    /// Each side's natural width, measured by the Wings (spec PV-24).
+    func wingsMeasured(_ needs: WingsSides) {
+        let old = model.wingsLasting.needs
+        guard abs(old.left - needs.left) > 1 || abs(old.right - needs.right) > 1 else { return }
+        withAnimation(Self.quickAnimation) { model.wingsLasting.needs = needs }
+    }
+
+    /// A second click on the open panel's notch folds it back into the Wings (spec PV-23).
+    @ViewBuilder var backToWingsArea: some View {
+        if settings.hoverPreview, !model.isShowingNotifications {
+            Color.clear
+                .frame(width: geometry.notchSize.width, height: geometry.notchSize.height)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: backToWings)
+        }
+    }
+
+    /// The module whose wings show: the merged AI module always shows the session (spec PV-30).
+    private var wingsFeature: FeatureID {
+        let feature = model.currentFeature
+        if feature == .claudeChat, settings.isEnabled(.claudeUsage) { return .claudeUsage }
+        return feature
+    }
+
+    // MARK: Calendar (spec PV-25)
+
+    /// The next event that is not all day, whichever day it is on.
     private var nextEvent: CalendarEvent? {
-        calendar.events(on: Date()).first { $0.end > Date() && !$0.isAllDay }
+        let now = Date()
+        return calendar.events.filter { $0.end > now && !$0.isAllDay }.min { $0.start < $1.start }
     }
 
     private var calendarWingLeft: some View {
@@ -54,11 +96,16 @@ extension NotchView {
             if let event = nextEvent {
                 HStack(spacing: 6) {
                     WingSymbol("calendar")
-                    WingText(event.start.formatted(date: .omitted, time: .shortened), bold: true)
-                    WingText(WingFormat.countdown(to: event.start, end: event.end, now: context.date), dim: true)
+                    if let day = WingFormat.day(of: event.start, now: context.date) {
+                        WingText(day, bold: true)
+                        WingText(event.start.formatted(date: .omitted, time: .shortened), dim: true)
+                    } else {
+                        WingText(event.start.formatted(date: .omitted, time: .shortened), bold: true)
+                        WingText(WingFormat.countdown(to: event.start, end: event.end, now: context.date), dim: true)
+                    }
                 }
             } else {
-                WingLabel(symbol: "calendar", text: "Nothing more today")
+                WingLabel(symbol: "calendar", text: "Nothing coming up")
             }
         }
     }
@@ -88,24 +135,6 @@ extension NotchView {
 
     private var lastAnswer: String {
         chat.selected?.messages.last { $0.role == .assistant }?.text ?? ""
-    }
-
-    // MARK: Reminders
-
-    @ViewBuilder private var remindersWingRight: some View {
-        let next = reminders.open.filter { $0.due != nil }.min { ($0.due ?? .distantFuture) < ($1.due ?? .distantFuture) }
-            ?? reminders.open.first
-        if let next {
-            HStack(spacing: 8) {
-                WingText(next.title)
-                if let due = next.due {
-                    let time = next.dueHasTime
-                        ? due.formatted(date: .omitted, time: .shortened) : due.formatted(.dateTime.month(.abbreviated).day())
-                    WingText(time, dim: true)
-                }
-                WingButton(title: nil, symbol: "checkmark.circle", help: "Done") { reminders.complete(next) }
-            }
-        }
     }
 
     // MARK: AI usage

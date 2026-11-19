@@ -23,6 +23,7 @@ extension NotchController {
             rootView.closeNotifications = { [weak self] in self?.closeNotificationCard() }
             rootView.clearNotifications = { [weak self] in self?.clearAllNotifications() }
             rootView.openFully = { [weak self] in self?.openFully() }
+            rootView.backToWings = { [weak self] in self?.backToWings() }
             rootView.openModule = { [weak self] in self?.openFromStrip($0) }
             rootView.joinedMeeting = { [weak self] in self?.joinFromRow($0) }
             rootView.openNotice = { [weak self] in self?.openNoticeApp() }

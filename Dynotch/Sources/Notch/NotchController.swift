@@ -154,7 +154,7 @@ final class NotchController {
     }
 
     var keepOpenZone: CGRect {
-        let zone = reachingDown(model.geometry.keepOpenZone(for: model.openSize))
+        let zone = reachingDown(model.geometry.keepOpenZone(for: model.openSize).offsetBy(dx: model.openOffset, dy: 0))
         return showsPreviewStrip ? zone.union(stripArea) : zone
     }
 
@@ -258,7 +258,7 @@ final class NotchController {
 
     private func scheduleClose() {
         guard closeTask == nil else { return }
-        let delay = settings.closeDelay
+        let delay = model.isPreview ? min(settings.closeDelay, 0.1) : settings.closeDelay
         closeTask = Task { [weak self] in
             if delay > 0 {
                 try? await Task.sleep(for: .seconds(delay))

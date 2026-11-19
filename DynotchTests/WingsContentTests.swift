@@ -9,24 +9,29 @@ struct WingsContentTests {
         auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
     )
 
-    @Test func wingsWidenToTheDisplayAndGrowByTheDropDown() {
-        let plain = geometry.wingsSize(side: 200, state: WingsState())
-        #expect(plain == geometry.previewSize(side: 200))
-        #expect(plain.width <= 1512 * 2 / 3)
-        var state = WingsState()
-        state.isWide = true
-        state.dropHeight = 120
-        let wide = geometry.wingsSize(side: 200, state: state)
-        #expect(wide.width == geometry.maxModuleSize.width)
-        #expect(wide.height == plain.height + 120)
-        state.closeDrop()
-        #expect(state.dropHeight == 0 && !state.isOnDrop)
+    @Test func eachWingIsAsWideAsItsContent() {
+        let sides = geometry.wingsSides(left: 80, right: 200)
+        #expect(sides == WingsSides(left: 80, right: 200))
+        #expect(sides.offset == 60)
+        #expect(geometry.wingsSize(sides).width == geometry.notchSize.width + 280)
+        // An empty side keeps its margins; neither side passes two thirds of the display.
+        #expect(geometry.wingsSides(left: 0, right: 0).left == NotchGeometry.wingsMinSide)
+        let huge = geometry.wingsSides(left: 10_000, right: 10_000)
+        #expect(geometry.wingsSize(huge).width <= 1512 * 2 / 3 + 0.5)
+        // Widened for every device, the left side may reach the display's edge (spec PV-31).
+        let wide = geometry.wingsSides(left: 10_000, right: 100, wideLeft: true)
+        #expect(wide.left == geometry.notchRect.minX)
     }
 
-    @Test func roomForDevicesStaysInsideTwoThirds() {
-        let content = geometry.wingsMaxContent
-        #expect(content > 0)
-        #expect(geometry.notchSize.width + 2 * (content + 2 * WingsLayout.padding) <= 1512 * 2 / 3 + 0.5)
+    @Test func daysBesideToday() throws {
+        let calendar = Calendar(identifier: .gregorian)
+        let now = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 19, hour: 10)))
+        #expect(WingFormat.day(of: now.addingTimeInterval(3600), now: now, calendar: calendar) == nil)
+        #expect(WingFormat.day(of: now.addingTimeInterval(86_400), now: now, calendar: calendar) == "Tomorrow")
+        let friday = now.addingTimeInterval(2 * 86_400)
+        #expect(WingFormat.day(of: friday, now: now, calendar: calendar) == friday.formatted(.dateTime.weekday(.wide)))
+        let later = now.addingTimeInterval(9 * 86_400)
+        #expect(WingFormat.day(of: later, now: now, calendar: calendar) == later.formatted(.dateTime.month(.abbreviated).day()))
     }
 
     @Test func noteBodyStartsOnTheSecondLine() {

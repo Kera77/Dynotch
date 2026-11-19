@@ -57,6 +57,7 @@ struct NotchView: View {
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
     /// Opens the whole panel from the preview (spec PV-3).
     var openFully: () -> Void = {}
+    var backToWings: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
     /// The notice under the closed notch clicked (spec CN-6).
@@ -98,8 +99,10 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     var collapsedOffset: CGFloat {
+        // The Wings are as wide on each side as their content (spec PV-24).
+        if model.isExpanded { return model.openOffset }
         // A notification keeps the row where it is and drops down under it (spec E-24b).
-        guard !model.isExpanded, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
+        guard devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
               !showsScreenshotPeek
         else { return 0 }
         return indicatorLayout.horizontalOffset
@@ -170,7 +173,8 @@ struct NotchView: View {
                     .offset(x: isGathered ? indicatorLayout.horizontalOffset : 0)
                     .blur(radius: isGathered ? 6 : 0)
                     .opacity(isGathered ? 0 : 1)
-                    .transition(.opacity)
+                    // After the Wings' content has gone, the row swims out of the notch (spec PV-26).
+                    .transition(settings.hoverPreview ? .notchItemsOut : .opacity)
                 }
 
                 if model.isExpanded, model.isShowingOverlayPage {
@@ -187,17 +191,11 @@ struct NotchView: View {
                     .frame(width: model.openSize.width, height: model.openSize.height)
                     .transition(Self.contentTransition)
                 } else if model.isExpanded, model.isPreview {
-                    WingsView(
-                        notchWidth: geometry.notchSize.width, openFully: openFully,
-                        measured: { [model] width in if abs(model.previewSide - width) > 1 { model.previewSide = width } },
-                        left: { wingsLeft },
-                        right: { wingsRight }
-                    )
-                    .wingsFrame(model.openSize, drop: model.wings.dropHeight) { wingsDropDown }
-                                        .transition(.wingsSpread)
+                    wingsContent.transition(.wingsSpreadIn)
                 } else if model.isExpanded {
                     expandedContent
                         .frame(width: model.openSize.width, height: model.openSize.height)
+                        .overlay(alignment: .top) { backToWingsArea }
                         .overlay(alignment: .bottomTrailing) {
                             // The resize handle (spec RS-1).
                             if layer == .content, model.canResize { ResizeCorner(model: model, radius: cornerRadius) }
@@ -225,10 +223,13 @@ struct NotchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .top) {
             if layer == .content, showsStrip {
-                ModuleStripView(features: stripFeatures, origin: model.stripOrigin, open: openModule) { feature, index in
+                ModuleStripView(
+                    features: stripFeatures, origin: model.stripOrigin, fromAbove: model.isPreview, open: openModule
+                ) { feature, index in
                     settings.moveFeature(feature, to: index, among: stripFeatures)
                 }
-                    .padding(.top, geometry.notchSize.height + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
+                    // Under whatever hangs below the Wings (spec PV-29).
+                    .padding(.top, stripTop + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
             }
         }
         .animation(Self.quickAnimation, value: showsStrip)

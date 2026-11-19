@@ -34,7 +34,9 @@ extension NotchView {
         let files = tray.trayFiles
         return HStack(spacing: 4) {
             if files.isEmpty {
-                WingLabel(symbol: "tray", text: "Drop files on the notch")
+                // The same capsule as AirDrop at the right (spec PV-36).
+                WingButton(title: "Drop files on the notch", symbol: "tray", help: "Drop files on the notch to keep them in the tray") {}
+                    .allowsHitTesting(false)
             }
             ForEach(files.prefix(4), id: \.item.id) { file in
                 Image(nsImage: NSWorkspace.shared.icon(forFile: file.url.path))
@@ -188,6 +190,17 @@ enum WingFormat {
         if start <= now { return end > now ? "now" : "" }
         let minutes = Int((start.timeIntervalSince(now) / 60).rounded(.up))
         return minutes < 60 ? "in \(minutes) min" : "in \(minutes / 60) h"
+    }
+
+    /// The day of a date beside "now": nil today, "Tomorrow", the weekday within a week,
+    /// otherwise "Nov 28" (spec PV-25, PV-33).
+    static func day(of date: Date, now: Date, calendar: Calendar = .current) -> String? {
+        if calendar.isDate(date, inSameDayAs: now) { return nil }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
+        if days == 1 { return "Tomorrow" }
+        if days == -1 { return "Yesterday" }
+        if days > 1, days < 7 { return date.formatted(.dateTime.weekday(.wide)) }
+        return date.formatted(.dateTime.month(.abbreviated).day())
     }
 
     static func copy(_ text: String) {

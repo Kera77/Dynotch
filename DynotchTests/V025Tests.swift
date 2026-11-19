@@ -159,7 +159,7 @@ struct V025Tests {
         model.setExpanded(true)
         model.setPreview(true)
         #expect(model.isPreview)
-        #expect(model.openSize == geometry.previewSize(side: model.previewSide))
+        #expect(model.openSize == geometry.wingsSize(model.wingsSides))
         #expect(model.openSize.height == geometry.notchSize.height)
         // As wide as the content needs, never beyond two thirds of the display (spec PV-8).
         #expect(geometry.previewSize(side: 10_000).width <= geometry.screenFrame.width * 2 / 3)

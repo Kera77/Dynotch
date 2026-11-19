@@ -6,6 +6,8 @@ struct ModuleStripView: View {
     let features: [FeatureID]
     /// Where the pointer was, from the notch's middle: the icons swim out from there (spec MS-1b).
     var origin: CGFloat = 0
+    /// Under the Wings the icons come down from above, one after the other (spec PV-28).
+    var fromAbove = false
     let open: (FeatureID) -> Void
     /// Dragging an icon sideways puts it to a new place (spec MS-6).
     var move: (FeatureID, Int) -> Void = { _, _ in }
@@ -36,9 +38,14 @@ struct ModuleStripView: View {
                 .offset(x: dragOffset(of: feature, at: index))
                 .zIndex(dragged == feature ? 1 : 0)
                 .highPriorityGesture(drag(feature, from: index))
-                .offset(x: isOut ? 0 : origin - slotX(index))
-                .scaleEffect(isOut ? 1 : 0.4)
+                .offset(x: isOut || fromAbove ? 0 : origin - slotX(index), y: isOut || !fromAbove ? 0 : -NotchGeometry.stripIconSize)
+                .scaleEffect(isOut ? 1 : fromAbove ? 0.8 : 0.4)
                 .opacity(isOut ? 1 : 0)
+                .animation(
+                    fromAbove ? AppleStyle.spring(response: 0.3, dampingFraction: 0.8).delay(Double(index) * 0.03)
+                        : AppleStyle.spring(response: 0.22, dampingFraction: 0.82),
+                    value: isOut
+                )
                 .help(feature.title)
                 .onHover { inside in
                     withAnimation(Motion.hover) {
@@ -51,9 +58,7 @@ struct ModuleStripView: View {
                 }
             }
         }
-        .onAppear {
-            withAnimation(AppleStyle.spring(response: 0.22, dampingFraction: 0.82)) { isOut = true }
-        }
+        .onAppear { isOut = true }
         .transition(.opacity)
     }
 

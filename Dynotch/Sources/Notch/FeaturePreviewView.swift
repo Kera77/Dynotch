@@ -13,13 +13,15 @@ struct FeaturePreview: Equatable, Sendable {
     }
 }
 
-/// DyNotch Wings (spec PV-4, PV-7, PV-8): the notch widened to both sides at its own height.
+/// DyNotch Wings (spec PV-4, PV-7, PV-24): the notch widened to both sides at its own height.
 /// Only a click on the notch itself opens the panel; the sides' buttons do their own thing.
-/// Each side is measured at its natural width so the notch grows as far as the wider one needs.
+/// Each side is measured at its natural width and gets only that much room.
 struct WingsView<Left: View, Right: View>: View {
     let notchWidth: CGFloat
+    /// The sides' share of the room beside the notch, while the panel grows or shrinks.
+    let sides: WingsSides
     let openFully: () -> Void
-    let measured: (CGFloat) -> Void
+    let measured: (WingsSides) -> Void
     @ViewBuilder let left: Left
     @ViewBuilder let right: Right
 
@@ -28,18 +30,21 @@ struct WingsView<Left: View, Right: View>: View {
     /// Both sides slide out of the notch as it widens (spec PV-11).
     @Environment(\.wingsSpread) private var spread
 
-    static var padding: CGFloat { 14 }
+    static var padding: CGFloat { WingsLayout.padding }
 
     var body: some View {
         GeometryReader { proxy in
-            let side = max((proxy.size.width - notchWidth) / 2, 0)
+            let room = max(proxy.size.width - notchWidth, 0)
+            let total = max(sides.left + sides.right, 1)
+            let leftSide = room * sides.left / total
+            let rightSide = room - leftSide
             HStack(spacing: 0) {
                 left
                     .lineLimit(1)
                     .padding(.horizontal, Self.padding)
-                    .frame(width: side, alignment: .leading)
+                    .frame(width: leftSide, alignment: .trailing)
                     .clipped()
-                    .wingSpread(spread, towardsNotch: side / 2)
+                    .wingSpread(spread, towardsNotch: leftSide / 2)
                 Color.clear
                     .frame(width: notchWidth)
                     .contentShape(Rectangle())
@@ -47,9 +52,9 @@ struct WingsView<Left: View, Right: View>: View {
                 right
                     .lineLimit(1)
                     .padding(.horizontal, Self.padding)
-                    .frame(width: side, alignment: .trailing)
+                    .frame(width: rightSide, alignment: .leading)
                     .clipped()
-                    .wingSpread(spread, towardsNotch: -side / 2)
+                    .wingSpread(spread, towardsNotch: -rightSide / 2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -62,8 +67,8 @@ struct WingsView<Left: View, Right: View>: View {
             .hidden()
             .allowsHitTesting(false)
         }
-        .onChange(of: max(leftWidth, rightWidth), initial: true) { _, width in
-            measured(width + 2 * Self.padding)
+        .onChange(of: WingsSides(left: leftWidth, right: rightWidth), initial: true) { _, natural in
+            measured(WingsSides(left: natural.left + 2 * Self.padding, right: natural.right + 2 * Self.padding))
         }
     }
 }

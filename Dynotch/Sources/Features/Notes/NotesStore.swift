@@ -386,7 +386,8 @@ extension NotesStore {
 extension NotesStore {
     /// Looks up the note changed last, at most every 20 seconds.
     func refreshLatest(now: Date = Date()) {
-        guard access == .ready, latestLoaded.map({ now.timeIntervalSince($0) > 20 }) ?? true else { return }
+        // Also before the Notes panel was opened: only a refusal stops it (spec PV-34).
+        guard access != .denied, latestLoaded.map({ now.timeIntervalSince($0) > 20 }) ?? true else { return }
         latestLoaded = now
         Task {
             if let found = try? await bridge.latest(), found != latest { latest = found }

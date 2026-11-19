@@ -1,63 +1,53 @@
 import SwiftUI
 
-// MARK: - DyNotch Wings: Stats and Reminders, v0.75 (spec PV-16, PV-18)
+// MARK: - DyNotch Wings: Stats and Reminders, v0.76 (spec PV-31, PV-33)
 
 extension NotchView {
-    // MARK: Stats (spec PV-16)
+    // MARK: Stats (spec PV-31)
 
     /// The Mac first, then the other devices.
     private var wingsDevices: [BatteryDevice] {
         battery.devices.filter { $0.kind == .mac } + battery.devices.filter { $0.kind != .mac }
     }
 
-    /// How many devices fit on the left before the wings would pass two thirds of the display.
-    private var wingsDevicesFitting: Int {
-        max(Int(geometry.wingsMaxContent / WingsDevice.width), 1)
-    }
-
+    /// Four devices next to the notch; the others open to the left from "+N".
     var statsWingLeftV2: some View {
         let devices = wingsDevices
+        let first = Array(devices.prefix(WingsDevice.shown))
+        let others = Array(devices.dropFirst(WingsDevice.shown))
         return HStack(spacing: WingsDevice.spacing) {
             if devices.isEmpty {
                 WingLabel(symbol: "battery.100percent", text: "No device found")
             }
-            ForEach(devices.prefix(wingsDevicesFitting)) { WingsDevice(device: $0) }
+            if model.wings.isWide {
+                ForEach(others) { WingsDevice(device: $0) }
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            } else if !others.isEmpty {
+                Text("+\(others.count)")
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.white.level(0.14)))
+                    .contentShape(Rectangle())
+                    .help("Show every device")
+                    .onHover { inside in
+                        if inside { withAnimation(NotchController.animation) { model.wings.isWide = true } }
+                    }
+            }
+            ForEach(first) { WingsDevice(device: $0) }
         }
-        // Widened, the batteries stay next to the notch.
-        .frame(maxWidth: model.wings.isWide ? .infinity : nil, alignment: .trailing)
+        .contentShape(Rectangle())
+        .onHover { inside in
+            if !inside, model.wings.isWide { withAnimation(NotchController.animation) { model.wings.isWide = false } }
+        }
         .onAppear { stats.setVisible(true) }
         .onDisappear {
             stats.setVisible(model.isExpanded && !model.isPreview && model.currentFeature == .stats)
-            if model.wings.isWide { model.wings.isWide = false }
         }
     }
 
     @ViewBuilder var statsWingRightV2: some View {
-        let hidden = Array(wingsDevices.dropFirst(wingsDevicesFitting))
-        if model.wings.isWide {
-            HStack(spacing: WingsDevice.spacing) {
-                ForEach(hidden) { WingsDevice(device: $0) }
-                Divider().frame(height: 14)
-                statsMemory
-            }
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .contentShape(Rectangle())
-            .onContinuousHover(coordinateSpace: .global) { phase in
-                wingsWideHover(phase)
-            }
-        } else {
-            HStack(spacing: 8) {
-                statsMemory
-                if !hidden.isEmpty {
-                    WingButton(title: "+\(hidden.count)", symbol: "chevron.right.2", help: "Show every device") {
-                        withAnimation(NotchController.animation) { model.wings.isWide = true }
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder private var statsMemory: some View {
         if let memory = stats.snapshot.memory {
             HStack(spacing: 6) {
                 WingText("Memory", dim: true)
@@ -68,69 +58,75 @@ extension NotchView {
         }
     }
 
-    /// Widened: when the pointer heads back towards the notch, the wings narrow again.
-    private func wingsWideHover(_ phase: HoverPhase) {
-        guard case .active(let location) = phase else { return }
-        let distance = location.x - geometry.windowSize.width / 2
-        let furthest = max(model.wings.furthest, distance)
-        if furthest != model.wings.furthest { model.wings.furthest = furthest }
-        if distance < furthest - WingsDevice.backOff {
-            withAnimation(NotchController.animation) {
-                model.wings.isWide = false
-                model.wings.furthest = 0
-            }
-        }
+    // MARK: Reminders (spec PV-33)
+
+    /// Open reminders, the newest first, without the ones ticked off in the Wings.
+    private var wingsTasks: [ReminderItem] {
+        reminders.open
+            .filter { !model.wingsLasting.done.contains($0.id) && !reminders.completing.contains($0.id) }
+            .sorted { ($0.created ?? .distantPast) > ($1.created ?? .distantPast) }
     }
 
-    // MARK: Reminders (spec PV-18)
+    /// Left: the newest; right: the next due, else the second newest.
+    private var wingsTaskPair: (left: ReminderItem?, right: ReminderItem?) {
+        let tasks = wingsTasks
+        let left = tasks.first
+        let rest = tasks.dropFirst()
+        let due = rest.filter { $0.due != nil }.min { ($0.due ?? .distantFuture) < ($1.due ?? .distantFuture) }
+        return (left, due ?? rest.first)
+    }
 
-    /// The task added last; its icon drops the tasks' list down.
     @ViewBuilder var remindersWingLeftV2: some View {
-        let newest = reminders.open.max { ($0.created ?? .distantPast) < ($1.created ?? .distantPast) }
-        HStack(spacing: 6) {
-            WingsTaskIcon(state: $model.wings, dropHeight: wingsTaskDropHeight)
-            if let newest {
-                WingsMarquee(text: newest.title, bold: true)
+        let left = wingsTaskPair.left
+        ZStack(alignment: .trailing) {
+            if let left {
+                wingsTaskLine(left)
+                    .id(left.id)
+                    // The next one swims out of the notch.
+                    .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
             } else {
                 WingText("Nothing open", bold: true)
             }
         }
+        .animation(NotchController.animation, value: left?.id)
     }
 
-    private var wingsTaskDropHeight: CGFloat {
-        let count = min(tasks.listed.count, IndicatorLayout.taskRows)
-        return IndicatorLayout.labelHeight + CGFloat(max(count, 1)) * 22 + 6
+    @ViewBuilder var remindersWingRightV2: some View {
+        let right = wingsTaskPair.right
+        ZStack(alignment: .leading) {
+            if let right {
+                wingsTaskLine(right)
+                    .id(right.id)
+                    .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity), removal: .opacity))
+            }
+        }
+        .animation(NotchController.animation, value: right?.id)
     }
 
-    /// The tasks' list under the wings, as under the notch's task counter (spec PV-18, R-12).
-    @ViewBuilder var wingsDropDown: some View {
-        if model.wings.dropHeight > 0 {
-            let listed = tasks.listed
-            VStack(spacing: 0) {
-                HStack(spacing: 7) {
-                    Image(systemName: "checklist")
-                        .font(.notch(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.blue)
-                    WingText(listed.isEmpty ? "No open tasks" : "\(listed.count) open task\(listed.count == 1 ? "" : "s")", bold: true)
-                    Spacer(minLength: 8)
-                    WingButton(title: "Open", symbol: nil, help: "Open Reminders", action: openFully)
-                }
-                .padding(.horizontal, 12)
-                .frame(height: IndicatorLayout.labelHeight - 4)
-                ForEach(listed.prefix(IndicatorLayout.taskRows)) { task in
-                    TaskDropDownRow(task: task) { tasks.complete(task) }
-                }
-                Spacer(minLength: 0)
+    private func wingsTaskLine(_ item: ReminderItem) -> some View {
+        WingsTaskLine(
+            item: item,
+            color: reminders.list(for: item)?.color.color ?? Theme.blue,
+            due: WingFormat.due(of: item, now: Date()),
+            isOverdue: item.isOverdue(at: Date()),
+            isTicked: model.wingsLasting.ticked.contains(item.id),
+            tick: { tickWingsTask(item) },
+            undo: { withAnimation(Motion.quick) { _ = model.wingsLasting.ticked.remove(item.id) } }
+        )
+    }
+
+    /// Ticked: Undo for a few seconds, then it is completed in Reminders and the next one shows.
+    private func tickWingsTask(_ item: ReminderItem) {
+        withAnimation(Motion.quick) { _ = model.wingsLasting.ticked.insert(item.id) }
+        Task { [model, reminders] in
+            try? await Task.sleep(for: WingsTaskLine.undoTime)
+            guard model.wingsLasting.ticked.contains(item.id) else { return }
+            reminders.complete(item)
+            let openIDs = Set(reminders.open.map(\.id))
+            withAnimation(NotchController.animation) {
+                model.wingsLasting.ticked.remove(item.id)
+                model.wingsLasting.done = model.wingsLasting.done.intersection(openIDs).union([item.id])
             }
-            .padding(.top, 2)
-            .frame(maxWidth: 420)
-            .frame(height: model.wings.dropHeight, alignment: .top)
-            .contentShape(Rectangle())
-            .onHover { inside in
-                model.wings.isOnDrop = inside
-                if !inside { withAnimation(NotchController.animation) { model.wings.closeDrop() } }
-            }
-            .transition(.opacity)
         }
     }
 }
@@ -139,11 +135,9 @@ extension NotchView {
 struct WingsDevice: View {
     let device: BatteryDevice
 
-    /// Room one device takes, with the gap after it.
-    static let width: CGFloat = 58
+    /// How many stand next to the notch before "+N" (spec PV-31).
+    static let shown = 4
     static let spacing: CGFloat = 10
-    /// How far back towards the notch the pointer goes before widened wings narrow.
-    static let backOff: CGFloat = 60
 
     var body: some View {
         HStack(spacing: 4) {
@@ -152,37 +146,63 @@ struct WingsDevice: View {
                 .foregroundStyle(device.isLow ? .red : .white)
                 .monospacedDigit()
         }
+        .fixedSize()
         .help(device.name)
     }
 }
 
-/// The task symbol in the wings: resting on it drops the tasks' list (spec PV-18).
-struct WingsTaskIcon: View {
-    @Binding var state: WingsState
-    let dropHeight: CGFloat
+/// A reminder in the wings: a ring that takes its list's colour on hover and ticks it off, the
+/// title and when it is due; ticked, it is struck through with Undo (spec PV-33).
+struct WingsTaskLine: View {
+    let item: ReminderItem
+    let color: Color
+    let due: String?
+    let isOverdue: Bool
+    let isTicked: Bool
+    let tick: () -> Void
+    let undo: () -> Void
 
-    @State private var leave: Task<Void, Never>?
+    static let undoTime: Duration = .seconds(4)
+
+    @State private var isHovered = false
 
     var body: some View {
-        WingSymbol("checklist")
-            .padding(4)
-            .contentShape(Rectangle())
-            .onHover { inside in
-                leave?.cancel()
-                if inside {
-                    withAnimation(NotchController.animation) { state.dropHeight = dropHeight }
-                } else {
-                    // Time to move down onto the list.
-                    leave = Task {
-                        try? await Task.sleep(for: .milliseconds(350))
-                        guard !Task.isCancelled, !state.isOnDrop else { return }
-                        withAnimation(NotchController.animation) { state.closeDrop() }
-                    }
+        HStack(spacing: 6) {
+            Button(action: tick) {
+                Image(systemName: isTicked ? "checkmark.circle.fill" : "circle")
+                    .font(.notch(size: 13, weight: .regular))
+                    .foregroundStyle(isTicked || isHovered ? color : Color.white.level(0.6))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .disabled(isTicked)
+            .help("Done")
+            .onHover { inside in withAnimation(Motion.hover) { isHovered = inside } }
+            if isTicked {
+                Text(item.title)
+                    .font(.notch(size: 12, weight: .semibold))
+                    .strikethrough()
+                    .foregroundStyle(Color.white.level(0.5))
+                    .lineLimit(1)
+                WingButton(title: "Undo", symbol: nil, help: "Keep it open", action: undo)
+            } else {
+                WingsMarquee(text: item.title, bold: true)
+                if let due {
+                    WingText(due, dim: !isOverdue).foregroundStyle(isOverdue ? .red : Color.white.level(0.6))
                 }
             }
-            .onDisappear {
-                leave?.cancel()
-                if state.dropHeight > 0 { state.closeDrop() }
-            }
+        }
+    }
+}
+
+extension WingFormat {
+    /// When a reminder is due: the time today, otherwise the day and the time (spec PV-33).
+    static func due(of item: ReminderItem, now: Date) -> String? {
+        guard let due = item.due else { return nil }
+        let time = item.dueHasTime ? due.formatted(date: .omitted, time: .shortened) : nil
+        if let day = day(of: due, now: now) {
+            return [day, time].compactMap { $0 }.joined(separator: " ")
+        }
+        return time ?? "Today"
     }
 }

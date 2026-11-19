@@ -153,6 +153,12 @@ extension NotchController {
         withAnimation(Self.animation) { model.setPreview(false) }
     }
 
+    /// A click on the open panel's notch folds it back into the Wings (spec PV-23).
+    func backToWings() {
+        guard settings.hoverPreview, model.isExpanded, !model.isPreview else { return }
+        withAnimation(Self.animation) { startPreview() }
+    }
+
     /// The module strip under the preview (spec PV-6); not while files are dropped on the wings.
     var showsPreviewStrip: Bool {
         model.isPreview && !model.isShowingDropZone && settings.moduleStrip
