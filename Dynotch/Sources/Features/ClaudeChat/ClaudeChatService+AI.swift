@@ -125,11 +125,6 @@ extension ClaudeChatService {
         return found.filter { $0.isPinned == true } + found.filter { $0.isPinned != true }
     }
 
-    /// The web conversations of the shown service matching the search (spec AI-17).
-    func listedWebConversations(matching search: String) -> [WebAIConversation] {
-        webConversations.filter { $0.provider == shownProvider && (search.isEmpty || $0.title.localizedCaseInsensitiveContains(search)) }
-    }
-
     // MARK: Context (spec AI-5)
 
     /// The clipboard's text into the question, or its image as an attachment.

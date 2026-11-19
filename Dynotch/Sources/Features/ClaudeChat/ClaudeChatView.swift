@@ -64,7 +64,6 @@ struct ClaudeChatView: View {
         .clipped()
         .readWidth($width)
         .onAppear {
-            service.refreshCodeSessions()
             // Opened (also by its shortcut): ready to type (spec AI-4).
             DispatchQueue.main.async { isTyping = true }
         }
@@ -118,22 +117,6 @@ struct ClaudeChatView: View {
                         }
                     }
                     AIFavoritesSection(service: service)
-                    let web = service.listedWebConversations(matching: search)
-                    if !web.isEmpty {
-                        Text("ON THE WEB")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.4))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 8)
-                            .padding(.top, 8)
-                        ForEach(web) { conversation in
-                            ChatRow(
-                                title: conversation.title, isSelected: false, isWorking: false,
-                                select: { NSWorkspace.shared.open(conversation.url) }
-                            )
-                            .help("Opens on \(conversation.url.host ?? "the web")")
-                        }
-                    }
                 }
             }
             .scrollIndicators(.never)

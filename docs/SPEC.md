@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.65 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.65.1 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -691,7 +691,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-14 | (v0.43) **Diktálás:** mikrofon gomb a beviteli mező mellett, a macOS diktálását indítja (saját mikrofonengedély nélkül). |
 | AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
 | AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
-| AI-17 | (v0.65) Az AI oldalsávjában **nincsenek Claude Code- és Codex-munkamenetek**: az appban feltett kérdések (csevegések) és alattuk *On the web*: a claude.ai és chatgpt.com beszélgetések a böngészők helyi előzményeiből (Chromium-alapúak, Zen/Firefox, Safari), címmel, a választott szolgáltatóé; kattintásra a böngészőben nyílik. Csak a cím és a link olvasódik, semmi nem hagyja el a gépet. |
+| AI-17 | (v0.65.1) Az AI bal oldalsávjában **mindkét szolgáltatónál csak a notchban folytatott beszélgetések** (a választott szolgáltatóé); nincsenek Claude Code- és Codex-munkamenetek, sem webes (claude.ai, chatgpt.com) beszélgetések – a ChatGPT webes módja is a böngészőben nyílik. |
 
 ## 4ö. Modulok átméretezése (v0.45)
 
@@ -838,6 +838,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.65.1** | AI oldalsáv: csak a notchban folytatott beszélgetések, webes előzmények nélkül |
 | **v0.65** | Mission Control: gyors felcsúszó eltűnés, trackpad-gesztusra azonnal; AI-előzmények: appbeli kérdések és a webes Claude/ChatGPT beszélgetések, Claude Code/Codex nélkül |
 | **v0.64** | Stabilitás és energia: időkorlát a külső eszközökre, szálbiztos napló, háttérben olvasott értesítés-adatbázis és ablaklista, rendszeranimációs jelvény-pulzálás, ritkább Spotify- és jelzősor-frissítés, a chat és a naptár nem rajzolja újra a notchot; Screen Recording és hiányzó-engedély jelzés; nincs pulzálás Fókusz alatt |
 | **v0.63.1** | Beragadó notch (holtpont a menüsor mérésénél) javítva; BT-szalagcím keresése a Vezérlőközpontban is, naplóval; középre igazított, pöccintéssel eltüntethető eszköz-felugró |

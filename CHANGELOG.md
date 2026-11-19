@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.65.1] - 2026-11-19
+
+### Changed
+- AI: the sidebar lists only the conversations held in the notch, for Claude and ChatGPT alike; the "On the web" list is gone.
+
 ## [0.65.0] - 2026-11-19
 
 ### Changed
