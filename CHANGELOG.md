@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.61.0] - 2026-11-19
+
 ### Changed
 - Tray: Quick Look needs no click; Space shows the file under the mouse, and an open preview follows the mouse to another file.
 - Tray: the Tray and Screenshots tabs' dot colours can be changed too.
