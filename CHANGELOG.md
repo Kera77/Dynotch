@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.78.0] - 2026-11-20
+
 ### Changed
 - DyNotch Wings: while a small notice stands beside the notch, hovering the notch no longer opens the module's wings over it. Swiped up (or closed with X or a click), the notice swims into the notch first, then the module's wings open if the pointer is on the notch, otherwise the notch's own items swim out.
 - AI Wings: the logo and name of the AI chosen in the module (Claude or ChatGPT; the chat's AI on the chat tab), and that AI's own session usage on the right.
