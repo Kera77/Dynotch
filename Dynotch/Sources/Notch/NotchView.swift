@@ -192,7 +192,7 @@ struct NotchView: View {
                         left: { wingsLeft },
                         right: { wingsRight }
                     )
-                    .frame(width: model.openSize.width, height: model.openSize.height)
+                    .wingsFrame(model.openSize, drop: model.wings.dropHeight) { wingsDropDown }
                     .transition(.opacity)
                 } else if model.isExpanded {
                     expandedContent

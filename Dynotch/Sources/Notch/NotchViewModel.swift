@@ -13,9 +13,11 @@ final class NotchViewModel: ObservableObject {
     /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
     @Published private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
-    @Published private(set) var isPreview = false
+    @Published private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() } } }
     /// What the wider side of the preview needs (spec PV-8).
     @Published var previewSide: CGFloat = 200
+    /// What the Wings' content asks of the panel: wider, a drop-down, the hovered app (spec PV-16…PV-18).
+    @Published var wings = WingsState()
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
@@ -228,7 +230,7 @@ final class NotchViewModel: ObservableObject {
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
-        if isPreview { return geometry.previewSize(side: previewSide) }
+        if isPreview { return geometry.wingsSize(side: previewSide, state: wings) }
         // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }

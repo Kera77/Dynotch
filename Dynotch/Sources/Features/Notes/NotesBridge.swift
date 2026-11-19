@@ -25,6 +25,14 @@ struct NoteDetail: Decodable, Equatable, Sendable {
     let text: String
 }
 
+/// The note changed last, in any folder but the trash (spec PV-19).
+struct LatestNote: Decodable, Equatable, Sendable {
+    let folder: String
+    let name: String
+    let text: String
+    let modified: Double
+}
+
 struct NoteSaveResult: Decodable, Equatable, Sendable {
     let conflict: Bool
     let modified: Double
@@ -69,6 +77,10 @@ struct NotesBridge: Sendable {
     func notes(inFolder folderID: String) async throws -> [NoteSummary] {
         try await run(Scripts.notes, [folderID], as: [NoteSummary].self)
             .sorted { $0.modified > $1.modified }
+    }
+
+    func latest() async throws -> LatestNote? {
+        try await run(Scripts.latest, Array(Self.trashFolderNames), as: LatestNote?.self)
     }
 
     func note(_ id: String) async throws -> NoteDetail {
@@ -192,5 +204,34 @@ enum Scripts {
     }
     """
 
-    static let all = [folders, notes, note, save, create, show]
+    /// The newest note of every folder but the ones named in argv; its text cut short.
+    static let latest = """
+    function run(argv) {
+      const Notes = Application('Notes');
+      let best = null;
+      let bestDate = 0;
+      Notes.accounts().forEach(function (account) {
+        account.folders().forEach(function (folder) {
+          const name = folder.name();
+          if (argv.indexOf(name) >= 0) return;
+          const dates = folder.notes.modificationDate();
+          for (let i = 0; i < dates.length; i++) {
+            const time = dates[i].getTime();
+            if (time > bestDate) { bestDate = time; best = { folder: folder, index: i, name: name }; }
+          }
+        });
+      });
+      if (best === null) return JSON.stringify(null);
+      const note = best.folder.notes[best.index];
+      const locked = note.passwordProtected();
+      return JSON.stringify({
+        folder: best.name,
+        name: note.name(),
+        modified: bestDate,
+        text: locked ? '' : note.plaintext().slice(0, 600)
+      });
+    }
+    """
+
+    static let all = [folders, notes, note, save, create, show, latest]
 }

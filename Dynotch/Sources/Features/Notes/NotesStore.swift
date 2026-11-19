@@ -46,6 +46,9 @@ final class NotesStore: ObservableObject {
     /// The body of a note that is read-only only because of its lists (spec J-12b).
     @Published private(set) var convertibleHTML: String?
     @Published private(set) var saveState: SaveState = .idle
+    /// The note changed last, for the Wings (spec PV-19).
+    @Published private(set) var latest: LatestNote?
+    private var latestLoaded: Date?
 
     static let autosaveDelay: Duration = .milliseconds(1500)
     private static let refreshInterval: TimeInterval = 60
@@ -374,6 +377,19 @@ extension NotesStore {
             access = .denied
         } else {
             access = .failed("\(error)")
+        }
+    }
+}
+
+// MARK: - The newest note (spec PV-19)
+
+extension NotesStore {
+    /// Looks up the note changed last, at most every 20 seconds.
+    func refreshLatest(now: Date = Date()) {
+        guard access == .ready, latestLoaded.map({ now.timeIntervalSince($0) > 20 }) ?? true else { return }
+        latestLoaded = now
+        Task {
+            if let found = try? await bridge.latest(), found != latest { latest = found }
         }
     }
 }

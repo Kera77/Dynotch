@@ -190,6 +190,12 @@ final class ClipboardStore: ObservableObject {
 
     /// Puts the item on the pasteboard and pastes it into the app in front with ⌘V.
     func paste(_ item: ClipItem) {
+        copy(item)
+        Self.pressCommandV()
+    }
+
+    /// Puts the item on the pasteboard; it comes first in the history again (spec PV-22).
+    func copy(_ item: ClipItem) {
         let board = NSPasteboard.general
         board.clearContents()
         if item.kind == .image, let image = image(of: item) {
@@ -203,7 +209,6 @@ final class ClipboardStore: ObservableObject {
             history = [item] + history.filter { $0.id != item.id }
             persist()
         }
-        Self.pressCommandV()
     }
 
     private static func pressCommandV() {
