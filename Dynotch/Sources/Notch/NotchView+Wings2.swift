@@ -34,8 +34,8 @@ extension NotchView {
         let files = tray.trayFiles
         return HStack(spacing: 4) {
             if files.isEmpty {
-                // The same capsule as AirDrop at the right (spec PV-36).
-                WingButton(title: "Drop files on the notch", symbol: "tray", help: "Drop files on the notch to keep them in the tray") {}
+                // The same capsule as AirDrop at the right (spec PV-36, PV-42).
+                WingButton(title: "Drop files", symbol: "tray", help: "Drop files on the notch to keep them in the tray") {}
                     .allowsHitTesting(false)
             }
             ForEach(files.prefix(4), id: \.item.id) { file in

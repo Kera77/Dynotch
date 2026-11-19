@@ -10,16 +10,24 @@ struct WingsState: Equatable, Sendable {
     var stepsLeft = false
     /// Clipboard: the item the pointer is on (spec PV-35).
     var hoveredClip: String?
+    /// Clipboard: counts the pointer's comings and goings, so a late fold-back knows it is stale (spec PV-46).
+    var clipMoves = 0
+    /// Something was hovered: the wings only widen until they close or the module changes (spec PV-40).
+    var holdsWidth = false
 }
 
 /// What outlives one opening of the Wings (spec PV-24, PV-33).
 struct WingsLasting: Equatable, Sendable {
     /// What each side needs, margins included.
     var needs = WingsSides(left: 200, right: 200)
-    /// Reminders ticked in the Wings, waiting for their Undo to run out.
-    var ticked: Set<String> = []
-    /// Reminders whose Undo ran out: hidden until Reminders drops them.
+    /// Reminders ticked in the Wings, waiting to be completed (a click on the ring unticks them).
+    var ticked: [String: UUID] = [:]
+    /// Reminders completed from the Wings: hidden until Reminders drops them.
     var done: Set<String> = []
+    /// What each side of a small notice beside the closed notch needs (spec PV-37, PV-38).
+    var peekNeeds = WingsSides(left: 160, right: 230)
+    /// Counts the pointer coming onto such a notice: its running line starts again (spec PV-38).
+    var peekHovers = 0
 }
 
 /// The width of each wing, content and margins included (spec PV-24).
@@ -59,6 +67,11 @@ extension NotchViewModel {
     /// Each wing's width as shown.
     var wingsSides: WingsSides {
         geometry.wingsSides(left: wingsLasting.needs.left, right: wingsLasting.needs.right, wideLeft: wings.isWide)
+    }
+
+    /// Each side of a small notice beside the closed notch (spec PV-37, PV-38).
+    var peekSides: WingsSides {
+        geometry.wingsSides(left: wingsLasting.peekNeeds.left, right: wingsLasting.peekNeeds.right)
     }
 
     /// How far the open panel's middle moves from the notch's: only the Wings are asymmetric.

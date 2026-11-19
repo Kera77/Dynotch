@@ -16,8 +16,9 @@ extension NotchView {
 
     /// A notification, a call or a line hanging below makes the closed notch taller.
     private var isTall: Bool {
-        // In Wings mode a notification stays at the notch's height (spec PV-13).
-        (notifications.peek != nil && !settings.hoverPreview)
+        // In Wings mode the small notices stay at the notch's height beside it (spec PV-13, PV-37).
+        if wingsPeek != nil { return false }
+        return (notifications.peek != nil && !settings.hoverPreview)
             || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
     }
 

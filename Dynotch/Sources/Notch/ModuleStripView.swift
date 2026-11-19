@@ -42,7 +42,7 @@ struct ModuleStripView: View {
                 .scaleEffect(isOut ? 1 : fromAbove ? 0.8 : 0.4)
                 .opacity(isOut ? 1 : 0)
                 .animation(
-                    fromAbove ? AppleStyle.spring(response: 0.3, dampingFraction: 0.8).delay(Double(index) * 0.03)
+                    fromAbove ? AppleStyle.spring(response: 0.3, dampingFraction: 0.8)
                         : AppleStyle.spring(response: 0.22, dampingFraction: 0.82),
                     value: isOut
                 )

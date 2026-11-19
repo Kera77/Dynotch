@@ -41,7 +41,7 @@ struct DevicePeekView: View {
     }
 
     /// "Connected" with a tick, "Disconnected", or the device's own detail (drive size…).
-    private var statusLine: some View {
+    var statusLine: some View {
         HStack(spacing: 4) {
             if event.detail == nil {
                 Image(systemName: event.isConnected ? "checkmark.circle.fill" : "xmark.circle")
@@ -55,7 +55,7 @@ struct DevicePeekView: View {
         .foregroundStyle(event.detail == nil && event.isConnected ? Theme.green : Color.white.level(0.6))
     }
 
-    private func levelView(_ level: DeviceLevel) -> some View {
+    func levelView(_ level: DeviceLevel) -> some View {
         HStack(spacing: 3) {
             if let symbol = level.symbols.first(where: { NSImage(systemSymbolName: $0, accessibilityDescription: nil) != nil }) {
                 Image(systemName: symbol).font(.notch(size: 11))
@@ -69,7 +69,7 @@ struct DevicePeekView: View {
     }
 
     @ViewBuilder
-    private func actionButton(_ action: DeviceEvent.Action) -> some View {
+    func actionButton(_ action: DeviceEvent.Action) -> some View {
         switch action {
         case .open: button("Open", action)
         case .eject: button("Eject", action)

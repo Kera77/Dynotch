@@ -65,6 +65,7 @@ extension NotchView {
                         hover: {
                             guard entry.id != active else { return }
                             model.wings.stepsLeft = index < activeIndex
+                            model.wings.holdsWidth = true
                             model.wings.hoveredApp = entry.id
                         },
                         open: { openWingsApp(entry) }
@@ -79,7 +80,8 @@ extension NotchView {
         if let active = activeWingsApp(in: wingsApps) {
             // The line steps the way the pointer went (spec PV-32).
             ZStack(alignment: .leading) {
-                WingText(active.line)
+                // Runs to its end when it does not fit (spec PV-38).
+                WingsMarquee(text: active.line, repeats: false)
                     .id(active.id)
                     .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
             }
@@ -152,10 +154,12 @@ extension NotchView {
         clipRow(Array(clipboard.history.dropFirst(3).prefix(3)))
     }
 
-    /// Hovered, an item opens as far as its wing allows; the row's others shrink to dots at the edges.
+    /// Hovered, an item opens as far as its wing allows; the row's others shrink to dots at the
+    /// edges. Left, it stays open two more seconds (spec PV-35, PV-46).
     private func clipRow(_ items: [ClipItem]) -> some View {
         let hovered = model.wings.hoveredClip
         let rowHasHover = items.contains { $0.id.uuidString == hovered }
+        let motion = AppleStyle.spring(response: 0.3, dampingFraction: 0.86)
         return HStack(spacing: 6) {
             ForEach(items) { item in
                 let key = item.id.uuidString
@@ -164,19 +168,30 @@ extension NotchView {
                     isOpen: key == hovered, isDot: rowHasHover && key != hovered
                 ) { clipboard.copy(item) }
                 .onHover { inside in
-                    if inside, model.wings.hoveredClip != key {
-                        withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.86)) { model.wings.hoveredClip = key }
+                    guard inside else { return }
+                    model.wings.clipMoves += 1
+                    model.wings.holdsWidth = true
+                    if model.wings.hoveredClip != key {
+                        withAnimation(motion) { model.wings.hoveredClip = key }
                     }
                 }
             }
         }
         .contentShape(Rectangle())
         .onHover { inside in
-            if !inside, rowHasHover {
-                withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.86)) { model.wings.hoveredClip = nil }
+            guard !inside, rowHasHover else { return }
+            model.wings.clipMoves += 1
+            let move = model.wings.clipMoves
+            Task { [model] in
+                try? await Task.sleep(for: Self.clipFoldDelay)
+                guard model.wings.clipMoves == move, model.wings.hoveredClip != nil else { return }
+                withAnimation(motion) { model.wings.hoveredClip = nil }
             }
         }
     }
+
+    /// How long an item left by the pointer stays open (spec PV-46).
+    static let clipFoldDelay: Duration = .seconds(2)
 }
 
 /// A clipboard item in the wings: a chip, opened wide while hovered, or a dot (spec PV-35).

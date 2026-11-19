@@ -67,11 +67,7 @@ extension NotchController {
     /// it (spec PV-13).
     func handleWingsPeekScroll(_ event: NSEvent) -> Bool {
         guard settings.hoverPreview, notifications.peek != nil, !model.isExpanded, !callIsShown else { return false }
-        let geometry = model.geometry
-        let zone = geometry.keepOpenZone(for: geometry.previewSize(side: WingsPeekView.side))
-        guard CGRect(x: zone.minX, y: zone.minY - pillGap, width: zone.width, height: zone.height + pillGap)
-            .contains(NSEvent.mouseLocation)
-        else { return false }
+        guard wingsPeekZone.contains(NSEvent.mouseLocation) else { return false }
         let phase = Self.phase(of: event)
         let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
         let swipedUp = wingsSwipes.peekUp.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX)
@@ -96,6 +92,8 @@ extension NotchViewModel {
             ?? (direction == .next ? list.first : list.last)
         guard let target, target != current else { return }
         select(target)
+        // The new module's wings fit its own content (spec PV-40).
+        wings = WingsState()
         setPreview(true)
     }
 }

@@ -101,6 +101,8 @@ struct NotchView: View {
     var collapsedOffset: CGFloat {
         // The Wings are as wide on each side as their content (spec PV-24).
         if model.isExpanded { return model.openOffset }
+        // Beside the notch each side is as wide as its content; the notch stays (spec PV-38).
+        if wingsPeek != nil { return isGathered ? 0 : model.peekSides.offset }
         // A notification keeps the row where it is and drops down under it (spec E-24b).
         guard devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
               !showsScreenshotPeek
@@ -159,13 +161,14 @@ struct NotchView: View {
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
                     .transition(settings.hoverPreview ? .wingsSpread : .opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
-                    DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
-                        .frame(width: geometry.devicePeekSize.width, height: geometry.devicePeekSize.height)
-                        .transition(.opacity)
+                    devicePeek(event)
                 } else if !model.isExpanded, showsScreenshotPeek {
                     screenshotPeek
                         .frame(width: screenshotPeekSize.width, height: screenshotPeekSize.height)
                         .transition(.opacity)
+                } else if let notice = wingsNoticePeek {
+                    // In Wings mode the notice stands beside the notch, over the row (spec PV-37).
+                    wingsPeekView(notice).transition(.wingsSpread)
                 } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
                     // Laid out at full size and kept in place while the black area unfolds over it.
@@ -338,7 +341,8 @@ extension NotchView {
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
         if model.isScreenShared { return geometry.notchSize }
-        if notifications.peek != nil, settings.hoverPreview { return geometry.previewSize(side: WingsPeekView.side) }
+        // Beside the notch in Wings mode (spec PV-37, PV-38).
+        if wingsPeek != nil { return geometry.wingsSize(model.peekSides) }
         if notifications.peek != nil {
             // As wide as the row above it, when that is wider (spec E-24).
             let peek = notifications.peekSize(in: geometry)

@@ -82,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.updates.start()
         let notices = services.notices
         services.chat.onAnswerReady = { chat in
-            notices.show(StickyNotice(title: "\(chat.service.title) answered", detail: chat.title, date: Date(), opensChat: true))
+            notices.show(.answered(by: chat.service.title, in: chat.title))
         }
         NSApp.mainMenu = EditMenu.make()
 

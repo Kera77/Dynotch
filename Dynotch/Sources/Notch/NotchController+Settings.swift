@@ -63,8 +63,8 @@ extension NotchController {
     /// The app in front may count as active while the panel has the keys: activating it again
     /// did nothing, and its caret blinked while typing beeped until a click. Dynotch steps back
     /// and the panel lets go for real (spec F-15c).
-    func giveKeyboardBack() {
-        guard panel.isKeyWindow else { return }
+    func giveKeyboardBack(evenIfNotKey: Bool = false) {
+        guard panel.isKeyWindow || evenIfNotKey else { return }
         panel.makeFirstResponder(nil)
         guard let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() else {
             NSApp.deactivate()
@@ -90,6 +90,20 @@ extension NotchController {
                     let key = self?.panel.isKeyWindow == true
                     DiagnosticsLog.append("focus", "after: front=\(now) dynotch active=\(NSApp.isActive) panel key=\(key)")
                 }
+            }
+        }
+    }
+
+    /// A click in the Wings, or on a notice beside the closed notch, never keeps the keyboard:
+    /// if it made Dynotch active or the panel key, the app in front gets it back for real
+    /// (spec PV-45, F-15c).
+    func keyboardBackAfterWingsClick() {
+        guard !model.wantsKeyboard, !model.isExpanded || model.isPreview else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, !self.model.wantsKeyboard, NSApp.isActive || self.panel.isKeyWindow else { return }
+                DiagnosticsLog.append("focus", "wings click: dynotch active=\(NSApp.isActive) panel key=\(self.panel.isKeyWindow)")
+                self.giveKeyboardBack(evenIfNotKey: true)
             }
         }
     }

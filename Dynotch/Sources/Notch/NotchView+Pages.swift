@@ -108,13 +108,7 @@ extension NotchView {
     @ViewBuilder func peekView(_ notification: AppNotification, width: CGFloat) -> some View {
         let peekSize = notifications.peekSize(in: geometry)
         if settings.hoverPreview {
-            WingsPeekView(
-                app: notifications.catalog.app(for: notification.appIdentifier),
-                content: notifications.content(for: notification),
-                notchWidth: geometry.notchSize.width,
-                newCount: notifications.unseen.count
-            )
-            .frame(width: width, height: geometry.notchSize.height)
+            wingsPeekView(.notification(notification))
         } else {
             standardPeek(notification, width: width, size: peekSize)
         }

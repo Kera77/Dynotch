@@ -35,18 +35,18 @@ extension NotchController {
         }
         setOverNotice(notices.notice != nil && notifications.peek == nil && model.hoveredIndicator == nil
             && noticeArea(for: layout).contains(point))
+        if settings.hoverPreview, notifications.peek != nil || notices.notice != nil {
+            // The notice beside the notch covers the row (spec PV-13, PV-37).
+            setHoveredIndicator(nil)
+            setHoveredBadge(nil)
+            return
+        }
         guard !layout.isEmpty else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             return
         }
         let geometry = model.geometry
-        if notifications.peek != nil, settings.hoverPreview {
-            // The notification in the wings covers the row (spec PV-13).
-            setHoveredIndicator(nil)
-            setHoveredBadge(nil)
-            return
-        }
         if notifications.peek != nil {
             // Over a notification the row stays clickable, but no details drop down (spec E-24).
             setHoveredIndicator(nil)
@@ -224,8 +224,7 @@ extension NotchController {
         if handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         // A device notice is flicked away upwards (spec DV-14).
-        if devices.current != nil,
-           model.geometry.keepOpenZone(for: model.geometry.devicePeekSize).contains(NSEvent.mouseLocation) {
+        if devices.current != nil, devicePeekZone.contains(NSEvent.mouseLocation) {
             if isSwipeUp(event) {
                 deviceHoverTask?.cancel()
                 deviceHoverTask = nil

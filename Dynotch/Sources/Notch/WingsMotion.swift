@@ -72,45 +72,6 @@ extension View {
     }
 }
 
-// MARK: - A notification in the wings (spec PV-13)
-
-/// A new notification beside the notch instead of under it: the app and who wrote at the left,
-/// the first line at the right. A swipe up puts it away, a swipe down opens it.
-struct WingsPeekView: View {
-    let app: NotificationApp
-    let content: NotificationContent
-    let notchWidth: CGFloat
-    var newCount = 1
-
-    /// The width each side gets (the notch widens by twice this, at most to 2/3 of the display).
-    static let side: CGFloat = 230
-
-    @Environment(\.wingsSpread) private var spread
-
-    var body: some View {
-        GeometryReader { proxy in
-            let side = max((proxy.size.width - notchWidth) / 2, 0)
-            HStack(spacing: 0) {
-                HStack(spacing: 6) {
-                    AppIconView(app: app, size: 16)
-                    WingText(content.sender, bold: true)
-                    if newCount > 1 { WingText("+\(newCount - 1)", dim: true) }
-                }
-                .padding(.horizontal, WingsView<EmptyView, EmptyView>.padding)
-                .frame(width: side, alignment: .leading)
-                .wingSpread(spread, towardsNotch: side / 2)
-                Color.clear.frame(width: notchWidth)
-                WingText(FeaturePreview.line(of: content.detail, fallback: app.name), dim: true)
-                    .padding(.horizontal, WingsView<EmptyView, EmptyView>.padding)
-                    .frame(width: side, alignment: .leading)
-                    .wingSpread(spread, towardsNotch: -side / 2)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-        }
-    }
-}
-
 // MARK: - Dropping files on the wings (spec PV-14)
 
 /// Files dragged onto the notch in Wings mode: the tray at the left, AirDrop at the right, at the

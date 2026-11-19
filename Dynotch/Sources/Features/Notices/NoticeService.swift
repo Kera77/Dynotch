@@ -16,6 +16,21 @@ struct StickyNotice: Equatable, Sendable {
     var symbol: String?
     /// An app's icon instead of Claude's mark, e.g. ChatGPT's (spec CN-8).
     var iconApp: String?
+    /// Who it is from, when the icon does not tell (e.g. the chat's service).
+    var sourceName: String?
+
+    /// The chat in the notch answered (spec CC-5).
+    static func answered(by service: String, in chat: String) -> StickyNotice {
+        StickyNotice(title: "\(service) answered", detail: chat, date: Date(), opensChat: true, sourceName: service)
+    }
+
+    /// Who it is from, written beside its icon in the Wings (spec PV-37).
+    var source: String {
+        if let sourceName { return sourceName }
+        if symbol != nil { return "Dynotch" }
+        if iconApp == "com.openai.codex" { return "ChatGPT" }
+        return "Claude"
+    }
 }
 
 @MainActor

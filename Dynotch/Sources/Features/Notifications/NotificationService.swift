@@ -50,6 +50,10 @@ final class NotificationService: ObservableObject {
     var isPolling = false
     var pollAgain = false
     private var peekTask: Task<Void, Never>?
+    /// The notch panels whose pointer rests on the peek beside the notch (spec PV-39).
+    var peekHolders: Set<ObjectIdentifier> = []
+    /// A newer notification that waits until the pointer leaves the shown one (spec PV-39).
+    var heldPeek: AppNotification?
     private var settingsObserver: AnyCancellable?
 
     /// The database is watched for writes; this is only the fallback (spec E-1b).
@@ -126,6 +130,7 @@ final class NotificationService: ObservableObject {
     func clearPeek() {
         peekTask?.cancel()
         peekTask = nil
+        heldPeek = nil
         if peek != nil { peek = nil }
     }
 
@@ -290,14 +295,24 @@ final class NotificationService: ObservableObject {
         showPeek(notification)
     }
 
-    private func showPeek(_ notification: AppNotification) {
+    func showPeek(_ notification: AppNotification) {
         // During a Focus, or while the screen is shared, it is listed without popping up (spec E-20, N-21).
         guard popsUp(notification), !isScreenShared else { return }
+        // The pointer rests on the one beside the notch: the newer one waits (spec PV-39).
+        if !peekHolders.isEmpty, peek != nil {
+            heldPeek = notification
+            return
+        }
         peekTask?.cancel()
+        heldPeek = nil
         peek = notification
         let duration = settings.notificationDuration
         peekTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(duration))
+            // It stays while the pointer is on it (spec PV-39).
+            while !Task.isCancelled, self?.peekHolders.isEmpty == false {
+                try? await Task.sleep(for: .milliseconds(250))
+            }
             guard !Task.isCancelled, let self else { return }
             self.peekTask = nil
             // A newer peek or a re-keyed one (spec E-13c) cancels or keeps this task.

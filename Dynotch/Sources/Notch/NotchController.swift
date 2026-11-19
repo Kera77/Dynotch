@@ -79,6 +79,8 @@ final class NotchController {
     var wasExpanded = false
     /// The pointer is on the notice under the notch: its X can be clicked (spec CN-5b).
     var isOverNotice = false
+    /// The pointer is on a small notice beside the closed notch in Wings mode (spec PV-38).
+    var isOverWingsPeek = false
     /// Another icon the pointer is on while a drop-down is open, and since when (spec N-23).
     var pendingHover: (target: String, since: Date)?
     /// The question notice whose app was already brought forward (spec CQ-3).
@@ -144,7 +146,8 @@ final class NotchController {
     /// Area that opens the panel: the notch, or the whole peek while a notification shows.
     var hoverZone: CGRect {
         let geometry = model.geometry
-        guard notifications.peek != nil else { return reachingDown(geometry.hoverZone) }
+        // A notification beside the notch in Wings mode opens only with a swipe down (spec PV-13).
+        guard notifications.peek != nil, !settings.hoverPreview else { return reachingDown(geometry.hoverZone) }
         // The notification hangs under the row, as wide as it and moved with it (spec E-24b).
         let layout = collapsedRow().layout
         let peek = notifications.peekSize(in: geometry)
@@ -158,17 +161,9 @@ final class NotchController {
         return showsPreviewStrip ? zone.union(stripArea) : zone
     }
 
-    /// A pill floats a little below the top edge: its zones reach that much further (spec D-7).
-    var pillGap: CGFloat {
-        settings.externalStyle == .pill && !model.geometry.hasPhysicalNotch ? NotchView.pillGap : 0
-    }
-
-    private func reachingDown(_ zone: CGRect) -> CGRect {
-        CGRect(x: zone.minX, y: zone.minY - pillGap, width: zone.width, height: zone.height + pillGap)
-    }
-
     private func pointerMoved() {
         guard !model.isHiddenForMissionControl else { return }
+        updateWingsPeekHover(at: NSEvent.mouseLocation)
         if callIsShown {
             updateCallInteraction()
         } else if model.isExpanded {
@@ -304,6 +299,9 @@ final class NotchController {
             return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)
+        case .leftMouseUp:
+            keyboardBackAfterWingsClick()
+            return false
         default:
             pointerMoved()
             return false
@@ -333,7 +331,8 @@ extension NotchController {
         keyClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated { self?.clickedInAnotherApp() }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel, .keyDown]) { [weak self] event in
+        let localEvents: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel, .keyDown, .leftMouseUp]
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: localEvents) { [weak self] event in
             guard let self else { return event }
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
             return consumed ? nil : event

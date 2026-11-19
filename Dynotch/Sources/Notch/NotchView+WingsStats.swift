@@ -109,22 +109,28 @@ extension NotchView {
             color: reminders.list(for: item)?.color.color ?? Theme.blue,
             due: WingFormat.due(of: item, now: Date()),
             isOverdue: item.isOverdue(at: Date()),
-            isTicked: model.wingsLasting.ticked.contains(item.id),
-            tick: { tickWingsTask(item) },
-            undo: { withAnimation(Motion.quick) { _ = model.wingsLasting.ticked.remove(item.id) } }
+            isTicked: model.wingsLasting.ticked[item.id] != nil,
+            tick: { tickWingsTask(item) }
         )
     }
 
-    /// Ticked: Undo for a few seconds, then it is completed in Reminders and the next one shows.
+    /// Ticked: a second click on the ring unticks it; left ticked for a few seconds, it is
+    /// completed in Reminders and the next one shows (spec PV-44).
     private func tickWingsTask(_ item: ReminderItem) {
-        withAnimation(Motion.quick) { _ = model.wingsLasting.ticked.insert(item.id) }
+        if model.wingsLasting.ticked[item.id] != nil {
+            withAnimation(Motion.quick) { model.wingsLasting.ticked[item.id] = nil }
+            return
+        }
+        // A tick taken back and given again waits its own full time.
+        let tick = UUID()
+        withAnimation(Motion.quick) { model.wingsLasting.ticked[item.id] = tick }
         Task { [model, reminders] in
-            try? await Task.sleep(for: WingsTaskLine.undoTime)
-            guard model.wingsLasting.ticked.contains(item.id) else { return }
+            try? await Task.sleep(for: WingsTaskLine.untickTime)
+            guard model.wingsLasting.ticked[item.id] == tick else { return }
             reminders.complete(item)
             let openIDs = Set(reminders.open.map(\.id))
             withAnimation(NotchController.animation) {
-                model.wingsLasting.ticked.remove(item.id)
+                model.wingsLasting.ticked[item.id] = nil
                 model.wingsLasting.done = model.wingsLasting.done.intersection(openIDs).union([item.id])
             }
         }
@@ -152,7 +158,7 @@ struct WingsDevice: View {
 }
 
 /// A reminder in the wings: a ring that takes its list's colour on hover and ticks it off, the
-/// title and when it is due; ticked, it is struck through with Undo (spec PV-33).
+/// title and when it is due; ticked, it is struck through until the ring is clicked again (spec PV-33, PV-44).
 struct WingsTaskLine: View {
     let item: ReminderItem
     let color: Color
@@ -160,9 +166,9 @@ struct WingsTaskLine: View {
     let isOverdue: Bool
     let isTicked: Bool
     let tick: () -> Void
-    let undo: () -> Void
 
-    static let undoTime: Duration = .seconds(4)
+    /// How long a tick can be taken back by clicking the ring again.
+    static let untickTime: Duration = .seconds(4)
 
     @State private var isHovered = false
 
@@ -175,8 +181,7 @@ struct WingsTaskLine: View {
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .disabled(isTicked)
-            .help("Done")
+            .help(isTicked ? "Keep it open" : "Done")
             .onHover { inside in withAnimation(Motion.hover) { isHovered = inside } }
             if isTicked {
                 Text(item.title)
@@ -184,7 +189,6 @@ struct WingsTaskLine: View {
                     .strikethrough()
                     .foregroundStyle(Color.white.level(0.5))
                     .lineLimit(1)
-                WingButton(title: "Undo", symbol: nil, help: "Keep it open", action: undo)
             } else {
                 WingsMarquee(text: item.title, bold: true)
                 if let due {

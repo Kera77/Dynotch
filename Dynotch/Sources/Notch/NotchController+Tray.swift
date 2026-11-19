@@ -164,8 +164,7 @@ extension NotchController {
 extension NotchController {
     /// Over a device notice: its buttons take clicks; without buttons the batteries open.
     func handleDevicePeek(at point: CGPoint) -> Bool {
-        guard !model.isExpanded, notifications.peek == nil, let event = devices.current,
-              model.geometry.keepOpenZone(for: model.geometry.devicePeekSize).contains(point)
+        guard !model.isExpanded, notifications.peek == nil, let event = devices.current, devicePeekZone.contains(point)
         else {
             deviceHoverTask?.cancel()
             deviceHoverTask = nil
@@ -183,7 +182,7 @@ extension NotchController {
                 guard let self, !Task.isCancelled else { return }
                 self.deviceHoverTask = nil
                 guard self.devices.current?.id == event.id, !self.model.isExpanded,
-                      self.model.geometry.keepOpenZone(for: self.model.geometry.devicePeekSize).contains(NSEvent.mouseLocation)
+                      self.devicePeekZone.contains(NSEvent.mouseLocation)
                 else { return }
                 self.devices.dismiss()
                 self.expand()

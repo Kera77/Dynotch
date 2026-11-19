@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Changed
+- DyNotch Wings: the small drop-downs (Claude or ChatGPT finished, Claude asks, Dynotch updated, a device connected) stand beside the notch instead of under it: the icon and who it is from on the left, the notice itself on the right.
+- DyNotch Wings: a notification beside the notch takes only the room it needs on the left; its text starts at the notch's edge, runs to its end when it does not fit, and starts again when hovered. While the pointer is on it, it stays; the newest one shows after.
+- DyNotch Wings: the module strip's icons drop in all at once.
+- Tray Wings: just "Drop files" on the left.
+- AI Wings: the module's icon and name on the left; the session's percent and its ring (no number inside) on the right.
+- Reminders Wings: no Undo button; clicking the ticked ring again unticks it.
+- Clipboard Wings: an opened item stays open two more seconds after the pointer leaves it.
+
+### Fixed
+- Notifications and Clipboard Wings: hovering another app or a shorter item no longer narrows the wings under the pointer and closes them.
+- After a click in the Wings (e.g. ticking a task) the app in front gets the keyboard back; typing no longer beeps.
+
 ## [0.76.0] - 2026-11-19
 
 ### Changed

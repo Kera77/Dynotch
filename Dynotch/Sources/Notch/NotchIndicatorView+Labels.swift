@@ -24,17 +24,7 @@ extension NotchIndicatorView {
     /// E.g. Claude finished a task: stays until swiped up.
     func noticeLabel(_ notice: StickyNotice) -> some View {
         HStack(spacing: 7) {
-            if let symbol = notice.symbol {
-                Image(systemName: symbol)
-                    .font(.notch(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.blue)
-            } else if let iconApp = notice.iconApp, let icon = BadgeIconCache.appIcon(bundleID: iconApp) {
-                Image(nsImage: icon)
-                    .resizable()
-                    .frame(width: 16, height: 16)
-            } else {
-                BrandGlyphView(glyph: .claude, size: 14)
-            }
+            NoticeIcon(notice: notice)
             Text(notice.title)
                 .font(.notch(size: 12, weight: .semibold))
                 // A question waits for an answer (spec CQ-2).
@@ -170,5 +160,24 @@ struct RecordingSlot: View {
         }
         .animation(AppleStyle.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
         .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
+    }
+}
+
+/// A notice's icon: its symbol, its app's icon, or Claude's mark.
+struct NoticeIcon: View {
+    let notice: StickyNotice
+
+    var body: some View {
+        if let symbol = notice.symbol {
+            Image(systemName: symbol)
+                .font(.notch(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.blue)
+        } else if let iconApp = notice.iconApp, let icon = BadgeIconCache.appIcon(bundleID: iconApp) {
+            Image(nsImage: icon)
+                .resizable()
+                .frame(width: 16, height: 16)
+        } else {
+            BrandGlyphView(glyph: .claude, size: 14)
+        }
     }
 }

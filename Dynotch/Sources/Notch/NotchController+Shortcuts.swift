@@ -65,6 +65,8 @@ extension NotchController {
 extension NotchController {
     /// Where the notice is written: under the indicators, or under the bare notch.
     func noticeArea(for layout: IndicatorLayout) -> CGRect {
+        // Beside the notch in Wings mode (spec PV-37).
+        if settings.hoverPreview { return wingsPeekZone }
         let geometry = model.geometry
         let rect = layout.isEmpty
             ? geometry.rect(for: CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + IndicatorLayout.labelHeight))

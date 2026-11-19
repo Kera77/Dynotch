@@ -11,7 +11,7 @@ extension NotchView {
         case .calculator: WingLabel(symbol: "equal.square", text: lastCalculation?.line ?? "Empty")
         case .notes: notesWingLeftV2
         case .reminders: remindersWingLeftV2
-        case .claudeUsage: usageWing(id: "seven_day", title: "Week", showsReset: true)
+        case .claudeUsage: aiWingLeft
         case .claudeChat: WingLabel(symbol: "sparkles", text: chat.isWorking ? "Working…" : chat.selected?.title ?? "Claude")
         case .battery: batteryWingLeft
         case .clipboard: clipboardWingLeftV2
@@ -62,6 +62,9 @@ extension NotchView {
     /// Each side's natural width, measured by the Wings (spec PV-24).
     func wingsMeasured(_ needs: WingsSides) {
         let old = model.wingsLasting.needs
+        // While something is hovered the wings never narrow under the pointer (spec PV-40).
+        let needs = model.wings.holdsWidth
+            ? WingsSides(left: max(old.left, needs.left), right: max(old.right, needs.right)) : needs
         guard abs(old.left - needs.left) > 1 || abs(old.right - needs.right) > 1 else { return }
         withAnimation(Self.quickAnimation) { model.wingsLasting.needs = needs }
     }
@@ -137,18 +140,11 @@ extension NotchView {
         chat.selected?.messages.last { $0.role == .assistant }?.text ?? ""
     }
 
-    // MARK: AI usage
+    // MARK: AI usage (spec PV-43)
 
-    @ViewBuilder private func usageWing(id: String, title: String, showsReset: Bool = false) -> some View {
-        if let limit = claudeUsage.limits.first(where: { $0.id == id }) {
-            HStack(spacing: 6) {
-                WingText(title, dim: true)
-                StatsBar(fraction: limit.utilization / 100, color: WingFormat.color(limit.level)).frame(width: 56)
-                WingText("\(Int(limit.utilization.rounded()))%", bold: true)
-                if showsReset, let reset = limit.resetsAt {
-                    WingText("· " + reset.formatted(.relative(presentation: .numeric, unitsStyle: .abbreviated)), dim: true)
-                }
-            }
-        }
+    /// The AI module's icon and name, the merged module's when it is merged.
+    private var aiWingLeft: some View {
+        let host = settings.hostFeature(of: model.currentFeature)
+        return WingLabel(symbol: host.symbolName, text: host.title)
     }
 }
