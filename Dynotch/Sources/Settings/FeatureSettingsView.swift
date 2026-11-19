@@ -38,6 +38,7 @@ struct FeatureSettingsView: View {
                 ShortcutRecorder(shortcut: shortcuts.pinShortcut) { shortcuts.setPinShortcut($0) }
             }
             Text("Drag a row to reorder. At least one module must stay on. \"Menu bar\" also adds an icon to the menu bar. "
+                + "\"In System\" / \"In AI\" shows the module as a tab of that module. "
                 + "A shortcut opens the module in the notch; pressing it again closes it. \"Pin\" keeps it open when opened that way.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -60,7 +61,15 @@ struct FeatureSettingsView: View {
                     Image(systemName: feature.symbolName)
                 }
             }
+            // A merged module is a tab of its host and is on while the host is (spec MG-1, MG-4).
+            .disabled(settings.isMerged(feature))
+            .padding(.leading, settings.isMerged(feature) ? 14 : 0)
             Spacer()
+            if let host = feature.mergeHost {
+                Toggle("In \(host.title)", isOn: Binding(get: { settings.isMerged(feature) }, set: { settings.setMerged(feature, $0) }))
+                    .toggleStyle(.checkbox)
+                    .help("Show \(feature.title) as a tab of \(host.title) instead of a module of its own")
+            }
             if AppSettings.menuBarFeatures.contains(feature) {
                 Toggle("Menu bar", isOn: menuBarBinding(for: feature))
                     .toggleStyle(.checkbox)

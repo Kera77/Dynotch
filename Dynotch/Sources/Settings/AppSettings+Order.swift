@@ -47,22 +47,46 @@ extension AppSettings {
 extension AppSettings {
     /// Enabled features in menu-bar order.
     var activeFeatures: [FeatureID] {
-        featureOrder.filter(enabledFeatures.contains)
+        featureOrder.filter(isEnabled)
     }
 
     /// Feature to show when the panel opens: the last one if still enabled, else the first enabled.
     var initialFeature: FeatureID {
-        if let lastFeature, enabledFeatures.contains(lastFeature) { return lastFeature }
+        if let lastFeature, isEnabled(lastFeature) { return lastFeature }
         return listedFeatures.first ?? activeFeatures.first ?? .home
     }
 
     /// The enabled modules shown in the top row, the strip and the swipes (spec MU-8).
     var listedFeatures: [FeatureID] {
-        activeFeatures.filter { !unlistedFeatures.contains($0) }
+        activeFeatures.filter { !unlistedFeatures.contains($0) && !isMerged($0) }
+    }
+
+    // MARK: Merged modules (spec MG-1…MG-8)
+
+    func isMerged(_ feature: FeatureID) -> Bool {
+        feature.mergeHost != nil && mergedFeatures.contains(feature)
+    }
+
+    func setMerged(_ feature: FeatureID, _ merged: Bool) {
+        guard feature.mergeHost != nil else { return }
+        if merged { mergedFeatures.insert(feature) } else { mergedFeatures.remove(feature) }
+    }
+
+    /// The module whose icon stands for `feature`: its host when merged, else itself.
+    func hostFeature(of feature: FeatureID) -> FeatureID {
+        isMerged(feature) ? feature.mergeHost ?? feature : feature
+    }
+
+    /// The host and its merged module, as the tabs of the host's page; nil when nothing is merged into it.
+    func mergedTabs(for feature: FeatureID) -> [FeatureID]? {
+        let host = hostFeature(of: feature)
+        guard let guest = FeatureID.allCases.first(where: { $0.mergeHost == host && isMerged($0) }) else { return nil }
+        return [host, guest]
     }
 
     func loadModuleOptions() {
         unlistedFeatures = Set((defaults.stringArray(forKey: "unlistedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
+        mergedFeatures = Set((defaults.stringArray(forKey: "mergedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         showsNowPlaying = defaults.object(forKey: "musicShowsNowPlaying") as? Bool ?? true
     }
 }

@@ -87,6 +87,15 @@ final class NotchViewModel: ObservableObject {
 
     /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
     @Published private(set) var switcherFirst = 0
+    /// The tab last shown of each merged module, by its host (spec MG-2).
+    private var lastTabs: [FeatureID: FeatureID] = [:]
+
+    /// The page a merged module's icon opens: the tab last shown, while it is still merged.
+    func lastTab(of feature: FeatureID) -> FeatureID {
+        guard let tabs = settings.mergedTabs(for: feature), feature == tabs[0],
+              let last = lastTabs[feature], tabs.contains(last) else { return feature }
+        return last
+    }
 
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
@@ -215,7 +224,11 @@ final class NotchViewModel: ObservableObject {
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .notifications, showsWideTab { return geometry.chatPanelSize }
-        if currentFeature == .claudeUsage { return geometry.usageSize }
+        if currentFeature == .claudeUsage {
+            // The tabs of a merged AI module take a row above the limits (spec MG-2).
+            let size = geometry.usageSize
+            return settings.isMerged(.claudeUsage) ? CGSize(width: size.width, height: size.height + 30) : size
+        }
         if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
         // The stats' tiles and process list need the room (spec SY-1).
@@ -282,11 +295,13 @@ final class NotchViewModel: ObservableObject {
 
     /// - Parameter remember: false for a module opened by its shortcut: the next hover still opens
     ///   the one used last in the notch (spec SC-4).
-    func select(_ feature: FeatureID, remember: Bool = true) {
+    /// - Parameter exact: a merged module's tab picks its page; otherwise its icon opens its last tab (spec MG-2).
+    func select(_ requested: FeatureID, remember: Bool = true, exact: Bool = false) {
         // Picking a feature (even the current one) leaves the settings and the preview.
         if isShowingSettings { isShowingSettings = false }
         holdsForSettings = false
         if isPreview { isPreview = false }
+        let feature = exact ? requested : lastTab(of: requested)
         guard feature != currentFeature else {
             updateLarge()
             return
@@ -297,7 +312,9 @@ final class NotchViewModel: ObservableObject {
     }
 
     func step(_ direction: NavigationDirection) {
-        if let target = FeatureID.neighbor(of: currentFeature, in: settings.listedFeatures, direction: direction) {
+        let current = settings.hostFeature(of: currentFeature)
+        if let neighbor = FeatureID.neighbor(of: current, in: settings.listedFeatures, direction: direction) {
+            let target = lastTab(of: neighbor)
             currentFeature = target
             settings.lastFeature = target
             updateLarge()
@@ -323,7 +340,7 @@ final class NotchViewModel: ObservableObject {
     /// The current feature's icon is in view.
     func revealCurrentFeature() {
         let features = settings.listedFeatures
-        guard let index = features.firstIndex(of: currentFeature) else { return }
+        guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
         let visible = switcherVisibleCount
         var first = FeatureSwitcher.clampedFirst(switcherFirst, count: features.count, visible: visible)
         if index < first { first = index }
@@ -335,6 +352,7 @@ final class NotchViewModel: ObservableObject {
         let large = isExpanded && !isShowingNotifications && !isShowingSettings
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
+        if settings.mergedTabs(for: currentFeature) != nil { lastTabs[settings.hostFeature(of: currentFeature)] = currentFeature }
         revealCurrentFeature()
     }
 

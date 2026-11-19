@@ -286,7 +286,7 @@ struct NotchView: View {
     private var featureContent: some View {
         // A module left out of the list (e.g. Music opened from its cover) comes after the others (spec MU-8).
         let listed = settings.listedFeatures
-        let features = listed.contains(model.currentFeature) ? listed : listed + [model.currentFeature]
+        let features = Self.pages(listed: listed, current: model.currentFeature, host: settings.hostFeature(of: model.currentFeature))
         let index = features.firstIndex(of: model.currentFeature) ?? 0
         let pageWidth = model.openSize.width
         return HStack(spacing: 0) {

@@ -76,6 +76,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(unlistedFeatures.map(\.rawValue).sorted(), forKey: Key.unlistedFeatures) }
     }
 
+    /// Modules shown as a tab of their host: Batteries in System, AI Usage in AI (spec MG-1).
+    @Published var mergedFeatures: Set<FeatureID> = [] {
+        didSet { defaults.set(mergedFeatures.map(\.rawValue).sorted(), forKey: "mergedFeatures") }
+    }
+
     /// What Spotify plays shows beside the closed notch (spec MU-8).
     @Published var showsNowPlaying = true {
         didSet { defaults.set(showsNowPlaying, forKey: Key.showsNowPlaying) }
@@ -355,8 +360,9 @@ extension AppSettings {
         if enabled { smartRulesOff.remove(rule) } else { smartRulesOff.insert(rule) }
     }
 
+    /// A merged module runs while its host is on (spec MG-4).
     func isEnabled(_ feature: FeatureID) -> Bool {
-        enabledFeatures.contains(feature)
+        enabledFeatures.contains(isMerged(feature) ? hostFeature(of: feature) : feature)
     }
 
     /// Enables or disables a feature. The last enabled feature can't be disabled.

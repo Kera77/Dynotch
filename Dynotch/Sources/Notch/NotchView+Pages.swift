@@ -2,8 +2,36 @@ import SwiftUI
 
 /// The content of each feature in the open panel.
 extension NotchView {
+    /// The pages side by side: a merged module's tab right after its host, any other unlisted one at the end
+    /// (spec MU-8, MG-2).
+    static func pages(listed: [FeatureID], current: FeatureID, host: FeatureID) -> [FeatureID] {
+        guard !listed.contains(current) else { return listed }
+        guard host != current, let index = listed.firstIndex(of: host) else { return listed + [current] }
+        var pages = listed
+        pages[index] = current
+        return pages
+    }
+
+    /// A module, under the tabs of a merged module (spec MG-2).
     @ViewBuilder
     func page(for feature: FeatureID) -> some View {
+        if let tabs = settings.mergedTabs(for: feature) {
+            VStack(alignment: .leading, spacing: 6) {
+                CapsulePicker(
+                    items: tabs,
+                    selection: Binding(get: { feature }, set: { tab in model.select(tab, exact: true) }),
+                    title: \.tabTitle
+                )
+                modulePage(for: feature)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        } else {
+            modulePage(for: feature)
+        }
+    }
+
+    @ViewBuilder
+    private func modulePage(for feature: FeatureID) -> some View {
         switch feature {
         case .home:
             HomeFeatureView()

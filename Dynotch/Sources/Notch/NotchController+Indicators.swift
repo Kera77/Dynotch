@@ -98,7 +98,7 @@ extension NotchController {
         setHoveredIndicator(nil)
         setHoveredBadge(nil)
         expand()
-        withAnimation(Self.animation) { model.select(feature, remember: false) }
+        withAnimation(Self.animation) { model.select(feature, remember: false, exact: true) }
     }
 
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).

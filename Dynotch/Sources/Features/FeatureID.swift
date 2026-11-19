@@ -58,6 +58,26 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+extension FeatureID {
+    /// The module this one can be merged into as a tab (spec MG-1).
+    var mergeHost: FeatureID? {
+        switch self {
+        case .battery: .stats
+        case .claudeUsage: .claudeChat
+        default: nil
+        }
+    }
+
+    /// The name of its tab in a merged module (spec MG-2).
+    var tabTitle: String {
+        switch self {
+        case .claudeChat: "Chat"
+        case .claudeUsage: "Usage"
+        default: title
+        }
+    }
+}
+
 enum NavigationDirection: Equatable, Sendable {
     case next
     case previous

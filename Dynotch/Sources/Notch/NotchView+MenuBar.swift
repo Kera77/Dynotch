@@ -11,7 +11,7 @@ extension NotchView {
         HStack(spacing: 0) {
             FeatureSwitcher(
                 features: settings.listedFeatures,
-                selected: model.isShowingSettings ? nil : model.currentFeature,
+                selected: model.isShowingSettings ? nil : settings.hostFeature(of: model.currentFeature),
                 first: model.switcherFirst,
                 visibleCount: model.switcherVisibleCount
             ) { feature in

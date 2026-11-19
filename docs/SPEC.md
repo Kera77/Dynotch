@@ -798,13 +798,13 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 
 | # | Követelmény |
 |---|---|
-| MG-1 | *Settings › Features*: két kapcsoló, **Batteries inside System** és **AI Usage inside AI**, alapból **kikapcsolva** (a mostani viselkedés marad). Egymástól függetlenül állíthatók, bármikor visszaválthatók. |
+| MG-1 | *Settings › Features*: a Batteries sorában **In System**, az AI Usage sorában **In AI** jelölőnégyzet, alapból **kikapcsolva** (a mostani viselkedés marad). Egymástól függetlenül állíthatók, bármikor visszaválthatók. |
 | MG-2 | **Összevonva** a vendégmodul (Batteries, AI Usage) önállóan eltűnik a modulsorból, a felső menüsorból, az ikonsorból (MS-1, MS-5) és a swipe-sorrendből; a gazdamodul (System, AI) fejlécében kapszulaválasztó jelenik meg: *System \| Batteries*, illetve *Chat \| Usage*. A gazdamodul a legutóbb nézett fülén nyílik. |
 | MG-3 | **Visszaváltva** a vendégmodul a korábbi helyére és bekapcsoltsági állapotába kerül; a sorrend és a bekapcsolt modulok listája összevonás alatt sem íródik felül. A vendégmodul beállításai (CL-5, CL-6, BT-3, BT-5…) mindkét módban ugyanazok. |
 | MG-4 | A vendégmodul **működése nem változik**: frissítése (CL-4, BT-1b), értesítései és a notch melletti jelzői (CL-6 session-kör, BT-3 alacsony akku) összevonva is futnak, amíg a gazdamodul be van kapcsolva. Kikapcsolt gazdamodul mellett a vendégmodul sem fut. |
 | MG-5 | **Notch melletti jelző összevonva:** a CL-6 session-körre, illetve a BT-3 akkujelzőre mutatva **ugyanaz a fogyasztás-, illetve akkucímke** jelenik meg, mint önálló módban; ahol a jelző a modult nyitja, a gazdamodul a **Usage**, illetve a **Batteries** fülén nyílik. |
 | MG-6 | A **környezetfüggő nyitás** (SO-2) 4. szabálya a System modult a Batteries fülön, az 5. az AI modult a Usage fülön nyitja. Az **előnézet** (PV-1) a gazdamodul aktuális fülének sorát mutatja. |
-| MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a gazdamodul alatt, behúzva látszik. |
+| MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a helyén marad, behúzva, a be/ki kapcsolója letiltva (a gazdamodulét követi). |
 | MG-8 | Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek. |
 
 ## 5. Nyitott kérdések

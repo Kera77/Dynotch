@@ -27,7 +27,7 @@ extension NotchController {
             expand()
         }
         openFully()
-        withAnimation(Self.animation) { model.select(feature, remember: false) }
+        withAnimation(Self.animation) { model.select(feature, remember: false, exact: true) }
         if pinned {
             model.isPinned = true
         } else {
@@ -101,7 +101,7 @@ extension NotchController {
     func showAnswerIfReady() {
         guard notices.notice?.opensChat == true, settings.isEnabled(.claudeChat) else { return }
         notices.dismiss()
-        withAnimation(Self.animation) { model.select(.claudeChat) }
+        withAnimation(Self.animation) { model.select(.claudeChat, exact: true) }
     }
 
     /// Hovering a question of Claude Code brings the app it runs in forward, once (spec CQ-3).
