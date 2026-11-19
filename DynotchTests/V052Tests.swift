@@ -43,6 +43,8 @@ struct V052Tests {
         #expect(ScreenShareWatcher.isSharing([window("Zen", "Zen — Sharing Indicator")]))
         #expect(ScreenShareWatcher.isSharing([window("zoom.us", "zoom share toolbar window")]))
         #expect(ScreenShareWatcher.isSharing([window("screencaptureui", "", layer: 25)]))
+        #expect(!ScreenShareWatcher.isMeetingShare([window("screencaptureui", "", layer: 25)]))
+        #expect(ScreenShareWatcher.isMeetingShare([window("zoom.us", "zoom share toolbar window")]))
         #expect(!ScreenShareWatcher.isSharing([window("Google Chrome", "Inbox - Gmail"), window("zoom.us", "Zoom Meeting")]))
     }
 }

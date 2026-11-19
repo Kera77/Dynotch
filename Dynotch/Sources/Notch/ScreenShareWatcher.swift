@@ -7,10 +7,12 @@ import AppKit
 @MainActor
 final class ScreenShareWatcher {
     private var isSharing = false
-    private let changed: (Bool) -> Void
+    private var isMeeting = false
+    /// Sharing at all; and shared by a meeting app, not macOS's own screenshot or recording tool.
+    private let changed: (_ sharing: Bool, _ meeting: Bool) -> Void
     private static let interval: TimeInterval = 2
 
-    init(changed: @escaping (Bool) -> Void) {
+    init(changed: @escaping (_ sharing: Bool, _ meeting: Bool) -> Void) {
         self.changed = changed
     }
 
@@ -20,14 +22,22 @@ final class ScreenShareWatcher {
 
     private func check(_ windows: [ListedWindow]) {
         let sharing = Self.isSharing(windows)
-        guard sharing != isSharing else { return }
+        let meeting = Self.isMeetingShare(windows)
+        guard sharing != isSharing || meeting != isMeeting else { return }
         isSharing = sharing
-        DiagnosticsLog.append("spaces", sharing ? "screen sharing started" : "screen sharing ended")
-        changed(sharing)
+        isMeeting = meeting
+        DiagnosticsLog.append("spaces", sharing ? "screen sharing started (meeting: \(meeting))" : "screen sharing ended")
+        changed(sharing, meeting)
     }
 
     /// Whether one of the windows is a sharing indicator.
     nonisolated static func isSharing(_ windows: [ListedWindow]) -> Bool {
+        isMeetingShare(windows) || windows.contains { $0.owner.lowercased() == "screencaptureui" && $0.layer > 0 }
+    }
+
+    /// A browser, Zoom or Teams shares the screen. macOS's screenshot tool is left out: a
+    /// screenshot may show the notch (spec N-21b).
+    nonisolated static func isMeetingShare(_ windows: [ListedWindow]) -> Bool {
         windows.contains { window in
             let owner = window.owner.lowercased()
             let name = window.name.lowercased()
@@ -36,8 +46,7 @@ final class ScreenShareWatcher {
             }
             if name.contains("sharing indicator") { return true }
             if owner.contains("zoom"), name.contains("share toolbar") || name.contains("share statusbar") { return true }
-            if owner.contains("teams"), name.contains("sharing control bar") { return true }
-            return owner == "screencaptureui" && window.layer > 0
+            return owner.contains("teams") && name.contains("sharing control bar")
         }
     }
 }

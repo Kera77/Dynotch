@@ -2,10 +2,14 @@
 
 ## [Unreleased]
 
+## [0.67.1] - 2026-11-19
+
 ### Added
 - Settings › Appearance › Modules in the strip: drag a row to reorder, like the Modules list.
 
 ### Fixed
+- Screenshots (whole screen or a selected area) show the notch again; only screen sharing in a browser, Zoom or Teams hides it.
+- Notifications module: opens taller still (110 pt over the normal panel) so the tabs, a card and its controls fit.
 - After typing in the notch, clicking another app gives it the keyboard right away; before, its caret blinked but the keys went nowhere.
 - The refined design's shadow no longer catches clicks meant for the apps around the notch.
 

@@ -35,9 +35,10 @@ final class NotchManager {
         missionControl.start()
         self.missionControl = missionControl
         // Sharing the screen: nothing of the notch for the viewers (spec N-21).
-        let sharing = ScreenShareWatcher { [weak self] shared in
-            self?.controllers.forEach { $0.setScreenShared(shared) }
-            for window in NSApp.windows { window.sharingType = shared ? .none : .readOnly }
+        // Screenshots and macOS recordings may show it; meeting apps never (spec N-21b).
+        let sharing = ScreenShareWatcher { [weak self] _, meeting in
+            self?.controllers.forEach { $0.setScreenShared(meeting) }
+            for window in NSApp.windows { window.sharingType = meeting ? .none : .readOnly }
         }
         sharing.start()
         screenShare = sharing

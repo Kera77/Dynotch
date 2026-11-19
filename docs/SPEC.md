@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.67 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.67.1 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -47,6 +47,7 @@
 | N-19b | (v0.65) A notch Mission Controlnál **gyorsan felcsúszik** (és elhalványul), visszafelé ugyanígy lecsúszik (~0,16 mp). A trackpad felfelé húzásánál (Dock függőleges swipe) már a gesztus elején eltűnik, lefelé húzásnál visszajön; a gesztus után az ablaklista megerősíti (félbehagyott húzásnál visszajön). |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 | N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
+| N-21b | (v0.67.1) A macOS saját képernyőkép- és felvételeszköze (`screencaptureui`) nem számít megosztásnak: a notch rákerül a képernyőképre és a kivágásra, és a jelzők sem tűnnek el. Csak a megbeszélés-appok (böngésző, Zoom, Teams) megosztása rejti el. |
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
 | N-23 | (v0.59) Ha egy ikon (jobb oldali jelző vagy bal oldali badge) lenyílója nyitva van, a mellette lévő ikonon **áthaladó** egér nem cseréli le: a másik ikon csak akkor veszi át, ha az egér **0,3 mp-ig** rajta marad. |
 
@@ -601,7 +602,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-7 | **Beállítás:** *Settings › Notifications*: „Keep unread chats in the notch” forrásonként (Beeper, Google Chat); a lekérdezési gyakoriság 10–60 mp. Csak a csevegések neve, az üzenetek szövege és ideje kerül a memóriába; lemezre és a naplóba nem. |
 | UM-8 | **Nézetválasztó** a notch értesítés-nézetének tetején, három füllel: **All** (minden értesítés, mint eddig, felül az olvasatlan csevegésekkel), **Chats** (csak a Beeper- és Google Chat-beszélgetések: olvasatlanok és a mai csevegések), **Beeper** (a teljes Beeper-nézet, 4x). A választás megmarad; a fülek között swipe-pal is lehet váltani. |
 | UM-8b | (v0.49) Az **All** fülön nincsenek „Unread” buborékok; az olvasatlan Beeper-csevegések a Chats fülön kártyaként vannak. |
-| UM-8c | (v0.67) Az értesítés modul alapmérete 40 ponttal magasabb, hogy a fülválasztó és egy kártya is kiférjen; a fülválasztó kis méretnél is látszik. |
+| UM-8c | (v0.67, v0.67.1: 110 pt) Az értesítés modul alapmérete 110 ponttal magasabb, hogy a fülválasztó és egy kártya is kiférjen; a fülválasztó kis méretnél is látszik. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 | UM-10 | (v0.51) A Beeper-értesítések (All és Chats fül) eltűnnek, amint a Beeper a csevegésüket már nem tartja olvasatlannak (a Beeper API alapján, a csevegés neve szerint). Ismeretlen nevű csevegésé marad. |
 
@@ -864,6 +865,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.67.1** | Notch a képernyőképeken; billentyűzet vissza kattintásra másik appban; árnyék az átkattintható rétegben; strip-sorrend a beállításokban; magasabb értesítés modul |
 | **v0.67.0** | Refined design (perem, árnyék, háttérképhez igazodó üveg, egyenletes átmenet) kapcsolóval; strip drag-and-drop; switcher: függőleges megszakítás, csak tiszta 3 ujj; beállítások irányfüggő animáció; értesítés-modul mérete; Tray swipe csak a füleken |
 | **v0.66.1** | Összevont AI: Chat \| Usage a fejléc sorában, közepes szélesség; jelvénylista görgetősáv nélkül |
 | **v0.66** | Modulok összevonása: Batteries a System, AI Usage az AI füleként (választható) |
