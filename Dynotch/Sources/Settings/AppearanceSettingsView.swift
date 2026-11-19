@@ -173,6 +173,7 @@ private struct StripModulesRows: View {
                         Label(feature.title, systemImage: feature.symbolName)
                     }
                 }
+                .padding(.vertical, 4)
                 .contentShape(Rectangle())
                 .opacity(dragged == feature ? 0.4 : 1)
                 .onDrag {

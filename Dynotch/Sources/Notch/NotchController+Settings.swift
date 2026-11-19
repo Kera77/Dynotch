@@ -59,13 +59,27 @@ extension NotchController {
 
     /// resignKey() only reports; the app in front gets its key window back for real, or its
     /// window stayed half active (e.g. VS Code did not scroll) (spec F-15).
+    ///
+    /// The panel never activates Dynotch, so the app in front stayed active while the panel had
+    /// the keys: activating it again did nothing, and its caret blinked while typing beeped
+    /// until a click. Dynotch is activated for a moment and hands over, which moves the keys
+    /// for real (spec F-15c).
     func giveKeyboardBack() {
         guard panel.isKeyWindow else { return }
         panel.makeFirstResponder(nil)
-        if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() {
-            front.activate()
-        } else {
+        guard let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() else {
             NSApp.deactivate()
+            return
+        }
+        DiagnosticsLog.append("focus", "keyboard back to \(front.bundleIdentifier ?? "?") (dynotch active: \(NSApp.isActive))")
+        if NSApp.isActive {
+            front.activate()
+            return
+        }
+        NSApp.activate()
+        DispatchQueue.main.async {
+            NSApp.yieldActivation(to: front)
+            front.activate()
         }
     }
 

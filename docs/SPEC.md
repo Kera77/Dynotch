@@ -371,6 +371,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-14 | (v0.46) Az appon belüli váltás csak **normál ablakra** (`AXStandardWindow`) és csak **normál fókuszált ablakról** történik: a lenyíló és felugró ablakok (pl. a DataGrip projektválasztója, amely külön ablak és fókuszvesztéskor bezárul), menük, tooltipek és alrole nélküli ablakok nem kapnak és nem veszítenek fókuszt. A F-13 120 × 80-as méretszűrője marad. |
 | F-15 | (v0.49) Csukáskor a notch ténylegesen visszaadja a billentyűzetet az előtérben lévő appnak (a `resignKey()` csak jelzés volt, és az ablak félaktív maradt: például a VS Code nem görgetett). Bekapcsolt egérkövetésnél a nyitott notch is megkapja a fókuszt, amikor az egér visszamegy rá. |
 | F-15b | (v0.67.1) Ha a notch-nál van a billentyűzet, és egy másik appba kattintasz, a notch azonnal visszaadja a billentyűzetet annak az appnak (eddig a kurzor villogott, de a gépelés a notch-ba ment). A Refined design árnyéka az egeret átengedő üvegablakban van, így nem fog el kattintást a notch körül. |
+| F-15c | (v0.67.2) A billentyűzet visszaadása akkor is valódi, ha a notch úgy vette el, hogy az előtérben lévő app aktív maradt: a Dynotch egy pillanatra aktív lesz, és átadja az appnak (eddig a kurzor villogott, a gépelés pittyegett egy kattintásig). A napló: `focus.log`. |
 
 ---
 
