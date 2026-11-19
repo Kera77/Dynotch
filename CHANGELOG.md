@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- Merged AI: the Chat | Usage tabs sit in the header row beside the Claude | ChatGPT picker, and both tabs open at the medium width so the chat header fits beside the chat list.
+- A badge's hover list scrolls without showing a scroll bar.
+
 ## [0.66.0] - 2026-11-19
 
 ### Added

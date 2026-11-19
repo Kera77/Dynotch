@@ -45,6 +45,7 @@ struct AIChatHeader: View {
                 .buttonStyle(.plain)
                 .help("Continue in Terminal (\(chat.service == .claude ? "Claude Code" : "Codex"))")
             }
+            MergedTabsPicker()
         }
         .font(.system(size: 12))
         .foregroundStyle(.white)

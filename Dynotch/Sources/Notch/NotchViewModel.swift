@@ -90,6 +90,11 @@ final class NotchViewModel: ObservableObject {
     /// The tab last shown of each merged module, by its host (spec MG-2).
     private var lastTabs: [FeatureID: FeatureID] = [:]
 
+    /// Merged, the AI tabs sit in the header beside the chat list, which needs the medium width (spec MG-2).
+    private func mergedAIWidth(_ size: CGSize) -> CGSize {
+        settings.isMerged(.claudeUsage) ? CGSize(width: max(size.width, geometry.mediumSize.width), height: size.height) : size
+    }
+
     /// The page a merged module's icon opens: the tab last shown, while it is still merged.
     func lastTab(of feature: FeatureID) -> FeatureID {
         guard let tabs = settings.mergedTabs(for: feature), feature == tabs[0],
@@ -224,12 +229,8 @@ final class NotchViewModel: ObservableObject {
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
         if currentFeature == .notifications, showsWideTab { return geometry.chatPanelSize }
-        if currentFeature == .claudeUsage {
-            // The tabs of a merged AI module take a row above the limits (spec MG-2).
-            let size = geometry.usageSize
-            return settings.isMerged(.claudeUsage) ? CGSize(width: size.width, height: size.height + 30) : size
-        }
-        if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : geometry.expandedSize }
+        if currentFeature == .claudeUsage { return mergedAIWidth(geometry.usageSize) }
+        if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : mergedAIWidth(geometry.expandedSize) }
         if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
         // The stats' tiles and process list need the room (spec SY-1).
         if currentFeature == .stats { return geometry.mediumSize }

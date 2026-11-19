@@ -15,7 +15,11 @@ extension NotchView {
     /// A module, under the tabs of a merged module (spec MG-2).
     @ViewBuilder
     func page(for feature: FeatureID) -> some View {
-        if let tabs = settings.mergedTabs(for: feature) {
+        if let tabs = settings.mergedTabs(for: feature), tabs[0] == .claudeChat {
+            // The AI module's header has room for the tabs, beside its buttons on the right.
+            modulePage(for: feature)
+                .environment(\.mergedTabs, MergedTabs(tabs: tabs, selected: feature) { tab in model.select(tab, exact: true) })
+        } else if let tabs = settings.mergedTabs(for: feature) {
             VStack(alignment: .leading, spacing: 6) {
                 CapsulePicker(
                     items: tabs,

@@ -410,7 +410,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10b | (v0.57) A lenyíló listában az üzenetek **küldőnként csoportosítva**: a küldő neve egyszer, alatta az üzenetei egymás alatt időponttal. |
 | B-10c | (v0.58) A **Beeper** jelvényénél, ha az Értesítési központban már nincs Beeper-értesítés (a Beeper pár másodperc után törli őket), a lista a Beeper **olvasatlan csevegéseit** mutatja a legutóbbi üzenettel. |
 | B-10d | (v0.62) Webapp jelvényénél (Gmail, Google Chat) a lista a megtartott értesítésekből **legfeljebb annyit** mutat, amennyi a jelvény száma (a legfrissebbeket); amiről a Dynotch nem kapott értesítést (pl. az indítása előtt jött), az nem látszik. |
-| B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. |
+| B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. (v0.66.1) Görgetősáv nem látszik. |
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 
 ## 4i. Billentyűzetzár (v0.21)
@@ -799,7 +799,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | # | Követelmény |
 |---|---|
 | MG-1 | *Settings › Modules*: a Batteries sorában **In System**, az AI Usage sorában **In AI** jelölőnégyzet, alapból **kikapcsolva** (a mostani viselkedés marad). Egymástól függetlenül állíthatók, bármikor visszaválthatók. |
-| MG-2 | **Összevonva** a vendégmodul (Batteries, AI Usage) önállóan eltűnik a modulsorból, a felső menüsorból, az ikonsorból (MS-1, MS-5) és a swipe-sorrendből; a gazdamodul (System, AI) fejlécében kapszulaválasztó jelenik meg: *System \| Batteries*, illetve *Chat \| Usage*. A gazdamodul a legutóbb nézett fülén nyílik. |
+| MG-2 | **Összevonva** a vendégmodul (Batteries, AI Usage) önállóan eltűnik a modulsorból, a felső menüsorból, az ikonsorból (MS-1, MS-5) és a swipe-sorrendből; a gazdamodulban kapszulaválasztó jelenik meg: a System tetején *System \| Batteries*; az AI-ban *Chat \| Usage* a fejléc sorában, a Claude \| ChatGPT választóval egy sorban, jobb oldalt a gombok mellett. Összevonva az AI mindkét füle a közepes szélességben (720 pt) nyílik, hogy a beszélgetéslista mellett is kiférjen a fejléc. A gazdamodul a legutóbb nézett fülén nyílik. |
 | MG-3 | **Visszaváltva** a vendégmodul a korábbi helyére és bekapcsoltsági állapotába kerül; a sorrend és a bekapcsolt modulok listája összevonás alatt sem íródik felül. A vendégmodul beállításai (CL-5, CL-6, BT-3, BT-5…) mindkét módban ugyanazok. |
 | MG-4 | A vendégmodul **működése nem változik**: frissítése (CL-4, BT-1b), értesítései és a notch melletti jelzői (CL-6 session-kör, BT-3 alacsony akku) összevonva is futnak, amíg a gazdamodul be van kapcsolva. Kikapcsolt gazdamodul mellett a vendégmodul sem fut. |
 | MG-5 | **Notch melletti jelző összevonva:** a CL-6 session-körre, illetve a BT-3 akkujelzőre mutatva **ugyanaz a fogyasztás-, illetve akkucímke** jelenik meg, mint önálló módban; ahol a jelző a modult nyitja, a gazdamodul a **Usage**, illetve a **Batteries** fülén nyílik. |

@@ -65,7 +65,7 @@ struct BadgeDropdown: View {
                     }
                     .padding(.top, 4)
                 }
-                .scrollIndicators(.automatic)
+                .scrollIndicators(.never)
                 .scrollBounceBehavior(.basedOnSize)
                 .frame(height: IndicatorLayout.badgeDropdownHeight(rows: rows))
             }

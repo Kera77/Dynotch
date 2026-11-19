@@ -23,6 +23,7 @@ struct ClaudeUsageView: View {
                 )
                 Spacer()
                 headerControls
+                MergedTabsPicker()
             }
             if provider == AIProvider.chatgpt.rawValue {
                 chatGPT
