@@ -141,7 +141,7 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isShowingClipboardPicker = false
     /// Files are being dragged over the notch (spec FT-1).
     /// Mission Control is showing: no hover opening (spec N-19).
-    var isHiddenForMissionControl = false
+    @Published var isHiddenForMissionControl = false
     /// The Beeper tab's chat list is open: only then does it need the wide panel (spec BP-1d).
     @Published var beeperListOpen = true
 

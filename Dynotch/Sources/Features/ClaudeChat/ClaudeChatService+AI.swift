@@ -116,11 +116,18 @@ extension ClaudeChatService {
 
     /// Pinned first, then the newest; filtered by title and text.
     func listedChats(matching search: String) -> [ClaudeChat] {
-        let found = search.isEmpty ? chats : chats.filter { chat in
+        // Sessions taken over from Claude Code are not questions asked here (spec AI-17).
+        let asked = chats.filter { $0.importedFrom == nil }
+        let found = search.isEmpty ? asked : asked.filter { chat in
             chat.title.localizedCaseInsensitiveContains(search)
                 || chat.messages.contains { $0.text.localizedCaseInsensitiveContains(search) }
         }
         return found.filter { $0.isPinned == true } + found.filter { $0.isPinned != true }
+    }
+
+    /// The web conversations of the shown service matching the search (spec AI-17).
+    func listedWebConversations(matching search: String) -> [WebAIConversation] {
+        webConversations.filter { $0.provider == shownProvider && (search.isEmpty || $0.title.localizedCaseInsensitiveContains(search)) }
     }
 
     // MARK: Context (spec AI-5)

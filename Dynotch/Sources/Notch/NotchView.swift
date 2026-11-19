@@ -67,6 +67,7 @@ struct NotchView: View {
 
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static let quickAnimation = Motion.quick
+    static let missionControlAnimation = Animation.easeInOut(duration: 0.16)
 
     /// Content fades in and slides down a little with the background. Not scaled: text drawn
     /// while scaled stayed blurry until the next redraw (spec N-17).
@@ -212,6 +213,10 @@ struct NotchView: View {
         .offset(x: collapsedOffset + capsule.shift)
         .opacity(isHiddenForFullScreen ? 0 : 1)
         .animation(NotchController.animation, value: isHiddenForFullScreen)
+        // Mission Control: slides up out of the way and back down the same way, quickly (spec N-19b).
+        .offset(y: model.isHiddenForMissionControl ? -(size.height + 12) : 0)
+        .opacity(model.isHiddenForMissionControl ? 0 : 1)
+        .animation(Self.missionControlAnimation, value: model.isHiddenForMissionControl)
         .padding(.top, isPill ? Self.pillGap : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .top) {

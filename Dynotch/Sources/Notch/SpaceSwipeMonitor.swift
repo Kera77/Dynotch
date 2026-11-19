@@ -22,6 +22,7 @@ enum SpaceSwipe {
     static let dockSwipeHIDType: Int64 = 23
     /// Left or right, as opposed to up (Mission Control) or down (App Exposé).
     static let horizontalMotion: Int64 = 1
+    static let verticalMotion: Int64 = 2
 
     /// The swipe is the one that switches Spaces.
     static func isSpaceSwipe(type: UInt32, hidType: Int64, motion: Int64) -> Bool {
@@ -44,6 +45,9 @@ enum SpaceSwipe {
 @MainActor
 final class SpaceSwipeMonitor {
     private let onPhase: (SpaceSwipe.Phase) -> Void
+    /// The up/down swipe (Mission Control, App Exposé): its progress, negative upwards, and
+    /// whether it ended (spec N-19b).
+    var onVerticalSwipe: (Double, Bool) -> Void = { _, _ in }
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var isSwiping = false
@@ -89,7 +93,8 @@ final class SpaceSwipeMonitor {
         let motion = event.getIntegerValueField(motionField)
         let rawPhase = event.getIntegerValueField(phaseField)
         log(type: type, hidType: hidType, motion: motion, rawPhase: rawPhase, event: event)
-        guard SpaceSwipe.isSpaceSwipe(type: type.rawValue, hidType: hidType, motion: motion),
+        guard !forwardsVertical(type: type, hidType: hidType, motion: motion, rawPhase: rawPhase, event: event),
+              SpaceSwipe.isSpaceSwipe(type: type.rawValue, hidType: hidType, motion: motion),
               let phase = SpaceSwipe.phase(fromRaw: rawPhase)
         else { return }
         switch phase {
@@ -108,6 +113,15 @@ final class SpaceSwipeMonitor {
             isSwiping = false
             onPhase(.ended)
         }
+    }
+
+    /// An up/down dock swipe goes to `onVerticalSwipe`.
+    private func forwardsVertical(type: CGEventType, hidType: Int64, motion: Int64, rawPhase: Int64, event: CGEvent) -> Bool {
+        guard type.rawValue == SpaceSwipe.dockControlType, hidType == SpaceSwipe.dockSwipeHIDType, motion == SpaceSwipe.verticalMotion,
+              let progressField = SpaceSwipe.progressField, let phase = SpaceSwipe.phase(fromRaw: rawPhase)
+        else { return false }
+        onVerticalSwipe(event.getDoubleValueField(progressField), phase == .ended)
+        return true
     }
 
     /// The fields of the first dock gestures, so the detection can be checked (no content).

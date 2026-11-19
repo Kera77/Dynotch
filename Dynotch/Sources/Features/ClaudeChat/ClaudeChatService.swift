@@ -40,6 +40,8 @@ final class ClaudeChatService: ObservableObject {
     var isVisibleInMenuBar = false
     /// Claude Code's own sessions that were not taken over yet (spec CC-6).
     @Published private(set) var codeSessions: [ClaudeCodeSession] = []
+    /// The claude.ai and chatgpt.com conversations from the browsers' history (spec AI-17).
+    @Published private(set) var webConversations: [WebAIConversation] = []
     /// The list of earlier chats is shown (spec CC-7).
     @Published var showsSidebar: Bool {
         didSet { defaults.set(!showsSidebar, forKey: Self.sidebarKey) }
@@ -126,10 +128,13 @@ final class ClaudeChatService: ObservableObject {
 
     // MARK: - Claude Code's history (spec CC-6)
 
+    /// The history beside the chats: the questions asked on the web (spec AI-17). Claude Code's
+    /// and Codex's own sessions are not listed.
     func refreshCodeSessions() {
         Task { [weak self] in
-            let sessions = await Task.detached { ClaudeCodeHistory.sessions() }.value
-            self?.setCodeSessions(sessions)
+            let found = await Task.detached { WebAIHistory.conversations() }.value
+            guard let self, found != self.webConversations else { return }
+            self.webConversations = found
         }
     }
 

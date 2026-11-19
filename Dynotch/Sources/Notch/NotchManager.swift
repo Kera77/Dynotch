@@ -25,6 +25,7 @@ final class NotchManager {
         let monitor = SpaceSwipeMonitor { [weak self] phase in
             self?.spaceSwipe(phase)
         }
+        monitor.onVerticalSwipe = { [weak self] progress, ended in self?.missionControl?.swiped(progress: progress, ended: ended) }
         monitor.start()
         spaceSwipes = monitor
         // Mission Control: the notch would cover the Spaces along the top (spec N-19).

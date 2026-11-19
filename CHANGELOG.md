@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-11-19
+
+### Changed
+- Mission Control: the notch slides up out of the way quickly and slides back down the same way; with the trackpad it leaves as soon as the swipe up starts.
+- AI: the history beside the chats no longer lists Claude Code and Codex sessions; under the chats asked in Dynotch, "On the web" lists the claude.ai and chatgpt.com conversations from the browsers' history, opening in the browser.
+
 ## [0.64.0] - 2026-11-19
 
 ### Added

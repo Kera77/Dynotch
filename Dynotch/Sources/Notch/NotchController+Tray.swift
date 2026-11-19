@@ -208,13 +208,9 @@ extension NotchController {
 extension NotchController {
     /// Out of the way while Mission Control shows the Spaces along the top.
     func setHiddenForMissionControl(_ hidden: Bool) {
+        guard model.isHiddenForMissionControl != hidden else { return }
         model.isHiddenForMissionControl = hidden
         if hidden { collapse() }
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = hidden ? 0.12 : 0.25
-            panel.animator().alphaValue = hidden ? 0 : 1
-            glassPanel.animator().alphaValue = hidden ? 0 : 1
-        }
         // Back on, the pointer logic decides about clicks again.
         if hidden { panel.ignoresMouseEvents = true }
     }

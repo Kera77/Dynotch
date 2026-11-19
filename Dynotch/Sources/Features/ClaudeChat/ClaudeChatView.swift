@@ -118,15 +118,20 @@ struct ClaudeChatView: View {
                         }
                     }
                     AIFavoritesSection(service: service)
-                    if !service.codeSessions.isEmpty {
-                        Text("FROM CLAUDE CODE")
+                    let web = service.listedWebConversations(matching: search)
+                    if !web.isEmpty {
+                        Text("ON THE WEB")
                             .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(Color.white.opacity(0.4))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8)
                             .padding(.top, 8)
-                        ForEach(service.codeSessions) { session in
-                            ChatRow(title: session.title, isSelected: false, isWorking: false, select: { service.open(session) })
+                        ForEach(web) { conversation in
+                            ChatRow(
+                                title: conversation.title, isSelected: false, isWorking: false,
+                                select: { NSWorkspace.shared.open(conversation.url) }
+                            )
+                            .help("Opens on \(conversation.url.host ?? "the web")")
                         }
                     }
                 }

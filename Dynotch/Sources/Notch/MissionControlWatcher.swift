@@ -14,7 +14,11 @@ final class MissionControlWatcher {
     private var watch: WindowListMonitor.Token?
     private var isShown = false
     private static let pollInterval: TimeInterval = 0.3
-    private static let slowPollInterval: TimeInterval = 1
+    /// How far the trackpad swipe must go before the notch leaves (spec N-19b).
+    private static let swipeThreshold = 0.06
+    private var verifyTask: Task<Void, Never>?
+    /// The window list is not trusted while a swipe runs and until it is confirmed after it.
+    private var swipeHold = false
 
     nonisolated private static let showing = ["AXExposeShowAllWindows", "AXExposeShowFrontWindows", "AXExposeShowDesktop"]
     nonisolated private static let exit = "AXExposeExit"
@@ -66,12 +70,32 @@ final class MissionControlWatcher {
     }
 
     private func received(_ name: String) {
-        // The Dock's notices arrive: the window list is only a slower safety net now.
-        if let watch { WindowListMonitor.shared.setInterval(Self.slowPollInterval, for: watch) }
         set(Self.isShowing(after: name))
     }
 
+    /// The up/down trackpad swipe: the notch leaves as Mission Control starts opening and comes
+    /// back as it starts closing, without waiting for the window list. After the swipe the list
+    /// confirms it, so a swipe given up halfway brings the notch back (spec N-19b).
+    func swiped(progress: Double, ended: Bool) {
+        swipeHold = true
+        if progress <= -Self.swipeThreshold, !isShown {
+            set(true)
+        } else if progress >= Self.swipeThreshold, isShown {
+            set(false)
+        }
+        guard ended else { return }
+        verifyTask?.cancel()
+        verifyTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(700))
+            let windows = await Task.detached { WindowListMonitor.onScreenWindows() }.value
+            guard !Task.isCancelled, let self else { return }
+            self.swipeHold = false
+            self.poll(windows)
+        }
+    }
+
     private func poll(_ windows: [ListedWindow]) {
+        guard !swipeHold else { return }
         set(Self.isMissionControl(windows, screens: NSScreen.screens.map(\.frame)))
     }
 

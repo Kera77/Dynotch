@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.64 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.65 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -44,6 +44,7 @@
 | N-17 | (v0.43) Modulváltáskor és egy értesítés bezárása után a tartalom **nem marad homályos**: átúszik és kicsit elmozdul, nem méreteződik. |
 | N-18 | (v0.43) **Pill mód** (külső kijelző): a lenyitott pill felső sora középen van, fent és lent 3 pt réssel; a felső sarkok legfeljebb 12 pt-esek, így nem vágják le a sort. |
 | N-19 | (v0.44) **Mission Control** alatt a notch eltűnik (nem takarja a Space-eket), és hoverre sem nyílik; utána visszajön. A Dock Accessibility-értesítéseiből (`AXExposeShowAllWindows` … `AXExposeExit`), az Accessibility-engedéllyel. (v0.48) A Dock jelzései nem mindig jönnek: a Dynotch 0,3 mp-enként az ablaklistában is keresi a Mission Control képernyőnyi „Dock” ablakát (20-as réteg). |
+| N-19b | (v0.65) A notch Mission Controlnál **gyorsan felcsúszik** (és elhalványul), visszafelé ugyanígy lecsúszik (~0,16 mp). A trackpad felfelé húzásánál (Dock függőleges swipe) már a gesztus elején eltűnik, lefelé húzásnál visszajön; a gesztus után az ablaklista megerősíti (félbehagyott húzásnál visszajön). |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
 | N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
@@ -690,6 +691,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-14 | (v0.43) **Diktálás:** mikrofon gomb a beviteli mező mellett, a macOS diktálását indítja (saját mikrofonengedély nélkül). |
 | AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
 | AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
+| AI-17 | (v0.65) Az AI oldalsávjában **nincsenek Claude Code- és Codex-munkamenetek**: az appban feltett kérdések (csevegések) és alattuk *On the web*: a claude.ai és chatgpt.com beszélgetések a böngészők helyi előzményeiből (Chromium-alapúak, Zen/Firefox, Safari), címmel, a választott szolgáltatóé; kattintásra a böngészőben nyílik. Csak a cím és a link olvasódik, semmi nem hagyja el a gépet. |
 
 ## 4ö. Modulok átméretezése (v0.45)
 
@@ -836,6 +838,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.65** | Mission Control: gyors felcsúszó eltűnés, trackpad-gesztusra azonnal; AI-előzmények: appbeli kérdések és a webes Claude/ChatGPT beszélgetések, Claude Code/Codex nélkül |
 | **v0.64** | Stabilitás és energia: időkorlát a külső eszközökre, szálbiztos napló, háttérben olvasott értesítés-adatbázis és ablaklista, rendszeranimációs jelvény-pulzálás, ritkább Spotify- és jelzősor-frissítés, a chat és a naptár nem rajzolja újra a notchot; Screen Recording és hiányzó-engedély jelzés; nincs pulzálás Fókusz alatt |
 | **v0.63.1** | Beragadó notch (holtpont a menüsor mérésénél) javítva; BT-szalagcím keresése a Vezérlőközpontban is, naplóval; középre igazított, pöccintéssel eltüntethető eszköz-felugró |
 | **v0.63** | Bluetooth-felugró: ikon, név, „Connected”, AirPods füles- és tokszint; a macOS BT-szalagcímei („Move to iPhone”) a notchba kerülnek kék gombbal; magasabb eszköz-felugró; ismétlődő újracsatlakozás csendben |
