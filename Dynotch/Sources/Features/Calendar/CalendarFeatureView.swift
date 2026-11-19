@@ -32,7 +32,7 @@ struct CalendarFeatureView: View {
     private func accessPrompt(text: String, button: String) -> some View {
         VStack(spacing: 10) {
             Text(text)
-                .font(.system(size: 13))
+                .font(.notch(size: 13))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button(button) { service.requestAccess() }

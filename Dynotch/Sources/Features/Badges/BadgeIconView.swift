@@ -47,7 +47,7 @@ struct BadgeIconView: View {
             BrandGlyphView(glyph: glyph, size: size, color: tint)
         } else {
             Image(systemName: name)
-                .font(.system(size: size * 0.8, weight: .semibold))
+                .font(.notch(size: size * 0.8, weight: .semibold))
                 .foregroundStyle(tint)
                 .frame(width: size, height: size)
         }
@@ -63,7 +63,7 @@ struct BadgeIconView: View {
                 .frame(width: size, height: size)
         } else {
             Image(systemName: "app.fill")
-                .font(.system(size: size * 0.8))
+                .font(.notch(size: size * 0.8))
                 .foregroundStyle(tint)
                 .frame(width: size, height: size)
         }

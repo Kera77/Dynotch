@@ -201,7 +201,8 @@ final class ScreenshotService: ObservableObject {
         window.ignoresMouseEvents = true
         window.sharingType = .none
         window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: RoundedRectangle(cornerRadius: 3).stroke(Color.red.opacity(0.85), lineWidth: 2))
+        window.contentView = NSHostingView(rootView: RoundedRectangle(cornerRadius: AppleStyle.corner(3))
+            .stroke(Color.red.opacity(0.85), lineWidth: 2))
         window.orderFrontRegardless()
         areaFrame = window
     }

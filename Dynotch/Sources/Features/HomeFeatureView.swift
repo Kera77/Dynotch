@@ -6,10 +6,10 @@ struct HomeFeatureView: View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             VStack(spacing: 4) {
                 Text(context.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 46, weight: .semibold, design: .rounded))
+                    .font(.notch(size: 46, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                 Text(context.date, format: .dateTime.weekday(.wide).month(.wide).day())
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.notch(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
             }
             .foregroundStyle(.white)

@@ -14,18 +14,18 @@ struct BadgeDropdown: View {
             if rows.isEmpty {
                 HStack(spacing: 8) {
                     Text("No notifications in Notification Center")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.white.opacity(0.6))
+                        .font(.notch(size: 11))
+                        .foregroundStyle(Color.white.level(0.6))
                         .lineLimit(1)
                     Spacer(minLength: 6)
                     hideMenu
                     Button("Open", action: openApp)
-                        .buttonStyle(.plain)
-                        .font(.system(size: 11, weight: .semibold))
+                        .buttonStyle(.notch)
+                        .font(.notch(size: 11, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 9)
                         .frame(height: 18)
-                        .background(Capsule().fill(Color.white.opacity(0.16)))
+                        .background(Capsule().fill(Color.white.level(0.16)))
                 }
                 .padding(.horizontal, 12)
                 .frame(height: 34)
@@ -38,21 +38,21 @@ struct BadgeDropdown: View {
                             Button(action: openNotifications) {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(group.sender)
-                                        .font(.system(size: 11, weight: .semibold))
+                                        .font(.notch(size: 11, weight: .semibold))
                                         .foregroundStyle(.white)
                                         .lineLimit(1)
                                         .frame(height: IndicatorLayout.badgeSenderHeight)
                                     ForEach(group.rows) { row in
                                         HStack(spacing: 6) {
                                             Text(row.detail.isEmpty ? "—" : row.detail)
-                                                .font(.system(size: 11))
-                                                .foregroundStyle(Color.white.opacity(0.75))
+                                                .font(.notch(size: 11))
+                                                .foregroundStyle(Color.white.level(0.75))
                                                 .lineLimit(1)
                                             Spacer(minLength: 4)
                                             Text(row.date.formatted(date: .omitted, time: .shortened))
-                                                .font(.system(size: 9))
+                                                .font(.notch(size: 9))
                                                 .monospacedDigit()
-                                                .foregroundStyle(Color.white.opacity(0.4))
+                                                .foregroundStyle(Color.white.level(0.4))
                                         }
                                         .frame(height: IndicatorLayout.badgeMessageHeight)
                                     }
@@ -60,7 +60,7 @@ struct BadgeDropdown: View {
                                 .padding(.horizontal, 12)
                                 .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.notch)
                         }
                     }
                     .padding(.top, 4)
@@ -91,10 +91,10 @@ struct BadgeDropdown: View {
             }
         } label: {
             Image(systemName: "eye.slash")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: 10, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.7))
                 .frame(width: 22, height: 18)
-                .background(Capsule().fill(Color.white.opacity(0.12)))
+                .background(Capsule().fill(Color.white.level(0.12)))
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)

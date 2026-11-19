@@ -14,8 +14,8 @@ struct RemindersView: View {
     let isActive: Bool
     var pin: PinControl?
 
-    static let red = Color(red: 1, green: 0.27, blue: 0.27)
-    static let blue = Theme.blue
+    static var red: Color { Color(red: 1, green: 0.27, blue: 0.27).apple(.red) }
+    static var blue: Color { Theme.blue }
 
     var body: some View {
         Group {
@@ -94,30 +94,30 @@ struct RemindersView: View {
                 store.showCompleted.toggle()
             } label: {
                 Image(systemName: store.showCompleted ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                    .font(.system(size: 15))
-                    .foregroundStyle(store.showCompleted ? Self.blue : Color.white.opacity(0.6))
+                    .font(.notch(size: 15))
+                    .foregroundStyle(store.showCompleted ? Self.blue : Color.white.level(0.6))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help(store.showCompleted ? "Hide completed" : "Show tasks completed in the last 7 days")
 
             Spacer()
             Text(store.errorMessage ?? "\(store.openCount) open")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(store.errorMessage == nil ? Color.white.opacity(0.5) : Self.red)
+                .font(.notch(size: 11, weight: .medium))
+                .foregroundStyle(store.errorMessage == nil ? Color.white.level(0.5) : Self.red)
                 .lineLimit(1)
             Spacer()
 
             if let pin {
                 PinButton(isPinned: pin.isPinned, action: pin.toggle)
                     .frame(width: 30, height: 26)
-                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.14)))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.14)))
             }
             Button(action: store.openRemindersApp) {
                 Image(systemName: "arrow.up.forward.app")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .font(.notch(size: 14))
+                    .foregroundStyle(Color.white.level(0.6))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Open in Reminders")
             .accessibilityLabel("Open in Reminders")
         }
@@ -126,7 +126,7 @@ struct RemindersView: View {
     private func prompt(_ text: String, button: String, action: @escaping () -> Void) -> some View {
         VStack(spacing: 10) {
             Text(text)
-                .font(.system(size: 12))
+                .font(.notch(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button(button, action: action)
@@ -146,18 +146,18 @@ private struct QuickAddField: View {
         HStack(spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.white.opacity(0.4))
+                    .font(.notch(size: 14))
+                    .foregroundStyle(Color.white.level(0.4))
                 TextField("Type a reminder and hit enter", text: $text)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .font(.notch(size: 13))
                     .onSubmit {
                         if store.add(text) { text = "" }
                     }
             }
             .padding(.horizontal, 10)
             .frame(height: 32)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
 
             Menu {
                 ForEach(store.lists) { list in
@@ -176,14 +176,14 @@ private struct QuickAddField: View {
                 Toggle("Remove parsed date from title", isOn: $store.removeParsedDate)
             } label: {
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.notch(size: 11, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(RemindersView.blue))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(RemindersView.blue))
                     .contentShape(Rectangle())
             }
             .menuStyle(.button)
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Lists and options. Type \"@List\" to pick a list; dates like \"tomorrow 2pm\" are recognised.")
@@ -222,13 +222,13 @@ struct ReminderRow: View {
                 .frame(width: 17, height: 17)
                 .contentShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help(isChecked ? "Mark as not done" : "Mark as done")
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(isChecked ? Color.white.opacity(0.45) : .white)
+                    .font(.notch(size: 13, weight: .medium))
+                    .foregroundStyle(isChecked ? Color.white.level(0.45) : .white)
                     .strikethrough(isChecked)
                     .lineLimit(2)
                 if let due = ReminderLogic.dueText(for: item, now: store.now) {
@@ -247,11 +247,11 @@ struct ReminderRow: View {
                     store.editingID = item.id
                 } label: {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 14))
+                        .font(.notch(size: 14))
                         .foregroundStyle(Theme.blue)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .opacity(isHovered ? 1 : 0)
                 .help("Details")
                 .accessibilityLabel("Details")
@@ -264,7 +264,7 @@ struct ReminderRow: View {
         // Room left of the circle, so it does not touch the edge (spec R-6).
         .padding(.leading, 6)
         .overlay(alignment: .bottom) {
-            Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1).padding(.leading, 31)
+            Rectangle().fill(Color.white.level(0.08)).frame(height: 1).padding(.leading, 31)
         }
     }
 }

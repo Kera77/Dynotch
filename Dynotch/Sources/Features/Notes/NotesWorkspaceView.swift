@@ -16,7 +16,7 @@ struct NotesWorkspaceView: View {
 
     @StateObject private var editorController = RichNoteController()
 
-    static let accent = Color(red: 0.98, green: 0.78, blue: 0.16)
+    static var accent: Color { Color(red: 0.98, green: 0.78, blue: 0.16).apple(.yellow) }
     /// The notes list grows with a resized module (spec RS-5).
     @State private var width: CGFloat = 0
 
@@ -54,7 +54,7 @@ struct NotesWorkspaceView: View {
                 NotesSidebar(store: store)
                     .frame(width: Self.sidebarWidth(for: width))
                 Rectangle()
-                    .fill(Color.white.opacity(0.1))
+                    .fill(Color.white.level(0.1))
                     .frame(width: 1)
                 editor
             }
@@ -89,7 +89,7 @@ struct NotesWorkspaceView: View {
     private var bottomBar: some View {
         HStack(spacing: 10) {
             Text(statusText)
-                .font(.system(size: 11, weight: .medium))
+                .font(.notch(size: 11, weight: .medium))
                 .foregroundStyle(statusColor)
                 .lineLimit(1)
                 .help(statusText)
@@ -114,39 +114,39 @@ struct NotesWorkspaceView: View {
 
             if let pin {
                 Rectangle()
-                    .fill(Color.white.opacity(0.15))
+                    .fill(Color.white.level(0.15))
                     .frame(width: 1, height: 16)
                 PinButton(isPinned: pin.isPinned, action: pin.toggle)
                     .frame(width: 30, height: 28)
-                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.14)))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.14)))
             }
 
             switch store.selection {
             case .draft:
                 Button(action: store.saveDraftToNotes) {
                     Text("Save to Notes")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.notch(size: 12, weight: .bold))
                         .foregroundStyle(Color.black.opacity(0.85))
                         .padding(.horizontal, 14)
                         .frame(height: 28)
-                        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Self.accent))
+                        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Self.accent))
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .disabled(store.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.selectedFolder == nil)
                 .opacity(store.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1)
                 .help("New note in \"\(store.selectedFolder?.name ?? "")\"")
             case .note:
                 Button(action: store.openInNotes) {
                     Label("Open in Notes", systemImage: "arrow.up.forward.app")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.notch(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
                         .frame(height: 28)
-                        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.14)))
+                        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.14)))
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
             }
         }
         .padding(.top, 8)
@@ -172,8 +172,8 @@ struct NotesWorkspaceView: View {
 
     private var statusColor: Color {
         switch store.saveState {
-        case .conflict, .failed: Color(red: 1, green: 0.45, blue: 0.4)
-        default: Color.white.opacity(store.readOnlyReason == nil ? 0.6 : 0.8)
+        case .conflict, .failed: Color(red: 1, green: 0.45, blue: 0.4).apple(.red)
+        default: Color.white.level(store.readOnlyReason == nil ? 0.6 : 0.8)
         }
     }
 
@@ -182,16 +182,16 @@ struct NotesWorkspaceView: View {
     private func message(text: String, showsProgress: Bool) -> some View {
         VStack(spacing: 8) {
             if showsProgress { ProgressView().controlSize(.small) }
-            Text(text).font(.system(size: 12, weight: .medium))
+            Text(text).font(.notch(size: 12, weight: .medium))
         }
-        .foregroundStyle(Color.white.opacity(0.6))
+        .foregroundStyle(Color.white.level(0.6))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func accessPrompt(text: String, button: String, action: @escaping () -> Void) -> some View {
         VStack(spacing: 10) {
             Text(text)
-                .font(.system(size: 12))
+                .font(.notch(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button(button, action: action)
@@ -242,13 +242,13 @@ private struct NotesSidebar: View {
             if let text = NSPasteboard.general.string(forType: .string) { store.addToScratchpad(text) }
         } label: {
             Label("Paste as Note", systemImage: "doc.on.clipboard")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: 11, weight: .medium))
+                .foregroundStyle(Color.white.level(0.7))
                 .padding(.horizontal, 8)
                 .frame(height: 22)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help("Add the clipboard's text to the scratchpad")
     }
 
@@ -274,21 +274,21 @@ private struct NotesSidebar: View {
                 Image(systemName: "folder.fill")
                     .foregroundStyle(NotesWorkspaceView.accent)
                 Text(store.selectedFolder?.name ?? "Folder")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 9, weight: .bold))
+                    .foregroundStyle(Color.white.level(0.5))
             }
             .padding(.horizontal, 8)
             .frame(height: 26)
-            .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.1)))
             .contentShape(Rectangle())
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .help(store.selectedFolder.map { "\($0.account) › \($0.name)" } ?? "Choose a folder")
     }
@@ -298,17 +298,17 @@ private struct NotesSidebar: View {
             HStack(spacing: 6) {
                 if let symbol {
                     Image(systemName: symbol)
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.notch(size: 11, weight: .semibold))
                         .foregroundStyle(NotesWorkspaceView.accent)
                 }
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.notch(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                     Text(subtitle)
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.45))
+                        .font(.notch(size: 10))
+                        .foregroundStyle(Color.white.level(0.45))
                         .lineLimit(1)
                 }
                 Spacer(minLength: 0)
@@ -316,12 +316,12 @@ private struct NotesSidebar: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous)
                     .fill(isSelected ? NotesWorkspaceView.accent.opacity(0.28) : .clear)
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 }
 

@@ -83,8 +83,8 @@ final class NotificationService: ObservableObject {
         let app = catalog.app(for: notification.appIdentifier)
         let content = NotificationPresenter.content(for: notification, appName: app.name, kind: app.kind)
         // The messages read from the web app when the card was opened (spec GW-5c).
-        guard let texts = chatWebTexts[notification.id], !texts.isEmpty else { return content }
-        return NotificationContent(sender: content.sender, detail: texts.joined(separator: "\n"))
+        guard let lines = chatWebTexts[notification.id], !lines.isEmpty else { return content }
+        return NotificationContent(sender: content.sender, detail: lines.map(\.text).joined(separator: "\n"), lines: lines)
     }
 
     /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
@@ -105,7 +105,7 @@ final class NotificationService: ObservableObject {
     /// Negative ids never clash with the database's record ids.
     var internalID: Int64 = 0
     /// Messages read from the web app for a card made without a notification, by card id (spec GW-5c).
-    @Published var chatWebTexts: [Int64: [String]] = [:]
+    @Published var chatWebTexts: [Int64: [ChatWebMessage]] = [:]
     /// Cards opened whose conversation is being opened in the web app, by conversation id.
     var chatWebPending: [String: Int64] = [:]
     /// Cards whose conversation Dynotch read in the web app to show them: card id → conversation

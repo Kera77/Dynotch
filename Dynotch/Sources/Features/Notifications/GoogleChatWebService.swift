@@ -152,7 +152,8 @@ final class GoogleChatWebService: ObservableObject {
         guard state == .reading, let pid = Self.webAppPID() else { return nil }
         let hint = windowTokenHint
         let key = ChatWebConversation(id: id, name: "", isUnread: true).key
-        let before = await read(pid)
+        // The last background read is enough to compare with: no extra walk of the page (spec GW-20b).
+        let before = snapshot
         let wasOpen = before?.openID == key
         if !wasOpen {
             guard await Task.detached(operation: { GoogleChatWebReader.open(id, pid: pid, windowToken: hint) }).value

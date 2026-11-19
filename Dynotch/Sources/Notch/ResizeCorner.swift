@@ -38,7 +38,7 @@ struct ResizeCorner: View {
             Color.clear
             if isShown {
                 CornerArc(radius: radius, inset: 5)
-                    .stroke(Color.white.opacity(startSize == nil ? 0.75 : 0.95), style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                    .stroke(Color.white.level(startSize == nil ? 0.75 : 0.95), style: StrokeStyle(lineWidth: 5, lineCap: .round))
                     .frame(width: radius, height: radius)
                     .transition(.opacity)
             }
@@ -55,13 +55,13 @@ struct ResizeCorner: View {
             withAnimation(NotchController.animation) { model.resetModuleSize() }
         } label: {
             Image(systemName: "arrow.counterclockwise")
-                .font(.system(size: 10, weight: .bold))
+                .font(.notch(size: 10, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
-                .background(Circle().fill(Color.white.opacity(0.18)))
+                .background(Circle().fill(Color.white.level(0.18)))
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help("Back to the normal size")
         .accessibilityLabel("Back to the normal size")
     }

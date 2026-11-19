@@ -18,12 +18,12 @@ struct EmojiButton: View {
             if isOpen { pinNotch() }
         } label: {
             Image(systemName: "face.smiling")
-                .font(.system(size: size))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: size))
+                .foregroundStyle(Color.white.level(0.7))
                 .frame(width: 26, height: 30)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help("Emoji")
         .accessibilityLabel("Emoji")
         .onHover { inside in
@@ -115,11 +115,12 @@ struct EmojiGrid: View {
                         category = index
                     } label: {
                         Image(systemName: Self.categories[index].symbol)
-                            .font(.system(size: 11))
+                            .font(.notch(size: 11))
                             .frame(width: 26, height: 20)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(Color.primary.opacity(index == category ? 0.15 : 0)))
+                            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(5))
+                                .fill(Color.primary.opacity(index == category ? 0.15 : 0)))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.notch)
                 }
             }
         }
@@ -131,8 +132,8 @@ struct EmojiGrid: View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(24), spacing: 3), count: 8), spacing: 3) {
             ForEach(Array(emoji.enumerated()), id: \.offset) { _, item in
                 Button(item) { pick(item) }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 18))
+                    .buttonStyle(.notch)
+                    .font(.notch(size: 18))
                     .frame(width: 24, height: 24)
             }
         }

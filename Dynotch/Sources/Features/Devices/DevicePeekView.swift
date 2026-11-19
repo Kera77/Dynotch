@@ -12,13 +12,13 @@ struct DevicePeekView: View {
             Color.clear.frame(height: notchHeight)
             HStack(spacing: 12) {
                 Image(systemName: event.symbol)
-                    .font(.system(size: 21, weight: .medium))
-                    .foregroundStyle(event.isConnected ? Theme.green : Color.white.opacity(0.45))
+                    .font(.notch(size: 21, weight: .medium))
+                    .foregroundStyle(event.isConnected ? Theme.green : Color.white.level(0.45))
                     .frame(width: 44, height: 44)
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.08)))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(12), style: .continuous).fill(Color.white.level(0.08)))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(event.name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.notch(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                     statusLine
@@ -45,26 +45,26 @@ struct DevicePeekView: View {
         HStack(spacing: 4) {
             if event.detail == nil {
                 Image(systemName: event.isConnected ? "checkmark.circle.fill" : "xmark.circle")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.notch(size: 10, weight: .semibold))
             }
             Text(event.detail ?? (event.isConnected ? "Connected" : "Disconnected"))
-                .font(.system(size: 11, weight: .medium))
+                .font(.notch(size: 11, weight: .medium))
                 .monospacedDigit()
                 .lineLimit(1)
         }
-        .foregroundStyle(event.detail == nil && event.isConnected ? Theme.green : Color.white.opacity(0.6))
+        .foregroundStyle(event.detail == nil && event.isConnected ? Theme.green : Color.white.level(0.6))
     }
 
     private func levelView(_ level: DeviceLevel) -> some View {
         HStack(spacing: 3) {
             if let symbol = level.symbols.first(where: { NSImage(systemSymbolName: $0, accessibilityDescription: nil) != nil }) {
-                Image(systemName: symbol).font(.system(size: 11))
+                Image(systemName: symbol).font(.notch(size: 11))
             } else {
-                Text(level.title).font(.system(size: 10, weight: .semibold))
+                Text(level.title).font(.notch(size: 10, weight: .semibold))
             }
-            Text("\(level.percent)%").font(.system(size: 11, weight: .medium)).monospacedDigit()
+            Text("\(level.percent)%").font(.notch(size: 11, weight: .medium)).monospacedDigit().numericTransition()
         }
-        .foregroundStyle(level.percent <= 20 ? BatteryFeatureView.red : Color.white.opacity(0.75))
+        .foregroundStyle(level.percent <= 20 ? BatteryFeatureView.red : Color.white.level(0.75))
         .help(level.title.isEmpty ? "Battery" : level.title)
     }
 
@@ -81,12 +81,12 @@ struct DevicePeekView: View {
 
     private func button(_ title: String, _ action: DeviceEvent.Action, prominent: Bool = false) -> some View {
         Button(title) { perform(action) }
-            .buttonStyle(.plain)
-            .font(.system(size: 11, weight: .semibold))
+            .buttonStyle(.notch)
+            .font(.notch(size: 11, weight: .semibold))
             .foregroundStyle(.white)
             .lineLimit(1)
             .padding(.horizontal, 11)
             .frame(height: 26)
-            .background(Capsule().fill(prominent ? Theme.blue : Color.white.opacity(0.15)))
+            .background(Capsule().fill(prominent ? Theme.blue : Color.white.level(0.15)))
     }
 }

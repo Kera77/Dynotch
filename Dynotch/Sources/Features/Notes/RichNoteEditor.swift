@@ -150,40 +150,40 @@ struct RichNoteToolbar: View {
                 }
             } label: {
                 Text("Aa")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 32, height: 24)
                     .contentShape(Rectangle())
             }
             .menuStyle(.button)
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Title ⇧⌘T · Heading ⇧⌘H · Subheading ⇧⌘J · Body ⇧⌘B")
             .accessibilityLabel("Title ⇧⌘T · Heading ⇧⌘H · Subheading ⇧⌘J · Body ⇧⌘B")
 
-            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16)
-            button("B", font: .system(size: 13, weight: .bold), help: "Bold ⌘B") { controller.toggle(.bold) }
-            button("I", font: .system(size: 13).italic(), help: "Italic ⌘I") { controller.toggle(.italic) }
-            button("U", font: .system(size: 13), underline: true, help: "Underline ⌘U") { controller.toggle(.underline) }
-            button("S", font: .system(size: 13), strikethrough: true, help: "Strikethrough ⇧⌘X") { controller.toggle(.strikethrough) }
-            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16)
+            Rectangle().fill(Color.white.level(0.15)).frame(width: 1, height: 16)
+            button("B", font: .notch(size: 13, weight: .bold), help: "Bold ⌘B") { controller.toggle(.bold) }
+            button("I", font: .notch(size: 13).italic(), help: "Italic ⌘I") { controller.toggle(.italic) }
+            button("U", font: .notch(size: 13), underline: true, help: "Underline ⌘U") { controller.toggle(.underline) }
+            button("S", font: .notch(size: 13), strikethrough: true, help: "Strikethrough ⇧⌘X") { controller.toggle(.strikethrough) }
+            Rectangle().fill(Color.white.level(0.15)).frame(width: 1, height: 16)
             Button {
                 controller.toggleChecklist()
             } label: {
                 Image(systemName: "checklist")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 28, height: 24)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("To-do list ⇧⌘L · click a circle to check it off")
             .accessibilityLabel("To-do list ⇧⌘L · click a circle to check it off")
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
     }
@@ -201,7 +201,7 @@ struct RichNoteToolbar: View {
                 .frame(width: 28, height: 24)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 }

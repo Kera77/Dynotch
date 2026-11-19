@@ -5,7 +5,7 @@ struct ClaudeUsageView: View {
     @ObservedObject var service: ClaudeUsageService
     let isActive: Bool
 
-    static let blue = Theme.blue
+    static var blue: Color { Theme.blue }
 
     /// Claude or ChatGPT (spec AI-6).
     @AppStorage("usageProvider") private var provider = AIProvider.claude.rawValue
@@ -40,29 +40,29 @@ struct ClaudeUsageView: View {
         return HStack(spacing: 8) {
             if let updated {
                 Text("Updated \(updated.formatted(date: .omitted, time: .shortened))")
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color.white.opacity(0.35))
+                    .font(.notch(size: 10))
+                    .foregroundStyle(Color.white.level(0.35))
             }
             Button(action: service.toggleSessionPinned) {
                 Label(service.isSessionPinned ? "At notch" : "Show at notch",
                       systemImage: service.isSessionPinned ? "pin.fill" : "pin")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(service.isSessionPinned ? Color.white : Color.white.opacity(0.6))
+                    .font(.notch(size: 10, weight: .semibold))
+                    .foregroundStyle(service.isSessionPinned ? Color.white : Color.white.level(0.6))
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.white.opacity(service.isSessionPinned ? 0.2 : 0.08)))
+                    .background(Capsule().fill(Color.white.level(service.isSessionPinned ? 0.2 : 0.08)))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Keep the usage next to the notch, also below 70%")
             .accessibilityLabel("Keep the usage next to the notch")
             Button {
                 isChatGPT ? service.refreshChatGPT() : service.refresh()
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.6))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Refresh")
             .accessibilityLabel("Refresh")
         }
@@ -122,7 +122,7 @@ struct ClaudeUsageView: View {
         VStack(spacing: 10) {
             if showsProgress { ProgressView().controlSize(.small) }
             Text(text)
-                .font(.system(size: 12))
+                .font(.notch(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             if showsRetry {
@@ -141,8 +141,8 @@ private struct UsageRow: View {
     private var color: Color {
         switch limit.level {
         case .normal: ClaudeUsageView.blue
-        case .high: Color(red: 1, green: 0.62, blue: 0.1)
-        case .critical: Color(red: 1, green: 0.3, blue: 0.3)
+        case .high: Color(red: 1, green: 0.62, blue: 0.1).apple(.orange)
+        case .critical: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
         }
     }
 
@@ -150,17 +150,17 @@ private struct UsageRow: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
                 Text(limit.title)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.notch(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
                 Spacer()
                 Text("\(Int(limit.utilization.rounded()))%")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.notch(size: 14, weight: .semibold))
                     .monospacedDigit()
                     .foregroundStyle(limit.level == .normal ? Color.white : color)
             }
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.15))
+                    Capsule().fill(Color.white.level(0.15))
                     Capsule()
                         .fill(color)
                         .frame(width: proxy.size.width * limit.utilization / 100)
@@ -169,8 +169,8 @@ private struct UsageRow: View {
             .frame(height: 6)
             if let reset = limit.resetsAt {
                 Text("Resets \(UsageAlerts.resetText(reset, now: Date()))")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.45))
+                    .font(.notch(size: 11))
+                    .foregroundStyle(Color.white.level(0.45))
             }
         }
     }

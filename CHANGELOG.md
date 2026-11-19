@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-11-19
+
+### Added
+- Apple style (Settings › Appearance › Style: Apple / Current, to compare): system text sizes, the accent and system colours, four levels of white, concentric corners, the system's segmented look and empty state, smooth and snappy motion, rolling numbers, hierarchical symbols, hover highlights on buttons; follows Reduce motion, Reduce transparency and Increase contrast.
+- Google Chat: your own messages in a card are blue, the other side's stay white.
+
+### Changed
+- Google Chat cards load their messages faster: no extra read of the whole page before opening the conversation, and the walk stops at the conversation's link.
+
 ## [0.72.0] - 2026-11-19
 
 ### Changed

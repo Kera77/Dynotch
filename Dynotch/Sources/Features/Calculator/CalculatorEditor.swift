@@ -55,12 +55,12 @@ struct PinButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: isPinned ? "lock.fill" : "lock.open.fill")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .foregroundStyle(isPinned ? Self.activeColor : Color.white.opacity(0.45))
+                .foregroundStyle(isPinned ? Self.activeColor : Color.white.level(0.45))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(isPinned ? "Pinned: stays open" : "Pin: keep open")
     }
 }

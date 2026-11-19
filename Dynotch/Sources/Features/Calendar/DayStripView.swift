@@ -50,8 +50,8 @@ struct DayStripView: View {
             // The selected day's month, small in the gap under the days (spec K-15).
             .overlay(alignment: .bottomLeading) {
                 Text(selectedDay.formatted(.dateTime.month(.wide)))
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.55))
+                    .font(.notch(size: 9, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.55))
                     .padding(.horizontal, 4)
                     .background(Color.black)
                     .padding(.leading, 2)
@@ -94,16 +94,16 @@ private struct DayCell: View {
         if isToday { return CalendarStyle.accent }
         if isSelected { return .white }
         if Calendar.current.isDateInWeekend(day) { return CalendarStyle.weekend.opacity(0.8) }
-        return Color.white.opacity(0.6)
+        return Color.white.level(0.6)
     }
 
     var body: some View {
         VStack(spacing: 1) {
             Text(weekdayText)
-                .font(.system(size: 9, weight: isHighlighted ? .bold : .semibold))
+                .font(.notch(size: 9, weight: isHighlighted ? .bold : .semibold))
                 .foregroundStyle(isHighlighted ? color : color.opacity(0.7))
             Text(day.formatted(.dateTime.day()))
-                .font(.system(size: isHighlighted ? 20 : 15, weight: isHighlighted ? .bold : .medium))
+                .font(.notch(size: isHighlighted ? 20 : 15, weight: isHighlighted ? .bold : .medium))
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .frame(height: 24)
@@ -112,13 +112,13 @@ private struct DayCell: View {
                 .frame(width: 4, height: 4)
             // Where a new month starts (spec K-15).
             Text(isFirstOfMonth ? day.formatted(.dateTime.month(.abbreviated)) : " ")
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(Color.white.opacity(0.55))
+                .font(.notch(size: 8, weight: .bold))
+                .foregroundStyle(Color.white.level(0.55))
                 .frame(height: 10)
         }
         .overlay(alignment: .leading) {
             if isFirstOfMonth {
-                Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1).padding(.vertical, 6)
+                Rectangle().fill(Color.white.level(0.18)).frame(width: 1).padding(.vertical, 6)
             }
         }
         .frame(width: 36)

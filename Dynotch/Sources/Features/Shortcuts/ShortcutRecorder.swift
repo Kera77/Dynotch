@@ -12,15 +12,15 @@ struct ShortcutRecorder: View {
     var body: some View {
         Button(action: toggleRecording) {
             Text(isRecording ? "Type shortcut…" : (shortcut?.display ?? "Add shortcut"))
-                .font(.system(size: 11, weight: shortcut == nil ? .regular : .semibold))
+                .font(.notch(size: 11, weight: shortcut == nil ? .regular : .semibold))
                 .monospacedDigit()
                 .foregroundStyle(isRecording ? Color.accentColor : (shortcut == nil ? Color.secondary : Color.primary))
                 .frame(minWidth: 86)
                 .padding(.vertical, 3)
-                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.primary.opacity(0.08)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).fill(Color.primary.opacity(0.08)))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help("Click, then press the keys (with ⌘, ⌥ or ⌃). Esc cancels, Delete removes the shortcut.")
         .accessibilityLabel("Click, then press the keys (with ⌘, ⌥ or ⌃). Esc cancels, Delete removes the shortcut.")
         .onDisappear(perform: stopRecording)

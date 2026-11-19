@@ -17,7 +17,7 @@ struct BatteryDeviceIcon: View {
 
     var body: some View {
         Image(systemName: Self.symbol(for: kind))
-            .font(.system(size: size, weight: .medium))
+            .font(.notch(size: size, weight: .medium))
             .foregroundStyle(color)
     }
 }
@@ -27,25 +27,25 @@ struct BatteryFeatureView: View {
     @ObservedObject var service: BatteryService
     let isActive: Bool
 
-    static let green = Color(red: 0.2, green: 0.78, blue: 0.35)
-    static let red = Color(red: 1, green: 0.3, blue: 0.3)
+    static var green: Color { Color(red: 0.2, green: 0.78, blue: 0.35).apple(.green) }
+    static var red: Color { Color(red: 1, green: 0.3, blue: 0.3).apple(.red) }
 
     var body: some View {
         Group {
             if service.devices.isEmpty {
                 VStack(spacing: 6) {
-                    Image(systemName: "battery.0percent").font(.system(size: 16))
+                    Image(systemName: "battery.0percent").font(.notch(size: 16))
                     Text(service.lastUpdated == nil ? "Reading batteries…" : "No device with a battery found")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.notch(size: 12, weight: .medium))
                 }
-                .foregroundStyle(Color.white.opacity(0.55))
+                .foregroundStyle(Color.white.level(0.55))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical) {
                     VStack(spacing: 0) {
                         ForEach(Array(service.devices.enumerated()), id: \.element.id) { index, device in
                             if index > 0 {
-                                Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1).padding(.leading, 44)
+                                Rectangle().fill(Color.white.level(0.08)).frame(height: 1).padding(.leading, 44)
                             }
                             row(device)
                         }
@@ -67,15 +67,15 @@ struct BatteryFeatureView: View {
         let color = device.isLow ? Self.red : Color.white
         return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 10) {
-                BatteryDeviceIcon(kind: device.kind, size: 14, color: Color.white.opacity(0.85))
+                BatteryDeviceIcon(kind: device.kind, size: 14, color: Color.white.level(0.85))
                     .frame(width: 28)
                 Text(device.name)
-                    .font(.system(size: 12))
+                    .font(.notch(size: 12))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer(minLength: 8)
-                Text("\(device.level)%")
-                    .font(.system(size: 12, weight: .medium))
+                Text("\(device.level)%").numericTransition()
+                    .font(.notch(size: 12, weight: .medium))
                     .monospacedDigit()
                     .foregroundStyle(color)
                 BatteryGauge(level: device.level, isCharging: device.isCharging, isLow: device.isLow)
@@ -100,8 +100,8 @@ struct BatteryChart: View {
         VStack(alignment: .leading, spacing: 4) {
             if samples.count < 2 {
                 Text("The chart fills in over the next hours.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 11))
+                    .foregroundStyle(Color.white.level(0.5))
             } else {
                 GeometryReader { geometry in
                     let start = samples.first?.date ?? Date()
@@ -118,11 +118,11 @@ struct BatteryChart: View {
                     .stroke(Theme.green, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
                 }
                 .frame(height: 44)
-                .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.05)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(4)).fill(Color.white.level(0.05)))
                 if let left = BatteryHistory.estimate(from: samples) {
                     Text(BatteryHistory.estimateText(left))
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.white.opacity(0.6))
+                        .font(.notch(size: 11))
+                        .foregroundStyle(Color.white.level(0.6))
                 }
             }
         }
@@ -138,22 +138,22 @@ struct BatteryGauge: View {
     var body: some View {
         HStack(spacing: 1) {
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .stroke(Color.white.opacity(0.45), lineWidth: 1)
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(3), style: .continuous)
+                    .stroke(Color.white.level(0.45), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(2), style: .continuous)
                     .fill(isLow ? BatteryFeatureView.red : BatteryFeatureView.green)
                     .frame(width: max(2, 18 * CGFloat(level) / 100))
                     .padding(2)
                 if isCharging {
                     Image(systemName: "bolt.fill")
-                        .font(.system(size: 7, weight: .bold))
+                        .font(.notch(size: 7, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                 }
             }
             .frame(width: 22, height: 11)
-            RoundedRectangle(cornerRadius: 1)
-                .fill(Color.white.opacity(0.45))
+            RoundedRectangle(cornerRadius: AppleStyle.corner(1))
+                .fill(Color.white.level(0.45))
                 .frame(width: 2, height: 5)
         }
     }

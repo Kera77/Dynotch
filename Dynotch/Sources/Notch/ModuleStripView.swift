@@ -22,17 +22,17 @@ struct ModuleStripView: View {
                     open(feature)
                 } label: {
                     Image(systemName: feature.symbolName)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.notch(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.55), radius: 2, y: 1)
                         .frame(width: NotchGeometry.stripIconSize, height: NotchGeometry.stripIconSize)
                         .background(Circle().fill(.ultraThinMaterial))
                         .background(Circle().fill(Color.black.opacity(hovered == feature ? 0.35 : 0.15)))
-                        .overlay(Circle().stroke(Color.white.opacity(hovered == feature ? 0.5 : 0.22), lineWidth: 1))
+                        .overlay(Circle().stroke(Color.white.level(hovered == feature ? 0.5 : 0.22), lineWidth: 1))
                         .scaleEffect(hovered == feature ? 1.1 : 1)
                         .contentShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .offset(x: dragOffset(of: feature, at: index))
                 .zIndex(dragged == feature ? 1 : 0)
                 .highPriorityGesture(drag(feature, from: index))
@@ -52,7 +52,7 @@ struct ModuleStripView: View {
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.22, dampingFraction: 0.82)) { isOut = true }
+            withAnimation(AppleStyle.spring(response: 0.22, dampingFraction: 0.82)) { isOut = true }
         }
         .transition(.opacity)
     }
@@ -82,7 +82,7 @@ struct ModuleStripView: View {
             }
             .onEnded { _ in
                 let landing = target(from: index)
-                withAnimation(.spring(response: 0.26, dampingFraction: 0.84)) {
+                withAnimation(AppleStyle.spring(response: 0.26, dampingFraction: 0.84)) {
                     if landing != index { move(feature, landing) }
                     dragged = nil
                     dragX = 0

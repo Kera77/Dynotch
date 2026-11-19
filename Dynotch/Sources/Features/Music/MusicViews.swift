@@ -16,7 +16,7 @@ struct MusicCoverRing: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             ZStack {
-                Circle().stroke(Color.white.opacity(0.18), lineWidth: Self.lineWidth)
+                Circle().stroke(Color.white.level(0.18), lineWidth: Self.lineWidth)
                 Circle()
                     .trim(from: 0, to: service.progress(at: context.date))
                     .stroke(glance.tint.color, style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
@@ -42,8 +42,8 @@ struct MusicArtwork: View {
                 Image(nsImage: image).resizable().scaledToFill()
             } else {
                 ZStack {
-                    Color.white.opacity(0.12)
-                    Image(systemName: "music.note").foregroundStyle(Color.white.opacity(0.6))
+                    Color.white.level(0.12)
+                    Image(systemName: "music.note").foregroundStyle(Color.white.level(0.6))
                 }
             }
         }
@@ -72,17 +72,17 @@ struct MusicFeatureView: View {
 
     private var empty: some View {
         VStack(spacing: 8) {
-            Image(systemName: "music.note").font(.system(size: 18))
+            Image(systemName: "music.note").font(.notch(size: 18))
             Text(SpotifyClient.isRunning ? "Nothing is playing in Spotify" : "Spotify is not running")
-                .font(.system(size: 12, weight: .medium))
+                .font(.notch(size: 12, weight: .medium))
             Button(SpotifyClient.isRunning ? "Show Spotify" : "Open Spotify") { SpotifyClient.open() }
-                .buttonStyle(.plain)
-                .font(.system(size: 11, weight: .semibold))
+                .buttonStyle(.notch)
+                .font(.notch(size: 11, weight: .semibold))
                 .padding(.horizontal, 10)
                 .frame(height: 24)
                 .background(Capsule().fill(Theme.fill))
         }
-        .foregroundStyle(Color.white.opacity(0.6))
+        .foregroundStyle(Color.white.level(0.6))
     }
 
     private func player(_ playing: NowPlaying) -> some View {
@@ -90,11 +90,11 @@ struct MusicFeatureView: View {
             let side = min(proxy.size.height - 16, proxy.size.width * 0.4)
             HStack(spacing: 16) {
                 Button { SpotifyClient.open() } label: {
-                    MusicArtwork(image: service.artwork, cornerRadius: 10)
+                    MusicArtwork(image: service.artwork, cornerRadius: AppleStyle.corner(10))
                         .frame(width: side, height: side)
                         .shadow(color: service.tint.color.opacity(0.35), radius: 12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Show Spotify")
                 VStack(alignment: .leading, spacing: 8) {
                     titles(playing)
@@ -112,12 +112,12 @@ struct MusicFeatureView: View {
     private func titles(_ playing: NowPlaying) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(playing.title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.notch(size: 15, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Text([playing.artist, playing.album].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 12))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .font(.notch(size: 12))
+                .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
         }
     }
@@ -136,7 +136,7 @@ struct MusicProgressBar: View {
                 GeometryReader { proxy in
                     let fraction = duration > 0 ? min(max(position / duration, 0), 1) : 0
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.15))
+                        Capsule().fill(Color.white.level(0.15))
                         Capsule().fill(service.tint.color).frame(width: proxy.size.width * fraction)
                     }
                     .frame(height: 4)
@@ -155,9 +155,9 @@ struct MusicProgressBar: View {
                     Spacer()
                     Text("-" + Self.time(max(duration - position, 0)))
                 }
-                .font(.system(size: 10))
+                .font(.notch(size: 10))
                 .monospacedDigit()
-                .foregroundStyle(Color.white.opacity(0.45))
+                .foregroundStyle(Color.white.level(0.45))
             }
         }
     }
@@ -194,12 +194,13 @@ struct MusicControls: View {
     private func button(_ symbol: String, size: CGFloat, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: size, weight: .semibold))
+                .font(.notch(size: size, weight: .semibold))
                 .foregroundStyle(.white)
+                .symbolReplace()
                 .frame(width: size + 14, height: size + (compact ? 4 : 10))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
         .accessibilityLabel(help)
     }
@@ -207,12 +208,12 @@ struct MusicControls: View {
     private func toggle(_ symbol: String, isOn: Bool, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(isOn ? service.tint.color : Color.white.opacity(0.45))
+                .font(.notch(size: 13, weight: .semibold))
+                .foregroundStyle(isOn ? service.tint.color : Color.white.level(0.45))
                 .frame(width: 26, height: 24)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
         .accessibilityLabel(help)
     }
@@ -227,14 +228,14 @@ struct MusicVolumeRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "speaker.fill").font(.system(size: 10)).foregroundStyle(Color.white.opacity(0.5))
+            Image(systemName: "speaker.fill").font(.notch(size: 10)).foregroundStyle(Color.white.level(0.5))
             Slider(value: $level, in: 0...100) { editing in
                 isEditing = editing
                 if !editing { service.setVolume(Int(level.rounded())) }
             }
             .controlSize(.mini)
             .tint(service.tint.color)
-            Image(systemName: "speaker.wave.3.fill").font(.system(size: 10)).foregroundStyle(Color.white.opacity(0.5))
+            Image(systemName: "speaker.wave.3.fill").font(.notch(size: 10)).foregroundStyle(Color.white.level(0.5))
             MusicOutputMenu(outputs: service.outputs)
             MusicHideMenu(hiding: service.hiding, service: service)
         }
@@ -258,12 +259,12 @@ struct MusicHideMenu: View {
             .pickerStyle(.menu)
         } label: {
             Image(systemName: "eye.slash")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.7))
                 .frame(width: 24, height: 22)
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Hide the cover beside the notch while paused")
@@ -289,13 +290,13 @@ struct MusicDropdown: View {
         if let playing = service.nowPlaying {
             HStack(spacing: 12) {
                 Button { SpotifyClient.open() } label: {
-                    MusicArtwork(image: service.artwork, cornerRadius: 8).frame(width: 96, height: 96)
+                    MusicArtwork(image: service.artwork, cornerRadius: AppleStyle.corner(8)).frame(width: 96, height: 96)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Show Spotify")
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(playing.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                    Text(playing.artist).font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(1)
+                    Text(playing.title).font(.notch(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                    Text(playing.artist).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.6)).lineLimit(1)
                     MusicProgressBar(service: service, duration: playing.duration)
                     MusicControls(service: service, playing: playing, compact: true)
                     MusicVolumeRow(service: service, volume: playing.volume)
@@ -329,12 +330,12 @@ struct MusicOutputMenu: View {
             }
         } label: {
             Image(systemName: "airplayaudio")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: 12, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.7))
                 .frame(width: 24, height: 22)
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Sound output")
@@ -376,10 +377,10 @@ struct MusicMarquee: View {
 
     private var line: some View {
         HStack(spacing: 6) {
-            Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+            Text(title).font(.notch(size: 12, weight: .semibold)).foregroundStyle(.white)
             if !artist.isEmpty {
-                Text("—").font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.4))
-                Text(artist).font(.system(size: 12)).foregroundStyle(tint)
+                Text("—").font(.notch(size: 12)).foregroundStyle(Color.white.level(0.4))
+                Text(artist).font(.notch(size: 12)).foregroundStyle(tint)
             }
         }
         .lineLimit(1)

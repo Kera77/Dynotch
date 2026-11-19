@@ -42,15 +42,15 @@ struct DayTimelineView: View {
         GeometryReader { geometry in
             let width = geometry.size.width
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.06)).frame(height: 14).offset(y: 3)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(4)).fill(Color.white.level(0.06)).frame(height: 14).offset(y: 3)
                 ForEach(events.filter { !$0.isAllDay }) { event in
                     bar(event, width: width)
                 }
                 ForEach(Array(stride(from: hours.lowerBound, through: hours.upperBound, by: 2)), id: \.self) { hour in
                     Text("\(hour)")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.notch(size: 8, weight: .medium))
                         .monospacedDigit()
-                        .foregroundStyle(Color.white.opacity(0.4))
+                        .foregroundStyle(Color.white.level(0.4))
                         .position(x: x(hour: hour, width: width), y: 26)
                 }
                 if Calendar.current.isDate(now, inSameDayAs: day) {
@@ -77,9 +77,10 @@ struct DayTimelineView: View {
         let start = TimelineRange.position(of: event.start, in: hours, on: day) * width
         let end = TimelineRange.position(of: event.end, in: hours, on: day) * width
         let isNext = event.id == nextMeeting?.id
-        return RoundedRectangle(cornerRadius: 3, style: .continuous)
+        return RoundedRectangle(cornerRadius: AppleStyle.corner(3), style: .continuous)
             .fill(event.color.color.opacity(event.hasEnded(at: now) ? 0.35 : 0.9))
-            .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).stroke(Color.white, lineWidth: isNext ? 1.5 : 0))
+            .overlay(RoundedRectangle(cornerRadius: AppleStyle.corner(3), style: .continuous)
+                .stroke(Color.white, lineWidth: isNext ? 1.5 : 0))
             // Only the colour on the bar; the name shows on hover (spec K-14b).
             .frame(width: max(end - start, 3), height: 14)
             .contentShape(Rectangle())
@@ -105,13 +106,13 @@ struct DayTimelineView: View {
         return HStack(spacing: 4) {
             Circle().fill(event.color.color).frame(width: 6, height: 6)
             Text(event.title)
-                .font(.system(size: 10, weight: .semibold))
+                .font(.notch(size: 10, weight: .semibold))
                 .lineLimit(1)
                 .truncationMode(.tail)
             Text(time)
-                .font(.system(size: 9, weight: .medium))
+                .font(.notch(size: 9, weight: .medium))
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(.white.level(0.6))
                 .fixedSize()
         }
         .foregroundStyle(.white)

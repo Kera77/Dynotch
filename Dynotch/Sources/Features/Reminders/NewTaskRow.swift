@@ -17,13 +17,13 @@ struct NewTaskRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "plus")
-                .font(.system(size: 10, weight: .bold))
+                .font(.notch(size: 10, weight: .bold))
                 .foregroundStyle(color)
                 .frame(width: 17, height: 17)
                 .overlay(Circle().stroke(color.opacity(0.5), style: StrokeStyle(lineWidth: 1.2, dash: [2, 2])))
             TextField("New task", text: $text)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13, weight: .medium))
+                .font(.notch(size: 13, weight: .medium))
                 .focused($isFocused)
                 .onSubmit(add)
         }
@@ -47,18 +47,18 @@ struct DuePill: View {
     var isDone = false
 
     private var colour: Color {
-        guard !isDone else { return .white.opacity(0.4) }
+        guard !isDone else { return .white.level(0.4) }
         switch urgency {
         case .overdue: return Theme.red
         case .today: return .orange
         case .tomorrow: return Theme.blue
-        case .later, nil: return .white.opacity(0.55)
+        case .later, nil: return .white.level(0.55)
         }
     }
 
     var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold))
+            .font(.notch(size: 10, weight: .semibold))
             .foregroundStyle(colour)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)

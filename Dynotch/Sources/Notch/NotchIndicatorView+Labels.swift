@@ -5,15 +5,15 @@ extension NotchIndicatorView {
     func simpleLabel(_ title: String, detail: String, symbol: String, color: Color) -> some View {
         HStack(spacing: 7) {
             Image(systemName: symbol)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.notch(size: 11, weight: .semibold))
                 .foregroundStyle(color)
             Text(title)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Text(detail)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .font(.notch(size: 11))
+                .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
             Spacer(minLength: 0)
         }
@@ -26,7 +26,7 @@ extension NotchIndicatorView {
         HStack(spacing: 7) {
             if let symbol = notice.symbol {
                 Image(systemName: symbol)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.blue)
             } else if let iconApp = notice.iconApp, let icon = BadgeIconCache.appIcon(bundleID: iconApp) {
                 Image(nsImage: icon)
@@ -36,24 +36,24 @@ extension NotchIndicatorView {
                 BrandGlyphView(glyph: .claude, size: 14)
             }
             Text(notice.title)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 // A question waits for an answer (spec CQ-2).
-                .foregroundStyle(notice.isQuestion ? Color(red: 1, green: 0.62, blue: 0.1) : .white)
+                .foregroundStyle(notice.isQuestion ? Color(red: 1, green: 0.62, blue: 0.1).apple(.orange) : .white)
                 .lineLimit(1)
             Text([notice.detail, notice.date.formatted(date: .omitted, time: .shortened)].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 11))
+                .font(.notch(size: 11))
                 .monospacedDigit()
-                .foregroundStyle(Color.white.opacity(0.6))
+                .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
             // The small X like everywhere else; a swipe up still works too (spec CN-5b).
             Button(action: dismissNotice) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.white.opacity(0.55))
+                    .font(.notch(size: 13))
+                    .foregroundStyle(Color.white.level(0.55))
                     .contentShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Dismiss (or swipe up with two fingers)")
             .accessibilityLabel("Dismiss")
         }
@@ -69,11 +69,11 @@ extension NotchIndicatorView {
     func batteryLabel(_ device: BatteryDevice, item: IndicatorItem) -> some View {
         HStack(spacing: 7) {
             Text(device.name)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Text("battery at \(device.level)%")
-                .font(.system(size: 11))
+                .font(.notch(size: 11))
                 .foregroundStyle(BatteryFeatureView.red)
             let samples = batterySamples(device.id)
             if samples.count > 1 {
@@ -82,8 +82,8 @@ extension NotchIndicatorView {
             }
             if let left = BatteryHistory.estimate(from: samples) {
                 Text(BatteryHistory.estimateText(left))
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color.white.opacity(0.55))
+                    .font(.notch(size: 10))
+                    .foregroundStyle(Color.white.level(0.55))
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
@@ -101,7 +101,7 @@ extension NotchIndicatorView {
         } else {
             // A new track: its cover, title and artist (spec MU-4).
             HStack(spacing: 10) {
-                MusicArtwork(image: glance.artwork, cornerRadius: 5).frame(width: 30, height: 30)
+                MusicArtwork(image: glance.artwork, cornerRadius: AppleStyle.corner(5)).frame(width: 30, height: 30)
                 // Title, then every artist; a long line runs through, then it closes (spec MU-4b).
                 MusicMarquee(title: glance.title, artist: glance.artist, tint: glance.tint.color) { seconds in
                     music?.endAnnouncement(after: seconds)
@@ -116,19 +116,19 @@ extension NotchIndicatorView {
     /// The stats' warnings, Open and the X that hides them until they clear (spec SY-10).
     func statsLabel(_ item: IndicatorItem) -> some View {
         HStack(spacing: 7) {
-            Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.red)
+            Image(systemName: "exclamationmark.triangle.fill").font(.notch(size: 11, weight: .semibold)).foregroundStyle(Theme.red)
             Text((stats?.indicator.warnings ?? []).joined(separator: " · "))
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Spacer(minLength: 8)
             Button("Open", action: openStats)
-                .buttonStyle(.plain)
-                .font(.system(size: 11, weight: .semibold))
+                .buttonStyle(.notch)
+                .font(.notch(size: 11, weight: .semibold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 9)
                 .frame(height: 18)
-                .background(Capsule().fill(Color.white.opacity(0.16)))
+                .background(Capsule().fill(Color.white.level(0.16)))
             dismissButton(for: item, help: "Hide until it clears")
         }
         .padding(.horizontal, 12)
@@ -151,7 +151,7 @@ struct RecordingSlot: View {
                 ZStack {
                     Circle().fill(Theme.red)
                         .frame(width: isHovered ? 18 : 7, height: isHovered ? 18 : 7)
-                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppleStyle.corner(1.5), style: .continuous)
                         .fill(Color.white)
                         .frame(width: 6, height: 6)
                         .scaleEffect(isHovered ? 1 : 0.01)
@@ -160,15 +160,15 @@ struct RecordingSlot: View {
                 .frame(width: 18, height: 18)
                 .contentShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Stop recording")
             .accessibilityLabel("Stop recording")
             Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white)
         }
-        .animation(.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
+        .animation(AppleStyle.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
         .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
     }
 }

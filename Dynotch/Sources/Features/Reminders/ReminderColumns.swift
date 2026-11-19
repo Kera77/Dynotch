@@ -123,8 +123,8 @@ struct ReminderColumn: View {
             let items = store.items(for: source)
             if items.isEmpty, !isList(source) {
                 Label("Nothing here", systemImage: "tray")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.75))
+                    .font(.notch(size: 12, weight: .medium))
+                    .foregroundStyle(Color.white.level(0.75))
                     .padding(.vertical, 4)
             }
             ForEach(items) { item in
@@ -145,8 +145,8 @@ struct ReminderColumn: View {
     private func completed(listID: String) -> some View {
         if store.showCompleted, listID == store.selectedListID, !store.recentlyCompleted.isEmpty {
             Text("Completed (7 days)")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.45))
+                .font(.notch(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.45))
                 .padding(.top, 6)
             ForEach(store.recentlyCompleted) { item in
                 ReminderRow(store: store, item: item, showsList: false)
@@ -170,15 +170,15 @@ struct ReminderColumn: View {
             } label: {
                 HStack(spacing: 4) {
                     Text(store.title(of: source))
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.notch(size: 14, weight: .bold))
                         .foregroundStyle(store.color(of: source))
                         .lineLimit(1)
-                    Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(Color.white.opacity(0.5))
+                    Image(systemName: "chevron.down").font(.notch(size: 8, weight: .bold)).foregroundStyle(Color.white.level(0.5))
                 }
                 .contentShape(Rectangle())
             }
             .menuStyle(.button)
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("What this column shows")
@@ -198,12 +198,12 @@ struct ReminderColumn: View {
                 Image(systemName: "arrow.up.arrow.down")
                 Text(store.sort.title)
             }
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.7))
+            .font(.notch(size: 11, weight: .semibold))
+            .foregroundStyle(Color.white.level(0.7))
             .contentShape(Rectangle())
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Sort")

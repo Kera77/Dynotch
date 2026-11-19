@@ -22,12 +22,12 @@ struct ReminderDetailView: View {
                 }
                 .scrollIndicators(.never)
             } else {
-                Text("This reminder is gone.").foregroundStyle(Color.white.opacity(0.6)).frame(maxHeight: .infinity)
+                Text("This reminder is gone.").foregroundStyle(Color.white.level(0.6)).frame(maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(white: 0.11)))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.1)))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(12), style: .continuous).fill(Color(white: 0.11)))
+        .overlay(RoundedRectangle(cornerRadius: AppleStyle.corner(12), style: .continuous).stroke(Color.white.level(0.1)))
         .onAppear {
             details = store.details(for: id)
             original = details
@@ -37,33 +37,33 @@ struct ReminderDetailView: View {
     private var header: some View {
         HStack(spacing: 8) {
             Image(systemName: "info.circle").foregroundStyle(Theme.blue)
-            Text("Details").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+            Text("Details").font(.notch(size: 13, weight: .semibold)).foregroundStyle(.white)
             Spacer()
             Button("Cancel") { close() }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color.white.opacity(0.7))
+                .buttonStyle(.notch)
+                .foregroundStyle(Color.white.level(0.7))
             Button("Done") { saveAndClose() }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .fontWeight(.semibold)
                 .foregroundStyle(Theme.blue)
                 .keyboardShortcut(.defaultAction)
         }
-        .font(.system(size: 12))
+        .font(.notch(size: 12))
         .padding(.horizontal, 12)
         .frame(height: 34)
-        .overlay(alignment: .bottom) { Rectangle().fill(Color.white.opacity(0.08)).frame(height: 1) }
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.white.level(0.08)).frame(height: 1) }
     }
 
     private func texts(_ details: Binding<ReminderDetails>) -> some View {
         DetailGroup {
-            TextField("Title", text: details.title).font(.system(size: 13, weight: .semibold))
-            Divider().overlay(Color.white.opacity(0.08))
+            TextField("Title", text: details.title).font(.notch(size: 13, weight: .semibold))
+            Divider().overlay(Color.white.level(0.08))
             TextField("Notes", text: details.notes, axis: .vertical).lineLimit(1...4)
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color.white.level(0.08))
             TextField("URL", text: details.url)
         }
         .textFieldStyle(.plain)
-        .font(.system(size: 12))
+        .font(.notch(size: 12))
     }
 
     private func dateSection(_ details: Binding<ReminderDetails>) -> some View {
@@ -75,7 +75,7 @@ struct ReminderDetailView: View {
                 DatePicker("", selection: details.due, displayedComponents: .date)
                     .labelsHidden().datePickerStyle(.field).frame(maxWidth: .infinity, alignment: .trailing)
             }
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color.white.level(0.08))
             DetailRow(symbol: "clock", title: "Time", detail: nil) {
                 Toggle("", isOn: Binding(
                     get: { details.wrappedValue.hasTime },
@@ -123,9 +123,9 @@ struct ReminderDetailView: View {
                 .labelsHidden().fixedSize()
             }
             Button("Flags, tags, places and images: open in Reminders") { store.openRemindersApp() }
-                .buttonStyle(.plain)
-                .font(.system(size: 10))
-                .foregroundStyle(Color.white.opacity(0.45))
+                .buttonStyle(.notch)
+                .font(.notch(size: 10))
+                .foregroundStyle(Color.white.level(0.45))
         }
     }
 
@@ -151,7 +151,7 @@ private struct DetailGroup<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) { content }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.06)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous).fill(Color.white.level(0.06)))
     }
 }
 
@@ -165,13 +165,13 @@ private struct DetailRow<Control: View>: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: symbol)
-                .font(.system(size: 13))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .font(.notch(size: 13))
+                .foregroundStyle(Color.white.level(0.6))
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.system(size: 12, weight: .medium)).foregroundStyle(.white)
+                Text(title).font(.notch(size: 12, weight: .medium)).foregroundStyle(.white)
                 if let detail {
-                    Text(detail).font(.system(size: 10)).foregroundStyle(Theme.blue)
+                    Text(detail).font(.notch(size: 10)).foregroundStyle(Theme.blue)
                 }
             }
             Spacer(minLength: 8)

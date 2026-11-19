@@ -20,13 +20,13 @@ struct CalendarCompactView: View {
                         withAnimation(Motion.quick) { service.selectedDay = service.today }
                     } label: {
                         Text("Today")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.notch(size: 11, weight: .semibold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 9)
                             .frame(height: 22)
                             .background(Capsule().fill(Theme.blue))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.notch)
                     .help("Back to today")
                     .transition(.opacity.combined(with: .scale(scale: 0.8)))
                     .padding(.leading, 6)
@@ -50,11 +50,11 @@ struct CalendarCompactView: View {
         if events.isEmpty {
             VStack(spacing: 6) {
                 Image(systemName: "calendar.badge.checkmark")
-                    .font(.system(size: 16))
+                    .font(.notch(size: 16))
                 Text(service.selectedDay == service.today ? "Nothing for today" : "Nothing on this day")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.notch(size: 12, weight: .medium))
             }
-            .foregroundStyle(Color.white.opacity(0.55))
+            .foregroundStyle(Color.white.level(0.55))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             DayTimelineView(events: events, day: service.selectedDay, now: service.now) { service.join($0) }
@@ -105,11 +105,11 @@ private struct CompactEventRow: View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(event.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Text(timeText)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.notch(size: 11, weight: .medium))
                     .monospacedDigit()
                     .foregroundStyle(CalendarStyle.eventTime)
             }

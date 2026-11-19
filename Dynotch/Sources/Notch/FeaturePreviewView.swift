@@ -27,25 +27,25 @@ struct FeaturePreviewView: View {
             Color.clear.frame(height: notchHeight)
             HStack(spacing: 10) {
                 Image(systemName: feature.symbolName)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.notch(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white.opacity(0.12)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous).fill(Color.white.level(0.12)))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(preview.title)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.notch(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                     Text(preview.detail)
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.white.opacity(0.65))
+                        .font(.notch(size: 12))
+                        .foregroundStyle(Color.white.level(0.65))
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
                 if let hint {
                     Text(hint)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.4))
+                        .font(.notch(size: 10, weight: .medium))
+                        .foregroundStyle(Color.white.level(0.4))
                 }
             }
             .padding(.horizontal, 14)

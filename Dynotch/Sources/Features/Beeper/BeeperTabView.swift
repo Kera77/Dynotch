@@ -23,18 +23,18 @@ struct BeeperComposer: View {
             if let file { chip(symbol: "paperclip", text: file.lastPathComponent) { self.file = nil } }
             HStack(spacing: 8) {
                 Button(action: chooseFile) {
-                    Image(systemName: "plus.circle.fill").font(.system(size: 18)).foregroundStyle(Color.white.opacity(0.7))
+                    Image(systemName: "plus.circle.fill").font(.notch(size: 18)).foregroundStyle(Color.white.level(0.7))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Attach a file")
                 .accessibilityLabel("Attach a file")
                 TextField(editing == nil ? "Message \(chat.name)" : "Edit message", text: $text, axis: .vertical)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .font(.notch(size: 13))
                     .lineLimit(1...4)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.1)))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(16), style: .continuous).fill(Color.white.level(0.1)))
                     .focused($isFocused)
                     .onSubmit(send)
                     .onChange(of: isFocused) { _, focused in if focused {
@@ -49,14 +49,14 @@ struct BeeperComposer: View {
                 EmojiButton(text: $text, size: 16)
                 Button(action: send) {
                     Image(systemName: isSending ? "hourglass" : "arrow.up.circle.fill")
-                        .font(.system(size: 22))
+                        .font(.notch(size: 22))
                         .foregroundStyle(BeeperStyle.blue)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .disabled(isSending || (text.trimmingCharacters(in: .whitespaces).isEmpty && file == nil))
             }
             if let error = service.actionError {
-                Text(error).font(.system(size: 10)).foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4)).lineLimit(1)
+                Text(error).font(.notch(size: 10)).foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4).apple(.red)).lineLimit(1)
             }
         }
         .padding(.horizontal, 10)
@@ -73,13 +73,13 @@ struct BeeperComposer: View {
 
     private func chip(symbol: String, text: String, remove: @escaping () -> Void) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: symbol).font(.system(size: 9)).foregroundStyle(BeeperStyle.blue)
-            Text(text).font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.65)).lineLimit(1)
+            Image(systemName: symbol).font(.notch(size: 9)).foregroundStyle(BeeperStyle.blue)
+            Text(text).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.65)).lineLimit(1)
             Spacer(minLength: 4)
             Button(action: remove) {
-                Image(systemName: "xmark").font(.system(size: 9, weight: .semibold)).foregroundStyle(Color.white.opacity(0.5))
+                Image(systemName: "xmark").font(.notch(size: 9, weight: .semibold)).foregroundStyle(Color.white.level(0.5))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
         }
         .padding(.horizontal, 8)
     }
@@ -165,7 +165,7 @@ struct BeeperTabView: View {
         HStack(spacing: 0) {
             BeeperChatList(service: service)
                 .frame(width: BeeperStyle.listWidth(for: width))
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().overlay(Color.white.level(0.08))
             VStack(spacing: 0) {
                 header
                 if let chat = service.selectedChat {
@@ -182,7 +182,7 @@ struct BeeperTabView: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 listToggle
-                Text("Unread").font(.system(size: 13, weight: .semibold))
+                Text("Unread").font(.notch(size: 13, weight: .semibold))
                 Spacer()
             }
             .foregroundStyle(.white)
@@ -211,9 +211,9 @@ struct BeeperTabView: View {
         Button {
             service.showsChatList.toggle()
         } label: {
-            Image(systemName: "sidebar.left").foregroundStyle(Color.white.opacity(service.showsChatList ? 0.9 : 0.55))
+            Image(systemName: "sidebar.left").foregroundStyle(Color.white.level(service.showsChatList ? 0.9 : 0.55))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(service.showsChatList ? "Hide the chat list" : "Show the chats")
         .accessibilityLabel(service.showsChatList ? "Hide the chat list" : "Show the chats")
     }
@@ -223,7 +223,7 @@ struct BeeperTabView: View {
             listToggle
             if let chat = service.selectedChat {
                 BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
-                Text(chat.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(chat.name).font(.notch(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer()
                 BeeperReminderMenu(service: service, chat: chat)
                 Button {
@@ -231,7 +231,7 @@ struct BeeperTabView: View {
                 } label: {
                     Image(systemName: "arrow.up.forward.app")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Open in Beeper")
                 .accessibilityLabel("Open in Beeper")
             } else {
@@ -277,7 +277,7 @@ struct BeeperReminderMenu: View {
             Image(systemName: chat.reminder == nil ? "bell" : "bell.fill")
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Remind me about this chat")

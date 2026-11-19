@@ -36,12 +36,13 @@ struct ScreenshotModeChooser: View {
             HStack(spacing: 6) {
                 ForEach(modes) { mode in
                     VStack(spacing: 5) {
-                        Image(systemName: mode.symbol).font(.system(size: 18, weight: .medium))
-                        Text(mode.title).font(.system(size: 10, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
+                        Image(systemName: mode.symbol).font(.notch(size: 18, weight: .medium))
+                        Text(mode.title).font(.notch(size: 10, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
                     }
-                    .foregroundStyle(mode == chosen ? Color.black : Color.white.opacity(0.75))
+                    .foregroundStyle(mode == chosen ? Color.black : Color.white.level(0.75))
                     .frame(width: 78, height: 56)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(mode == chosen ? Color.white : Theme.fill))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous)
+                        .fill(mode == chosen ? Color.white : Theme.fill))
                 }
             }
             .frame(maxHeight: .infinity)
@@ -62,23 +63,23 @@ struct ScreenshotPeekView: View {
                     if let thumbnail = shot.thumbnail {
                         Image(nsImage: thumbnail).resizable().scaledToFill()
                     } else {
-                        Color.white.opacity(0.1)
+                        Color.white.level(0.1)
                     }
                 }
                 .frame(width: 64, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(Color.white.opacity(0.2)))
+                .clipShape(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).stroke(Color.white.level(0.2)))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(shot.isVideo ? "Recording saved" : "Screenshot")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.notch(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                     Text(shot.isVideo ? "Copied · in Screenshots" : "Copied · Saved · open the notch to edit")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.white.opacity(0.6))
+                        .font(.notch(size: 11))
+                        .foregroundStyle(Color.white.level(0.6))
                         .lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 18)).foregroundStyle(Theme.green)
+                Image(systemName: "checkmark.circle.fill").font(.notch(size: 18)).foregroundStyle(Theme.green)
             }
             .padding(.horizontal, 14)
             .frame(maxHeight: .infinity)

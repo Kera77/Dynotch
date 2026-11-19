@@ -122,7 +122,7 @@ extension NotificationService {
         // Kept even when the card was closed meanwhile: it shows them when opened again (spec GW-17c).
         if chatWebPending[conversationID] == cardID { chatWebPending[conversationID] = nil }
         guard chatWebTexts[cardID] == nil else { return }
-        let texts = (messages ?? []).suffix(min(max(wanted, 1), 8)).map(\.text).filter { !$0.isEmpty }
+        let texts = (messages ?? []).suffix(min(max(wanted, 1), 8)).filter { !$0.text.isEmpty }
         guard !texts.isEmpty else {
             DiagnosticsLog.append("google-chat-web", "card messages not read in time")
             objectWillChange.send()

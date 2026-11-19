@@ -12,7 +12,7 @@ struct AppIconView: View {
                 .frame(width: size, height: size)
         } else {
             Image(systemName: "bell.fill")
-                .font(.system(size: size * 0.6))
+                .font(.notch(size: size * 0.6))
                 .foregroundStyle(.white)
                 .frame(width: size, height: size)
         }
@@ -44,8 +44,8 @@ struct NotificationPeekView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(Array(messages.enumerated()), id: \.offset) { _, text in
                             Text(text.isEmpty ? "—" : text)
-                                .font(.system(size: 12))
-                                .foregroundStyle(Color.white.opacity(0.88))
+                                .font(.notch(size: 12))
+                                .foregroundStyle(Color.white.level(0.88))
                                 .lineLimit(lines)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -67,23 +67,23 @@ struct NotificationPeekView: View {
             HStack(spacing: 6) {
                 AppIconView(app: app, size: 16)
                 Text(content.sender)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 if content.sender != app.name {
                     Text(app.name)
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .font(.notch(size: 11))
+                        .foregroundStyle(Color.white.level(0.5))
                         .lineLimit(1)
                         .layoutPriority(-1)
                 }
                 if newCount > 1 {
                     Text("+\(newCount - 1)")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.notch(size: 10, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 1)
-                        .background(Capsule().fill(Color.white.opacity(0.2)))
+                        .background(Capsule().fill(Color.white.level(0.2)))
                         .help("\(newCount) new notifications")
                 }
                 Spacer(minLength: 0)
@@ -172,31 +172,31 @@ struct NotificationsFeatureView: View {
                     withAnimation(.easeOut(duration: 0.2)) { service.clearFocus() }
                 } label: {
                     Label("All", systemImage: "chevron.left")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.75))
+                        .font(.notch(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.level(0.75))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 Text("\(focus.appName) · \(focus.notifications.count) unopened")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.level(0.5))
                 Spacer()
                 Button("Open \(focus.appName)") { service.openApp(bundleID: focus.bundleID) }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.75))
+                    .buttonStyle(.notch)
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.75))
             } else {
                 Text("\(service.recent.count) notification\(service.recent.count == 1 ? "" : "s")")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.level(0.5))
                 Spacer()
                 Button {
                     withAnimation(.easeOut(duration: 0.2)) { service.clearAll() }
                 } label: {
                     Label("Clear all", systemImage: "trash")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.75))
+                        .font(.notch(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.level(0.75))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
             }
         }
         .padding(.top, 4)
@@ -204,17 +204,17 @@ struct NotificationsFeatureView: View {
 
     private func message(symbol: String, text: String) -> some View {
         VStack(spacing: 6) {
-            Image(systemName: symbol).font(.system(size: 16))
-            Text(text).font(.system(size: 12, weight: .medium))
+            Image(systemName: symbol).font(.notch(size: 16))
+            Text(text).font(.notch(size: 12, weight: .medium))
         }
-        .foregroundStyle(Color.white.opacity(0.55))
+        .foregroundStyle(Color.white.level(0.55))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func prompt(text: String, button: String, action: @escaping () -> Void) -> some View {
         VStack(spacing: 10) {
             Text(text)
-                .font(.system(size: 12))
+                .font(.notch(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button(button, action: action)
@@ -234,13 +234,13 @@ struct NotificationHeaderButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .font(.notch(size: 10, weight: .bold))
+                .foregroundStyle(Color.white.level(0.7))
                 .frame(width: 20, height: 20)
-                .background(Circle().fill(Color.white.opacity(0.12)))
+                .background(Circle().fill(Color.white.level(0.12)))
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 }

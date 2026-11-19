@@ -112,7 +112,7 @@ struct NotchIndicatorView: View {
                 }
                 if !badges.isEmpty || hiddenBadges > 0, !layout.iconSlots.isEmpty {
                     Rectangle()
-                        .fill(Color.white.opacity(0.22))
+                        .fill(Color.white.level(0.22))
                         .frame(width: 1, height: 12)
                         .frame(width: IndicatorLayout.separatorWidth)
                 }
@@ -140,7 +140,7 @@ struct NotchIndicatorView: View {
         case .meeting(let first):
             let color = Self.color(for: CalendarAgenda.status(of: first, now: now, leadTime: leadTime).phase)
             Image(systemName: meetings.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.notch(size: 15, weight: .semibold))
                 .foregroundStyle(color)
         case .battery(let device):
             BatteryDeviceIcon(kind: device.kind, size: 14)
@@ -183,8 +183,8 @@ struct NotchIndicatorView: View {
             WorkingDots()
                 .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
         case .battery(let device):
-            Text("\(device.level)%")
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+            Text("\(device.level)%").numericTransition()
+                .font(.notch(size: 12, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(BatteryFeatureView.red)
                 .frame(width: IndicatorLayout.batterySlotWidth, height: IndicatorLayout.capsuleHeight)
@@ -209,11 +209,11 @@ struct NotchIndicatorView: View {
     /// Not animated: an animation on the outline would also delay the capsule when it moves.
     private func capsule(text: String, color: Color, trim: ClosedRange<Double>) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .font(.notch(size: 11, weight: .semibold, design: .rounded))
             .monospacedDigit()
             .foregroundStyle(color)
             .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
-            .background(ClockwiseCapsule().stroke(Color.white.opacity(0.14), lineWidth: Self.lineWidth))
+            .background(ClockwiseCapsule().stroke(Color.white.level(0.14), lineWidth: Self.lineWidth))
             .overlay(
                 ClockwiseCapsule()
                     .trim(from: trim.lowerBound, to: trim.upperBound)
@@ -246,7 +246,7 @@ extension NotchIndicatorView {
         case .working:
             HStack(spacing: 7) {
                 Text("Claude is working on your question…")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                 Spacer()
             }
@@ -266,12 +266,12 @@ extension NotchIndicatorView {
                 .fill(event.color.color)
                 .frame(width: 6, height: 6)
             Text(event.title)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             // The calendar's own blue, as in the day view (spec K-5c, K-8j).
             Text("\(start)–\(end) · \(phase)")
-                .font(.system(size: 11))
+                .font(.notch(size: 11))
                 .monospacedDigit()
                 .foregroundStyle(CalendarStyle.eventTime)
                 .lineLimit(1)
@@ -297,12 +297,12 @@ extension NotchIndicatorView {
                 ForEach(limits) { limit in
                     HStack(spacing: 6) {
                         Text(limit.title)
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.notch(size: 12, weight: .semibold))
                             .foregroundStyle(.white)
                             .lineLimit(1)
                         Spacer(minLength: 8)
                         Text(Self.usageText(for: limit, now: now))
-                            .font(.system(size: 11))
+                            .font(.notch(size: 11))
                             .monospacedDigit()
                             .foregroundStyle(Self.color(for: limit.level))
                             .lineLimit(1)
@@ -329,11 +329,11 @@ extension NotchIndicatorView {
             dismiss(item)
         } label: {
             Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 13))
-                .foregroundStyle(Color.white.opacity(0.55))
+                .font(.notch(size: 13))
+                .foregroundStyle(Color.white.level(0.55))
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 
@@ -341,8 +341,8 @@ extension NotchIndicatorView {
 
     static func color(for phase: EventStatus.Phase) -> Color {
         switch phase {
-        case .upcoming: Color(red: 1, green: 0.8, blue: 0.25)
-        case .imminent: Color(red: 1, green: 0.3, blue: 0.3)
+        case .upcoming: Color(red: 1, green: 0.8, blue: 0.25).apple(.yellow)
+        case .imminent: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
         case .ongoing: Color(red: 0.45, green: 0.78, blue: 1)
         }
     }
@@ -350,8 +350,8 @@ extension NotchIndicatorView {
     static func color(for level: UsageLevel) -> Color {
         switch level {
         case .normal: ClaudeUsageView.blue
-        case .high: Color(red: 1, green: 0.62, blue: 0.1)
-        case .critical: Color(red: 1, green: 0.3, blue: 0.3)
+        case .high: Color(red: 1, green: 0.62, blue: 0.1).apple(.orange)
+        case .critical: Color(red: 1, green: 0.3, blue: 0.3).apple(.red)
         }
     }
 }
@@ -363,14 +363,14 @@ private struct OverflowChip: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "chevron.left")
-                .font(.system(size: 8, weight: .bold))
-            Text("+\(count)")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .font(.notch(size: 8, weight: .bold))
+            Text("+\(count)").numericTransition()
+                .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
         }
-        .foregroundStyle(Color.white.opacity(0.85))
+        .foregroundStyle(Color.white.level(0.85))
         .frame(width: IndicatorLayout.overflowChipWidth, height: IndicatorLayout.capsuleHeight)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.14)))
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.14)))
         .frame(height: IndicatorLayout.iconHeight)
         .help("\(count) more app\(count == 1 ? "" : "s") with notifications")
     }

@@ -70,10 +70,6 @@ struct NotchView: View {
     var editScreenshot: (URL) -> Void = { _ in }
     var closeScreenshotEditor: () -> Void = {}
 
-    /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
-    static let quickAnimation = Motion.quick
-    static let missionControlAnimation = Animation.easeInOut(duration: 0.16)
-
     /// Content fades in and slides down a little with the background. Not scaled: text drawn
     /// while scaled stayed blurry until the next redraw (spec N-17).
     private static let contentTransition: AnyTransition =
@@ -256,6 +252,7 @@ struct NotchView: View {
         .environment(\.notchDesign, settings.design)
         .environment(\.pinNotch) { [model] in model.holdsForTyping = true }
         .environment(\.closeNotch) { [model] in model.requestCollapse() }
+        .modifier(AppleStyleRoot())
     }
 
     private var expandedContent: some View {
@@ -360,4 +357,10 @@ extension NotchView {
         if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.musicAnnounceHeight }
         return indicatorItems[index].labelHeight
     }
+}
+
+extension NotchView {
+    /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
+    static var quickAnimation: Animation { Motion.quick }
+    static let missionControlAnimation = Animation.easeInOut(duration: 0.16)
 }

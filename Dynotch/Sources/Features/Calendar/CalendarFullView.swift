@@ -67,7 +67,7 @@ private struct MonthGridView: View {
         VStack(spacing: 6) {
             HStack(spacing: 4) {
                 Text(month.formatted(.dateTime.year().month(.wide)).capitalized)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.notch(size: 13, weight: .bold))
                     .foregroundStyle(.white)
                 Spacer()
                 CalendarIconButton(symbol: "chevron.left", help: "Previous month") { changeMonth(-1) }
@@ -76,8 +76,8 @@ private struct MonthGridView: View {
             LazyVGrid(columns: Self.columns, spacing: 0) {
                 ForEach(days.prefix(7), id: \.self) { day in
                     Text(day.formatted(.dateTime.weekday(.narrow)).uppercased())
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.45))
+                        .font(.notch(size: 9, weight: .semibold))
+                        .foregroundStyle(Color.white.level(0.45))
                         .frame(height: 16)
                 }
                 ForEach(days, id: \.self) { day in
@@ -105,9 +105,9 @@ private struct MonthDayCell: View {
     var body: some View {
         VStack(spacing: 2) {
             Text(day.formatted(.dateTime.day()))
-                .font(.system(size: 12, weight: isToday || isInMonth ? .semibold : .regular))
+                .font(.notch(size: 12, weight: isToday || isInMonth ? .semibold : .regular))
                 .monospacedDigit()
-                .foregroundStyle(isToday ? Color.white : Color.white.opacity(isInMonth ? 0.9 : 0.35))
+                .foregroundStyle(isToday ? Color.white : Color.white.level(isInMonth ? 0.9 : 0.35))
                 .frame(width: 24, height: 24)
                 .background(Circle().fill(circleColor))
             HStack(spacing: 2) {
@@ -126,6 +126,6 @@ private struct MonthDayCell: View {
 
     private var circleColor: Color {
         if isToday { return CalendarStyle.accent }
-        return isSelected ? Color.white.opacity(0.18) : .clear
+        return isSelected ? Color.white.level(0.18) : .clear
     }
 }

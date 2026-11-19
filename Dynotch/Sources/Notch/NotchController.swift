@@ -5,9 +5,9 @@ import SwiftUI
 /// Owns the notch panel of one display and turns pointer/trackpad input into panel state.
 @MainActor
 final class NotchController {
-    static let animation = Motion.spring
+    static var animation: Animation { Motion.spring }
     /// The window switcher drops down much faster than the notch opens (spec AS-15).
-    static let switcherAnimation = Animation.spring(response: 0.2, dampingFraction: 0.86)
+    static var switcherAnimation: Animation { AppleStyle.spring(response: 0.2, dampingFraction: 0.86) }
     /// After the panel shrinks from the large size, the pointer may be outside the smaller
     /// panel; keep it open this long so it doesn't close under the user's hand.
     private static let shrinkGracePeriod: TimeInterval = 2.5

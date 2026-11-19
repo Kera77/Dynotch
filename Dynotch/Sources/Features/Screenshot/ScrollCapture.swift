@@ -92,7 +92,7 @@ final class ScrollCapture {
         window.backgroundColor = .clear
         window.ignoresMouseEvents = true
         window.sharingType = .none
-        window.contentView = NSHostingView(rootView: RoundedRectangle(cornerRadius: 3).stroke(Theme.blue, lineWidth: 2))
+        window.contentView = NSHostingView(rootView: RoundedRectangle(cornerRadius: AppleStyle.corner(3)).stroke(Theme.blue, lineWidth: 2))
         window.orderFrontRegardless()
         frameWindow = window
     }
@@ -122,12 +122,12 @@ private struct ScrollCaptureControls: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.up.and.down").foregroundStyle(Theme.blue)
-            Text("Scroll, then Done").font(.system(size: 12, weight: .medium)).foregroundStyle(.white)
+            Text("Scroll, then Done").font(.notch(size: 12, weight: .medium)).foregroundStyle(.white)
             Spacer(minLength: 4)
-            Button("Cancel", action: cancel).buttonStyle(.plain).foregroundStyle(Color.white.opacity(0.7))
-            Button("Done", action: done).buttonStyle(.plain).fontWeight(.semibold).foregroundStyle(Theme.blue)
+            Button("Cancel", action: cancel).buttonStyle(.notch).foregroundStyle(Color.white.level(0.7))
+            Button("Done", action: done).buttonStyle(.notch).fontWeight(.semibold).foregroundStyle(Theme.blue)
         }
-        .font(.system(size: 12))
+        .font(.notch(size: 12))
         .padding(.horizontal, 12)
         .frame(width: 250, height: 40)
         .background(Capsule().fill(Color.black.opacity(0.85)))

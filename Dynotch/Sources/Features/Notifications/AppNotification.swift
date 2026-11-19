@@ -56,6 +56,8 @@ struct NotificationContent: Equatable, Sendable {
     let sender: String
     /// Message text, or the subject for mail.
     let detail: String
+    /// Google Chat messages read from the web app, each marked whether the owner wrote it (spec GW-20).
+    var lines: [ChatWebMessage] = []
 }
 
 enum NotificationKind: Equatable, Sendable {

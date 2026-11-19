@@ -18,6 +18,19 @@ struct GoogleChatWebTests {
         #expect(GoogleChatWebReader.openID(fromPath: "/app/home") == nil)
     }
 
+    @Test func ownMessagesFromTheSenderHeading() {
+        #expect(GoogleChatWebReader.isOwnHeading(name: "Ön", classes: ["ZTmjQb"]))
+        #expect(GoogleChatWebReader.isOwnHeading(name: "", classes: ["ZTmjQb", "Z4BnXb", "cPjwNc"]))
+        #expect(!GoogleChatWebReader.isOwnHeading(name: "Kiss Anna", classes: ["ZTmjQb", "Z4BnXb"]))
+    }
+
+    @Test func ownLinesAreMarkedInTheCardText() {
+        let content = NotificationContent(sender: "A", detail: "", lines: [
+            ChatWebMessage(id: "1", text: "hi"), ChatWebMessage(id: "2", text: "hello", isMine: true)
+        ])
+        #expect(content.lines.map(\.isMine) == [false, true])
+    }
+
     @Test func unreadFromClassOrPreviewShortcut() {
         #expect(GoogleChatWebReader.isUnread(label: "x", classes: ["IL9EXe", "H7du2"]))
         #expect(GoogleChatWebReader.isUnread(label: "… az Option + 0 billentyűkombinációval …", classes: []))

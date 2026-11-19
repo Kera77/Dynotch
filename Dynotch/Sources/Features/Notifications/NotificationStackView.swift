@@ -88,14 +88,14 @@ struct NotificationStackView: View {
                 Image(systemName: "arrowshape.turn.up.left.fill")
                 Text("Open \(app.name) to reply")
             }
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(Color.white.opacity(0.75))
+            .font(.notch(size: 12, weight: .medium))
+            .foregroundStyle(Color.white.level(0.75))
             .frame(maxWidth: .infinity)
             .frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.08)))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .padding(.horizontal, 12)
         .padding(.top, 6)
         .padding(.bottom, 10)
@@ -107,24 +107,24 @@ struct NotificationStackView: View {
         return HStack(spacing: 10) {
             AppIconView(app: app, size: 28)
             Text(service.content(for: notification).sender)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Spacer(minLength: 8)
             Text(app.name)
-                .font(.system(size: 10))
-                .foregroundStyle(Color.white.opacity(0.45))
+                .font(.notch(size: 10))
+                .foregroundStyle(Color.white.level(0.45))
                 .lineLimit(1)
             Menu {
                 SnoozeMenu(service: service, notifications: notifications)
             } label: {
                 Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.6))
                     .frame(width: 22, height: 22)
             }
             .menuStyle(.button)
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Remind me later")
@@ -141,29 +141,28 @@ struct NotificationStackView: View {
 
     /// One message: its text and time, without repeating the sender.
     private func message(_ notification: AppNotification) -> some View {
-        let detail = service.content(for: notification).detail
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(detail.isEmpty ? "—" : detail)
-                .font(.system(size: 13))
-                .foregroundStyle(Color.white.opacity(0.9))
+            service.content(for: notification).detailText()
+                .font(.notch(size: 13))
+                .foregroundStyle(Color.white.level(0.9))
                 // Hovered, the whole text shows (spec E-23).
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(notification.date.formatted(date: .omitted, time: .shortened))
-                .font(.system(size: 10))
+                .font(.notch(size: 10))
                 .monospacedDigit()
-                .foregroundStyle(Color.white.opacity(0.4))
+                .foregroundStyle(Color.white.level(0.4))
             if canReply {
                 Button {
                     replyingTo = notification
                 } label: {
                     Image(systemName: "arrowshape.turn.up.left.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(replyingTo?.id == notification.id ? Self.blue : Color.white.opacity(0.6))
+                        .font(.notch(size: 10))
+                        .foregroundStyle(replyingTo?.id == notification.id ? Self.blue : Color.white.level(0.6))
                         .frame(width: 18, height: 16)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Answer this line")
                 .accessibilityLabel("Answer this line")
                 .opacity(hoveredLine == notification.id || replyingTo?.id == notification.id ? 1 : 0)
@@ -172,8 +171,8 @@ struct NotificationStackView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(replyingTo?.id == notification.id ? 0.14 : 0.08))
+            RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous)
+                .fill(Color.white.level(replyingTo?.id == notification.id ? 0.14 : 0.08))
         )
         .onHover { hovering in
             if hovering {
@@ -184,19 +183,19 @@ struct NotificationStackView: View {
         }
     }
 
-    private static let blue = Theme.blue
+    private static var blue: Color { Theme.blue }
 
     /// My answer to a line, on the right like in chat apps.
     private func answerBubble(_ text: String) -> some View {
         HStack {
             Spacer(minLength: 40)
             Text(text)
-                .font(.system(size: 13))
+                .font(.notch(size: 13))
                 .foregroundStyle(.white)
                 .lineLimit(3)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Self.blue))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous).fill(Self.blue))
         }
     }
 }

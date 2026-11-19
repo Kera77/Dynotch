@@ -38,7 +38,7 @@ struct StatsFeatureView: View {
 
     private var header: some View {
         HStack {
-            Text("System").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+            Text("System").font(.notch(size: 13, weight: .semibold)).foregroundStyle(.white)
             Spacer()
             StatsOptionsMenu(options: service.options)
         }
@@ -113,7 +113,7 @@ struct StatsProcessList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Top processes").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.white.opacity(0.6))
+                Text("Top processes").font(.notch(size: 11, weight: .semibold)).foregroundStyle(Color.white.level(0.6))
                 Spacer()
                 Picker("Sort", selection: $service.sortsByMemory) {
                     Text("CPU").tag(false)
@@ -139,14 +139,14 @@ struct StatsProcessList: View {
             if let app = process.appPath {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: app)).resizable().frame(width: 16, height: 16)
             } else {
-                Image(systemName: "gearshape").font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.5)).frame(width: 16)
+                Image(systemName: "gearshape").font(.notch(size: 11)).foregroundStyle(Color.white.level(0.5)).frame(width: 16)
             }
-            Text(process.name).font(.system(size: 11)).foregroundStyle(.white).lineLimit(1)
+            Text(process.name).font(.notch(size: 11)).foregroundStyle(.white).lineLimit(1)
             Spacer(minLength: 4)
             Text(service.sortsByMemory ? StatsFormat.bytes(Double(process.memory)) : StatsFormat.percent(process.cpu))
-                .font(.system(size: 11, weight: .medium))
+                .font(.notch(size: 11, weight: .medium))
                 .monospacedDigit()
-                .foregroundStyle(Color.white.opacity(0.7))
+                .foregroundStyle(Color.white.level(0.7))
             quitButton(process)
         }
         .frame(height: 22)
@@ -163,13 +163,13 @@ struct StatsProcessList: View {
             }
         } label: {
             Text(isConfirming ? "Quit" : "✕")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(isConfirming ? .white : Color.white.opacity(0.6))
+                .font(.notch(size: 10, weight: .bold))
+                .foregroundStyle(isConfirming ? .white : Color.white.level(0.6))
                 .padding(.horizontal, isConfirming ? 7 : 0)
                 .frame(minWidth: 20, minHeight: 18)
-                .background(Capsule().fill(isConfirming ? Theme.red : Color.white.opacity(0.1)))
+                .background(Capsule().fill(isConfirming ? Theme.red : Color.white.level(0.1)))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(isConfirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
     }
 }
@@ -196,11 +196,11 @@ struct StatsOptionsMenu: View {
             }
         } label: {
             Label("Options", systemImage: "slider.horizontal.3")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.75))
+                .font(.notch(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.75))
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("What the closed notch shows, and the alerts")

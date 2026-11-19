@@ -58,8 +58,8 @@ struct BeeperConversation: View {
             return date.formatted(date: .abbreviated, time: .omitted)
         }()
         return Text(text)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.45))
+            .font(.notch(size: 10, weight: .semibold))
+            .foregroundStyle(Color.white.level(0.45))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4)
     }
@@ -71,8 +71,8 @@ struct BeeperConversation: View {
             VStack(alignment: message.mine ? .trailing : .leading, spacing: 2) {
                 if showsSender, let sender = message.senderName {
                     Text(sender)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.55))
+                        .font(.notch(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.white.level(0.55))
                 }
                 bubble(message)
                     // A click on a message answers it (spec BP-4b).
@@ -80,8 +80,8 @@ struct BeeperConversation: View {
                 reactions(message)
                 if service.canUndo(message) {
                     Button("Undo") { service.undo(message.id, in: chat.id) }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 10, weight: .semibold))
+                        .buttonStyle(.notch)
+                        .font(.notch(size: 10, weight: .semibold))
                         .foregroundStyle(BeeperStyle.blue)
                 }
             }
@@ -101,14 +101,14 @@ struct BeeperConversation: View {
             Button {
                 replyTo = message
             } label: {
-                Image(systemName: "arrowshape.turn.up.left.fill").font(.system(size: 10))
+                Image(systemName: "arrowshape.turn.up.left.fill").font(.notch(size: 10))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Reply")
             .accessibilityLabel("Reply")
             BeeperReactionButton { emoji in service.react(emoji, to: message, in: chat.id) }
         }
-        .foregroundStyle(Color.white.opacity(0.7))
+        .foregroundStyle(Color.white.level(0.7))
         .frame(width: 44)
         .opacity(hovered == message.id ? 1 : 0)
     }
@@ -117,8 +117,8 @@ struct BeeperConversation: View {
         VStack(alignment: .leading, spacing: 4) {
             if let linked = message.linkedMessageID, let quoted = messages.first(where: { $0.id == linked }) {
                 HStack(spacing: 6) {
-                    Rectangle().fill(Color.white.opacity(0.6)).frame(width: 2)
-                    Text(quoted.text ?? "Attachment").font(.system(size: 11)).lineLimit(2).opacity(0.75)
+                    Rectangle().fill(Color.white.level(0.6)).frame(width: 2)
+                    Text(quoted.text ?? "Attachment").font(.notch(size: 11)).lineLimit(2).opacity(0.75)
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -127,14 +127,15 @@ struct BeeperConversation: View {
             }
             if let text = message.text, !text.isEmpty {
                 Text(text)
-                    .font(.system(size: 13))
+                    .font(.notch(size: 13))
                     .textSelection(.enabled)
             }
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(message.mine ? BeeperStyle.blue : BeeperStyle.incoming))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(14), style: .continuous)
+            .fill(message.mine ? BeeperStyle.blue : BeeperStyle.incoming))
     }
 
     @ViewBuilder private func reactions(_ message: BeeperFullMessage) -> some View {
@@ -146,12 +147,12 @@ struct BeeperConversation: View {
                         service.react(key, to: message, in: chat.id)
                     } label: {
                         Text("\(key) \(keys.filter { $0 == key }.count)")
-                            .font(.system(size: 10))
+                            .font(.notch(size: 10))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.white.opacity(0.14)))
+                            .background(Capsule().fill(Color.white.level(0.14)))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.notch)
                 }
             }
         }
@@ -188,28 +189,28 @@ struct BeeperAttachmentView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: 220, maxHeight: 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous))
                     .overlay(alignment: .bottomLeading) { duration }
             } else {
                 HStack(spacing: 8) {
-                    Image(systemName: symbol).font(.system(size: 16))
+                    Image(systemName: symbol).font(.notch(size: 16))
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(attachment.fileName ?? title).font(.system(size: 12, weight: .medium)).lineLimit(1)
-                        Text(detail).font(.system(size: 10)).opacity(0.7)
+                        Text(attachment.fileName ?? title).font(.notch(size: 12, weight: .medium)).lineLimit(1)
+                        Text(detail).font(.notch(size: 10)).opacity(0.7)
                     }
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         if let transcription = attachment.transcription, !transcription.isEmpty {
-            Text(transcription).font(.system(size: 11)).italic().opacity(0.8)
+            Text(transcription).font(.notch(size: 11)).italic().opacity(0.8)
         }
     }
 
     @ViewBuilder private var duration: some View {
         if let seconds = attachment.duration {
             Text(Self.length(seconds))
-                .font(.system(size: 10, weight: .semibold))
+                .font(.notch(size: 10, weight: .semibold))
                 .padding(4)
                 .background(Capsule().fill(Color.black.opacity(0.6)))
                 .padding(4)
@@ -272,9 +273,9 @@ struct BeeperReactionButton: View {
             hover.openedByHover = false
             pinNotch()
         } label: {
-            Image(systemName: "face.smiling").font(.system(size: 11))
+            Image(systemName: "face.smiling").font(.notch(size: 11))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help("React")
         .accessibilityLabel("React")
         .onHover { inside in
@@ -309,17 +310,17 @@ struct BeeperReactionButton: View {
                         react(emoji)
                         panel = nil
                     }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 18))
+                    .buttonStyle(.notch)
+                    .font(.notch(size: 18))
                 }
                 Button {
                     // Every emoji, staying until a click (spec E-18b).
                     hover.openedByHover = false
                     panel = .all
                 } label: {
-                    Image(systemName: "plus.circle").font(.system(size: 14))
+                    Image(systemName: "plus.circle").font(.notch(size: 14))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
             }
             .padding(8)
         case .all:

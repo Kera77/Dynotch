@@ -33,7 +33,10 @@ struct GlassFill<S: Shape>: View {
     var tint = 0.45
 
     var body: some View {
-        if #available(macOS 26.0, *) {
+        if AppleStyle.reducesTransparency {
+            // *Reduce transparency* in the Apple style: solid, like the system (spec D-15f).
+            shape.fill(Color(white: 0.12))
+        } else if #available(macOS 26.0, *) {
             Color.clear.glassEffect(.regular.tint(Color.black.opacity(tint)), in: shape)
         } else {
             shape.fill(.ultraThinMaterial).overlay(shape.fill(Color.black.opacity(tint)))
@@ -149,7 +152,7 @@ struct DesignBackground<S: Shape>: View {
                     .opacity(glass ? 0 : open)
                 if refined, isOpen, design == .black {
                     // Pure black at the top, merging with the notch; a touch lighter at the bottom.
-                    shape.fill(LinearGradient(colors: [.clear, .white.opacity(0.045)], startPoint: .top, endPoint: .bottom))
+                    shape.fill(LinearGradient(colors: [.clear, .white.level(0.045)], startPoint: .top, endPoint: .bottom))
                         .opacity(open)
                 }
                 if design == .blend {
@@ -194,10 +197,10 @@ struct RimLight<S: Shape>: View {
             shape.stroke(
                 LinearGradient(
                     stops: [
-                        .init(color: .white.opacity(0), location: 0),
-                        .init(color: .white.opacity(0), location: row * 0.6),
-                        .init(color: .white.opacity(0.16), location: row + 0.08),
-                        .init(color: .white.opacity(0.05), location: 1)
+                        .init(color: .white.level(0), location: 0),
+                        .init(color: .white.level(0), location: row * 0.6),
+                        .init(color: .white.level(0.16), location: row + 0.08),
+                        .init(color: .white.level(0.05), location: 1)
                     ],
                     startPoint: .top, endPoint: .bottom
                 ),

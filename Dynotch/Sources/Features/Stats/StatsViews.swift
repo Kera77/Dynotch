@@ -62,7 +62,7 @@ struct StatsBar: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.white.opacity(0.12))
+                Capsule().fill(Color.white.level(0.12))
                 Capsule().fill(color).frame(width: proxy.size.width * min(max(fraction, 0), 1))
             }
         }
@@ -80,16 +80,16 @@ struct StatsCard<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 5) {
-                Image(systemName: symbol).font(.system(size: 10, weight: .semibold))
-                Text(title).font(.system(size: 11, weight: .semibold))
+                Image(systemName: symbol).font(.notch(size: 10, weight: .semibold))
+                Text(title).font(.notch(size: 11, weight: .semibold))
                 Spacer(minLength: 4)
                 Text(value)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.notch(size: 13, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.white)
                     .lineLimit(1)
             }
-            .foregroundStyle(Color.white.opacity(0.6))
+            .foregroundStyle(Color.white.level(0.6))
             content
         }
         .padding(10)
@@ -106,9 +106,9 @@ struct StatsDetail: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 10))
+            .font(.notch(size: 10))
             .monospacedDigit()
-            .foregroundStyle(Color.white.opacity(0.5))
+            .foregroundStyle(Color.white.level(0.5))
             .lineLimit(1)
     }
 }
@@ -131,7 +131,7 @@ struct StatsSlot: View {
                 text(for: value)
             }
         }
-        .font(.system(size: 11, weight: .semibold, design: .rounded))
+        .font(.notch(size: 11, weight: .semibold, design: .rounded))
         .monospacedDigit()
         .lineLimit(1)
         .frame(width: IndicatorLayout.statsWidth(values: indicator.values.count), height: IndicatorLayout.capsuleHeight)

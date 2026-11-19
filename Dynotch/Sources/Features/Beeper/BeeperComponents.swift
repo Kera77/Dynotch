@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Beeper's look (spec BP-2): dark, round pictures with the network's badge, blue unread pills.
 enum BeeperStyle {
-    static let blue = Theme.blue
-    static let incoming = Color.white.opacity(0.12)
+    static var blue: Color { Theme.blue }
+    static var incoming: Color { Color.white.level(0.12) }
     static let listWidth: CGFloat = 240
 
     /// The chat list grows with a resized module (spec RS-5).
@@ -124,7 +124,7 @@ struct BeeperAvatar: View {
                     Image(nsImage: image).resizable().scaledToFill()
                 } else {
                     Text(initials)
-                        .font(.system(size: size * 0.38, weight: .semibold))
+                        .font(.notch(size: size * 0.38, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(colour.opacity(0.85))
@@ -141,7 +141,7 @@ struct BeeperAvatar: View {
             } else if network != nil {
                 let style = BeeperStyle.network(network)
                 Image(systemName: style.symbol)
-                    .font(.system(size: size * 0.2, weight: .bold))
+                    .font(.notch(size: size * 0.2, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: size * 0.42, height: size * 0.42)
                     .background(Circle().fill(style.color))
@@ -178,25 +178,25 @@ struct BeeperChatList: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text(chat.name)
-                            .font(.system(size: 13, weight: chat.unread > 0 ? .bold : .medium))
+                            .font(.notch(size: 13, weight: chat.unread > 0 ? .bold : .medium))
                             .lineLimit(1)
                         Spacer(minLength: 4)
                         if chat.reminder != nil {
-                            Image(systemName: "bell.fill").font(.system(size: 9)).foregroundStyle(Color.white.opacity(0.5))
+                            Image(systemName: "bell.fill").font(.notch(size: 9)).foregroundStyle(Color.white.level(0.5))
                         }
                         Text(BeeperStyle.time(lastDate(of: chat)))
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color.white.opacity(0.45))
+                            .font(.notch(size: 10))
+                            .foregroundStyle(Color.white.level(0.45))
                     }
                     HStack {
                         Text(previewText(chat))
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.white.opacity(chat.unread > 0 ? 0.85 : 0.5))
+                            .font(.notch(size: 11))
+                            .foregroundStyle(Color.white.level(chat.unread > 0 ? 0.85 : 0.5))
                             .lineLimit(1)
                         Spacer(minLength: 4)
                         if chat.unread > 0 {
                             Text("\(chat.unread)")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.notch(size: 10, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 6)
                                 .frame(minWidth: 18, minHeight: 16)
@@ -208,10 +208,11 @@ struct BeeperChatList: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isSelected ? 0.12 : 0)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous)
+                .fill(Color.white.level(isSelected ? 0.12 : 0)))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 
     private func lastDate(of chat: BeeperChatInfo) -> Date? {

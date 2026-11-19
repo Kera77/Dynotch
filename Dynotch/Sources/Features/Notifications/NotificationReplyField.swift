@@ -25,7 +25,7 @@ struct NotificationReplyField: View {
         case failed(String)
     }
 
-    private static let blue = Theme.blue
+    private static var blue: Color { Theme.blue }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -39,8 +39,8 @@ struct NotificationReplyField: View {
         .overlay(alignment: .bottomLeading) {
             if let note = statusNote {
                 Text(note.text)
-                    .font(.system(size: 10))
-                    .foregroundStyle(note.isError ? Color(red: 1, green: 0.45, blue: 0.4) : Color.white.opacity(0.5))
+                    .font(.notch(size: 10))
+                    .foregroundStyle(note.isError ? Color(red: 1, green: 0.45, blue: 0.4).apple(.red) : Color.white.level(0.5))
                     .lineLimit(1)
                     .padding(.horizontal, 2)
                     .offset(y: 13)
@@ -55,10 +55,10 @@ struct NotificationReplyField: View {
     private var field: some View {
         TextField(placeholder, text: $text)
             .textFieldStyle(.plain)
-            .font(.system(size: 13))
+            .font(.notch(size: 13))
             .padding(.horizontal, 10)
             .frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
             .focused($isFocused)
             .onSubmit(send)
             .disabled(status == .sending)
@@ -93,33 +93,33 @@ struct NotificationReplyField: View {
                 default: Image(systemName: "paperplane.fill")
                 }
             }
-            .font(.system(size: 12, weight: .semibold))
+            .font(.notch(size: 12, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: 30, height: 30)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Self.blue))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Self.blue))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty || status == .sending)
     }
 
     private func quoteChip(_ line: AppNotification) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "arrowshape.turn.up.left.fill")
-                .font(.system(size: 9))
+                .font(.notch(size: 9))
                 .foregroundStyle(Self.blue)
             Text(service.content(for: line).detail)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .font(.notch(size: 11))
+                .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
             Spacer(minLength: 4)
             Button(action: cancelQuote) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 9, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.5))
                     .frame(width: 16, height: 16)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Answer the whole conversation instead")
             .accessibilityLabel("Answer the whole conversation instead")
         }

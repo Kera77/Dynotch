@@ -71,7 +71,7 @@ extension NotchController {
             phase: phase, isMomentum: !event.momentumPhase.isEmpty, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
         )
         if steps != 0 {
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { model.scrollSwitcher(by: steps) }
+            withAnimation(AppleStyle.spring(response: 0.28, dampingFraction: 0.86)) { model.scrollSwitcher(by: steps) }
             Haptics.perform(.dayStep, settings: settings)
         }
         return true

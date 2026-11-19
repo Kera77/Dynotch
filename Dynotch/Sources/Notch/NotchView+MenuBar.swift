@@ -86,7 +86,7 @@ struct TrailingControls: View {
         }
         .coordinateSpace(name: Self.space)
         .padding(3)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
     }
 
     @ViewBuilder private func button(_ control: TopRowControl) -> some View {
@@ -107,13 +107,13 @@ struct TrailingControls: View {
         case .settings:
             Button(action: toggleSettings) {
                 Image(systemName: control.symbol)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                    .foregroundStyle(isShowingSettings ? Color.white : Color.white.opacity(0.7))
-                    .background(Capsule(style: .continuous).fill(isShowingSettings ? Color.white.opacity(0.22) : .clear))
+                    .foregroundStyle(isShowingSettings ? Color.white : Color.white.level(0.7))
+                    .background(Capsule(style: .continuous).fill(isShowingSettings ? Color.white.level(0.22) : .clear))
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Settings (⌘-drag to reorder)")
             .accessibilityLabel("Settings")
         }
@@ -122,12 +122,12 @@ struct TrailingControls: View {
     private func iconButton(_ symbol: String, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .foregroundStyle(isOn ? ClaudeUsageView.blue : Color.white.opacity(0.45))
+                .foregroundStyle(isOn ? ClaudeUsageView.blue : Color.white.level(0.45))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 
     private func offset(of index: Int, control: TopRowControl, in shown: [TopRowControl]) -> CGFloat {

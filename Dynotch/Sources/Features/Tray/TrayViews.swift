@@ -96,15 +96,15 @@ struct TrayFeatureView: View {
                 store.attachFolder()
             } label: {
                 HStack(spacing: 4) {
-                    Circle().fill(Color.white.opacity(0.35)).frame(width: 7, height: 7)
-                    Image(systemName: "plus").font(.system(size: 10, weight: .bold))
+                    Circle().fill(Color.white.level(0.35)).frame(width: 7, height: 7)
+                    Image(systemName: "plus").font(.notch(size: 10, weight: .bold))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 10)
                 .frame(height: 24)
-                .background(Capsule().fill(Color.white.opacity(0.1)))
+                .background(Capsule().fill(Color.white.level(0.1)))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Attach a folder")
             .accessibilityLabel("Attach a folder")
             Spacer(minLength: 0)
@@ -168,15 +168,15 @@ struct TrayFeatureView: View {
             HStack(spacing: 6) {
                 Circle().fill(colour).frame(width: 7, height: 7)
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.notch(size: 11, weight: .semibold))
                     .lineLimit(1)
             }
             .foregroundStyle(isOn ? Color.black : Color.white)
             .padding(.horizontal, 10)
             .frame(height: 24)
-            .background(Capsule().fill(isOn ? Color.white : Color.white.opacity(0.1)))
+            .background(Capsule().fill(isOn ? Color.white : Color.white.level(0.1)))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 
     private var grid: some View {
@@ -251,14 +251,14 @@ struct TrayFileCell: View {
 
     static let gridSpace = "trayGrid"
     private static let nameWidth: CGFloat = 150
-    private static let pop = Animation.spring(response: 0.28, dampingFraction: 0.78)
+    private static var pop: Animation { AppleStyle.spring(response: 0.28, dampingFraction: 0.78) }
 
     var body: some View {
         content
             .padding(4)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.white.opacity(isChosen ? 0.16 : isHovering && !isRow ? 0.07 : 0))
+                RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous)
+                    .fill(Color.white.level(isChosen ? 0.16 : isHovering && !isRow ? 0.07 : 0))
             )
             // A tile shows its whole name while the mouse is over it (spec FT-11c, FT-11d).
             .overlay(alignment: .top) {
@@ -301,7 +301,7 @@ struct TrayFileCell: View {
 
     private var fullName: some View {
         Text(url.lastPathComponent)
-            .font(.system(size: 11, weight: .medium))
+            .font(.notch(size: 11, weight: .medium))
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
             .lineLimit(5)
@@ -310,12 +310,12 @@ struct TrayFileCell: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous)
                     .fill(Color(white: 0.13).opacity(0.97))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous)
                             .strokeBorder(
-                                LinearGradient(colors: [.white.opacity(0.28), .white.opacity(0.06)], startPoint: .top, endPoint: .bottom),
+                                LinearGradient(colors: [.white.level(0.28), .white.level(0.06)], startPoint: .top, endPoint: .bottom),
                                 lineWidth: 1
                             )
                     )
@@ -330,7 +330,7 @@ struct TrayFileCell: View {
         if isRow {
             HStack(spacing: 8) {
                 icon.frame(width: 20, height: 20)
-                Text(url.lastPathComponent).font(.system(size: 12)).foregroundStyle(.white).lineLimit(1)
+                Text(url.lastPathComponent).font(.notch(size: 12)).foregroundStyle(.white).lineLimit(1)
                     .truncationMode(.middle)
                 Spacer(minLength: 0)
             }
@@ -343,7 +343,7 @@ struct TrayFileCell: View {
                     .shadow(color: .black.opacity(isHovering ? 0.35 : 0), radius: 6, y: 3)
                 // The middle is cut, so the end of the name (a shot's time, the extension) stays (spec FT-11c).
                 Text(url.lastPathComponent)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.notch(size: 11, weight: .medium))
                     .foregroundStyle(.white)
                     .lineLimit(2)
                     .truncationMode(.middle)

@@ -43,8 +43,8 @@ struct AIFavoritesSection: View {
         let favorites = service.favorites(of: service.shownProvider)
         if !favorites.isEmpty {
             Text("FAVORITES")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(Color.white.opacity(0.4))
+                .font(.notch(size: 9, weight: .bold))
+                .foregroundStyle(Color.white.level(0.4))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 8)
                 .padding(.top, 8)
@@ -53,10 +53,10 @@ struct AIFavoritesSection: View {
                     service.select(favorite.chatID)
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "star.fill").font(.system(size: 8)).foregroundStyle(.yellow)
+                        Image(systemName: "star.fill").font(.notch(size: 8)).foregroundStyle(.yellow)
                         Text(favorite.message.text.replacingOccurrences(of: "\n", with: " "))
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.white.opacity(0.75))
+                            .font(.notch(size: 11))
+                            .foregroundStyle(Color.white.level(0.75))
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -64,7 +64,7 @@ struct AIFavoritesSection: View {
                     .frame(height: 22)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help(String(favorite.message.text.prefix(300)))
                 .contextMenu {
                     Button("Copy") {

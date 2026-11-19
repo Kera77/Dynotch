@@ -37,7 +37,7 @@ struct NotchBadgesView: View {
                     .contentShape(Rectangle())
                     .offset(x: offset(of: index, badge: badge))
                     .zIndex(badge.id == dragged ? 1 : 0)
-                    .animation(.spring(response: 0.22, dampingFraction: 0.85), value: target)
+                    .animation(AppleStyle.spring(response: 0.22, dampingFraction: 0.85), value: target)
                     .onTapGesture { open(badge) }
                     .gesture(reorderGesture(for: badge))
                     .overlay(RightClickCatcher { showNotifications(badge) })
@@ -107,7 +107,7 @@ private struct BadgeChip: View {
         HStack(spacing: BadgeItem.gap) {
             BadgeIconView(icon: badge.app.icon, bundleID: badge.app.bundleID)
             Text(badge.text)
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white)
                 .lineLimit(1)

@@ -18,6 +18,8 @@ struct ChatWebConversation: Equatable, Sendable {
 struct ChatWebMessage: Equatable, Sendable {
     let id: String
     let text: String
+    /// Written by the owner: the web app heads the group "Ön"/"You" (spec GW-20).
+    var isMine = false
 }
 
 /// What the Google Chat web app shows: its sidebar and the open conversation (spec GW-4).
@@ -38,6 +40,10 @@ enum GoogleChatWebReader {
     private static let unreadClass = "H7du2"
     private static let messageSuffix = "/qJTHM"
     private static let sendTitles: Set<String> = ["Üzenet küldése", "Send message"]
+    /// A message group's sender heading, and the mark of the owner's own (spec GW-20).
+    private static let senderHeadingClass = "ZTmjQb"
+    private static let ownHeadingClass = "cPjwNc"
+    private static let ownNames: Set<String> = ["Ön", "You", "Te"]
     private static let elementLimit = 8000
 
     // MARK: - Pure helpers (tested)
@@ -62,6 +68,11 @@ enum GoogleChatWebReader {
     /// Unread items are bold, and their label offers the last message's preview (⌥0).
     nonisolated static func isUnread(label: String, classes: [String]) -> Bool {
         classes.contains(unreadClass) || label.contains("Option + 0") || label.contains("Option+0")
+    }
+
+    /// A sender heading that names the owner: "Ön"/"You", or the web app's own mark.
+    nonisolated static func isOwnHeading(name: String, classes: [String]) -> Bool {
+        classes.contains(ownHeadingClass) || ownNames.contains(name)
     }
 
     /// Texts the sidebar puts beside a name: the unread marker.
@@ -111,6 +122,8 @@ enum GoogleChatWebReader {
     /// Opens a conversation in the web app, in the background (spec GW-8).
     nonisolated static func open(_ conversationID: String, pid: pid_t, windowToken: UInt64?) -> Bool {
         var walker = Walker()
+        // The sidebar comes first: the walk stops at the link instead of reading the whole page (spec GW-20b).
+        walker.stopAtLink = conversationID
         for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
         guard let link = walker.links[conversationID] else { return false }
         return AXUIElementPerformAction(link, kAXPressAction as CFString) == .success
@@ -144,6 +157,10 @@ enum GoogleChatWebReader {
         var foundPage = false
         var composer: AXUIElement?
         var sendButton: AXUIElement?
+        /// Stops the walk once this conversation's link is found.
+        var stopAtLink: String?
+        /// Whether the last sender heading was the owner's: the messages under it are theirs.
+        private var ownGroup = false
         private var visited = 0
 
         /// Depth first, in page order, without recursion: the page is deeper than a background
@@ -153,6 +170,7 @@ enum GoogleChatWebReader {
             while let element = stack.popLast() {
                 visited += 1
                 guard visited < GoogleChatWebReader.elementLimit else { return }
+                if let stopAtLink, links[stopAtLink] != nil { return }
                 if visit(element) { stack += AXRead.children(element).reversed() }
             }
         }
@@ -168,14 +186,25 @@ enum GoogleChatWebReader {
             }
             if domID.hasSuffix(GoogleChatWebReader.messageSuffix) {
                 let text = AXRead.texts(in: element).joined(separator: " ")
-                messages.append(ChatWebMessage(id: String(domID.dropLast(GoogleChatWebReader.messageSuffix.count)), text: text))
+                let id = String(domID.dropLast(GoogleChatWebReader.messageSuffix.count))
+                messages.append(ChatWebMessage(id: id, text: text, isMine: ownGroup))
                 return false
             }
+            if role == "AXHeading" { readHeading(element) }
             if role == (kAXTextAreaRole as String), composer == nil { composer = element }
             if role == (kAXButtonRole as String), composer != nil, sendButton == nil, isSendButton(element) {
                 sendButton = element
             }
             return true
+        }
+
+        /// A sender heading starts a group of messages: the owner's own or someone else's.
+        private mutating func readHeading(_ heading: AXUIElement) {
+            let classes = AXRead.strings(heading, "AXDOMClassList")
+            guard classes.contains(GoogleChatWebReader.senderHeadingClass) else { return }
+            let name = (AXRead.string(heading, kAXTitleAttribute) ?? AXRead.texts(in: heading).first ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            ownGroup = GoogleChatWebReader.isOwnHeading(name: name, classes: classes)
         }
 
         private func isSendButton(_ button: AXUIElement) -> Bool {

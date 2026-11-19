@@ -111,7 +111,7 @@ final class CalculatorTextView: EditingTextView {
 /// it to the clipboard (spec SZ-9).
 final class CalculatorResultsView: NSView {
     /// The standard blue of Dynotch's controls (spec SZ-11).
-    static let resultColor = Theme.nsBlue
+    static var resultColor: NSColor { Theme.nsBlue }
     private static let copiedText = "Copied ✓"
     private static let trailingPadding: CGFloat = 8
 

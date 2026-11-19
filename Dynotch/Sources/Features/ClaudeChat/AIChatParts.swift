@@ -30,9 +30,9 @@ struct AIChatHeader: View {
                 service.thinksHarder.toggle()
             } label: {
                 Image(systemName: "brain")
-                    .foregroundStyle(service.thinksHarder ? ClaudeUsageView.blue : Color.white.opacity(0.55))
+                    .foregroundStyle(service.thinksHarder ? ClaudeUsageView.blue : Color.white.level(0.55))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help(service.thinksHarder ? "Thinking harder: on" : "Think harder")
             Spacer(minLength: 4)
             templatesMenu
@@ -40,14 +40,14 @@ struct AIChatHeader: View {
                 Button {
                     service.continueInTerminal(chat)
                 } label: {
-                    Image(systemName: "terminal").foregroundStyle(Color.white.opacity(0.65))
+                    Image(systemName: "terminal").foregroundStyle(Color.white.level(0.65))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Continue in Terminal (\(chat.service == .claude ? "Claude Code" : "Codex"))")
             }
             MergedTabsPicker()
         }
-        .font(.system(size: 12))
+        .font(.notch(size: 12))
         .foregroundStyle(.white)
     }
 
@@ -61,13 +61,13 @@ struct AIChatHeader: View {
             }
         } label: {
             HStack(spacing: 3) {
-                Text(current).font(.system(size: 11, weight: .semibold))
-                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+                Text(current).font(.notch(size: 11, weight: .semibold))
+                Image(systemName: "chevron.down").font(.notch(size: 8, weight: .bold))
             }
-            .foregroundStyle(Color.white.opacity(0.8))
+            .foregroundStyle(Color.white.level(0.8))
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Model")
@@ -90,13 +90,13 @@ struct AIChatHeader: View {
         } label: {
             HStack(spacing: 3) {
                 Text(chatGPTLabel)
-                    .font(.system(size: 11, weight: .semibold))
-                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+                    .font(.notch(size: 11, weight: .semibold))
+                Image(systemName: "chevron.down").font(.notch(size: 8, weight: .bold))
             }
-            .foregroundStyle(Color.white.opacity(0.8))
+            .foregroundStyle(Color.white.level(0.8))
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("How ChatGPT answers")
@@ -127,10 +127,10 @@ struct AIChatHeader: View {
             Button("Save the Question as a Template") { service.saveTemplate() }
                 .disabled(service.draft.trimmingCharacters(in: .whitespaces).isEmpty)
         } label: {
-            Image(systemName: "text.badge.star").foregroundStyle(Color.white.opacity(0.65))
+            Image(systemName: "text.badge.star").foregroundStyle(Color.white.level(0.65))
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Templates")
@@ -169,8 +169,8 @@ struct AIMessageContent: View {
                 switch part {
                 case .text(let paragraph):
                     Text(Self.formatted(paragraph))
-                        .font(.system(size: 13))
-                        .foregroundStyle(isError ? Color(red: 1, green: 0.5, blue: 0.45) : Color.white.opacity(0.92))
+                        .font(.notch(size: 13))
+                        .foregroundStyle(isError ? Color(red: 1, green: 0.5, blue: 0.45).apple(.red) : Color.white.level(0.92))
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 case .code(let code):
@@ -186,21 +186,21 @@ struct AIMessageContent: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(code, forType: .string)
             }
-            .buttonStyle(.plain)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.6))
+            .buttonStyle(.notch)
+            .font(.notch(size: 10, weight: .semibold))
+            .foregroundStyle(Color.white.level(0.6))
             .padding(.horizontal, 8)
             .padding(.top, 4)
             ScrollView(.horizontal) {
                 Text(code)
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.9))
+                    .font(.notch(size: 12, design: .monospaced))
+                    .foregroundStyle(Color.white.level(0.9))
                     .textSelection(.enabled)
                     .padding(8)
             }
             .scrollIndicators(.never)
         }
-        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.black.opacity(0.45)))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.black.opacity(0.45)))
     }
 
     /// Headings ("# …") bold; the rest with inline Markdown, line breaks kept.
@@ -229,7 +229,7 @@ struct AIAnswerActions: View {
             if let toggleFavorite {
                 Button(action: toggleFavorite) {
                     Image(systemName: isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(isFavorite ? Color.yellow : Color.white.opacity(0.55))
+                        .foregroundStyle(isFavorite ? Color.yellow : Color.white.level(0.55))
                 }
                 .help(isFavorite ? "Remove from Favorites" : "Add to Favorites")
                 .accessibilityLabel(isFavorite ? "Remove from Favorites" : "Add to Favorites")
@@ -246,9 +246,9 @@ struct AIAnswerActions: View {
             .help("Paste the answer into the app in front")
             .accessibilityLabel("Paste the answer into the app in front")
         }
-        .buttonStyle(.plain)
-        .font(.system(size: 10, weight: .semibold))
-        .foregroundStyle(Color.white.opacity(0.55))
+        .buttonStyle(.notch)
+        .font(.notch(size: 10, weight: .semibold))
+        .foregroundStyle(Color.white.level(0.55))
     }
 }
 
@@ -264,19 +264,19 @@ struct AIContextBar: View {
             button("paperclip", help: "Attach a file", action: chooseFile)
             ForEach(service.attachments, id: \.self) { file in
                 HStack(spacing: 4) {
-                    Image(systemName: "doc").font(.system(size: 9))
-                    Text(file.lastPathComponent).font(.system(size: 10)).lineLimit(1)
+                    Image(systemName: "doc").font(.notch(size: 9))
+                    Text(file.lastPathComponent).font(.notch(size: 10)).lineLimit(1)
                     Button {
                         service.attachments.removeAll { $0 == file }
                     } label: {
-                        Image(systemName: "xmark").font(.system(size: 8, weight: .bold))
+                        Image(systemName: "xmark").font(.notch(size: 8, weight: .bold))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.notch)
                 }
-                .foregroundStyle(Color.white.opacity(0.75))
+                .foregroundStyle(Color.white.level(0.75))
                 .padding(.horizontal, 6)
                 .frame(height: 18)
-                .background(Capsule().fill(Color.white.opacity(0.1)))
+                .background(Capsule().fill(Color.white.level(0.1)))
             }
             Spacer(minLength: 0)
         }
@@ -284,9 +284,9 @@ struct AIContextBar: View {
 
     private func button(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.6))
+            Image(systemName: symbol).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.6))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 
@@ -321,7 +321,7 @@ struct WorkingDots: View {
 struct SidebarGlyph: View {
     var body: some View {
         ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 3.5, style: .continuous)
+            RoundedRectangle(cornerRadius: AppleStyle.corner(3.5), style: .continuous)
                 .stroke(lineWidth: 1.5)
             Capsule()
                 .frame(width: 2, height: 6)
@@ -344,7 +344,7 @@ struct AIGlyph: View {
             BrandGlyphView(glyph: .claude, size: size)
         } else {
             Image(systemName: "bubble.left.and.text.bubble.right.fill")
-                .font(.system(size: size * 0.85, weight: .semibold))
+                .font(.notch(size: size * 0.85, weight: .semibold))
                 .foregroundStyle(.white)
         }
     }

@@ -9,8 +9,8 @@ struct CallView: View {
 
     static let rowHeight: CGFloat = 58
     static let composeHeight: CGFloat = 44
-    private static let red = Color(red: 1, green: 0.27, blue: 0.23)
-    private static let green = Color(red: 0.2, green: 0.78, blue: 0.35)
+    private static var red: Color { Color(red: 1, green: 0.27, blue: 0.23).apple(.red) }
+    private static var green: Color { Color(red: 0.2, green: 0.78, blue: 0.35).apple(.green) }
 
     @FocusState private var isFieldFocused: Bool
 
@@ -21,11 +21,11 @@ struct CallView: View {
                 avatar
                 // Only the name (spec P-1): no line or number labels.
                 Text(service.contact?.name ?? call.caller)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.notch(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer(minLength: 8)
-                roundButton("message.fill", color: service.isComposing ? ClaudeUsageView.blue : Color.white.opacity(0.22),
+                roundButton("message.fill", color: service.isComposing ? ClaudeUsageView.blue : Color.white.level(0.22),
                             help: "Reply with a message") { service.toggleComposing() }
                 roundButton("phone.down.fill", color: Self.red, help: "Decline") { service.decline() }
                 roundButton("phone.fill", color: Self.green, help: "Answer") { service.accept() }
@@ -40,7 +40,7 @@ struct CallView: View {
     private var avatar: some View {
         let initials = CallMatcher.initials(of: service.contact?.name ?? call.caller)
         return ZStack {
-            Circle().fill(Color.white.opacity(0.18))
+            Circle().fill(Color.white.level(0.18))
             if let data = service.contact?.imageData, let image = NSImage(data: data) {
                 Image(nsImage: image)
                     .resizable()
@@ -48,11 +48,11 @@ struct CallView: View {
                     .clipShape(Circle())
             } else if initials.isEmpty {
                 Image(systemName: "person.fill")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color.white.opacity(0.8))
+                    .font(.notch(size: 15))
+                    .foregroundStyle(Color.white.level(0.8))
             } else {
                 Text(initials)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.notch(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)
             }
         }
@@ -62,13 +62,13 @@ struct CallView: View {
     private func roundButton(_ symbol: String, color: Color, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.notch(size: 13, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(color))
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 
@@ -77,7 +77,7 @@ struct CallView: View {
         HStack(spacing: 8) {
             TextField("Message to \(service.contact?.name ?? call.caller) — Enter sends", text: $service.draft)
                 .textFieldStyle(.plain)
-                .font(.system(size: 12))
+                .font(.notch(size: 12))
                 .foregroundStyle(.white)
                 .focused($isFieldFocused)
                 .onSubmit { service.sendMessage() }
@@ -88,14 +88,14 @@ struct CallView: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 28)
-        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.12)))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.12)))
         .padding(.horizontal, 14)
         .frame(height: Self.composeHeight, alignment: .top)
         .overlay(alignment: .bottomLeading) {
             if let error = service.sendError {
                 Text(error)
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4))
+                    .font(.notch(size: 10))
+                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4).apple(.red))
                     .lineLimit(1)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 1)

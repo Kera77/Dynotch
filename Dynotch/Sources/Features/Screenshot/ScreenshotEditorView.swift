@@ -20,7 +20,7 @@ struct ScreenshotEditorView: View {
         .overlay(alignment: .bottom) {
             if let message = editor.message {
                 Text(message)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
                     .frame(height: 26)
@@ -56,7 +56,7 @@ private struct EditorToolbar: View {
             colorMenu
             Picker("Width", selection: $editor.widthLevel) {
                 ForEach(0..<3, id: \.self) { level in
-                    Image(systemName: "circle.fill").font(.system(size: [5, 8, 11][level])).tag(level)
+                    Image(systemName: "circle.fill").font(.notch(size: [5, 8, 11][level])).tag(level)
                 }
             }
             .pickerStyle(.segmented)
@@ -72,14 +72,14 @@ private struct EditorToolbar: View {
                 .disabled(!editor.canRedo)
             divider
             Button("Close", action: close)
-                .buttonStyle(.plain)
-                .font(.system(size: 12))
-                .foregroundStyle(Color.white.opacity(0.7))
+                .buttonStyle(.notch)
+                .font(.notch(size: 12))
+                .foregroundStyle(Color.white.level(0.7))
                 .keyboardShortcut(.cancelAction)
                 .help("Close without saving (Esc)")
             Button("Done") { if !editor.hasChanges || editor.save() { close() } }
-                .buttonStyle(.plain)
-                .font(.system(size: 12, weight: .semibold))
+                .buttonStyle(.notch)
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(Theme.blue)
                 .keyboardShortcut("s", modifiers: .command)
                 .help("Save the changes into the file and close (⌘S)")
@@ -89,7 +89,7 @@ private struct EditorToolbar: View {
     }
 
     private var divider: some View {
-        Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16).padding(.horizontal, 4)
+        Rectangle().fill(Color.white.level(0.15)).frame(width: 1, height: 16).padding(.horizontal, 4)
     }
 
     private var colorMenu: some View {
@@ -100,12 +100,12 @@ private struct EditorToolbar: View {
         } label: {
             Circle()
                 .fill(Color(nsColor: editor.color.nsColor))
-                .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 1))
+                .overlay(Circle().stroke(Color.white.level(0.6), lineWidth: 1))
                 .frame(width: 16, height: 16)
                 .frame(width: 26, height: 26)
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Colour")
@@ -114,13 +114,14 @@ private struct EditorToolbar: View {
     private func button(_ symbol: String, help: String, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(isOn ? Color.black : Color.white.opacity(0.85))
+                .font(.notch(size: 13, weight: .medium))
+                .foregroundStyle(isOn ? Color.black : Color.white.level(0.85))
                 .frame(width: 28, height: 26)
-                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(isOn ? Color.white : Color.white.opacity(0.0001)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous)
+                    .fill(isOn ? Color.white : Color.white.level(0.0001)))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
         .accessibilityLabel(help)
     }
@@ -152,7 +153,7 @@ private struct EditorCanvas: View {
                 }
             }
             .frame(width: size.width, height: size.height, alignment: .topLeading)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous))
             .shadow(color: .black.opacity(0.4), radius: 10)
             .offset(x: origin.x, y: origin.y)
         }
@@ -184,12 +185,12 @@ private struct EditorCanvas: View {
     private var textField: some View {
         TextField("Text", text: $editor.typedText)
             .textFieldStyle(.plain)
-            .font(.system(size: 15, weight: .semibold))
+            .font(.notch(size: 15, weight: .semibold))
             .foregroundStyle(Color(nsColor: editor.color.nsColor))
             .padding(.horizontal, 4)
             .frame(minWidth: 140)
             .fixedSize()
-            .background(RoundedRectangle(cornerRadius: 4).fill(Color.black.opacity(0.45)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(4)).fill(Color.black.opacity(0.45)))
             .focused($typing)
             .onAppear { typing = true }
             .onSubmit { editor.commitText() }

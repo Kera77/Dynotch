@@ -12,7 +12,7 @@ struct HUDView: View {
         HStack(spacing: 0) {
             // One fixed symbol per kind: no animated swaps while the level changes.
             Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: Self.sideWidth)
             Color.clear.frame(width: notchWidth)

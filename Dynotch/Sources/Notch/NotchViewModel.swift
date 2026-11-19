@@ -366,7 +366,7 @@ final class NotchViewModel: ObservableObject {
         withAnimation(.easeOut(duration: 0.1)) { bounceOffset = distance }
         Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(110))
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { self?.bounceOffset = 0 }
+            withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.5)) { self?.bounceOffset = 0 }
         }
     }
 }

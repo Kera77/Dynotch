@@ -23,7 +23,7 @@ struct TrayDropZoneView: View {
                 let third = (geometry.size.width - spacing) / 3
                 HStack(spacing: spacing) {
                     section(title: "Keep in Tray", isOver: overKeep) {
-                        Image(systemName: "tray.and.arrow.down.fill").font(.system(size: 34, weight: .semibold))
+                        Image(systemName: "tray.and.arrow.down.fill").font(.notch(size: 34, weight: .semibold))
                     }
                     .frame(width: third * 2)
                     .dropDestination(for: URL.self) { urls, _ in
@@ -47,14 +47,14 @@ struct TrayDropZoneView: View {
     private func section<Icon: View>(title: String, isOver: Bool, @ViewBuilder icon: () -> Icon) -> some View {
         VStack(spacing: 8) {
             icon()
-            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(title).font(.notch(size: 13, weight: .semibold))
         }
-        .foregroundStyle(.white.opacity(isOver ? 1 : 0.8))
+        .foregroundStyle(.white.level(isOver ? 1 : 0.8))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.white.opacity(isOver ? 0.2 : 0.08)))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(18), style: .continuous).fill(Color.white.level(isOver ? 0.2 : 0.08)))
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(Color.white.opacity(isOver ? 0.7 : 0.22), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+            RoundedRectangle(cornerRadius: AppleStyle.corner(18), style: .continuous)
+                .strokeBorder(Color.white.level(isOver ? 0.7 : 0.22), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
         )
         .scaleEffect(isOver ? 1.02 : 1)
         .animation(Motion.hover, value: isOver)

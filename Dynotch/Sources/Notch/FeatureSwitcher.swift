@@ -71,7 +71,7 @@ struct FeatureSwitcher: View {
         }
         .coordinateSpace(name: Self.coordinateSpace)
         .padding(3)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.1)))
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
     }
 
     private func offset(of index: Int, feature: FeatureID) -> CGFloat {
@@ -83,18 +83,18 @@ struct FeatureSwitcher: View {
     private func icon(_ feature: FeatureID) -> some View {
         let isSelected = feature == selected
         let isDragged = feature == dragged
-        let color = isSelected || isDragged ? Color.white : Color.white.opacity(0.7)
+        let color = isSelected || isDragged ? Color.white : Color.white.level(0.7)
         return Image(systemName: feature.symbolName)
-            .font(.system(size: 12, weight: .semibold))
+            .font(.notch(size: 12, weight: .semibold))
             .frame(width: Self.itemWidth, height: 22)
             .foregroundStyle(color)
             .background(
                 Capsule(style: .continuous)
-                    .fill(isDragged ? Color.white.opacity(0.32) : (isSelected ? Color.white.opacity(0.22) : .clear))
+                    .fill(isDragged ? Color.white.level(0.32) : (isSelected ? Color.white.level(0.22) : .clear))
             )
             .scaleEffect(isDragged ? 1.12 : 1)
             .contentShape(Rectangle())
-            .animation(.spring(response: 0.22, dampingFraction: 0.85), value: target)
+            .animation(AppleStyle.spring(response: 0.22, dampingFraction: 0.85), value: target)
     }
 
     private func reorderGesture(for feature: FeatureID) -> some Gesture {

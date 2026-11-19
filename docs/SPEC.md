@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.72 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.73 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -562,6 +562,16 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-14b | (v0.67) Refined Black: fent tiszta fekete (egybeolvad a notch-csal), lefelé alig világosodik. |
 | D-14c | (v0.67) Refined Liquid glass: az üveg sötétítése a kijelző háttérképének fényességét követi (sötét háttérnél ~32%, világosnál ~55%); a háttérkép Space- és kijelzőváltáskor újra mérődik. |
 | D-14d | (v0.67) Refined Black to glass: a felső sor magasságáig fekete, alatta ~80 pt alatt lágy (ease) átmenettel üveg, a panel magasságától függetlenül. |
+| D-15 | (v0.73) *Settings › Appearance › Style*: **Apple** vagy **Current** (alapból Current). Átmeneti kapcsoló az összehasonlításhoz, később kikerül. Az Apple stílus a notch tartalmát az Apple bevett designjához igazítja (D-15a…i), átkapcsoláskor a notch azonnal újrarajzolódik. A beállítások ablak nem változik (az már rendszerstílusú). |
+| D-15a | (v0.73) **Betűk:** a macOS szövegstílus-méretei: 9 pt alatti nincs, a 14 pt 13 lesz; 15 pt-ig a félkövérnél vastagabb betű semibold. |
+| D-15b | (v0.73) **Színek:** a kék a rendszer kiemelőszíne (*System Settings › Appearance › Accent colour*); a piros, zöld, narancs, sárga állapotszínek a rendszer színei (követik a „Kontraszt növelése” beállítást). A márkaszínek (Beeper-hálózatok, naptárszínek) maradnak. |
+| D-15c | (v0.73) **Fehér szintek:** a szövegek és kitöltések fehérje a tucatnyi átlátszóság helyett négy szinten: elsődleges (~86%), másodlagos (60%), harmadlagos (40%), kitöltés (16/10/5%). „Kontraszt növelése” mellett erősebbek. Az egeret fogó, szinte láthatatlan kitöltések maradnak. |
+| D-15d | (v0.73) **Sarkok:** egymásba illő (koncentrikus) lépcső: vezérlő 6, sor 8, kártya 12; a 4 alatti és 15 feletti sarkok maradnak. |
+| D-15e | (v0.73) **Vezérlők:** a kapszula-választó (D-10) kijelölése a sötét rendszer szegmentált vezérlője szerint világosabb, csúszó szegmens fehér szöveggel, a számjelvény piros; az üres állapot (D-11) a rendszer `ContentUnavailableView`-ja, a gombja macOS 26-on üveg (`glassProminent`). |
+| D-15f | (v0.73) **Kisegítő beállítások:** „Mozgás csökkentése” mellett rugó helyett rövid áttűnés; „Átlátszóság csökkentése” mellett az üveg helyett tömör sötét háttér. |
+| D-15g | (v0.73) **Mozgás:** a rugók helyett a rendszer `smooth` (nyitás, átméretezés) és `snappy` (váltás, rugózó elemek) animációi. |
+| D-15h | (v0.73) **SF Symbols:** a szimbólumok hierarchikus (többrétegű) rajzolással; a változó számok (akku %, feladat- és jelvényszám) gördülnek; a lejátszás/szünet ikon a rendszer csere-effektusával vált. |
+| D-15i | (v0.73) **Hover:** a notch minden sima gombja (ikonok, sorok) hoverre halvány kiemelést, nyomásra halványodást kap, mint a rendszer keret nélküli gombjai. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -720,6 +730,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-17c | (v0.72, hiba) A webappból betöltött üzenetek az Értesítések listájának kártyáján is **azonnal megjelennek** (a kártyasor a betöltéskor frissül), és a kártya bezárása után is a kártyán maradnak. **A visszajelölés olvasatlanra kimarad:** a Chat „Beállítások” menüje csak aktív ablakban nyílik meg, a háttérben nem, ezért a GW-17 visszajelölése nem működik; a megnyitott beszélgetés olvasott marad (válasz nélkül is), és a kártya GW-7 szerint eltűnik, amikor bezárod. |
 | GW-18 | (v0.70) **Válasz a kártyáról:** ha a beszélgetés a webappban írható (GW-9 feltételei teljesülnek), a szövegek alatt **válaszmező** (Enter küld, ⇧Enter új sor), a küldés GW-9 és GW-10 szerint. |
 | GW-19 | (v0.70) **Ha a notchból nem megy:** ha a beszélgetés nem nyitható meg a háttérben, a szöveg nem olvasható ki, vagy a válaszmező nem írható (pl. Zen, nem fut a webapp, GW-12), a kártyán a válaszmező helyett **„Open in Google Chat”** gomb: előtérbe hozza a Chat webappot, és megnyitja benne az adott beszélgetést (név alapján az oldalsávban; ha nem egyértelmű, csak a webappot). Hogy miért nem megy, a `notifications.log`-ba kerül (tartalom nélkül). |
+| GW-20 | (v0.73) **Saját és másik fél üzenete:** a webappból betöltött üzenetek közül a sajátod (a webapp „Ön”/„You” küldőfejléce alatt) **kék**, a másik félé változatlan. |
+| GW-20b | (v0.73, hiba) **Gyorsabb betöltés:** a kártya megnyitásakor a Dynotch a legutóbbi háttérolvasást veszi összehasonlítási alapnak (nem olvassa újra az egész oldalt), és a beszélgetés megnyitásakor az oldal bejárása a linknél megáll. |
 | GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben (vagy máshol, pl. telefonon) elolvasol, a Google Chat-értesítései eltűnnek a notchból: ha a beszélgetést az értesítés óta olvasatlannak látta, vagy az értesítés 90 mp-nél régebbi. Ismeretlen vagy több beszélgetésre illő név esetén az értesítés marad. |
 | GW-8 | **Változás a notchból a Chatbe:** ha a notchban a válaszmezőbe kattintasz vagy válaszolsz (UM-3b), a Dynotch a webappban a háttérben megnyitja a beszélgetést (kattintás a kisegítő felületen, az ablak előtérbe hozása nélkül, ha a böngésző engedi), így a Chatben is olvasott lesz. Ha a háttérben nem megy, a beszélgetés olvasatlan marad, amíg meg nem nyitod. |
 | GW-9 | **Válasz:** a Dynotch a háttérben megnyitja a beszélgetést, és **csak akkor** ír, ha a webapp címe a cél beszélgetés azonosítóját mutatja, és az üzenetmező üres. A szöveget közvetlenül a mezőbe írja, és az engedélyezett „Send message” gombot nyomja meg, vágólap és billentyűleütés nélkül. Ha a beszélgetés név alapján nem azonosítható egyértelműen, vagy a mező nem írható, semmi nem megy el, és a meglévő begépelés jön (E-11b, E-11d). |
@@ -927,6 +939,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.73.0** | Apple stílus kapcsolóval (D-15…D-15i); Google Chat: saját üzenet kék (GW-20), gyorsabb betöltés (GW-20b) |
 | **v0.71.0** | Felvétel-sáv a notch alatt (idő, Stop; SH-5b); Google Chat: minden kártya megnyitja a beszélgetést, üzenetek betöltése és visszajelölés javítva (GW-17b); smart opening: kimásolt kód → Vágólap, kész letöltés → Tray, reggeli első nyitás → Naptár (SO-5…SO-8) |
 | **v0.70.0** | Google Chat-kártya: üzenetek a webappból, válasz vagy „Open in Google Chat”, válasz nélkül vissza olvasatlanba; háromszínű menüsor-átmenet, nyíló színválasztók; switcher: rövid swipe csak vált, késleltetés, előző app; területfelvétel; értesítés-fülek swipe csak a füleken; külön memória- és swap-figyelmeztetés |
 | **v0.69.2** | Összeomlás javítása a Google Chat-webapp olvasásakor (túl mély rekurzió) |

@@ -71,7 +71,7 @@ struct SwitcherView: View {
                         }
                     }
                     .padding(SwitcherLayout.padding)
-                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: switcher.selection)
+                    .animation(AppleStyle.spring(response: 0.25, dampingFraction: 0.8), value: switcher.selection)
                 }
                 .scrollIndicators(.never)
                 .onChange(of: switcher.selection) { _, _ in
@@ -82,7 +82,7 @@ struct SwitcherView: View {
     }
 
     @ViewBuilder private func entry(_ item: SwitcherItem, isSelected: Bool) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 12 * scale, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: AppleStyle.corner(12) * scale, style: .continuous)
         Group {
             switch settings.style {
             case .icons: iconEntry(item, isSelected: isSelected)
@@ -92,7 +92,7 @@ struct SwitcherView: View {
         }
         .background {
             if isSelected {
-                shape.fill(Color.white.opacity(0.18))
+                shape.fill(Color.white.level(0.18))
                     .overlay(shape.strokeBorder(Theme.blue, lineWidth: 2))
                     .matchedGeometryEffect(id: "selection", in: highlight)
             }
@@ -110,7 +110,7 @@ struct SwitcherView: View {
                 .frame(width: 60 * scale, height: 60 * scale)
                 .opacity(item.isMinimized ? 0.55 : 1)
             Text(isSelected ? item.label : item.appName)
-                .font(.system(size: 10, weight: .medium))
+                .font(.notch(size: 10, weight: .medium))
                 .foregroundStyle(.white)
                 .lineLimit(1)
         }
@@ -120,10 +120,10 @@ struct SwitcherView: View {
     private func thumbnailEntry(_ item: SwitcherItem) -> some View {
         VStack(spacing: 4) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.06))
+                RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.06))
                 if let preview = switcher.previews[item.windowID] {
                     Image(nsImage: preview).resizable().scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous))
                 } else {
                     // Without previews (off, or no permission): the app's icon (spec AS-7).
                     Image(nsImage: appIcon(item)).resizable().scaledToFit().frame(width: 52 * scale, height: 52 * scale)
@@ -132,7 +132,7 @@ struct SwitcherView: View {
             .frame(maxHeight: .infinity)
             HStack(spacing: 5) {
                 Image(nsImage: appIcon(item)).resizable().scaledToFit().frame(width: 14, height: 14)
-                Text(item.label).font(.system(size: 11, weight: .medium)).foregroundStyle(.white).lineLimit(1)
+                Text(item.label).font(.notch(size: 11, weight: .medium)).foregroundStyle(.white).lineLimit(1)
             }
         }
         .padding(6)
@@ -142,12 +142,12 @@ struct SwitcherView: View {
         HStack(spacing: 8) {
             Image(nsImage: appIcon(item)).resizable().scaledToFit().frame(width: 18 * scale, height: 18 * scale)
             Text(item.label)
-                .font(.system(size: 12 * scale, weight: .medium))
+                .font(.notch(size: 12 * scale, weight: .medium))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Spacer(minLength: 6)
             if item.label != item.appName {
-                Text(item.appName).font(.system(size: 10)).foregroundStyle(Color.white.opacity(0.45)).lineLimit(1)
+                Text(item.appName).font(.notch(size: 10)).foregroundStyle(Color.white.level(0.45)).lineLimit(1)
             }
         }
         .padding(.horizontal, 10)

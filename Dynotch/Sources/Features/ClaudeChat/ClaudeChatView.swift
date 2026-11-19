@@ -55,7 +55,7 @@ struct ClaudeChatView: View {
                     .frame(width: sidebarWidth)
                     .transition(.move(edge: .leading).combined(with: .opacity))
                 Rectangle()
-                    .fill(Color.white.opacity(0.1))
+                    .fill(Color.white.level(0.1))
                     .frame(width: 1)
             }
             conversation
@@ -79,12 +79,12 @@ struct ClaudeChatView: View {
             withAnimation(Motion.quick) { service.showsSidebar.toggle() }
         } label: {
             SidebarGlyph()
-                .foregroundStyle(Color.white.opacity(service.showsSidebar ? 0.9 : 0.65))
+                .foregroundStyle(Color.white.level(service.showsSidebar ? 0.9 : 0.65))
                 .frame(width: 28, height: 26)
-                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.1)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.1)))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(service.showsSidebar ? "Hide the chats" : "Show the chats")
     }
 
@@ -98,10 +98,10 @@ struct ClaudeChatView: View {
             }
             TextField("Search", text: $search)
                 .textFieldStyle(.plain)
-                .font(.system(size: 11))
+                .font(.notch(size: 11))
                 .padding(.horizontal, 8)
                 .frame(height: 22)
-                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.08)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).fill(Color.white.level(0.08)))
             ScrollView(.vertical) {
                 VStack(spacing: 2) {
                     ForEach(service.listedChats(matching: search).filter { $0.service == service.shownProvider }) { chat in
@@ -129,19 +129,19 @@ struct ClaudeChatView: View {
             service.newChat()
         } label: {
             Label("New chat", systemImage: "square.and.pencil")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 8)
                 .frame(height: 26)
                 .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(Color.white.opacity(service.selectedID == nil ? 0.2 : 0.1))
+                    RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous)
+                        .fill(Color.white.level(service.selectedID == nil ? 0.2 : 0.1))
                 )
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 
     // MARK: - Conversation
@@ -176,8 +176,8 @@ struct ClaudeChatView: View {
                 VStack(spacing: 8) {
                     AIGlyph(provider: service.provider, size: 26)
                     Text("Ask \(service.provider.title) anything")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.6))
+                        .font(.notch(size: 13, weight: .medium))
+                        .foregroundStyle(Color.white.level(0.6))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -192,11 +192,11 @@ struct ClaudeChatView: View {
             if !service.showsSidebar { sidebarToggle }
             TextField(service.selected == nil ? "New chat — Enter sends" : "Reply — Enter sends", text: $service.draft)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .font(.notch(size: 13))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 10)
                 .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
                 .focused($isTyping)
                 .onSubmit { service.send() }
             // Speaking instead of typing (spec AI-14).
@@ -205,12 +205,12 @@ struct ClaudeChatView: View {
                 DispatchQueue.main.async { ClaudeChatService.startDictation() }
             } label: {
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.75))
+                    .font(.notch(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.75))
                     .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.1)))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .help("Dictate")
             .accessibilityLabel("Dictate")
             Button {
@@ -221,12 +221,12 @@ struct ClaudeChatView: View {
                 }
             } label: {
                 Image(systemName: service.isWorking ? "stop.fill" : "arrow.up")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.notch(size: 12, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(ClaudeUsageView.blue))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(ClaudeUsageView.blue))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .disabled(!service.isWorking && service.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .help(service.isWorking ? "Stop" : "Send")
         }
@@ -246,8 +246,8 @@ private struct ChatRow: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(title)
-                .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.75))
+                .font(.notch(size: 12, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? Color.white : Color.white.level(0.75))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if isWorking {
@@ -255,19 +255,19 @@ private struct ChatRow: View {
             } else if isHovered, let delete {
                 Button(action: delete) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.6))
+                        .font(.notch(size: 8, weight: .bold))
+                        .foregroundStyle(Color.white.level(0.6))
                         .frame(width: 16, height: 16)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.notch)
                 .help("Delete this chat")
                 .accessibilityLabel("Delete this chat")
             }
         }
         .padding(.horizontal, 8)
         .frame(height: 24)
-        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(isSelected ? 0.16 : 0)))
+        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).fill(Color.white.level(isSelected ? 0.16 : 0)))
         .contentShape(Rectangle())
         .onTapGesture(perform: select)
         .onHover { isHovered = $0 }
@@ -284,12 +284,12 @@ private struct ChatBubble: View {
         switch message.role {
         case .user:
             Text(message.text)
-                .font(.system(size: 13))
+                .font(.notch(size: 13))
                 .foregroundStyle(.white)
                 .textSelection(.enabled)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.14)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous).fill(Color.white.level(0.14)))
                 .frame(maxWidth: .infinity, alignment: .trailing)
         case .assistant:
             HStack(alignment: .top, spacing: 8) {

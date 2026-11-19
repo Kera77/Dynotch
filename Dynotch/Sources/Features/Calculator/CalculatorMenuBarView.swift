@@ -61,7 +61,7 @@ private struct PopoverChrome: ViewModifier {
             .background(
                 DesignBackground(design: design, shape: PopoverShape(arrowX: arrowX), solid: Color(red: 0.145, green: 0.145, blue: 0.15))
             )
-            .overlay(PopoverShape(arrowX: arrowX).stroke(Color.white.opacity(0.14), lineWidth: 1))
+            .overlay(PopoverShape(arrowX: arrowX).stroke(Color.white.level(0.14), lineWidth: 1))
             .padding(1)
             .environment(\.colorScheme, .dark)
     }
@@ -97,30 +97,30 @@ struct CalculatorMenuBarView: View {
     private var statusBar: some View {
         HStack(spacing: 12) {
             Text(statusText)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .font(.notch(size: 11, weight: .medium))
+                .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
             Text(resultCount == 1 ? "1 calculation" : "\(resultCount) calculations")
-                .font(.system(size: 11, weight: .medium))
+                .font(.notch(size: 11, weight: .medium))
                 .monospacedDigit()
-                .foregroundStyle(Color.white.opacity(0.6))
+                .foregroundStyle(Color.white.level(0.6))
             Rectangle()
-                .fill(Color.white.opacity(0.15))
+                .fill(Color.white.level(0.15))
                 .frame(width: 1, height: 16)
             PinButton(isPinned: state.isPinned) { state.isPinned.toggle() }
                 .frame(width: 30, height: 28)
-                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.14)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Color.white.level(0.14)))
             Button(action: copyAll) {
                 Text("Copy All")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.notch(size: 12, weight: .bold))
                     .foregroundStyle(Color.black.opacity(0.85))
                     .padding(.horizontal, 14)
                     .frame(height: 28)
-                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Self.accent))
+                    .background(RoundedRectangle(cornerRadius: AppleStyle.corner(7), style: .continuous).fill(Self.accent))
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.notch)
             .opacity(resultCount == 0 ? 0.4 : 1)
             .disabled(resultCount == 0)
             .help("Copies every calculation with its result")

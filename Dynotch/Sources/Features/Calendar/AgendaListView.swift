@@ -31,24 +31,24 @@ struct AgendaListView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(CalendarStyle.dayTitle(day.date, now: now))
-                    .font(.system(size: isFirst ? 16 : 14, weight: .bold))
+                    .font(.notch(size: isFirst ? 16 : 14, weight: .bold))
                     .foregroundStyle(.white)
                 Text(dateText(day.date, withWeek: isFirst))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.5))
+                    .font(.notch(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.level(0.5))
                 Spacer()
                 if !day.events.isEmpty {
                     Text(day.events.count == 1 ? "1 event" : "\(day.events.count) events")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .font(.notch(size: 11))
+                        .foregroundStyle(Color.white.level(0.5))
                         // Keep clear of the collapse button in the top-right corner.
                         .padding(.trailing, isFirst ? 32 : 0)
                 }
             }
             if day.events.isEmpty {
                 Text("No events")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.75))
+                    .font(.notch(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.75))
             } else {
                 ForEach(day.events) { event in
                     AgendaEventRow(event: event, now: now) { join(event) }
@@ -74,25 +74,25 @@ private struct AgendaEventRow: View {
             VStack(alignment: .trailing, spacing: 0) {
                 if event.isAllDay {
                     Text("all day")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.notch(size: 10, weight: .medium))
                 } else {
                     Text(event.start.formatted(date: .omitted, time: .shortened))
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.notch(size: 11, weight: .semibold))
                     Text(CalendarAgenda.durationText(event.end.timeIntervalSince(event.start)))
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .font(.notch(size: 10))
+                        .foregroundStyle(Color.white.level(0.5))
                 }
             }
             .monospacedDigit()
-            .foregroundStyle(Color.white.opacity(0.85))
+            .foregroundStyle(Color.white.level(0.85))
             .frame(width: 56, alignment: .trailing)
 
             HStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 1.5)
+                RoundedRectangle(cornerRadius: AppleStyle.corner(1.5))
                     .fill(event.color.color)
                     .frame(width: 3, height: 20)
                 Text(event.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer(minLength: 8)
@@ -102,7 +102,7 @@ private struct AgendaEventRow: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.06)))
+            .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.06)))
         }
         .opacity(event.hasEnded(at: now) ? 0.45 : 1)
     }

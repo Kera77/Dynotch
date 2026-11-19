@@ -11,13 +11,13 @@ struct TabletMenu: View {
             menuContent
         } label: {
             Image(systemName: "ipad.landscape")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.notch(size: 12, weight: .semibold))
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .foregroundStyle(service.connected != nil ? ClaudeUsageView.blue : Color.white.opacity(0.45))
+                .foregroundStyle(service.connected != nil ? ClaudeUsageView.blue : Color.white.level(0.45))
                 .contentShape(Rectangle())
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("iPad as a display")

@@ -12,7 +12,7 @@ struct InfoFeatureView: View {
             row("Notch", geometry.hasPhysicalNotch ? "physical" : "virtual")
             row("Notch size", "\(Int(geometry.notchSize.width)) × \(Int(geometry.notchSize.height)) pt")
         }
-        .font(.system(size: 13))
+        .font(.notch(size: 13))
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

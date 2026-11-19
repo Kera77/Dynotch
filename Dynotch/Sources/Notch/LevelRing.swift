@@ -20,13 +20,13 @@ struct LevelRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.22), lineWidth: Self.lineWidth)
+                .stroke(Color.white.level(0.22), lineWidth: Self.lineWidth)
             Circle()
                 .trim(from: 0, to: min(max(fraction, 0), 1))
                 .stroke(color, style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text(label)
-                .font(.system(size: label.count > 2 ? 8 : 9.5, weight: .bold, design: .rounded))
+                .font(.notch(size: label.count > 2 ? 8 : 9.5, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .minimumScaleFactor(0.6)

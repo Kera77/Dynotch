@@ -2,11 +2,11 @@ import SwiftUI
 
 /// Shared colors and texts of the calendar views.
 enum CalendarStyle {
-    static let accent = Theme.blue
+    static var accent: Color { Theme.blue }
     static let weekend = Color(red: 0.86, green: 0.42, blue: 0.4)
     /// Date and time under a meeting's name (spec K-5).
     static let eventTime = Color(red: 0.3, green: 0.62, blue: 1)
-    static let joinGreen = Color(red: 0.19, green: 0.74, blue: 0.33)
+    static var joinGreen: Color { Color(red: 0.19, green: 0.74, blue: 0.33).apple(.green) }
 
     /// "Today", "Tomorrow", otherwise the weekday name.
     static func dayTitle(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
@@ -43,9 +43,9 @@ struct JoinButton: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: "video")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.notch(size: 10, weight: .semibold))
                 Text("Join")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.notch(size: 11, weight: .semibold))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
@@ -53,14 +53,14 @@ struct JoinButton: View {
             .background(background)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
     }
 
     private var foreground: Color {
         switch style {
         case .filled: Color.black.opacity(0.85)
         case .subtle: CalendarStyle.accent
-        case .muted: Color.white.opacity(0.9)
+        case .muted: Color.white.level(0.9)
         }
     }
 
@@ -69,9 +69,9 @@ struct JoinButton: View {
         case .filled:
             Capsule(style: .continuous).fill(CalendarStyle.joinGreen)
         case .muted:
-            Capsule(style: .continuous).fill(Color.white.opacity(0.16))
+            Capsule(style: .continuous).fill(Color.white.level(0.16))
         case .subtle:
-            RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.08))
+            RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).fill(Color.white.level(0.08))
         }
     }
 }
@@ -85,13 +85,13 @@ struct CalendarIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.8))
+                .font(.notch(size: 10, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.8))
                 .frame(width: 24, height: 20)
-                .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color.white.opacity(0.1)))
+                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(6), style: .continuous).fill(Color.white.level(0.1)))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.notch)
         .help(help)
     }
 }
