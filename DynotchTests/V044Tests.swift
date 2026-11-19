@@ -47,7 +47,11 @@ struct V044Tests {
         func dock(_ width: Int, _ height: Int, layer: Int = 20) -> ListedWindow {
             ListedWindow(owner: "Dock", layer: layer, frame: CGRect(x: 0, y: 0, width: width, height: height))
         }
-        #expect(MissionControlWatcher.isMissionControl([dock(2560, 1440)], screens: [screen]))
+        let spacesBar = ListedWindow(owner: "WindowManager", layer: 14, frame: CGRect(x: 0, y: 0, width: 2560, height: 134))
+        #expect(MissionControlWatcher.isMissionControl([dock(2560, 1440), spacesBar], screens: [screen]))
+        // The Dock sliding in under the pointer puts up the same window, without WindowManager's (N-19c).
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 1440)], screens: [screen]))
+        #expect(!MissionControlWatcher.isMissionControl([spacesBar], screens: [screen]))
         // The Dock bar itself, or another layer, is not Mission Control.
         #expect(!MissionControlWatcher.isMissionControl([dock(2560, 80)], screens: [screen]))
         #expect(!MissionControlWatcher.isMissionControl([dock(2560, 1440, layer: 0)], screens: [screen]))

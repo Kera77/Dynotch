@@ -26,6 +26,7 @@ struct NotchIndicatorView: View {
     var openTasks: () -> Void = {}
     /// Closes the notice under the notch (spec CN-5b).
     var dismissNotice: () -> Void = {}
+    var openNotice: () -> Void = {}
     /// Opens the System module from its warning (spec SY-10).
     var openStats: () -> Void = {}
     /// A device's battery history, drawn small in its hover label (spec BT-6).

@@ -59,6 +59,10 @@ struct NotchView: View {
     var openFully: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
+    /// The notice under the closed notch clicked (spec CN-6).
+    var openNotice: () -> Void = {}
+    /// A meeting joined from its row under the closed notch (spec K-8k).
+    var joinedMeeting: (CalendarEvent) -> Void = { _ in }
     /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
     var keepInTray: ([URL]) -> Void = { _ in }
     var sendWithAirDrop: ([URL]) -> Void = { _ in }
@@ -98,7 +102,8 @@ struct NotchView: View {
 
     /// The closed notch with countdowns is asymmetric: keep the physical notch in place.
     var collapsedOffset: CGFloat {
-        guard !model.isExpanded, notifications.peek == nil, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
+        // A notification keeps the row where it is and drops down under it (spec E-24b).
+        guard !model.isExpanded, devices.current == nil, hud.display == nil, calls.call == nil, !isGathered,
               !showsScreenshotPeek
         else { return 0 }
         return indicatorLayout.horizontalOffset

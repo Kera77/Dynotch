@@ -141,8 +141,13 @@ final class NotchController {
     /// Area that opens the panel: the notch, or the whole peek while a notification shows.
     var hoverZone: CGRect {
         let geometry = model.geometry
-        return reachingDown(notifications.peek == nil
-            ? geometry.hoverZone : geometry.keepOpenZone(for: notifications.peekSize(in: geometry)))
+        guard notifications.peek != nil else { return reachingDown(geometry.hoverZone) }
+        // The notification hangs under the row, as wide as it and moved with it (spec E-24b).
+        let layout = collapsedRow().layout
+        let peek = notifications.peekSize(in: geometry)
+        let row = layout.isEmpty ? 0 : layout.size(notch: geometry.notchSize, labelHeight: nil).width
+        let zone = geometry.keepOpenZone(for: CGSize(width: max(peek.width, row), height: peek.height))
+        return reachingDown(zone.offsetBy(dx: layout.horizontalOffset, dy: 0))
     }
 
     var keepOpenZone: CGRect {

@@ -114,6 +114,8 @@ struct NotificationSettingsView: View {
 
             GoogleChatWebSettingsSection(chatWeb: service.chatWeb)
 
+            DynotchAlertsSection(preferences: service.preferences)
+
             Section {
                 PeekSettingsRows(preferences: service.preferences)
                 FocusToggle(preferences: service.preferences)

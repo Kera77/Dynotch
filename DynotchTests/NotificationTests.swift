@@ -261,3 +261,19 @@ struct NotificationTests {
         #expect(service.peek == nil)
     }
 }
+
+@MainActor
+struct DynotchAlertTests {
+    @Test func aKindTurnedOffIsNeitherShownNorListed() throws {
+        let defaults = try #require(UserDefaults(suiteName: "DynotchAlertTests-\(UUID().uuidString)"))
+        let preferences = NotificationPreferences(defaults: defaults)
+        #expect(preferences.isOn(.system))
+        preferences.set(.system, isOn: false)
+        #expect(!preferences.isOn(.system))
+        #expect(preferences.isOn(.aiUsage))
+        // Kept across launches.
+        #expect(!NotificationPreferences(defaults: defaults).isOn(.system))
+        preferences.set(.system, isOn: true)
+        #expect(NotificationPreferences(defaults: defaults).isOn(.system))
+    }
+}

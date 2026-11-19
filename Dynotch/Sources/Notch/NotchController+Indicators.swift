@@ -6,17 +6,29 @@ import SwiftUI
 extension NotchController {
     /// Which countdown beside the closed notch is under the pointer (spec K-8d). The panel
     /// ignores the mouse while closed, so this is computed from the pointer position.
-    func updateHoveredIndicator() {
-        // A menu opened from a drop-down keeps it (spec N-22).
-        guard !OpenMenus.isOpen else { return }
+    /// The closed notch's row as it is laid out now: indicators and the badges that fit.
+    struct CollapsedRow {
+        let layout: IndicatorLayout
+        let fit: BadgeFit
+        let items: [IndicatorItem]
+    }
+
+    func collapsedRow() -> CollapsedRow {
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
+        return CollapsedRow(layout: IndicatorLayout(items: items, badges: fit.shown, overflow: fit.hidden > 0), fit: fit, items: items)
+    }
+
+    func updateHoveredIndicator() {
+        // A menu opened from a drop-down keeps it (spec N-22).
+        guard !OpenMenus.isOpen else { return }
+        let row = collapsedRow()
+        let (layout, fit, items) = (row.layout, row.fit, row.items)
         let shownBadges = fit.shown
-        let layout = IndicatorLayout(items: items, badges: shownBadges, overflow: fit.hidden > 0)
         let point = NSEvent.mouseLocation
         if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
@@ -241,6 +253,20 @@ extension NotchController {
             }
         }
         return true
+    }
+}
+
+// MARK: - Join from the row (spec K-8k)
+
+extension NotchController {
+    /// Join opens the meeting and folds its row away, as a swipe up would; the countdown stays.
+    func joinFromRow(_ event: CalendarEvent) {
+        calendar.join(event)
+        suppressIndicatorHover = true
+        withAnimation(NotchView.quickAnimation) {
+            calendar.dismissAnnouncement()
+            setHoveredIndicator(nil)
+        }
     }
 }
 

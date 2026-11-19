@@ -28,6 +28,10 @@ extension NotchIndicatorView {
                 Image(systemName: symbol)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.blue)
+            } else if let iconApp = notice.iconApp, let icon = BadgeIconCache.appIcon(bundleID: iconApp) {
+                Image(nsImage: icon)
+                    .resizable()
+                    .frame(width: 16, height: 16)
             } else {
                 BrandGlyphView(glyph: .claude, size: 14)
             }
@@ -56,6 +60,9 @@ extension NotchIndicatorView {
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
         .frame(maxWidth: .infinity, alignment: .leading)
+        // A click brings forward the app the work ran in (spec CN-6).
+        .contentShape(Rectangle())
+        .onTapGesture(perform: openNotice)
     }
 
     /// A low device: its name, level, history and estimate (spec BT-3, BT-6).

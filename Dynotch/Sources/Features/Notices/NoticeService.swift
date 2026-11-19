@@ -14,6 +14,8 @@ struct StickyNotice: Equatable, Sendable {
     var appIdentifier: String?
     /// An SF Symbol instead of Claude's mark, e.g. for Dynotch's own update (spec U-5).
     var symbol: String?
+    /// An app's icon instead of Claude's mark, e.g. ChatGPT's (spec CN-8).
+    var iconApp: String?
 }
 
 @MainActor
@@ -42,6 +44,11 @@ final class NoticeService: ObservableObject {
         case nil:
             break
         }
+        if let notice = CodexHook.notice(from: url, now: Date()) {
+            DiagnosticsLog.append("claude-hook", "codex finished app=\(notice.appIdentifier ?? "-")")
+            show(notice)
+            return
+        }
         guard let notice = ClaudeHook.notice(from: url, now: Date()) else { return }
         guard let transcript = ClaudeHook.transcriptPath(from: url) else {
             show(notice)
@@ -54,7 +61,7 @@ final class NoticeService: ObservableObject {
             if pending.isEmpty {
                 // The session may have worked in another folder than the one it was started in.
                 let project = summary.project ?? notice.detail
-                self?.show(StickyNotice(title: notice.title, detail: project, date: notice.date))
+                self?.show(StickyNotice(title: notice.title, detail: project, date: notice.date, appIdentifier: notice.appIdentifier))
             } else {
                 DiagnosticsLog.append("claude-hook", "stopped with \(pending.count) background task(s) running: no notice")
             }
@@ -70,7 +77,8 @@ enum ClaudeHook {
     /// Dynotch's own chat runs are skipped; the hook's input (which names the transcript) is kept
     /// in a temporary file whose name travels in the link.
     static let command = #"[ -n "$DYNOTCH_CHAT" ] && exit 0; f=$(mktemp "${TMPDIR:-/tmp}/dynotch-stop.XXXXXX") && cat > "$f"; "#
-        + #"open -g "dynotch://claude-finished?project=$(basename "$PWD" | sed 's/ /%20/g')&info=$(basename "$f")""#
+        + #"open -g "dynotch://claude-finished?project=$(basename "$PWD" | sed 's/ /%20/g')&info=$(basename "$f")"#
+        + #"&app=${__CFBundleIdentifier:-}""#
 
     /// The transcript of the session that stopped, from the hook's input file (which is removed).
     static func transcriptPath(from url: URL) -> String? {
@@ -107,7 +115,9 @@ enum ClaudeHook {
         let project = items.first { $0.name == "project" }?.value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         // Dynotch's own chat runs through Claude Code too; it reports its answers itself.
         guard project != ClaudeCLI.folderName else { return nil }
-        return StickyNotice(title: "Claude finished", detail: String(project.prefix(60)), date: now)
+        // The app Claude Code ran in, brought forward by a click (spec CN-6).
+        let app = items.first { $0.name == "app" }?.value.flatMap { $0.isEmpty ? nil : $0 }
+        return StickyNotice(title: "Claude finished", detail: String(project.prefix(60)), date: now, appIdentifier: app)
     }
 
     // MARK: - Claude Code settings

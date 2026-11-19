@@ -46,6 +46,17 @@ final class NotificationPreferences: ObservableObject {
     /// Notifications put off until later (spec E-19); kept while Dynotch runs.
     @Published var snoozed: [SnoozedNotification] = []
 
+    /// Kinds of Dynotch's own notifications turned off (spec E-25).
+    @Published private(set) var alertsOff: Set<String> {
+        didSet { defaults.set(Array(alertsOff).sorted(), forKey: "dynotchAlertsOff") }
+    }
+
+    func isOn(_ alert: DynotchAlert) -> Bool { !alertsOff.contains(alert.rawValue) }
+
+    func set(_ alert: DynotchAlert, isOn: Bool) {
+        if isOn { alertsOff.remove(alert.rawValue) } else { alertsOff.insert(alert.rawValue) }
+    }
+
     /// During a Focus only the allowed sources pop up (spec E-20).
     @Published var respectsFocus: Bool {
         didSet { defaults.set(respectsFocus, forKey: "notificationsRespectFocus") }
@@ -67,6 +78,7 @@ final class NotificationPreferences: ObservableObject {
     init(defaults: UserDefaults) {
         self.defaults = defaults
         respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
+        alertsOff = Set(defaults.stringArray(forKey: "dynotchAlertsOff") ?? [])
         peekLines = defaults.object(forKey: "notificationPeekLines") as? Int ?? 4
         ignoredFocus = defaults.string(forKey: "notificationsIgnoredFocus") ?? "Dynotch"
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]

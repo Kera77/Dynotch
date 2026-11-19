@@ -71,10 +71,19 @@ final class GoogleChatWebService: ObservableObject {
 
     /// The Google Chat web app, if it runs.
     nonisolated static func webAppPID() -> pid_t? {
+        webApp()?.processIdentifier
+    }
+
+    /// The web app's identifier as Notification Center records it (lower case).
+    nonisolated static func webAppIdentifier() -> String? {
+        webApp()?.bundleIdentifier?.lowercased()
+    }
+
+    nonisolated private static func webApp() -> NSRunningApplication? {
         NSWorkspace.shared.runningApplications.first { app in
             (app.bundleIdentifier ?? "").hasPrefix("com.apple.Safari.WebApp")
                 && (app.localizedName ?? "").localizedCaseInsensitiveContains("chat")
-        }?.processIdentifier
+        }
     }
 
     /// Reads the web app now (also on every Google Chat notification, spec GW-6).

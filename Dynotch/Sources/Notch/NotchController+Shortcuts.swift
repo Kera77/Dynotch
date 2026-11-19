@@ -115,6 +115,19 @@ extension NotchController {
         return true
     }
 
+    /// A click on a "finished" notice brings forward the app the work ran in, with the project's
+    /// window, and the notice goes; a question stays until it is answered (spec CN-6, CN-7).
+    func openNoticeApp() {
+        guard let notice = notices.notice else { return }
+        if notice.opensChat {
+            showAnswerIfReady()
+            return
+        }
+        if let app = notice.appIdentifier { NoticeApp.bringForward(app, project: notice.detail) }
+        guard !notice.isQuestion else { return }
+        withAnimation(NotchView.quickAnimation) { notices.dismiss() }
+    }
+
     /// Hovering the "Claude answered" line opens the chat.
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
         guard notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,

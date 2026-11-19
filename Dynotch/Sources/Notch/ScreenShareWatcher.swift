@@ -10,6 +10,9 @@ final class ScreenShareWatcher {
     private var isMeeting = false
     /// Sharing at all; and shared by a meeting app, not macOS's own screenshot or recording tool.
     private let changed: (_ sharing: Bool, _ meeting: Bool) -> Void
+    /// After every look at the windows, with whether a meeting app shares: windows Dynotch opened
+    /// since are hidden from the share too (spec N-21c).
+    var checked: ((_ meeting: Bool) -> Void)?
     private static let interval: TimeInterval = 2
 
     init(changed: @escaping (_ sharing: Bool, _ meeting: Bool) -> Void) {
@@ -23,6 +26,7 @@ final class ScreenShareWatcher {
     private func check(_ windows: [ListedWindow]) {
         let sharing = Self.isSharing(windows)
         let meeting = Self.isMeetingShare(windows)
+        defer { checked?(meeting) }
         guard sharing != isSharing || meeting != isMeeting else { return }
         isSharing = sharing
         isMeeting = meeting

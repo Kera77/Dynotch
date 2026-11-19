@@ -35,7 +35,7 @@ extension NotchView {
                     }
                 }
             },
-            join: { calendar.join($0) },
+            join: { joinedMeeting($0) },
             openTasks: { openModule(.reminders) },
             openStats: { openModule(.stats) },
             batterySamples: { battery.history.samples[$0] ?? [] },
@@ -48,6 +48,7 @@ extension NotchView {
         row.showsBadgeList = showsBadgeList
         row.stopRecording = { screenshots.stopRecording() }
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
+        row.openNotice = { openNotice() }
         row.music = music
         row.showsMusicPlayer = model.hoveredIndicator != nil
         row.stats = stats

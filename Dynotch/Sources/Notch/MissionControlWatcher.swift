@@ -106,11 +106,19 @@ final class MissionControlWatcher {
         changed(shown)
     }
 
-    /// A Dock window named "Dock" in the Dock's layer covering a whole display.
+    /// A Dock window named "Dock" in the Dock's layer covering a whole display, together with
+    /// Mission Control's own windows (the Spaces bar, the shield behind the windows), which
+    /// WindowManager puts up. The Dock puts up the same whole-display window when it slides in
+    /// under the pointer; that alone is not Mission Control (spec N-19c).
     nonisolated static func isMissionControl(_ windows: [ListedWindow], screens: [CGRect]) -> Bool {
-        windows.contains { window in
+        let dock = windows.contains { window in
             guard window.owner == "Dock", window.layer == 20 else { return false }
             return screens.contains { window.frame.width >= $0.width && window.frame.height >= $0.height * 0.9 }
+        }
+        guard dock else { return false }
+        return windows.contains { window in
+            guard window.owner == "WindowManager", (1..<20).contains(window.layer) else { return false }
+            return screens.contains { window.frame.width >= $0.width }
         }
     }
 

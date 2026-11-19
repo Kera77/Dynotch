@@ -55,7 +55,7 @@ final class NotificationService: ObservableObject {
     private let walWatcher = FolderWatcher()
     private var walWatchRenewed = Date.distantPast
     private static let openRetryInterval: TimeInterval = 5
-    private static let historyLimit = 50
+    static let historyLimit = 50
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -85,7 +85,9 @@ final class NotificationService: ObservableObject {
     }
 
     /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
-    func present(title: String, body: String, appIdentifier: String) {
+    func present(title: String, body: String, appIdentifier: String, kind: DynotchAlert? = nil) {
+        // A kind turned off neither pops up nor is listed (spec E-25).
+        if let kind, !preferences.isOn(kind) { return }
         internalID -= 1
         let notification = AppNotification(
             id: internalID, appIdentifier: appIdentifier, title: title, subtitle: "", body: body, date: Date()
@@ -95,10 +97,14 @@ final class NotificationService: ObservableObject {
         showPeek(notification)
     }
 
-    private static let unseenLimit = 12
+    static let unseenLimit = 12
 
     /// Negative ids never clash with the database's record ids.
     var internalID: Int64 = 0
+    /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
+    var chatUnreadCarded: Set<String> = []
+    /// The web app was read once since launch: unread conversations found later pop up.
+    var chatWebPrimed = false
 
     func clearPeek() {
         peekTask?.cancel()
@@ -253,6 +259,7 @@ final class NotificationService: ObservableObject {
         // A kept website notification posted again replaces the kept copy (spec E-13c).
         let replaced = { (old: AppNotification) in
             ids.contains(old.id) || (old.id < 0 && incoming.contains { $0.repeats(old) })
+                || self.isReplacedChatCard(old, by: incoming)
         }
         recent.removeAll(where: replaced)
         unseen.removeAll(where: replaced)

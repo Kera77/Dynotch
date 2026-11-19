@@ -31,6 +31,7 @@ final class NotchManager {
         // Mission Control: the notch would cover the Spaces along the top (spec N-19).
         let missionControl = MissionControlWatcher { [weak self] shown in
             self?.controllers.forEach { $0.setHiddenForMissionControl(shown) }
+            MenuBarTintService.shared.setHiddenForMissionControl(shown)
         }
         missionControl.start()
         self.missionControl = missionControl
@@ -38,8 +39,8 @@ final class NotchManager {
         // Screenshots and macOS recordings may show it; meeting apps never (spec N-21b).
         let sharing = ScreenShareWatcher { [weak self] _, meeting in
             self?.controllers.forEach { $0.setScreenShared(meeting) }
-            for window in NSApp.windows { window.sharingType = meeting ? .none : .readOnly }
         }
+        sharing.checked = { meeting in Self.hideFromSharing(meeting) }
         sharing.start()
         screenShare = sharing
         watchMenuBar()
@@ -50,6 +51,26 @@ final class NotchManager {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.rebuildIfNeeded() }
         }
+    }
+
+    /// Dynotch's windows are left out of a meeting share (spec N-21, N-21c). The window server
+    /// applies a new sharing type to a window already on screen only when the window is put on
+    /// screen again, so a changed window is ordered out and back in, back to front, keeping the
+    /// order. Windows opened later get it at the next look.
+    static func hideFromSharing(_ hidden: Bool) {
+        let type: NSWindow.SharingType = hidden ? .none : .readOnly
+        let changed = NSApp.windows.filter { $0.sharingType != type }
+        guard !changed.isEmpty else { return }
+        changed.forEach { $0.sharingType = type }
+        guard hidden else { return }
+        // Front to back, the app's windows on screen (panels too).
+        let numbers = (NSWindow.windowNumbers(options: []) ?? []).map(\.intValue)
+        let ordered = numbers.reversed().compactMap { number in changed.first { $0.windowNumber == number } }
+        for window in ordered where window.isVisible {
+            window.orderOut(nil)
+            window.orderFrontRegardless()
+        }
+        DiagnosticsLog.append("spaces", "hidden from the share: \(changed.count) window(s)")
     }
 
     /// A shortcut opens the feature on the display the pointer is on (spec SC-1).

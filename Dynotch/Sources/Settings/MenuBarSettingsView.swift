@@ -6,6 +6,8 @@ struct MenuBarSettingsView: View {
 
     var body: some View {
         Form {
+            MenuBarTintSection(tint: MenuBarTintService.shared)
+
             Section {
                 if spacers.spacers.isEmpty {
                     Text("No spaces yet.")

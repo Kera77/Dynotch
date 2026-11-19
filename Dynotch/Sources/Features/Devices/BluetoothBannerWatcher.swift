@@ -8,15 +8,15 @@ import IOBluetooth
 /// blue button. Needs Accessibility permission.
 @MainActor
 final class BluetoothBannerWatcher {
-    struct Caught {
+    struct Caught: Sendable {
         let deviceName: String
         /// The banner's own button ("Move to iPhone"), if it had one.
         let callToAction: String?
     }
 
     private static let waitTime: TimeInterval = 10
-    private static let maxDepth = 14
-    private static let maxElements = 600
+    nonisolated private static let maxDepth = 14
+    nonisolated private static let maxElements = 600
 
     var onCatch: ((Caught) -> Void)?
     /// Whether banners may be closed now (Devices and banner hiding on).
@@ -27,6 +27,11 @@ final class BluetoothBannerWatcher {
     private var observer: AXObserver?
     private var observedPID: pid_t = 0
     private var pollTask: Task<Void, Never>?
+    /// A search runs off the main thread; one at a time, another one follows if asked meanwhile.
+    private var isSweeping = false
+    private var sweepAgain = false
+    /// One search gives up after this long, however many processes are left (spec DV-9b).
+    nonisolated private static let searchBudget: TimeInterval = 1.5
 
     /// Watches Notification Center's new windows from now on.
     func start() {
@@ -90,13 +95,13 @@ final class BluetoothBannerWatcher {
     }
 
     /// System processes that draw Bluetooth banners and notices on recent macOS versions.
-    private static let bannerProcesses = [
+    nonisolated private static let bannerProcesses = [
         NativeBannerDismisser.notificationCenterBundleID, "com.apple.controlcenter", "com.apple.AirPlayUIAgent",
         "com.apple.UserNotificationCenter", "com.apple.systemuiserver"
     ]
 
     /// The processes to search: the known ones, and whoever owns a banner-sized window on top.
-    private static func candidateProcesses() -> [pid_t] {
+    nonisolated private static func candidateProcesses() -> [pid_t] {
         var pids = bannerProcesses.compactMap {
             NSRunningApplication.runningApplications(withBundleIdentifier: $0).first?.processIdentifier
         }
@@ -111,40 +116,81 @@ final class BluetoothBannerWatcher {
     }
 
     /// Closes every banner that names a Bluetooth device and was awaited or offers a button.
+    /// The accessibility search runs off the main thread: a busy process answers late, and the
+    /// notch must not freeze meanwhile (spec DV-9b).
     private func sweep() {
         let now = Date()
         expected = expected.filter { $0.value > now }
         guard isEnabled(), !deviceNames.isEmpty else { return }
-        for pid in Self.candidateProcesses() where sweep(pid) { return }
+        guard !isSweeping else {
+            sweepAgain = true
+            return
+        }
+        isSweeping = true
+        let names = deviceNames
+        let awaited = Set(expected.keys)
+        Task { [weak self] in
+            let found = await Task.detached { Self.search(names: names, awaited: awaited) }.value
+            guard let self else { return }
+            self.isSweeping = false
+            if let found {
+                self.expected[found.caught.deviceName] = nil
+                // No banner text in the log, only that one was caught and by whom.
+                DiagnosticsLog.append("devices", "bluetooth banner closed in \(found.owner), button=\(found.caught.callToAction != nil)")
+                self.onCatch?(found.caught)
+            }
+            if self.sweepAgain {
+                self.sweepAgain = false
+                self.sweep()
+            }
+        }
     }
 
-    private func sweep(_ pid: pid_t) -> Bool {
+    struct Found: Sendable {
+        let caught: Caught
+        let owner: String
+    }
+
+    nonisolated private static func search(names: [String], awaited: Set<String>) -> Found? {
+        let deadline = Date().addingTimeInterval(searchBudget)
+        for pid in candidateProcesses() {
+            guard Date() < deadline else { return nil }
+            if let found = search(pid, names: names, awaited: awaited, deadline: deadline) { return found }
+        }
+        return nil
+    }
+
+    nonisolated private static func search(_ pid: pid_t, names: [String], awaited: Set<String>, deadline: Date) -> Found? {
         let root = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(root, 0.3)
         let roots = NativeBannerDismisser.children(of: root, attribute: kAXWindowsAttribute)
             + NativeBannerDismisser.children(of: root, attribute: kAXChildrenAttribute)
         var queue: [(element: AXUIElement, depth: Int)] = roots.map { ($0, 0) }
         var visited = 0
-        while !queue.isEmpty, visited < Self.maxElements {
+        while !queue.isEmpty, visited < maxElements, Date() < deadline {
             let (element, depth) = queue.removeFirst()
             visited += 1
             let actions = NativeBannerDismisser.actionNames(of: element)
             if let close = actions.first(where: BannerMatcher.isCloseAction) {
                 let closes = { AXUIElementPerformAction(element, close as CFString) == .success }
-                if catchBanner(element, actions: actions, pid: pid, close: closes) { return true }
+                if let caught = catchBanner(element, actions: actions, names: names, awaited: awaited, close: closes) {
+                    return Found(caught: caught, owner: NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? "?")
+                }
             } else if NativeBannerDismisser.string(of: element, kAXRoleAttribute) == kAXWindowRole as String,
-                      let button = Self.closeButton(of: element) {
+                      let button = closeButton(of: element) {
                 let presses = { AXUIElementPerformAction(button, kAXPressAction as CFString) == .success }
-                if catchBanner(element, actions: actions, pid: pid, close: presses) { return true }
+                if let caught = catchBanner(element, actions: actions, names: names, awaited: awaited, close: presses) {
+                    return Found(caught: caught, owner: NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? "?")
+                }
             }
-            if depth < Self.maxDepth {
+            if depth < maxDepth {
                 queue += NativeBannerDismisser.children(of: element, attribute: kAXChildrenAttribute).map { ($0, depth + 1) }
             }
         }
-        return false
+        return nil
     }
 
-    private static func closeButton(of window: AXUIElement) -> AXUIElement? {
+    nonisolated private static func closeButton(of window: AXUIElement) -> AXUIElement? {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(window, kAXCloseButtonAttribute as CFString, &value) == .success,
               let value, CFGetTypeID(value) == AXUIElementGetTypeID()
@@ -162,22 +208,19 @@ final class BluetoothBannerWatcher {
         )
     }
 
-    private func catchBanner(_ element: AXUIElement, actions: [String], pid: pid_t, close: () -> Bool) -> Bool {
+    nonisolated private static func catchBanner(
+        _ element: AXUIElement, actions: [String], names: [String], awaited: Set<String>, close: () -> Bool
+    ) -> Caught? {
         let text = NativeBannerDismisser.text(of: element)
-        guard let name = BluetoothBanner.deviceName(in: text, names: deviceNames) else { return false }
-        let buttons = actions.map(BannerMatcher.displayName(ofAction:)) + Self.buttonTitles(in: element)
+        guard let name = BluetoothBanner.deviceName(in: text, names: names) else { return nil }
+        let buttons = actions.map(BannerMatcher.displayName(ofAction:)) + buttonTitles(in: element)
         let callToAction = BluetoothBanner.callToAction(from: buttons)
-        guard expected[name] != nil || callToAction != nil, close() else { return false }
-        expected[name] = nil
-        // No banner text in the log, only that one was caught and by whom.
-        let owner = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? "?"
-        DiagnosticsLog.append("devices", "bluetooth banner closed in \(owner), button=\(callToAction != nil)")
-        onCatch?(Caught(deviceName: name, callToAction: callToAction))
-        return true
+        guard awaited.contains(name) || callToAction != nil, close() else { return nil }
+        return Caught(deviceName: name, callToAction: callToAction)
     }
 
     /// Titles of the banner's buttons (a few levels down).
-    private static func buttonTitles(in element: AXUIElement, depth: Int = 0) -> [String] {
+    nonisolated private static func buttonTitles(in element: AXUIElement, depth: Int = 0) -> [String] {
         var titles: [String] = []
         if NativeBannerDismisser.string(of: element, kAXRoleAttribute) == kAXButtonRole as String {
             titles += [kAXTitleAttribute, kAXDescriptionAttribute].compactMap { NativeBannerDismisser.string(of: element, $0) }

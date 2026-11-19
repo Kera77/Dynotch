@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         reminders: reminders,
         tasks: TaskIndicator(store: reminders),
         claudeUsage: ClaudeUsageService(settings: settings) { [notifications] title, body in
-            notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop")
+            notifications.present(title: title, body: body, appIdentifier: "com.anthropic.claudefordesktop", kind: .aiUsage)
         },
         hud: HUDService(settings: settings),
         badges: BadgeService(),
@@ -69,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
         services.badges.start()
         MenuBarSpacerService.shared.start()
+        MenuBarTintService.shared.start()
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
         ClaudeQuestionHook.upgradeIfNeeded()
@@ -167,8 +168,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let notifications = services.notifications
         let notices = services.notices
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            guard notifications.preferences.isOn(.updates) else { return }
             notifications.present(
-                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier
+                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier,
+                kind: .updates
             )
             notices.show(StickyNotice(
                 title: "Dynotch updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
@@ -229,12 +232,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Batteries, music, the stats and screenshots, with their own notifications.
     private func startDeviceAndMediaModules() {
         services.battery.onCharged = { [notifications] device in
-            notifications.present(title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier)
+            notifications.present(
+                title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier, kind: .batteries
+            )
         }
         services.battery.start()
         services.music.start()
         services.stats.notify = { [notifications] title, body in
-            notifications.present(title: title, body: body, appIdentifier: AppInfo.bundleIdentifier)
+            notifications.present(title: title, body: body, appIdentifier: AppInfo.bundleIdentifier, kind: .system)
         }
         services.stats.start()
         services.screenshots.start()

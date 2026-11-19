@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.69.0] - 2026-11-19
+
+### Added
+- Clicking the "Claude finished" line under the notch brings forward the app Claude Code ran in (Terminal, VS Code, the Claude app), with the project's window when its title names it; the line goes.
+- "ChatGPT finished": the same line when Codex finishes a turn in the ChatGPT app or the terminal (Settings › General › Tell me when Codex (ChatGPT) finishes; a Stop hook in ~/.codex/hooks.json).
+- Colored menu bar: Settings › Menu bar › Menu bar color – solid or gradient, presets, opacity, separate colors for Light and Dark.
+- Joining a meeting from its row under the notch folds the row away; the countdown stays.
+- Settings › Notifications › Dynotch alerts: turn off Dynotch's own pop-ups by kind (system/swap, AI usage, batteries charged, Dynotch updated).
+- Google Chat conversations the web app shows unread without any notification get a card in Notifications.
+
+### Fixed
+- The notch no longer disappears when the Dock slides in; only Mission Control hides it.
+- Dynotch no longer freezes when a Bluetooth device connects (the banner search runs off the main thread, with short timeouts).
+- During a meeting share the notch is left out of the shared picture at once, not only after the next interaction.
+- A notification popping up no longer pulls the left badges in or cuts the badge next to the notch.
+
 ## [0.68.0] - 2026-11-19
 
 ### Added

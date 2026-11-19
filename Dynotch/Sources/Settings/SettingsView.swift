@@ -99,6 +99,7 @@ private struct GeneralSettingsView: View {
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
     @State private var questionHook = ClaudeQuestionHook.isInstalled()
+    @State private var codexHook = CodexHook.isInstalled()
     @State private var claudeHookError: String?
 
     var body: some View {
@@ -169,6 +170,8 @@ private struct GeneralSettingsView: View {
                     .onChange(of: claudeHook) { _, enabled in
                         setClaudeHook(enabled)
                     }
+                Toggle("Tell me when Codex (ChatGPT) finishes", isOn: $codexHook)
+                    .onChange(of: codexHook) { _, enabled in setCodexHook(enabled) }
                 Toggle("Tell me when Claude Code asks a question", isOn: $questionHook)
                     .onChange(of: questionHook) { _, enabled in
                         setQuestionHook(enabled)
@@ -218,6 +221,17 @@ private struct GeneralSettingsView: View {
         } catch {
             claudeHookError = "Couldn't change ~/.claude/settings.json: \(error.localizedDescription)"
             claudeHook = ClaudeHook.isInstalled()
+        }
+    }
+
+    private func setCodexHook(_ enabled: Bool) {
+        guard enabled != CodexHook.isInstalled() else { return }
+        do {
+            try CodexHook.setInstalled(enabled)
+            claudeHookError = nil
+        } catch {
+            claudeHookError = "Couldn't change ~/.codex/hooks.json: \(error.localizedDescription)"
+            codexHook = CodexHook.isInstalled()
         }
     }
 
