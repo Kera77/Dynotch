@@ -224,6 +224,8 @@ final class NotchController {
         // Opened from a notification peek: that sender's new messages (spec E-4).
         let stack = notifications.peek.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
+        // A Google Chat card without a notification reads its messages from the web app (spec GW-5c).
+        notifications.cardOpened(stack)
         if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
         let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
         withAnimation(animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }

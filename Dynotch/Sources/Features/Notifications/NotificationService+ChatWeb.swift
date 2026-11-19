@@ -8,6 +8,7 @@ extension NotificationService {
 
     func startChatWeb() {
         chatWeb.onSnapshot = { [weak self] snapshot in
+            self?.fillOpenedCards(snapshot)
             self?.dropReadInChat(snapshot)
             self?.addUnreadFromChat(snapshot)
         }
@@ -70,7 +71,7 @@ extension NotificationService {
             internalID -= 1
             var card = AppNotification(
                 id: internalID, appIdentifier: identifier, title: conversation.name, subtitle: "",
-                body: "Unread in Google Chat", date: now, site: "chat.google.com"
+                body: Self.unreadText(conversation.unreadCount), date: now, site: "chat.google.com"
             )
             card.sourceIdentifier = Self.chatWebSource
             return card
@@ -81,6 +82,42 @@ extension NotificationService {
         guard primed else { return }
         unseen = Array((unseen + cards).suffix(Self.unseenLimit))
         if let newest = cards.last { showPeekAgain(newest) }
+    }
+
+    nonisolated static func unreadText(_ count: Int?) -> String {
+        guard let count, count > 1 else { return "1 unread message in Google Chat" }
+        return "\(count) unread messages in Google Chat"
+    }
+
+    /// Opening a card made without a notification opens its conversation in the web app in the
+    /// background (it is read there too, as with a reply, GW-8), so its messages can be shown
+    /// (spec GW-5c).
+    func cardOpened(_ stack: [AppNotification]) {
+        for card in stack where card.sourceIdentifier == Self.chatWebSource && chatWebTexts[card.id] == nil {
+            guard let conversation = chatWeb.conversation(forTitle: card.title), conversation.isUnread else { continue }
+            chatWebPending[conversation.id] = card.id
+            chatWeb.markRead(title: card.title)
+        }
+    }
+
+    /// The opened conversation's last messages go into its card: as many as were unread (1…8).
+    func fillOpenedCards(_ snapshot: ChatWebSnapshot) {
+        guard !chatWebPending.isEmpty, let openID = snapshot.openID, !snapshot.messages.isEmpty else { return }
+        for (conversationID, cardID) in chatWebPending where conversationID.split(separator: "/").last.map(String.init) == openID {
+            chatWebPending[conversationID] = nil
+            let count = min(max(snapshot.conversations.first { $0.id == conversationID }?.unreadCount ?? 0, 1), 8)
+            let card = recent.first { $0.id == cardID }
+            let wanted = max(count, Self.unreadCount(in: card?.body) ?? 1)
+            let texts = snapshot.messages.suffix(wanted).map(\.text).filter { !$0.isEmpty }
+            guard !texts.isEmpty else { continue }
+            chatWebTexts[cardID] = Array(texts)
+            DiagnosticsLog.append("notification-records", "Google Chat card filled from the web app: \(texts.count) message(s)")
+        }
+    }
+
+    /// The count in a card's "N unread messages…" text.
+    nonisolated static func unreadCount(in body: String?) -> Int? {
+        body.flatMap { Int($0.prefix { $0.isNumber }) }
     }
 
     /// A real Google Chat notification replaces the card made for its conversation (spec GW-5b).

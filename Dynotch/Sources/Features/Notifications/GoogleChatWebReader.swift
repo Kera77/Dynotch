@@ -7,6 +7,8 @@ struct ChatWebConversation: Equatable, Sendable {
     let id: String
     let name: String
     let isUnread: Bool
+    /// The unread count the sidebar shows ("1 értesítés"), if any (spec GW-5b).
+    var unreadCount: Int?
 
     /// The id without its kind: the part the page's address shows.
     var key: String { id.split(separator: "/").last.map(String.init) ?? id }
@@ -60,6 +62,26 @@ enum GoogleChatWebReader {
     /// Unread items are bold, and their label offers the last message's preview (⌥0).
     nonisolated static func isUnread(label: String, classes: [String]) -> Bool {
         classes.contains(unreadClass) || label.contains("Option + 0") || label.contains("Option+0")
+    }
+
+    /// Texts the sidebar puts beside a name: the unread marker.
+    private static let unreadMarkers: Set<String> = ["olvasatlan", "unread"]
+
+    /// The conversation's name and unread count from a sidebar item's texts. Unread items start
+    /// with "Olvasatlan"; direct messages start with the person's status ("Nincs a gépnél"), so
+    /// their name is the last text; a space's name is the first one, its kind and topic follow.
+    /// The count is the text starting with a number ("1 értesítés").
+    nonisolated static func nameAndCount(_ texts: [String], isDirect: Bool) -> (name: String, count: Int?) {
+        let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        let count = trimmed.lazy.compactMap { text -> Int? in
+            let digits = text.prefix { $0.isNumber }
+            guard !digits.isEmpty, text.dropFirst(digits.count).first == " " else { return nil }
+            return Int(digits)
+        }.first
+        let rest = trimmed.filter { text in
+            !unreadMarkers.contains(text.lowercased()) && !(text.first?.isNumber == true && text.contains(" "))
+        }
+        return ((isDirect ? rest.last : rest.first) ?? "", count)
     }
 
     /// The message box counts as empty with only spaces, new lines or zero-width characters.
@@ -161,14 +183,16 @@ enum GoogleChatWebReader {
             guard let link = AXRead.children(item).first else { return }
             let label = AXRead.string(link, kAXTitleAttribute) ?? ""
             let classes = AXRead.strings(item, "AXDOMClassList")
-            let name = AXRead.children(link).first { AXRead.string($0, kAXRoleAttribute) == (kAXStaticTextRole as String) }
-                .flatMap { AXRead.string($0, kAXValueAttribute) } ?? ""
+            let texts = AXRead.children(link).filter { AXRead.string($0, kAXRoleAttribute) == (kAXStaticTextRole as String) }
+                .compactMap { AXRead.string($0, kAXValueAttribute) }
+            let (name, count) = GoogleChatWebReader.nameAndCount(texts, isDirect: id.hasPrefix("dm/"))
             let unread = GoogleChatWebReader.isUnread(label: label, classes: classes)
+            let conversation = ChatWebConversation(id: id, name: name, isUnread: unread, unreadCount: unread ? count : nil)
             if let index = conversations.firstIndex(where: { $0.id == id }) {
-                if unread, !conversations[index].isUnread { conversations[index] = ChatWebConversation(id: id, name: name, isUnread: true) }
+                if unread, !conversations[index].isUnread { conversations[index] = conversation }
                 return
             }
-            conversations.append(ChatWebConversation(id: id, name: name, isUnread: unread))
+            conversations.append(conversation)
             links[id] = link
         }
     }

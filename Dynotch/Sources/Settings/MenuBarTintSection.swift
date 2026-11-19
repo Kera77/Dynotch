@@ -21,7 +21,7 @@ struct MenuBarTintSection: View {
                 colorRow(tint.style.sameInBoth ? "Colors" : "Light", pair: $tint.style.light)
                 if !tint.style.sameInBoth { colorRow("Dark", pair: $tint.style.dark) }
                 LabeledContent("Opacity") {
-                    Slider(value: $tint.style.opacity, in: 0...1)
+                    Slider(value: $tint.style.opacity, in: MenuBarTintStyle.opacityRange)
                         .frame(width: 180)
                     Text("\(Int((tint.style.opacity * 100).rounded()))%")
                         .monospacedDigit()
@@ -31,8 +31,8 @@ struct MenuBarTintSection: View {
         } header: {
             Text("Menu bar color")
         } footer: {
-            Text("A colored strip behind the menu bar on every display; hidden in full screen and Mission Control. "
-                + "macOS picks the menu bar's text color itself, so choose colors it stays readable on.")
+            Text("Tints the whole menu bar on every display, see-through so its titles and icons stay visible and "
+                + "clickable; the notch stays black. Hidden in full screen and Mission Control.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

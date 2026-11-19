@@ -25,8 +25,10 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
     var light = Pair(start: "#7F5AF0", end: "#2CB1BC")
     var dark = Pair(start: "#3A1C71", end: "#1B6CA8")
     var sameInBoth = true
-    /// 0…1.
-    var opacity: Double = 0.7
+    /// 0.1…0.8: the menu bar's titles and icons show through the tint (spec MB-9).
+    var opacity: Double = 0.5
+
+    static let opacityRange = 0.1...0.8
 
     func pair(dark isDark: Bool) -> Pair { isDark && !sameInBoth ? dark : light }
 
@@ -70,8 +72,9 @@ enum TintColor {
     }
 }
 
-/// Puts a coloured strip behind the menu bar on every display (spec MB-9, MB-10): below the
-/// menu bar's own window, above the desktop and the windows; clicks go through.
+/// Tints the menu bar on every display (spec MB-9, MB-10). With the menu bar's own background
+/// on (the default), nothing behind the menu bar shows, so the tint lies over it, see-through,
+/// so its titles and icons show and clicks go through; the notch's place stays black.
 @MainActor
 final class MenuBarTintService: ObservableObject {
     static let shared = MenuBarTintService()
@@ -115,35 +118,68 @@ final class MenuBarTintService: ObservableObject {
         windows.forEach { $0.alphaValue = hidden ? 0 : 1 }
     }
 
-    /// The menu bar's frame on a display, nil when it hides by itself.
-    nonisolated static func menuBarFrame(screen: CGRect, visible: CGRect) -> CGRect? {
-        let height = screen.maxY - visible.maxY
-        guard height > 10, height < 80 else { return nil }
+    /// The menu bar's frame on a display, nil when it hides by itself. `drawn` is the height of
+    /// the menu bar's own window, when the window server lists it (a point less than the room
+    /// left above the visible frame on displays with a notch).
+    nonisolated static func menuBarFrame(screen: CGRect, visible: CGRect, drawn: CGFloat? = nil) -> CGRect? {
+        let room = screen.maxY - visible.maxY
+        guard room > 10, room < 80 else { return nil }
+        let height = drawn.map { min($0, room) } ?? room
         return CGRect(x: screen.minX, y: screen.maxY - height, width: screen.width, height: height)
+    }
+
+    /// Heights of the menu bar windows by their left edge.
+    nonisolated private static func drawnMenuBars() -> [CGFloat: CGFloat] {
+        let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        var heights: [CGFloat: CGFloat] = [:]
+        for window in info where (window[kCGWindowName as String] as? String) == "Menubar" {
+            guard let bounds = window[kCGWindowBounds as String] as? NSDictionary,
+                  let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary)
+            else { continue }
+            heights[rect.minX] = rect.height
+        }
+        return heights
+    }
+
+    /// The notch's place, left to right in the strip's own coordinates (spec MB-9: it stays black).
+    nonisolated static func notchGap(screenWidth: CGFloat, left: CGRect?, right: CGRect?, screenMinX: CGFloat) -> ClosedRange<CGFloat>? {
+        guard let left, let right, right.minX > left.maxX else { return nil }
+        let start = left.maxX - screenMinX
+        let end = right.minX - screenMinX
+        guard start >= 0, end <= screenWidth else { return nil }
+        return start...end
     }
 
     private func update() {
         windows.forEach { $0.orderOut(nil) }
         windows = []
         guard style.kind != .off else { return }
+        let drawn = Self.drawnMenuBars()
         for screen in NSScreen.screens {
-            guard let frame = Self.menuBarFrame(screen: screen.frame, visible: screen.visibleFrame) else { continue }
-            windows.append(makeWindow(frame: frame))
+            guard let frame = Self.menuBarFrame(screen: screen.frame, visible: screen.visibleFrame, drawn: drawn[screen.frame.minX])
+            else { continue }
+            let gap = Self.notchGap(
+                screenWidth: frame.width, left: screen.auxiliaryTopLeftArea, right: screen.auxiliaryTopRightArea,
+                screenMinX: screen.frame.minX
+            )
+            windows.append(makeWindow(frame: frame, gap: gap))
         }
     }
 
-    private func makeWindow(frame: CGRect) -> NSWindow {
+    private func makeWindow(frame: CGRect, gap: ClosedRange<CGFloat>?) -> NSWindow {
         let window = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         window.isOpaque = false
         window.backgroundColor = .clear
         window.hasShadow = false
         window.ignoresMouseEvents = true
-        // Just under the menu bar's own window: its titles and icons stay on top.
-        window.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue - 1)
+        // Over the menu bar (its own background hides anything behind it), under its menus and
+        // under the notch's panel.
+        window.level = .statusBar
         // Every Space, but not a full-screen app's (spec MB-10).
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: MenuBarTintView(service: self))
+        window.contentView = NSHostingView(rootView: MenuBarTintView(service: self, gap: gap))
+        window.sharingType = .readOnly
         window.alphaValue = isHiddenForMissionControl ? 0 : 1
         window.setFrame(frame, display: true)
         window.orderFrontRegardless()
@@ -154,18 +190,34 @@ final class MenuBarTintService: ObservableObject {
 /// The strip's colour, following light and dark mode (spec MB-8).
 struct MenuBarTintView: View {
     @ObservedObject var service: MenuBarTintService
+    /// The notch's place, left clear (spec MB-9).
+    var gap: ClosedRange<CGFloat>?
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
+        tint.mask {
+            GeometryReader { proxy in
+                Path { path in
+                    path.addRect(CGRect(origin: .zero, size: proxy.size))
+                    if let gap {
+                        path.addRect(CGRect(x: gap.lowerBound, y: 0, width: gap.upperBound - gap.lowerBound, height: proxy.size.height))
+                    }
+                }
+                .fill(style: FillStyle(eoFill: true))
+            }
+        }
+    }
+
+    private var tint: some View {
         let style = service.style
         let pair = style.pair(dark: colorScheme == .dark)
         let end: Color = TintColor.color(style.kind == .gradient ? pair.end : pair.start)
         let vertical = style.direction == .vertical
-        LinearGradient(
+        return LinearGradient(
             colors: [TintColor.color(pair.start), end],
             startPoint: vertical ? .top : .leading, endPoint: vertical ? .bottom : .trailing
         )
-        .opacity(style.opacity)
+        .opacity(min(max(style.opacity, MenuBarTintStyle.opacityRange.lowerBound), MenuBarTintStyle.opacityRange.upperBound))
         .animation(.easeInOut(duration: 0.3), value: colorScheme)
         .animation(.easeInOut(duration: 0.3), value: style)
         .ignoresSafeArea()

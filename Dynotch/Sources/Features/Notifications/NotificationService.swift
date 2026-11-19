@@ -81,7 +81,10 @@ final class NotificationService: ObservableObject {
 
     func content(for notification: AppNotification) -> NotificationContent {
         let app = catalog.app(for: notification.appIdentifier)
-        return NotificationPresenter.content(for: notification, appName: app.name, kind: app.kind)
+        let content = NotificationPresenter.content(for: notification, appName: app.name, kind: app.kind)
+        // The messages read from the web app when the card was opened (spec GW-5c).
+        guard let texts = chatWebTexts[notification.id], !texts.isEmpty else { return content }
+        return NotificationContent(sender: content.sender, detail: texts.joined(separator: "\n"))
     }
 
     /// Dynotch's own notifications (e.g. Claude usage, spec CL-5) shown like any other one.
@@ -101,6 +104,10 @@ final class NotificationService: ObservableObject {
 
     /// Negative ids never clash with the database's record ids.
     var internalID: Int64 = 0
+    /// Messages read from the web app for a card made without a notification, by card id (spec GW-5c).
+    @Published var chatWebTexts: [Int64: [String]] = [:]
+    /// Cards opened whose conversation is being opened in the web app, by conversation id.
+    var chatWebPending: [String: Int64] = [:]
     /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
     var chatUnreadCarded: Set<String> = []
     /// The web app was read once since launch: unread conversations found later pop up.

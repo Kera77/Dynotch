@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.69.1] - 2026-11-19
+
+### Fixed
+- Menu bar color now tints the menu bar itself (over it, see-through, so its titles and icons stay visible and clickable) instead of a line under it; the notch stays black. Opacity 10–80%.
+- Google Chat cards made from the web app show the conversation's name, not "Olvasatlan" or the person's status, and how many messages are unread.
+- Opening such a card reads the conversation in the web app in the background and shows its unread messages.
+
 ## [0.69.0] - 2026-11-19
 
 ### Added

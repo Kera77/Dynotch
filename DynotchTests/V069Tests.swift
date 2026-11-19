@@ -62,6 +62,17 @@ struct MenuBarTintTests {
         let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
         let frame = try #require(MenuBarTintService.menuBarFrame(screen: screen, visible: CGRect(x: 0, y: 0, width: 1512, height: 945)))
         #expect(frame == CGRect(x: 0, y: 945, width: 1512, height: 37))
+        // The menu bar's own window is a point lower than the room on a display with a notch.
+        let drawn = MenuBarTintService.menuBarFrame(screen: screen, visible: CGRect(x: 0, y: 0, width: 1512, height: 943), drawn: 38)
+        #expect(drawn?.height == 38)
+        #expect(drawn?.maxY == 982)
+        // The notch's place is left clear.
+        let gap = MenuBarTintService.notchGap(
+            screenWidth: 1512, left: CGRect(x: 0, y: 945, width: 660, height: 37),
+            right: CGRect(x: 852, y: 945, width: 660, height: 37), screenMinX: 0
+        )
+        #expect(gap == 660...852)
+        #expect(MenuBarTintService.notchGap(screenWidth: 1512, left: nil, right: nil, screenMinX: 0) == nil)
         // A menu bar that hides by itself leaves no room: no strip.
         #expect(MenuBarTintService.menuBarFrame(screen: screen, visible: screen) == nil)
     }
@@ -72,5 +83,27 @@ struct MenuBarTintTests {
         #expect(style.pair(dark: true) == style.dark)
         style.sameInBoth = true
         #expect(style.pair(dark: true) == style.light)
+    }
+}
+
+struct GoogleChatSidebarTests {
+    @Test func theNameSkipsTheUnreadMarkerAndTheStatus() {
+        let texts = ["Olvasatlan", "Sales - Support", "Privát", "Kiemelt bejegyzés", "2 értesítés"]
+        let space = GoogleChatWebReader.nameAndCount(texts, isDirect: false)
+        #expect(space.name == "Sales - Support")
+        #expect(space.count == 2)
+        let readSpace = GoogleChatWebReader.nameAndCount(["Kereskedés Infó", "Beszélgetés"], isDirect: false)
+        #expect(readSpace.name == "Kereskedés Infó")
+        #expect(readSpace.count == nil)
+        let direct = GoogleChatWebReader.nameAndCount(["Nincs a gépnél", "Olvasatlan", "Mark Smith", "1 értesítés"], isDirect: true)
+        #expect(direct.name == "Mark Smith")
+        #expect(direct.count == 1)
+        #expect(GoogleChatWebReader.nameAndCount(["Anna Kovács"], isDirect: true).name == "Anna Kovács")
+    }
+
+    @Test func theCardSaysHowManyAreUnread() {
+        #expect(NotificationService.unreadText(nil) == "1 unread message in Google Chat")
+        #expect(NotificationService.unreadText(3) == "3 unread messages in Google Chat")
+        #expect(NotificationService.unreadCount(in: "3 unread messages in Google Chat") == 3)
     }
 }

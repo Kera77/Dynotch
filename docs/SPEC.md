@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.69.0 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.69.1 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -707,6 +707,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-4 | **Amit olvas:** az oldalsáv beszélgetéslistája (név, olvasatlan jelzés és szám, utolsó üzenet előnézete, idő), és a **nyitott** beszélgetés üzenetei (feladó, szöveg, idő, „Edited” jelzés). Más beszélgetést **nem nyit meg** csak az olvasás kedvéért, mert az olvasottnak jelölné. |
 | GW-5 | **Olvasatlanok és tartalmuk:** egy beszélgetés addig olvasatlan, amíg a webapp oldalsávja annak mutatja (félkövér, „⌥0 előnézet” a címkében). Az oldalsáv nem mutat üzenet-előnézetet, ezért a kártyák szövege továbbra is az értesítésekből jön (E-1d, E-13c), duplikáció nélkül (UM-6). (Később: olvasatlan, de értesítés nélküli beszélgetés kártyája, „+N earlier”, és a jelvény száma az oldalsávból.) |
 | GW-5b | (v0.69) **Olvasatlan, de értesítés nélküli beszélgetés:** ha a webapp oldalsávja egy beszélgetést olvasatlannak mutat, és a listában nincs hozzá Google Chat-értesítés (a Google nyitott webapp mellett nem mindig küld), a Dynotch kártyát tesz az Értesítések közé a beszélgetés nevével, „Unread in Google Chat” szöveggel (az oldalsáv nem ad üzenetszöveget). Az indításkor talált olvasatlanok csak a listába kerülnek, a később jöttek felugranak. Az elolvasott beszélgetés kártyája GW-7 szerint eltűnik; a hozzá később érkező valódi értesítés lecseréli. Az X-szel bezárt kártya csak akkor jön újra, ha a beszélgetés közben olvasott lett. |
+| GW-5c | (v0.69.1) **Név és szöveg:** a beszélgetés neve az oldalsáv feliratai közül az „Olvasatlan” jelzés, a privát üzenetek állapota („Nincs a gépnél”) és a darabszám („1 értesítés”) nélkül: csoportnál az első, privát üzenetnél az utolsó megmaradt felirat. A kártya szövege „N unread message(s) in Google Chat”. **A kártya lenyitásakor** a Dynotch a háttérben megnyitja a beszélgetést a webappban (mint GW-8, a Chatben is olvasott lesz), és a kártyába beírja az utolsó olvasatlan üzeneteket (legfeljebb 8). |
 | GW-6 | **Frissítés:** a Dynotch 10 mp-enként (beállítható 5–30 mp) újraolvassa a webappot, és minden Google Chat-értesítéskor azonnal. Egy változás legfeljebb 30 mp alatt megjelenik a notchban. |
 | GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben (vagy máshol, pl. telefonon) elolvasol, a Google Chat-értesítései eltűnnek a notchból: ha a beszélgetést az értesítés óta olvasatlannak látta, vagy az értesítés 90 mp-nél régebbi. Ismeretlen vagy több beszélgetésre illő név esetén az értesítés marad. |
 | GW-8 | **Változás a notchból a Chatbe:** ha a notchban a válaszmezőbe kattintasz vagy válaszolsz (UM-3b), a Dynotch a webappban a háttérben megnyitja a beszélgetést (kattintás a kisegítő felületen, az ablak előtérbe hozása nélkül, ha a böngésző engedi), így a Chatben is olvasott lesz. Ha a háttérben nem megy, a beszélgetés olvasatlan marad, amíg meg nem nyitod. |
@@ -843,9 +844,9 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MB-4 | **Kattintás a hézagra** (bal vagy jobb): Style (*Empty* / *Line*), Width (*Small* 8, *Medium* 16, *Large* 32 pt), *Add Space*, *Remove Space*. Az üres hézag is kattintható. |
 | MB-5 | A beállításokban a hézagok listája: stílus, szélesség, eltávolítás. A hézagok megmaradnak újraindítás után. |
 | MB-6 | A notch alá eső hézag (mint minden menüikon) nem látszik. |
-| MB-7 | (v0.69) **Színezett menüsor:** *Settings › Menu bar › Color*: **Off** (alap) / **Solid** (egy szín) / **Gradient** (két szín, iránya vízszintes vagy függőleges), átlátszóság csúszkával (0–100%, alapból 70%). Néhány kész minta és egyedi színválasztó. |
+| MB-7 | (v0.69) **Színezett menüsor:** *Settings › Menu bar › Color*: **Off** (alap) / **Solid** (egy szín) / **Gradient** (két szín, iránya vízszintes vagy függőleges), átlátszóság csúszkával (10–80%, alapból 50%). Néhány kész minta és egyedi színválasztó. |
 | MB-8 | (v0.69) Külön szín (vagy színpár) **világos és sötét megjelenéshez**; a *Same in Light and Dark* kapcsolóval egy közös. Megjelenésváltáskor a szín áttűnik. |
-| MB-9 | (v0.69) Működés: minden kijelzőn egy kattintásokat átengedő sáv a menüsor magasságában, a menüsor ikonjai és menüi **mögött**, az ablakok és az asztal fölött. A menüsor ikonjai, menüi, a hézagok (MB-1) és a notch felette maradnak; a fizikai notch és a notch-panel nem színeződik. |
+| MB-9 | (v0.69.1) Működés: minden kijelzőn egy kattintásokat átengedő, áttetsző színréteg **a menüsor fölött**, a menüsor ablakának pontos magasságában (a menüsor saját háttere – *Show menu bar background* – mindent eltakar, ami mögötte van, ezért alá tenni nem lehet). A menüsor feliratai és ikonjai átlátszanak rajta és kattinthatók, a lenyíló menük és a notch-panel fölötte vannak; **a notch helye kimarad** (fekete). |
 | MB-10 | (v0.69) Teljes képernyős appnál, Mission Controlban és automatikusan elrejtett menüsornál a sáv nem látszik. Kijelző csatlakoztatásakor, felbontás- vagy elrendezésváltáskor a sáv követi a menüsort. |
 | MB-11 | (v0.69) A menüsor szövegének és ikonjainak színét a macOS választja (a háttérkép alapján), a Dynotch nem írja át; a beállításokban előnézet mutatja a menüsort a választott színnel, és egy megjegyzés kéri, hogy olvasható színt válassz. A beállítás újraindítás után megmarad. |
 
@@ -907,6 +908,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.69.1** | A színezés a menüsoron (fölötte, áttetszőn, a notch kihagyásával); Google Chat-kártyák helyes névvel, lenyitva az üzenetekkel |
 | **v0.69.0** | „Kész” sor kattintásra az appra visz (Claude, ChatGPT/Codex), színezett menüsor, Join után eltűnő meeting-sor, a Dynotch saját értesítései kapcsolhatók; hibák: Dock-hover, BT-befagyás, megosztásban látszó notch, jelvény-elcsúszás, Google Chat értesítés nélkül |
 | **v0.68.0** | Google Chat a Safari-webappból (Kisegítő hozzáférés, GCP nélkül): a Chatben olvasott beszélgetés eltűnik a notchból, a válasz közvetlenül a webapp üzenetmezőjébe megy, ellenőrzéssel |
 | **v0.67.3** | Billentyűzet-átadás: a Dynotch ténylegesen visszalép, a panel elengedi a billentyűzetet; állapotnapló |
