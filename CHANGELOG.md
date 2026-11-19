@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.62.1] - 2026-11-19
+
 ### Fixed
 - Settings › App badges: after Show, the "Hidden until…" line and the Show button go away at once.
 
