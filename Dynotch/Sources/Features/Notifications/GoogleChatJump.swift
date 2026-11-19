@@ -81,7 +81,7 @@ enum GoogleChatJump {
         var isMessageField: Bool { role == (kAXTextAreaRole as String) && isEmpty }
     }
 
-    /// "Krisztián Ivancsó (Support - Sysadmins)" → "Support - Sysadmins"; a person's name stays.
+    /// "Jane Doe (Support - Team)" → "Support - Team"; a person's name stays.
     nonisolated static func conversationName(from title: String) -> String {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard trimmed.hasSuffix(")"), let open = trimmed.lastIndex(of: "(") else { return trimmed }

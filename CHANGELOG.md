@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.68.0] - 2026-11-19
+
+### Added
+- Google Chat from its Safari web app (the one added to the Dock), through Accessibility only, no Google Cloud project: a chat you read in Google Chat (or on your phone) leaves the notch within about 10 seconds.
+- Replies to Google Chat go straight into the web app's message box in the background, only when it shows the right conversation and an empty box; the reply counts as sent once it appears in the conversation. Otherwise the old typing is used.
+- Clicking into a Google Chat card's reply field opens that conversation in the web app in the background, so it is read there too.
+- Settings › Notifications › Google Chat: turn reading the web app on or off, how often it is checked (5–30 s), and its status.
+
 ## [0.67.3] - 2026-11-19
 
 ### Fixed

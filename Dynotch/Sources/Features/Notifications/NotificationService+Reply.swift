@@ -13,6 +13,14 @@ extension NotificationService {
         let source = notification.sourceIdentifier ?? notification.appIdentifier
         let isGoogleChat = notification.site == "chat.google.com"
             || catalog.app(for: notification.appIdentifier).name.lowercased().contains("google chat")
+        if isGoogleChat {
+            // Straight into the web app's message box when it can be read (spec GW-9).
+            do {
+                return try await chatWeb.reply(text, toTitle: notification.title)
+            } catch is GoogleChatWebService.Unavailable {
+                DiagnosticsLog.write("google-chat-web", "reply: web app not usable, typing instead")
+            }
+        }
         return try await TypedReply.send(
             text, link: notification.link, sourceApp: source, fallbackApp: notification.appIdentifier,
             conversation: isGoogleChat ? notification.title : nil

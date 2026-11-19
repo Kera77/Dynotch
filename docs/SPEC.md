@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.67.3 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.68.0 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -684,28 +684,28 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GC-5 | (v0.47) A Google Chat app-jelvényére (B-1, a név alapján felismert web app) **bal kattintás** a notchot a **Google Chat fülön** nyitja meg, ahogy a Beeper-jelvény a Beeper fülön (BP-12). |
 | GC-6 | (v0.52) A **Google Chat** fülön nincs oldalsáv és beszélgetésnézet: csak az olvasatlan Google Chat-értesítések, ugyanúgy, mint az All fülön (kártyák, válaszmező). A panel normál szélességű. |
 
-## 4zz2. Google Chat a webappból, GCP nélkül (tervezett)
+## 4zz2. Google Chat a webappból, GCP nélkül (v0.68)
 
-> Cél: a céges Google Chat valós időben (legfeljebb 30 mp késéssel) jelenjen meg a notchban, a változások oda-vissza kövessék egymást, és lehessen válaszolni, **Google Cloud-projekt, API és külső szolgáltatás nélkül**. A Dynotch a Macen futó, bejelentkezett Google Chat webapp felületét olvassa a Kisegítő hozzáférésen át. Megvalósítás előtt böngészőnként ki kell próbálni, hogy a felület olvasható-e (GW-3).
+> Cél: a céges Google Chat valós időben (legfeljebb 30 mp késéssel) jelenjen meg a notchban, a változások oda-vissza kövessék egymást, és lehessen válaszolni, **Google Cloud-projekt, API és külső szolgáltatás nélkül**. A Dynotch a Macen futó, bejelentkezett Google Chat webapp felületét olvassa a Kisegítő hozzáférésen át. (v0.68: a Safari-webapp olvasható; a Zen nem, ott az értesítés-alapú mód marad.)
 
 | # | Követelmény |
 |---|-------------|
-| GW-1 | **Forrás:** a bejelentkezett Google Chat webapp: a **Dockba tett Safari webapp** (elsődleges) vagy a **Zen** egy lapja, amelyben `chat.google.com` vagy `mail.google.com/chat` van nyitva (Chrome és Safari-lap is elfogadott). A Beállításokban választható, melyiket olvassa: **Automatic** (a Safari-webapp, ha fut, különben a Zen), **Safari web app** vagy **Zen**. |
+| GW-1 | **Forrás:** a bejelentkezett Google Chat webapp, a **Dockba tett Safari webapp**. Az ablaka másik asztalon (Space) is olvasható. (v0.68) A **Zen** nem választható: a Firefox-alapú böngésző csak a látható ablak aktív lapját adja ki a Kisegítő hozzáférésnek, így ott az értesítés-alapú mód marad (UM-4, E-11b, E-11d). |
 | GW-2 | **Biztonság:** a Dynotch csak a **macOS Kisegítő hozzáférés** (Accessibility) felületén olvas és kattint, ugyanazzal az engedéllyel, ami már megvan (E-11b). Nem olvas sütit vagy jelszót, nem küld hálózati kérést a Google-nek vagy máshová, nem futtat szkriptet az oldalon, nincs böngészőbővítmény. Csak a Google Chat ablakát olvassa (cím alapján), más lapot és ablakot nem. Új adatvédelmi engedély nem kell. |
 | GW-3 | **Olvashatóság böngészőnként:** Safari-webappnál a felület közvetlenül olvasható; Chromium-alapúnál a Dynotch bekapcsolja az ablak kisegítő felületét (`AXManualAccessibility`); Firefox-alapúnál (Zen) a lekérdezés kapcsolja be. Ha egy böngészőnél a felület nem olvasható, a Dynotch ott a meglévő értesítés-alapú módban marad (UM-4, E-11b, E-11d). |
 | GW-4 | **Amit olvas:** az oldalsáv beszélgetéslistája (név, olvasatlan jelzés és szám, utolsó üzenet előnézete, idő), és a **nyitott** beszélgetés üzenetei (feladó, szöveg, idő, „Edited” jelzés). Más beszélgetést **nem nyit meg** csak az olvasás kedvéért, mert az olvasottnak jelölné. |
-| GW-5 | **Olvasatlanok és tartalmuk:** egy beszélgetés addig olvasatlan, amíg a webapp oldalsávja annak mutatja. A kártyán az üzenetek **teljes szövege** látszik: minden új üzenet szövege a beérkezett értesítésből (E-1d, E-13c), az utolsó üzeneté az oldalsáv előnézetéből (a kisegítő felület a teljes szöveget adja, a vágás csak a képernyőn van), duplikáció nélkül (UM-6). Ami értesítés nélkül jött (például a Dynotch indítása előtt, vagy némított beszélgetésben), annál a kártya jelzi, hogy több olvasatlan üzenet van, mint ami látszik („+2 earlier”). A jelvény (B-1) száma az oldalsáv olvasatlanjainak összege. |
-| GW-6 | **Frissítés:** a Dynotch figyeli a webapp felületének változásait (kisegítő értesítések), és ezen felül 10 mp-enként (beállítható 5–30 mp) újraolvassa; minden Google Chat-értesítéskor azonnal. Egy változás legfeljebb 30 mp alatt megjelenik a notchban. |
-| GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben elolvasol, a notchból eltűnik; ha egy üzenetet szerkesztenek vagy törölnek, és az látszik a webappban (előnézet vagy nyitott beszélgetés), a notchban is frissül vagy eltűnik. |
+| GW-5 | **Olvasatlanok és tartalmuk:** egy beszélgetés addig olvasatlan, amíg a webapp oldalsávja annak mutatja (félkövér, „⌥0 előnézet” a címkében). Az oldalsáv nem mutat üzenet-előnézetet, ezért a kártyák szövege továbbra is az értesítésekből jön (E-1d, E-13c), duplikáció nélkül (UM-6). (Később: olvasatlan, de értesítés nélküli beszélgetés kártyája, „+N earlier”, és a jelvény száma az oldalsávból.) |
+| GW-6 | **Frissítés:** a Dynotch 10 mp-enként (beállítható 5–30 mp) újraolvassa a webappot, és minden Google Chat-értesítéskor azonnal. Egy változás legfeljebb 30 mp alatt megjelenik a notchban. |
+| GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben (vagy máshol, pl. telefonon) elolvasol, a Google Chat-értesítései eltűnnek a notchból: ha a beszélgetést az értesítés óta olvasatlannak látta, vagy az értesítés 90 mp-nél régebbi. Ismeretlen vagy több beszélgetésre illő név esetén az értesítés marad. |
 | GW-8 | **Változás a notchból a Chatbe:** ha a notchban a válaszmezőbe kattintasz vagy válaszolsz (UM-3b), a Dynotch a webappban a háttérben megnyitja a beszélgetést (kattintás a kisegítő felületen, az ablak előtérbe hozása nélkül, ha a böngésző engedi), így a Chatben is olvasott lesz. Ha a háttérben nem megy, a beszélgetés olvasatlan marad, amíg meg nem nyitod. |
-| GW-9 | **Válasz:** a Dynotch a háttérben megnyitja a beszélgetést, és **csak akkor** küld, ha a nyitott beszélgetés fejléce a cél beszélgetés nevét mutatja (kis- és nagybetűtől, ékezettől függetlenül), és az üzenetmező üres. A szöveget közvetlenül a mezőbe írja, és a küldés gombot nyomja meg, vágólap és billentyűleütés nélkül. Ha a mező így nem írható, a meglévő begépelés jön (E-11b, E-11d). Szálban érkezett üzenetre a szálba válaszol, ha a szál nyitva van. |
+| GW-9 | **Válasz:** a Dynotch a háttérben megnyitja a beszélgetést, és **csak akkor** ír, ha a webapp címe a cél beszélgetés azonosítóját mutatja, és az üzenetmező üres. A szöveget közvetlenül a mezőbe írja, és az engedélyezett „Send message” gombot nyomja meg, vágólap és billentyűleütés nélkül. Ha a beszélgetés név alapján nem azonosítható egyértelműen, vagy a mező nem írható, semmi nem megy el, és a meglévő begépelés jön (E-11b, E-11d). |
 | GW-10 | **Ellenőrzés küldés után:** a válasz akkor számít elküldöttnek, ha 5 mp-en belül megjelenik a nyitott beszélgetésben. Ha nem, a kártyán „Not sent” látszik, és a szöveg a válaszmezőben marad. Ellenőrzés nélkül nem jelez sikert. |
-| GW-11 | **Ha a webapp nem fut:** a Beállításokban kapcsolható, hogy a Dynotch a háttérben (rejtve) elindítsa. Kikapcsolva, vagy ha a webapp nincs bejelentkezve, az értesítés-alapú mód marad, és a Beállítások ezt kiírják. |
+| GW-11 | **Ha a webapp nem fut**, vagy nincs bejelentkezve, az értesítés-alapú mód marad, és a Beállítások ezt kiírják. (Később: a webapp rejtett indítása.) |
 | GW-12 | **Ha a felület megváltozik:** ha a Dynotch nem ismeri fel a webapp szerkezetét (például egy Google-frissítés után), az értesítés-alapú módra vált, a naplóba tartalom nélkül beírja, hogy melyik rész nem volt meg, és a Beállításokban jelzi. Bizonytalan helyre soha nem kattint és nem ír. |
 | GW-13 | **Adatvédelem:** a beszélgetések neve és az üzenetek szövege csak memóriában van; lemezre és a naplóba nem kerül (UM-7). |
-| GW-14 | **Beállítás:** *Settings › Notifications › Google Chat*: forrás („Notifications only” / „Read from the web app”), melyik webapp vagy böngésző (automatikus vagy kézi), „Keep the web app running” (GW-11), frissítési gyakoriság (5–30 mp), és az állapot („Reading from Zen”, „Not readable: …”). |
+| GW-14 | **Beállítás:** *Settings › Notifications › Google Chat*: „Read from the Google Chat web app” (alapból be), „Check every” (5–30 mp), és az állapot („Reading · N unread”, „The Google Chat web app isn't running”, „Not readable…”, „Needs Accessibility access”). |
 | GW-15 | A „Read from the web app” mód az UM-4-et váltja fel a Google Chatnél; a Google Chat fül és az All/Chats kártyák kinézete marad (GC-6), csak a forrásuk és a válasz módja változik. |
-| GW-16 | **Teljes beszélgetés olvasása (opcionális, alapból ki):** *Settings › Google Chat › „Load missing messages”*. Ha be van kapcsolva, és egy olvasatlan kártyáról hiányzik üzenet (GW-5), a Dynotch a háttérben megnyitja a beszélgetést, kiolvassa az olvasatlan üzeneteket, majd a webapp **„Mark as unread”** parancsával visszaállítja olvasatlanra. A Beállítások figyelmeztet: a küldő ilyenkor olvasottnak láthatja az üzenetet, és a többi eszközön (telefon) eltűnhet az értesítés. Ha a visszaállítás nem sikerül, a funkció kikapcsol, és a Beállítások jelzik. |
+| GW-16 | (Később, nincs a v0.68-ban) **Teljes beszélgetés olvasása (opcionális, alapból ki):** *„Load missing messages”*: a Dynotch a háttérben megnyitja a beszélgetést, kiolvassa az olvasatlan üzeneteket, majd „Mark as unread”-del visszaállítja. Figyelmeztetés: a küldő olvasottnak láthatja, a telefonon eltűnhet az értesítés. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -890,6 +890,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.68.0** | Google Chat a Safari-webappból (Kisegítő hozzáférés, GCP nélkül): a Chatben olvasott beszélgetés eltűnik a notchból, a válasz közvetlenül a webapp üzenetmezőjébe megy, ellenőrzéssel |
 | **v0.67.3** | Billentyűzet-átadás: a Dynotch ténylegesen visszalép, a panel elengedi a billentyűzetet; állapotnapló |
 | **v0.67.2** | Billentyűzet valódi visszaadása, ha az előtérben lévő app aktív maradt; tágasabb strip-sorok a beállításokban |
 | **v0.67.1** | Notch a képernyőképeken; billentyűzet vissza kattintásra másik appban; árnyék az átkattintható rétegben; strip-sorrend a beállításokban; magasabb értesítés modul |

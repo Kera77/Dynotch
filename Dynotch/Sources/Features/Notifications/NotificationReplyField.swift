@@ -64,7 +64,10 @@ struct NotificationReplyField: View {
             .disabled(status == .sending)
             // Clicking into the field pins the notch, so it does not close while typing.
             .onChange(of: isFocused) { _, focused in
-                if focused { pinNotch() }
+                if focused {
+                    pinNotch()
+                    service.replyFieldFocused(target)
+                }
             }
             .onChange(of: text) { _, typed in
                 let replaced = Emoticons.replace(in: typed, includingLast: false)

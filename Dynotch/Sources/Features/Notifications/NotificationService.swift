@@ -30,6 +30,8 @@ final class NotificationService: ObservableObject {
     var isScreenShared = false
 
     let catalog = NotificationAppCatalog()
+    /// Google Chat read from its web app (spec GW-1).
+    let chatWeb: GoogleChatWebService
     /// The websites seen and every source's rules (spec E-15).
     let preferences: NotificationPreferences
     private var preferencesObserver: AnyCancellable?
@@ -58,6 +60,7 @@ final class NotificationService: ObservableObject {
     init(settings: AppSettings) {
         self.settings = settings
         preferences = NotificationPreferences(defaults: settings.defaults)
+        chatWeb = GoogleChatWebService(defaults: settings.defaults)
         catalog.update(sites: preferences.sites, names: preferences.names)
         preferencesObserver = preferences.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
@@ -142,12 +145,14 @@ final class NotificationService: ObservableObject {
         if enabled, pollTimer == nil {
             pollTimer = RepeatingTimer.start(every: Self.pollInterval) { [weak self] in self?.poll() }
             poll()
+            startChatWeb()
         } else if !enabled, pollTimer != nil {
             pollTimer?.invalidate()
             pollTimer = nil
             database = nil
             status = .disabled
             clearPeek()
+            chatWeb.stop()
         }
     }
 
@@ -242,6 +247,7 @@ final class NotificationService: ObservableObject {
             }
         }
         guard let newest = incoming.last else { return }
+        chatWebNoticed(incoming)
         // A record updated in place replaces its earlier version (spec E-1d).
         let ids = Set(incoming.map(\.id))
         // A kept website notification posted again replaces the kept copy (spec E-13c).
