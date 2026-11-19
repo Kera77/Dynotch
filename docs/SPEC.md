@@ -60,7 +60,7 @@
 | M-2 | Egy ikonra kattintva megnyílik a hozzá tartozó funkció. Az aktív funkció ikonja kiemelve látszik. |
 | M-3 | A menüsorban csak a bekapcsolt funkciók jelennek meg, a Beállításokban megadott sorrendben. |
 | M-4 | Funkciók: *Home* (óra és dátum), *Naptár* (4. fejezet), *Értesítések* (4b. fejezet), *Számológép* (4c. fejezet), *Jegyzetek* (4d. fejezet), *Emlékeztetők* (4e. fejezet), *Claude* (4g. fejezet), *Info* (verzió, kijelző és notch adatai). |
-| M-7 | **Menüsor-ikonok:** a Számológép, Jegyzetek, Emlékeztetők és AI Usage funkciónak menüsor-ikonja is van. *Settings › Features* alatt funkciónként kikapcsolható („Menu bar”), ilyenkor csak a notchban érhető el. |
+| M-7 | **Menüsor-ikonok:** a Számológép, Jegyzetek, Emlékeztetők és AI Usage funkciónak menüsor-ikonja is van. *Settings › Modules* alatt funkciónként kikapcsolható („Menu bar”), ilyenkor csak a notchban érhető el. |
 | M-8 | **Menüsor-buborék nyitás/zárás:** az ikonra kattintva kinyílik, újabb kattintásra bezáródik. Ha a lakat be van kapcsolva, az ikonra kattintás bezárja a buborékot és feloldja a lakatot; máshova kattintva a lakatolt buborék nyitva marad. |
 | M-6 | **Átrendezés:** a menüsor ikonjait **⌘ lenyomva húzva** lehet átrendezni, egyetlen folyamatos húzással akár a sor egyik végéből a másikba; a húzott ikon követi az egeret és kicsit nagyobb, a többi elcsúszik előle. Az új sorrend azonnal érvényes, és megegyezik a *Beállítások › Funkciók* sorrendjével. Cmd nélkül a húzás nem rendez át. |
 | M-5 | A menüsor jobb szélén egy kapszulában a **lakat** (SZ-8) és a **fogaskerék** (C-1) ül. A notch-tól jobbra eső többi hely állapotjelzéseknek van fenntartva (például hangerő- és fényerő HUD). |
@@ -445,7 +445,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 
 | # | Követelmény |
 |---|-------------|
-| SC-1 | **Beállítások › Features:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
+| SC-1 | **Beállítások › Modules:** minden modul mellé rögzíthető egy globális gyorsbillentyű (pl. ⌥1 → Jegyzetek; ⌘, ⌥ vagy ⌃ kötelező; Esc megszakít, Delete töröl). A gyorsbillentyű lenyitja a notchot az adott modullal azon a kijelzőn, ahol az egér van; újra megnyomva bezárja. Billentyűs moduloknál a fókusz rögtön a panelre kerül. Rögzítés nélkül a panel addig marad nyitva, amíg az egér rá nem megy, majd el nem hagyja. |
 | SC-3 | Külön gyorsbillentyű a **notch rögzítésére**: nyitott panelnél ki-be kapcsolja a rögzítést, csukottnál rögzítve megnyitja. A lakat ikon rögzítéskor **kék**, mint a billentyűzetzár. |
 | SC-4 | (v0.50) A gyorsbillentyűvel megnyitott modul **nem írja felül** a notchban legutóbb használtat: ha a naptár volt nyitva, és gyorsbillentyűvel a számológépet nyitod meg, a következő hover újra a naptárat nyitja. |
 | SC-2 | **Modulonként** jelölőnégyzet („Pin”) a Features listában: ha be van jelölve, az adott modul gyorsbillentyűs megnyitásakor a notch rögzítése automatikusan bekapcsol (nem záródik be). (v0.26; korábban egy közös kapcsoló volt, annak bekapcsolt állapota minden modulra átöröklődik.) |
@@ -798,7 +798,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 
 | # | Követelmény |
 |---|---|
-| MG-1 | *Settings › Features*: a Batteries sorában **In System**, az AI Usage sorában **In AI** jelölőnégyzet, alapból **kikapcsolva** (a mostani viselkedés marad). Egymástól függetlenül állíthatók, bármikor visszaválthatók. |
+| MG-1 | *Settings › Modules*: a Batteries sorában **In System**, az AI Usage sorában **In AI** jelölőnégyzet, alapból **kikapcsolva** (a mostani viselkedés marad). Egymástól függetlenül állíthatók, bármikor visszaválthatók. |
 | MG-2 | **Összevonva** a vendégmodul (Batteries, AI Usage) önállóan eltűnik a modulsorból, a felső menüsorból, az ikonsorból (MS-1, MS-5) és a swipe-sorrendből; a gazdamodul (System, AI) fejlécében kapszulaválasztó jelenik meg: *System \| Batteries*, illetve *Chat \| Usage*. A gazdamodul a legutóbb nézett fülén nyílik. |
 | MG-3 | **Visszaváltva** a vendégmodul a korábbi helyére és bekapcsoltsági állapotába kerül; a sorrend és a bekapcsolt modulok listája összevonás alatt sem íródik felül. A vendégmodul beállításai (CL-5, CL-6, BT-3, BT-5…) mindkét módban ugyanazok. |
 | MG-4 | A vendégmodul **működése nem változik**: frissítése (CL-4, BT-1b), értesítései és a notch melletti jelzői (CL-6 session-kör, BT-3 alacsony akku) összevonva is futnak, amíg a gazdamodul be van kapcsolva. Kikapcsolt gazdamodul mellett a vendégmodul sem fut. |
