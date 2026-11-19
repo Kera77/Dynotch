@@ -13,7 +13,7 @@ final class NotificationService: ObservableObject {
         case running
     }
 
-    @Published private(set) var status: Status = .disabled
+    @Published var status: Status = .disabled
     /// Notifications received since launch, newest first.
     @Published var recent: [AppNotification] = []
     /// Notification currently peeking out of the closed notch.
@@ -33,16 +33,18 @@ final class NotificationService: ObservableObject {
     /// The websites seen and every source's rules (spec E-15).
     let preferences: NotificationPreferences
     private var preferencesObserver: AnyCancellable?
-    private let bannerDismisser = NativeBannerDismisser()
+    let bannerDismisser = NativeBannerDismisser()
 
     let settings: AppSettings
-    private var database: NotificationDatabase?
+    var database: NotificationDatabase?
     private(set) var lastSeenID: Int64 = 0
     /// The latest delivery seen, to catch records updated in place (spec E-1d).
     var lastDelivered: Double = 0
     private var pollTimer: Timer?
     private var lastOpenAttempt = Date.distantPast
     private var pollCount = 0
+    var isPolling = false
+    var pollAgain = false
     private var peekTask: Task<Void, Never>?
     private var settingsObserver: AnyCancellable?
 
@@ -97,7 +99,7 @@ final class NotificationService: ObservableObject {
     private static let unseenLimit = 12
 
     /// Negative ids never clash with the database's record ids.
-    private var internalID: Int64 = 0
+    var internalID: Int64 = 0
 
     func clearPeek() {
         peekTask?.cancel()
@@ -158,7 +160,7 @@ final class NotificationService: ObservableObject {
         }
     }
 
-    private func poll() {
+    func poll() {
         guard let database else {
             openDatabaseIfDue()
             return
@@ -169,45 +171,25 @@ final class NotificationService: ObservableObject {
             walWatchRenewed = Date()
             walWatcher.watch(URL(fileURLWithPath: database.path + "-wal"), renew: true) { [weak self] in self?.poll() }
         }
-        do {
-            let records = try database.records(after: lastSeenID)
-            if !records.isEmpty { handle(records) }
-            let updated = updatedRecords(in: database)
-            if !updated.isEmpty { handle(updated) }
-            try dropHandled(in: database)
-        } catch {
-            DiagnosticsLog.write("notifications", "read failed: \(error)")
-            self.database = nil
-            status = .unsupported("\(error)")
+        guard !isPolling else {
+            pollAgain = true
+            return
         }
-    }
-
-    /// A notification that left Notification Center was dealt with in its app (read or answered
-    /// there): it leaves the list here too (spec E-13). Checked every few seconds.
-    private func dropHandled(in database: NotificationDatabase) throws {
+        isPolling = true
         pollCount += 1
-        guard pollCount.isMultiple(of: 3) else { return }
-        let gone = try NotificationCleanup.handled(
-            recent: recent, now: Date(), stillPresent: { try database.recordIDs(from: $0) }
-        )
-        .subtracting(bannerDismisser.closedIDs)
-        guard !gone.isEmpty else { return }
-        // Identifiers only: which notifications left with Notification Center (spec E-13).
-        let apps = recent.filter { gone.contains($0.id) }.map { "#\($0.id) \($0.appIdentifier)" }
-        DiagnosticsLog.append("notification-records", "left Notification Center: " + apps.joined(separator: ", "))
-        // Websites close their own notifications: those stay, under an id of their own, as the
-        // record id is soon given to a new notification (spec E-13c).
-        for kept in recent where gone.contains(kept.id) && kept.isFromBrowser {
-            internalID -= 1
-            rekey(kept.id, to: internalID)
+        // Every third look also checks which notifications left Notification Center (spec E-13).
+        let lowest = pollCount.isMultiple(of: 3)
+            ? recent.filter { $0.id > 0 && Date().timeIntervalSince($0.date) >= NotificationCleanup.minimumAge }.map(\.id).min()
+            : nil
+        let after = lastSeenID
+        let delivered = lastDelivered
+        Task { [weak self] in
+            let result = await Task.detached { database.poll(after: after, deliveredAfter: delivered, presentFrom: lowest) }.value
+            self?.finishPoll(result, from: database, lowest: lowest)
         }
-        recent.removeAll { gone.contains($0.id) }
-        unseen.removeAll { gone.contains($0.id) }
-        focus?.notifications.removeAll { gone.contains($0.id) }
-        if let peek, gone.contains(peek.id) { clearPeek() }
     }
 
-    private func rekey(_ id: Int64, to newID: Int64) {
+    func rekey(_ id: Int64, to newID: Int64) {
         func swap(_ item: AppNotification) -> AppNotification { item.id == id ? item.with(id: newID) : item }
         recent = recent.map(swap)
         unseen = unseen.map(swap)
@@ -243,7 +225,7 @@ final class NotificationService: ObservableObject {
         }
     }
 
-    private func handle(_ records: [NotificationRecord]) {
+    func handle(_ records: [NotificationRecord]) {
         var incoming: [AppNotification] = []
         for record in records {
             lastSeenID = max(lastSeenID, record.id)

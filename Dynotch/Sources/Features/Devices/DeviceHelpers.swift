@@ -55,15 +55,7 @@ struct DeviceLevel: Equatable, Sendable, Identifiable {
 enum DeviceBattery {
     /// Each earbud, the case and the main level, from Bluetooth's report.
     nonisolated static func structuredLevels(named name: String) -> [DeviceLevel] {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
-        process.arguments = ["SPBluetoothDataType", "-json"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-        guard (try? process.run()) != nil else { return [] }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
+        guard let data = ProcessRunner.run("/usr/sbin/system_profiler", ["SPBluetoothDataType", "-json"])?.output else { return [] }
         return structuredLevels(named: name, json: data)
     }
 
@@ -94,15 +86,7 @@ enum DeviceBattery {
     }
 
     nonisolated static func levels(named name: String) -> String? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
-        process.arguments = ["SPBluetoothDataType", "-json"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-        guard (try? process.run()) != nil else { return nil }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
+        guard let data = ProcessRunner.run("/usr/sbin/system_profiler", ["SPBluetoothDataType", "-json"])?.output else { return nil }
         return levels(named: name, json: data)
     }
 

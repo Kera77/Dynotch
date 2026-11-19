@@ -107,25 +107,14 @@ struct NotesBridge: Sendable {
     }
 
     private static func runSync(script: String, arguments: [String]) throws -> Data {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-l", "JavaScript", "-e", script] + arguments
-        let output = Pipe()
-        let errors = Pipe()
-        process.standardOutput = output
-        process.standardError = errors
-        do {
-            try process.run()
-        } catch {
-            throw NotesBridgeError.failed("osascript: \(error.localizedDescription)")
+        guard let result = ProcessRunner.run("/usr/bin/osascript", ["-l", "JavaScript", "-e", script] + arguments, timeout: 30) else {
+            throw NotesBridgeError.failed("osascript could not start")
         }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        let errorData = errors.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else {
-            throw NotesBridgeError.from(stderr: String(bytes: errorData, encoding: .utf8) ?? "")
+        guard !result.timedOut else { throw NotesBridgeError.failed("Notes did not answer in time") }
+        guard result.status == 0 else {
+            throw NotesBridgeError.from(stderr: String(bytes: result.errors, encoding: .utf8) ?? "")
         }
-        return data
+        return result.output
     }
 }
 

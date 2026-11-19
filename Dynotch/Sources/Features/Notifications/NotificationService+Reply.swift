@@ -46,19 +46,6 @@ extension NotificationService {
         NotificationTextLayout.stackHeight(texts: notifications.map { content(for: $0).detail }, notchHeight: notchHeight)
     }
 
-    // MARK: - Records updated in place (spec E-1d)
-
-    /// Records seen before but delivered again since the last look; a missing column (older
-    /// macOS) just means none.
-    func updatedRecords(in database: NotificationDatabase) -> [NotificationRecord] {
-        let latest = database.lastDelivered()
-        guard latest > lastDelivered else { return [] }
-        defer { lastDelivered = latest }
-        let records = (try? database.records(updatedAfter: lastDelivered, upTo: lastSeenID)) ?? []
-        if !records.isEmpty { DiagnosticsLog.append("notification-records", "updated in place: \(records.map(\.id))") }
-        return records
-    }
-
     // MARK: - Conversations
 
     /// The new notifications from the same app and sender (or chat) as this one, oldest first

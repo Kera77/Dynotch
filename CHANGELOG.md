@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- Apple Notes, Messages, Bluetooth and update tools that hang are stopped after a time limit, so a stuck Notes no longer leaves the Notes module dead until Dynotch restarts.
+- Log lines written at the same time from different threads are no longer lost; writing the logs never holds up the notch.
+- The Notification Center database is read in the background, so a busy database never stalls the notch.
+
 ## [0.63.1] - 2026-11-19
 
 ### Fixed

@@ -97,21 +97,11 @@ enum CallMessenger {
     static func send(_ text: String, toCaller caller: String) throws {
         let targets = targets(for: caller, contact: contact(for: caller))
         guard !targets.isEmpty else { throw Failure.noNumber }
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", script, text] + targets
-        let errors = Pipe()
-        process.standardOutput = Pipe()
-        process.standardError = errors
-        do {
-            try process.run()
-        } catch {
-            throw Failure.failed(error.localizedDescription)
+        guard let result = ProcessRunner.run("/usr/bin/osascript", ["-e", script, text] + targets, timeout: 30) else {
+            throw Failure.failed("osascript could not start")
         }
-        let data = errors.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else {
-            let message = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard result.succeeded else {
+            let message = result.timedOut ? "Messages did not answer in time." : result.errorText
             throw Failure.failed(message.isEmpty ? "Messages could not send the text." : String(message.prefix(200)))
         }
     }

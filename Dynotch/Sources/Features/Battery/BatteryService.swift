@@ -99,15 +99,7 @@ enum BatteryReader {
     }
 
     private static func run(_ path: String, _ arguments: [String]) -> Data {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: path)
-        process.arguments = arguments
-        let output = Pipe()
-        process.standardOutput = output
-        process.standardError = Pipe()
-        guard (try? process.run()) != nil else { return Data() }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        return data
+        ProcessRunner.run(path, arguments)?.output ?? Data()
     }
+
 }

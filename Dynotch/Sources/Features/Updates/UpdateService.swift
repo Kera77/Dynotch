@@ -129,14 +129,10 @@ final class UpdateService: ObservableObject {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let zip = folder.appendingPathComponent(release.archiveName)
             try archive.write(to: zip)
-            let unpack = Process()
-            unpack.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-            unpack.arguments = ["-x", "-k", zip.path, folder.path]
-            try unpack.run()
-            unpack.waitUntilExit()
+            let unpack = ProcessRunner.run("/usr/bin/ditto", ["-x", "-k", zip.path, folder.path], timeout: 120)
             let app = folder.appendingPathComponent("Dynotch.app")
             let version = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-            guard unpack.terminationStatus == 0, version == release.version else {
+            guard unpack?.succeeded == true, version == release.version else {
                 throw Failure(message: "The download is not Dynotch \(release.version).")
             }
             guard UpdateLogic.isSignedLikeRunningApp(appAt: app) else {

@@ -11,8 +11,9 @@ struct NotificationDatabaseError: Error, CustomStringConvertible {
     let description: String
 }
 
-/// Read-only access to the Notification Center database (needs Full Disk Access).
-final class NotificationDatabase {
+/// Read-only access to the Notification Center database (needs Full Disk Access). Read off the
+/// main thread; the lock keeps one query on the connection at a time.
+final class NotificationDatabase: @unchecked Sendable {
     /// Known locations, newest macOS first.
     static var candidatePaths: [String] {
         var paths = [NSHomeDirectory() + "/Library/Group Containers/group.com.apple.usernoted/db2/db"]
@@ -24,6 +25,7 @@ final class NotificationDatabase {
 
     let path: String
     private var handle: OpaquePointer?
+    private let lock = NSLock()
 
     init(path: String) throws {
         self.path = path
@@ -176,6 +178,8 @@ final class NotificationDatabase {
     // MARK: - Private
 
     private func query<Row>(_ sql: String, argument: Int64? = nil, row: (OpaquePointer) -> Row) throws -> [Row] {
+        lock.lock()
+        defer { lock.unlock() }
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
             throw NotificationDatabaseError(description: "prepare failed: \(errorMessage)")
@@ -209,5 +213,34 @@ final class NotificationDatabase {
     private static func blob(_ statement: OpaquePointer, _ column: Int32) -> Data {
         guard let bytes = sqlite3_column_blob(statement, column) else { return Data() }
         return Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, column)))
+    }
+}
+
+/// What one look at the database found (spec E-1, E-1d, E-13).
+struct NotificationPoll: Sendable {
+    var records: [NotificationRecord] = []
+    var updated: [NotificationRecord] = []
+    var latestDelivered: Double = 0
+    /// The ids from the asked lowest one up still in Notification Center; nil when not asked.
+    var present: Set<Int64>?
+    var failure: String?
+}
+
+extension NotificationDatabase {
+    /// New records, records delivered again and, when asked, the ids still present. Blocks:
+    /// call it off the main thread.
+    func poll(after lastSeenID: Int64, deliveredAfter lastDelivered: Double, presentFrom lowest: Int64?) -> NotificationPoll {
+        var result = NotificationPoll()
+        do {
+            result.records = try records(after: lastSeenID)
+            result.latestDelivered = self.lastDelivered()
+            if result.latestDelivered > lastDelivered {
+                result.updated = (try? records(updatedAfter: lastDelivered, upTo: lastSeenID)) ?? []
+            }
+            if let lowest { result.present = try recordIDs(from: lowest) }
+        } catch {
+            result.failure = "\(error)"
+        }
+        return result
     }
 }

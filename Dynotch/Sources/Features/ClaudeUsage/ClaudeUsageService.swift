@@ -243,20 +243,11 @@ enum ClaudeCredential: Sendable {
     /// item's access list allows it and macOS does not ask for the password. (Reading it through
     /// the keychain API asked again every time Claude Code renewed its token.)
     nonisolated static func read() -> ClaudeCredential {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
-        process.arguments = ["find-generic-password", "-s", service, "-w"]
-        let output = Pipe()
-        process.standardOutput = output
-        process.standardError = Pipe()
-        do {
-            try process.run()
-        } catch {
-            return .missing
-        }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else { return .missing }
+        // A long limit: macOS may ask the owner about the keychain item first.
+        guard let result = ProcessRunner.run("/usr/bin/security", ["find-generic-password", "-s", service, "-w"], timeout: 120),
+              result.succeeded
+        else { return .missing }
+        let data = result.output
         let trimmed = String(bytes: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return parse(Data(trimmed.utf8), now: Date())
     }
