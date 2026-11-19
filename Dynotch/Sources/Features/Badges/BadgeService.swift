@@ -7,6 +7,7 @@ import Combine
 final class BadgeService: ObservableObject {
     private static let appsKey = "badgeApps"
     private static let brandIconsKey = "badgeBrandIcons"
+    private static let hiddenKey = "badgeHidden"
     private static let interval: TimeInterval = 2
 
     /// The chosen apps in the order they stand beside the notch.
@@ -17,6 +18,12 @@ final class BadgeService: ObservableObject {
     /// Badge text per bundle identifier; only apps with a badge.
     @Published private(set) var labels: [String: String] = [:]
     @Published private(set) var pulses: [String: Date] = [:]
+    /// Badges taken out of the notch for a while, by bundle identifier (spec B-11).
+    @Published private(set) var hidden: [String: BadgeHide] = [:] {
+        didSet {
+            if let data = try? JSONEncoder().encode(hidden) { defaults.set(data, forKey: Self.hiddenKey) }
+        }
+    }
     /// Reading the Dock needs Accessibility access.
     @Published private(set) var isTrusted = true
 
@@ -42,13 +49,15 @@ final class BadgeService: ObservableObject {
             defaults.set(true, forKey: Self.brandIconsKey)
         }
         apps = loaded
+        hidden = defaults.data(forKey: Self.hiddenKey)
+            .flatMap { try? JSONDecoder().decode([String: BadgeHide].self, from: $0) } ?? [:]
         save()
     }
 
     /// Enabled apps that have a badge now.
     var visible: [BadgeItem] {
         apps.compactMap { app in
-            guard app.isEnabled, let label = labels[app.bundleID], !label.isEmpty else { return nil }
+            guard app.isEnabled, hidden[app.bundleID] == nil, let label = labels[app.bundleID], !label.isEmpty else { return nil }
             return BadgeItem(app: app, label: label, pulseStart: pulses[app.bundleID])
         }
     }
@@ -116,6 +125,19 @@ final class BadgeService: ObservableObject {
         hasBaseline = true
         if updated != pulses { pulses = updated }
         if current != labels { labels = current }
+        let stillHidden = BadgeHide.remaining(hidden, labels: current, now: now)
+        if stillHidden != hidden { hidden = stillHidden }
+    }
+
+    /// Takes a badge out of the notch for a while (spec B-11).
+    func hide(_ bundleID: String, _ choice: BadgeHide.Choice, now: Date = Date()) {
+        hidden[bundleID] = BadgeHide.make(choice, label: labels[bundleID] ?? "", now: now)
+        acknowledge(bundleID)
+    }
+
+    /// Back beside the notch (spec B-11).
+    func unhide(_ bundleID: String) {
+        hidden[bundleID] = nil
     }
 
     /// The pointer was on the badge: it was noticed, so it stops pulsing (spec B-5).

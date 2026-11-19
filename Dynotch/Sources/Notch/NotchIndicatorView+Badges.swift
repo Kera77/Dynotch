@@ -6,6 +6,8 @@ struct BadgeDropdown: View {
     let rows: [BadgeNotificationRow]
     let openNotifications: () -> Void
     let openApp: () -> Void
+    /// Takes the badge out of the notch for a while (spec B-11).
+    var hide: (BadgeHide.Choice) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -16,6 +18,7 @@ struct BadgeDropdown: View {
                         .foregroundStyle(Color.white.opacity(0.6))
                         .lineLimit(1)
                     Spacer(minLength: 6)
+                    hideMenu
                     Button("Open", action: openApp)
                         .buttonStyle(.plain)
                         .font(.system(size: 11, weight: .semibold))
@@ -60,5 +63,35 @@ struct BadgeDropdown: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // On the first sender's line, which leaves the right side free.
+        .overlay(alignment: .topTrailing) {
+            if !rows.isEmpty {
+                hideMenu
+                    .frame(height: IndicatorLayout.badgeSenderHeight)
+                    .padding(.top, 4)
+                    .padding(.trailing, 8)
+            }
+        }
+    }
+
+    private var hideMenu: some View {
+        Menu {
+            Section("Hide This Badge") {
+                ForEach(BadgeHide.Choice.allCases) { choice in
+                    Button(choice.rawValue) { hide(choice) }
+                }
+            }
+        } label: {
+            Image(systemName: "eye.slash")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .frame(width: 22, height: 18)
+                .background(Capsule().fill(Color.white.opacity(0.12)))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Hide this badge for a while")
+        .accessibilityLabel("Hide this badge")
     }
 }

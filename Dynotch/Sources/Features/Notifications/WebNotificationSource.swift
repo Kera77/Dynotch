@@ -26,6 +26,13 @@ enum WebNotificationSource {
         return lowered.hasPrefix("com.apple.webkit") || lowered.hasPrefix("com.apple.safari.webpush")
     }
 
+    /// An installed web app (Safari "Add to Dock", a Chrome app): its page closes its own
+    /// notifications too, read or not (spec E-13d).
+    static func isWebApp(_ identifier: String) -> Bool {
+        let lowered = identifier.lowercased()
+        return lowered.hasPrefix("com.apple.safari.webapp.") || lowered.hasPrefix("com.google.chrome.app.")
+    }
+
     /// Host of the site in the record, looking at everything except the title and body (which
     /// are the message itself and could mention any domain).
     static func site(in plist: [String: Any]) -> String? {

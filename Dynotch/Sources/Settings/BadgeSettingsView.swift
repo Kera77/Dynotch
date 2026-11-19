@@ -87,6 +87,15 @@ private struct BadgeAppRow: View {
                     Text(app.name)
                 }
             }
+            // Hidden from the notch for a while: how long, and Show brings it back (spec B-11).
+            if let hide = service.hidden[app.bundleID] {
+                Text(hide.description(now: Date()))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Button("Show") { service.unhide(app.bundleID) }
+                    .controlSize(.small)
+            }
             Spacer()
             Menu {
                 Button("App icon") { service.setIcon(app.bundleID, .app) }

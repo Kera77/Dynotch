@@ -67,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.claudeUsage.start()
         services.hud.start()
         services.badges.start()
+        MenuBarSpacerService.shared.start()
         services.calls.start()
         ClaudeHook.upgradeIfNeeded()
         ClaudeQuestionHook.upgradeIfNeeded()

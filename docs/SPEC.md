@@ -266,6 +266,7 @@
 | E-13 | Ha egy üzenetet a saját appjában elolvastak vagy megválaszoltak (az értesítés eltűnik a macOS Értesítési központból), **a notch listájából is eltűnik** néhány másodpercen belül. A Dynotch által bezárt bannerek értesítései maradnak. |
 | E-13b | (v0.51) Ha egy forrásnál a Dynotch zárja be a macOS-bannert, az értesítés azonnal kikerül az Értesítési központból, így a máshol elolvasott üzenet nem tűnik el a listából. A forrás beállításainál ezt egy megjegyzés jelzi, és javasolja helyette a macOS-ben a „Nincs” értesítési stílust. |
 | E-13c | Böngészőből jött (webes) értesítéseknél (pl. Google Chat a Zenben) az oldal maga zárja be az értesítést pár másodperc után, ezért ezek az Értesítési központból kikerülve **is a notch listájában maradnak**, saját azonosítóval (a rekordazonosítót a macOS újra kiadja). Ha az oldal ugyanazt az üzenetet újra elküldi, a régi példány lecserélődik. |
+| E-13d | (v0.62) A **Safari webappok** (Dockba tett Gmail, Google Chat) és a Chrome-appok értesítéseit is maga az oldal törli az Értesítési központból pár másodperc után; ezek is **megmaradnak** a Dynotchban, mint a böngészős webes értesítések. |
 | E-14 | A Beeper-kulcs az app saját, csak a felhasználó által olvasható fájljában van (nem a kulcskarikában), így a macOS nem kér jelszót az Értesítések megnyitásakor. A korábban megadott kulcsot egyszer újra be kell illeszteni. |
 | E-1b | (v0.43) Az értesítés-adatbázis írását figyeli (a `-wal` fájlt), így az új értesítés azonnal megjelenik; a lekérdezés 5 mp-enként csak tartalék. |
 | E-1c | (v0.43) Ha az adatbázis szerkezete megváltozik (macOS-frissítés), érthető hibaüzenet jelenik meg, nem hiányoznak csendben az értesítések. |
@@ -405,6 +406,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10 | (v0.55) A jelvényre vitt egér alatt **lenyílik az app értesítéseinek listája** (legfeljebb 5: feladó, idő, a szöveg első sora). Egy sorra kattintva megnyílik az app teljes értesítéslistája a notchban. Ha az appnak nincs értesítése az Értesítési központban: „No notifications in Notification Center” és egy Open gomb. A listára lefelé mozgatva az egér nyitva tartja; felugró értesítés közben nem nyílik. |
 | B-10b | (v0.57) A lenyíló listában az üzenetek **küldőnként csoportosítva**: a küldő neve egyszer, alatta az üzenetei egymás alatt időponttal. |
 | B-10c | (v0.58) A **Beeper** jelvényénél, ha az Értesítési központban már nincs Beeper-értesítés (a Beeper pár másodperc után törli őket), a lista a Beeper **olvasatlan csevegéseit** mutatja a legutóbbi üzenettel. |
+| B-10d | (v0.62) Webapp jelvényénél (Gmail, Google Chat) a lista a megtartott értesítésekből **legfeljebb annyit** mutat, amennyi a jelvény száma (a legfrissebbeket); amiről a Dynotch nem kapott értesítést (pl. az indítása előtt jött), az nem látszik. |
+| B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -768,6 +771,17 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SH-10 | A rajzok a kép pixeleiben tárolódnak, így a mentett kép ugyanúgy néz ki, mint a szerkesztőben; a vágás nem veszi el a rajzokat. |
 | SH-11 | A **tálcán** „Screenshots” fül a mappa **legutóbbi 10** képével és felvételével (a mappából semmi nem törlődik). Képre duplán kattintva vagy a jobb klikk menü **Edit** pontjával megnyílik a szerkesztő. Kikapcsolt képmetszőnél a fül nem látszik. |
 | SH-12 | Minden kép és hiba a `screenshots.log`-ba kerül (tartalom nélkül). |
+
+## 4ő+. Menüsor-hézagok (v0.62)
+
+| # | Követelmény |
+|---|---|
+| MB-1 | A menüsor ikonjai közé **hézag** tehető: üres hely vagy vékony függőleges vonal (a menüsor színéhez igazodik). |
+| MB-2 | **Létrehozás:** *Settings › Menu bar › Add Space*, vagy egy meglévő hézagra kattintva *Add Space*. Az új hézag a menüsor-ikonok bal végére kerül. A menüsor üres részére kattintva nem lehet létrehozni (azt a rendszer kezeli), és a notchból kihúzva sem lehet pontos helyre tenni. |
+| MB-3 | **Elhelyezés:** ⌘-ot nyomva a helyére húzható (a macOS saját átrendezése); a helyét a rendszer megjegyzi, újraindítás után is ott marad. |
+| MB-4 | **Kattintás a hézagra** (bal vagy jobb): Style (*Empty* / *Line*), Width (*Small* 8, *Medium* 16, *Large* 32 pt), *Add Space*, *Remove Space*. Az üres hézag is kattintható. |
+| MB-5 | A beállításokban a hézagok listája: stílus, szélesség, eltávolítás. A hézagok megmaradnak újraindítás után. |
+| MB-6 | A notch alá eső hézag (mint minden menüikon) nem látszik. |
 
 ## 5. Nyitott kérdések
 

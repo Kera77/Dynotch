@@ -36,6 +36,7 @@ struct NotchIndicatorView: View {
     /// A hovered badge's notifications, and opening the app (spec B-10).
     var badgeRows: (BadgeItem) -> [BadgeNotificationRow] = { _ in [] }
     var openBadgeApp: (BadgeItem) -> Void = { _ in }
+    var hideBadge: (BadgeItem, BadgeHide.Choice) -> Void = { _, _ in }
     var showsBadgeList = true // off over a notification pop-up (spec E-24)
     /// The cover is hovered: its player drops down, not only the track's name (spec MU-2, MU-4).
     var showsMusicPlayer = false
@@ -67,7 +68,8 @@ struct NotchIndicatorView: View {
                     label(for: items[hoveredIndex], now: context.date)
                 } else if showsBadgeList, let badge = badges.first(where: { $0.id == hoveredBadge }) {
                     BadgeDropdown(
-                        rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) }
+                        rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) },
+                        hide: { hideBadge(badge, $0) }
                     )
                 } else if let notice {
                     noticeLabel(notice)

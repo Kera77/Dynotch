@@ -104,7 +104,7 @@ extension NotchController {
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).
     private func isOnBadgeList(at point: CGPoint, layout: IndicatorLayout, shown: [BadgeItem]) -> Bool {
         guard let current = shown.first(where: { $0.id == model.hoveredBadge }) else { return false }
-        let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: current.app, beeper: beeper))
+        let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: current, beeper: beeper))
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point)

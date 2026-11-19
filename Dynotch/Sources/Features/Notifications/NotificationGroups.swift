@@ -81,9 +81,14 @@ extension BeeperService {
 
 extension NotificationService {
     /// What a badge's hover list shows: its notifications, or for Beeper its unread chats when
-    /// none are left in Notification Center (spec B-10, B-10c).
-    func badgeListRows(for app: BadgeApp, beeper: BeeperService) -> [BadgeNotificationRow] {
-        let rows = badgeRows(for: app)
+    /// none are left in Notification Center (spec B-10, B-10c). A web app's notifications are
+    /// kept after the page closes them, so only as many as the badge counts are unread (spec B-10d).
+    func badgeListRows(for badge: BadgeItem, beeper: BeeperService) -> [BadgeNotificationRow] {
+        let app = badge.app
+        var rows = badgeRows(for: app)
+        if WebNotificationSource.isWebApp(app.bundleID), let count = BadgeTracker.count(badge.label) {
+            rows = Array(rows.prefix(max(count, 0)))
+        }
         guard rows.isEmpty, app.bundleID.lowercased().contains("beeper"), beeper.state == .ready else { return rows }
         return beeper.badgeRows()
     }

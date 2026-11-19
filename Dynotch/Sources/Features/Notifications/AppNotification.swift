@@ -42,9 +42,11 @@ struct AppNotification: Identifiable, Equatable, Sendable {
     }
 
     /// Posted by a browser for a website: the page closes these itself after a few seconds,
-    /// so leaving Notification Center says nothing about being read (spec E-13c).
+    /// so leaving Notification Center says nothing about being read (spec E-13c). Web apps
+    /// (Gmail, Google Chat added to the Dock) do the same (spec E-13d).
     var isFromBrowser: Bool {
-        WebNotificationSource.isShared(sourceIdentifier ?? appIdentifier)
+        let source = sourceIdentifier ?? appIdentifier
+        return WebNotificationSource.isShared(source) || WebNotificationSource.isWebApp(source)
     }
 }
 
