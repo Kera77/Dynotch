@@ -372,6 +372,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-15 | (v0.49) Csukáskor a notch ténylegesen visszaadja a billentyűzetet az előtérben lévő appnak (a `resignKey()` csak jelzés volt, és az ablak félaktív maradt: például a VS Code nem görgetett). Bekapcsolt egérkövetésnél a nyitott notch is megkapja a fókuszt, amikor az egér visszamegy rá. |
 | F-15b | (v0.67.1) Ha a notch-nál van a billentyűzet, és egy másik appba kattintasz, a notch azonnal visszaadja a billentyűzetet annak az appnak (eddig a kurzor villogott, de a gépelés a notch-ba ment). A Refined design árnyéka az egeret átengedő üvegablakban van, így nem fog el kattintást a notch körül. |
 | F-15c | (v0.67.2) A billentyűzet visszaadása akkor is valódi, ha a notch úgy vette el, hogy az előtérben lévő app aktív maradt: a Dynotch egy pillanatra aktív lesz, és átadja az appnak (eddig a kurzor villogott, a gépelés pittyegett egy kattintásig). A napló: `focus.log`. |
+| F-15d | (v0.67.3) Átadáskor a Dynotch ténylegesen deaktiválódik (akkor is, ha a macOS már a másik appot tartja előtérben), és ha a notch-panel ezután is fogja a billentyűzetet, egy pillanatra leveszi és visszateszi, hogy elengedje. A `focus.log` az átadás utáni állapotot is írja. |
 
 ---
 

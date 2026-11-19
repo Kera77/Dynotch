@@ -60,10 +60,9 @@ extension NotchController {
     /// resignKey() only reports; the app in front gets its key window back for real, or its
     /// window stayed half active (e.g. VS Code did not scroll) (spec F-15).
     ///
-    /// The panel never activates Dynotch, so the app in front stayed active while the panel had
-    /// the keys: activating it again did nothing, and its caret blinked while typing beeped
-    /// until a click. Dynotch is activated for a moment and hands over, which moves the keys
-    /// for real (spec F-15c).
+    /// The app in front may count as active while the panel has the keys: activating it again
+    /// did nothing, and its caret blinked while typing beeped until a click. Dynotch steps back
+    /// and the panel lets go for real (spec F-15c).
     func giveKeyboardBack() {
         guard panel.isKeyWindow else { return }
         panel.makeFirstResponder(nil)
@@ -72,14 +71,26 @@ extension NotchController {
             return
         }
         DiagnosticsLog.append("focus", "keyboard back to \(front.bundleIdentifier ?? "?") (dynotch active: \(NSApp.isActive))")
-        if NSApp.isActive {
+        // Activating `front` does nothing when macOS already counts it in front, even while
+        // Dynotch thinks itself active too; Dynotch stepping back hands the keys over for real.
+        if !NSApp.isActive { NSApp.activate() }
+        DispatchQueue.main.async { [weak self] in
+            NSApp.deactivate()
             front.activate()
-            return
-        }
-        NSApp.activate()
-        DispatchQueue.main.async {
-            NSApp.yieldActivation(to: front)
-            front.activate()
+            // A non-activating panel may stay key after all: taking it off the screen for a
+            // moment is what makes it let go.
+            if let self, self.panel.isKeyWindow {
+                self.panel.orderOut(nil)
+                self.glassPanel.orderFrontRegardless()
+                self.panel.orderFrontRegardless()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                MainActor.assumeIsolated {
+                    let now = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
+                    let key = self?.panel.isKeyWindow == true
+                    DiagnosticsLog.append("focus", "after: front=\(now) dynotch active=\(NSApp.isActive) panel key=\(key)")
+                }
+            }
         }
     }
 

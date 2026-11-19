@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Switching from the AI module (or any module with a text field) to another app, e.g. VS Code: the keys go there now; before, the caret blinked but typing went nowhere when macOS already had that app in front.
+
 ## [0.67.2] - 2026-11-19
 
 ### Fixed
