@@ -8,6 +8,7 @@
 - The row beside the notch is redrawn every second only while a meeting, a recording or a hover label counts; otherwise every 15 seconds.
 - Spotify is asked every 3 seconds only while its player is on screen; otherwise its own announcements are followed, with a check every 30 seconds.
 - One timer watches the clipboard instead of two.
+- Typing in the AI chat and its streamed answer no longer redraw the whole notch on every display; neither does the calendar's day view ticking.
 
 ### Fixed
 - Apple Notes, Messages, Bluetooth and update tools that hang are stopped after a time limit, so a stuck Notes no longer leaves the Notes module dead until Dynotch restarts.

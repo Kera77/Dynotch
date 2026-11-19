@@ -29,7 +29,11 @@ final class ClaudeChatService: ObservableObject {
     @Published private(set) var selectedID: UUID?
     @Published var draft = ""
     /// The chat Claude is answering in.
-    @Published private(set) var workingID: UUID?
+    @Published private(set) var workingID: UUID? {
+        didSet { if indicator.isWorking != isWorking { indicator.isWorking = isWorking } }
+    }
+    /// Only whether an answer is being written, for the notch (spec N-16).
+    let indicator = ChatIndicator()
     /// The chat is on screen in the notch or in the menu bar panel; an answer arriving
     /// meanwhile needs no notice.
     var isVisible = false
@@ -358,4 +362,10 @@ extension ClaudeChatService {
             finish(chatID, text: "Could not start it: \(error.localizedDescription)", sessionID: nil, isError: true)
         }
     }
+}
+
+/// Whether the AI is writing an answer: all the closed notch needs of the chat.
+@MainActor
+final class ChatIndicator: ObservableObject {
+    @Published fileprivate(set) var isWorking = false
 }

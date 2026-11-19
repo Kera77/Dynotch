@@ -3,7 +3,9 @@ import SwiftUI
 struct NotchView: View {
     @ObservedObject var model: NotchViewModel
     @ObservedObject var settings: AppSettings
-    @ObservedObject var calendar: CalendarService
+    /// The day view watches the calendar itself; the notch only the meetings beside it.
+    let calendar: CalendarService
+    @ObservedObject var calendarIndicator: CalendarIndicator
     @ObservedObject var notifications: NotificationService
     let calculator: CalculatorStore
     let notes: NotesStore
@@ -15,7 +17,10 @@ struct NotchView: View {
     @ObservedObject var calls: CallService
     @ObservedObject var keyboardLock: KeyboardLock
     @ObservedObject var notices: NoticeService
-    @ObservedObject var chat: ClaudeChatService
+    /// Watched by its own views: every streamed word and keystroke of the chat used to redraw
+    /// the whole notch. The notch only needs whether it works.
+    let chat: ClaudeChatService
+    @ObservedObject var chatIndicator: ChatIndicator
     @ObservedObject var battery: BatteryService
     let shortcuts: ShortcutStore
     let updates: UpdateService
@@ -73,7 +78,7 @@ struct NotchView: View {
     /// Meeting countdowns and the Claude usage beside the closed notch.
     var indicatorItems: [IndicatorItem] {
         IndicatorItem.items(
-            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            meetings: calendarIndicator.events, usage: claudeUsage.notchLimits, working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
         )
@@ -103,7 +108,7 @@ struct NotchView: View {
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     var labelIndex: Int? {
         if let hoveredIndicator { return hoveredIndicator }
-        if let announcement = calendar.announcement {
+        if let announcement = calendarIndicator.announcement {
             return indicatorItems.firstIndex { item in
                 if case .meeting(let event) = item { event.id == announcement.id } else { false }
             }

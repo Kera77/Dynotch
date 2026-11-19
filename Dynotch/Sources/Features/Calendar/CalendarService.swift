@@ -17,10 +17,16 @@ final class CalendarService: ObservableObject {
     /// Events per day (keyed by start of day), for the dots under the dates.
     @Published private(set) var dayCounts: [Date: Int] = [:]
     /// Events shown beside the closed notch: in progress, or starting soon.
-    @Published private(set) var indicatorEvents: [CalendarEvent] = []
+    @Published private(set) var indicatorEvents: [CalendarEvent] = [] {
+        didSet { if indicator.events != indicatorEvents { indicator.events = indicatorEvents } }
+    }
+    /// What the closed notch shows, so it is not redrawn for every tick of the day view (spec N-16).
+    let indicator = CalendarIndicator()
     /// A meeting that just entered the lead time: its name stays open below the notch until
     /// swiped away (spec K-8f).
-    @Published private(set) var announcement: CalendarEvent?
+    @Published private(set) var announcement: CalendarEvent? {
+        didSet { if indicator.announcement != announcement { indicator.announcement = announcement } }
+    }
     /// Meetings already announced, so each is announced once (also across restarts).
     private var announced: Set<String> {
         didSet { UserDefaults.standard.set(Array(announced), forKey: Self.announcedKey) }
@@ -261,4 +267,11 @@ final class CalendarService: ObservableObject {
         else { return .fallback }
         return CalendarColor(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent)
     }
+}
+
+/// The meetings beside the closed notch and the announced one: all the notch watches of the calendar.
+@MainActor
+final class CalendarIndicator: ObservableObject {
+    @Published fileprivate(set) var events: [CalendarEvent] = []
+    @Published fileprivate(set) var announcement: CalendarEvent?
 }

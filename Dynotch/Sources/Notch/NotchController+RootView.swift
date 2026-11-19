@@ -5,12 +5,13 @@ extension NotchController {
     /// The panel's SwiftUI content, wired to this controller.
     func makeRootView(_ services: AppServices) -> NotchView {
             var rootView = NotchView(
-                model: model, settings: settings, calendar: calendar,
+                model: model, settings: settings, calendar: calendar, calendarIndicator: calendar.indicator,
                 notifications: notifications, calculator: services.calculator, notes: services.notes,
                 reminders: services.reminders, tasks: services.tasks, claudeUsage: services.claudeUsage, hud: services.hud,
                 badges: services.badges,
                 calls: services.calls, keyboardLock: services.keyboardLock,
-                notices: services.notices, chat: services.chat, battery: services.battery, shortcuts: services.shortcuts,
+                notices: services.notices, chat: services.chat, chatIndicator: services.chat.indicator,
+                battery: services.battery, shortcuts: services.shortcuts,
                 updates: services.updates, tablets: services.tablets, clipboard: services.clipboard,
                 clipboardPicker: services.clipboardPicker, tray: services.tray, beeper: services.beeper, devices: services.devices,
                 musicIndicator: services.music.indicator, statsIndicator: services.stats.indicator, music: services.music,
