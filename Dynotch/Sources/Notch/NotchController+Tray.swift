@@ -159,15 +159,28 @@ extension NotchController {
         guard !model.isExpanded, notifications.peek == nil, let event = devices.current,
               model.geometry.keepOpenZone(for: model.geometry.devicePeekSize).contains(point)
         else {
+            deviceHoverTask?.cancel()
+            deviceHoverTask = nil
             if devices.current != nil, !model.isExpanded, model.hoveredIndicator == nil, model.hoveredBadge == nil {
                 panel.ignoresMouseEvents = true
             }
             return false
         }
         if event.actions.isEmpty, event.category == .bluetooth, settings.isEnabled(.battery) {
-            devices.dismiss()
-            expand()
-            withAnimation(Self.animation) { model.select(.battery) }
+            // Resting half a second opens the batteries; a flick before that only hides it (spec DV-14).
+            panel.ignoresMouseEvents = false
+            guard deviceHoverTask == nil else { return true }
+            deviceHoverTask = Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(500))
+                guard let self, !Task.isCancelled else { return }
+                self.deviceHoverTask = nil
+                guard self.devices.current?.id == event.id, !self.model.isExpanded,
+                      self.model.geometry.keepOpenZone(for: self.model.geometry.devicePeekSize).contains(NSEvent.mouseLocation)
+                else { return }
+                self.devices.dismiss()
+                self.expand()
+                withAnimation(Self.animation) { self.model.select(.battery) }
+            }
         } else {
             panel.ignoresMouseEvents = false
             startHoverTimer()

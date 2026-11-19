@@ -193,7 +193,7 @@ final class NativeBannerDismisser {
     }
 
     /// On-screen windows above the normal level: owner process, layer and size. No titles.
-    private static func topWindows() -> [String] {
+    static func topWindows() -> [String] {
         let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
         return info.compactMap { window -> String? in
             guard let layer = window[kCGWindowLayer as String] as? Int, layer > 3, layer < 1000,

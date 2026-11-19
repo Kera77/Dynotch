@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.63.1] - 2026-11-19
+
+### Fixed
+- macOS's own Bluetooth banner is looked for in Control Center and the other system processes too, not only in Notification Center; devices.log notes where it was looked for.
+- The device notice is centred under the notch.
+- Dynotch could freeze with a notice stuck under the notch (e.g. while switching sound devices): measuring the menu bar asked Dynotch's own accessibility from the background.
+
+### Changed
+- A device notice can be flicked away upwards; resting on a Bluetooth notice opens the batteries after half a second.
+
 ## [0.63.0] - 2026-11-19
 
 ### Changed

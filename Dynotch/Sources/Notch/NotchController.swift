@@ -83,6 +83,8 @@ final class NotchController {
     var settingsClickMonitor: Any?
     /// Waits for the pointer to rest on the notch's bottom edge (spec MS-2).
     var stripTask: Task<Void, Never>?
+    /// Opens the batteries after resting on a Bluetooth notice, so it can be flicked away first.
+    var deviceHoverTask: Task<Void, Never>?
 
     init(screen: NSScreen, services: AppServices, openSettings: @escaping () -> Void) {
         settings = services.settings

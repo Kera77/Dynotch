@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.63 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.63.1 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -572,6 +572,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | DV-10 | A macOS **gombos** Bluetooth-szalagcímei (pl. **„Move to iPhone”**, „Connect”) bármikor, csatlakozás nélkül is a notchba kerülnek: a szalagcím bezárul, a felugrón az eszköz mellett **kék gomb** a szalagcím gombjának feliratával. Megnyomva: ha az eszköz ehhez a Machez csatlakozik, a Mac elengedi (így a másik eszköz átveheti), különben a Mac csatlakozik hozzá. A naplóba (`devices.log`) csak az kerül, hogy szalagcím zárult be és volt-e gombja, szöveg nem. |
 | DV-11 | (hiba) Az eszköz-felugró saját, magasabb méretet kap (a notch alatt 66 pt, legalább 420 pt széles), alul 14 pt térközzel: a szöveg nem ér a notch aljáig. |
 | DV-12 | Ha egy Bluetooth-eszköz lecsatlakozás nélkül újra „csatlakozik” (egyes eszközök negyedóránként), az előző csatlakozástól számított 30 percen belül nincs új felugró. Valódi lecsatlakozás után a következő csatlakozás mindig megjelenik. |
+| DV-13 | (hiba, v0.63.1) A macOS Bluetooth-szalagcímét nem csak az Értesítési központban keresi, hanem a Vezérlőközpontban, az AirPlay-ügynökben, a SystemUIServerben és bármely, a képernyő tetején épp megjelenő ablak gazdájában; ha a szalagcím ablak, a bezárógombját nyomja meg. A `devices.log` csatlakozás után 1,5 és 4 mp-nél (ha még nem zárta be) szöveg nélkül felírja, mely folyamatokban keresett és milyen felső ablakok látszanak. Az eszköz-felugró tartalma mindig **középre** igazított. |
+| DV-14 | Az eszköz-felugró **felfelé pöccintéssel** (két ujjal) eltűnik. A gomb nélküli Bluetooth-felugróra vitt egér 0,5 mp után nyitja az Akkumulátorok modult (addig pöccinthető). (hiba) Eszközváltáskor a notch beragadhatott: a menüsor mérése háttérszálon a Dynotch saját kisegítő fáját is kérdezte, ha az volt előtérben, és ez holtpontba vitte az appot; a saját folyamatát már nem kérdezi. |
 
 ## 4w. Olvasatlan üzenetek a notchban (v0.42)
 
@@ -832,6 +834,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.63.1** | Beragadó notch (holtpont a menüsor mérésénél) javítva; BT-szalagcím keresése a Vezérlőközpontban is, naplóval; középre igazított, pöccintéssel eltüntethető eszköz-felugró |
 | **v0.63** | Bluetooth-felugró: ikon, név, „Connected”, AirPods füles- és tokszint; a macOS BT-szalagcímei („Move to iPhone”) a notchba kerülnek kék gombbal; magasabb eszköz-felugró; ismétlődő újracsatlakozás csendben |
 | **v0.62.1** | Beállítások › App badges: a Show után a rejtés sora azonnal eltűnik |
 | **v0.62** | Menüsor-hézagok (üres vagy vonal, ⌘-húzással); jelvény elrejtése időre vagy új üzenetig; Gmail és Google Chat webapp-jelvény listája a megtartott értesítésekből |

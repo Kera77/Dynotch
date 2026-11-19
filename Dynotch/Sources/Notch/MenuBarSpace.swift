@@ -23,7 +23,10 @@ enum MenuBarSpace {
         let app = AXUIElementCreateApplication(frontPID)
         AXUIElementSetMessagingTimeout(app, 0.2)
         var menuBar: CFTypeRef?
-        if AXUIElementCopyAttributeValue(app, kAXMenuBarAttribute as CFString, &menuBar) == .success,
+        // Never Dynotch itself: answering its own accessibility off the main thread waits for
+        // the main thread, which deadlocked the app (spec DV-14).
+        if frontPID != ownPID,
+           AXUIElementCopyAttributeValue(app, kAXMenuBarAttribute as CFString, &menuBar) == .success,
            let menuBar, CFGetTypeID(menuBar) == AXUIElementGetTypeID() {
             // swiftlint:disable:next force_cast
             snapshot.menuItems = children(of: menuBar as! AXUIElement).compactMap(frame(of:))

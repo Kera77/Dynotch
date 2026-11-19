@@ -204,6 +204,16 @@ extension NotchController {
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
+        // A device notice is flicked away upwards (spec DV-14).
+        if devices.current != nil,
+           model.geometry.keepOpenZone(for: model.geometry.devicePeekSize).contains(NSEvent.mouseLocation) {
+            if isSwipeUp(event) {
+                deviceHoverTask?.cancel()
+                deviceHoverTask = nil
+                withAnimation(NotchView.quickAnimation) { devices.dismiss() }
+            }
+            return true
+        }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown

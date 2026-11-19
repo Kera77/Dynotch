@@ -29,9 +29,10 @@ struct DevicePeekView: View {
                         }
                     }
                 }
-                Spacer(minLength: 6)
                 ForEach(Array(event.actions.enumerated()), id: \.offset) { _, action in actionButton(action) }
             }
+            // Always centred under the notch (spec DV-11).
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, 16)
             .padding(.top, 6)
             .padding(.bottom, 14)
