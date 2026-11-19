@@ -12,6 +12,7 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
     case reminders
     case contacts
     case bluetooth
+    case screenRecording
 
     var id: String { rawValue }
 
@@ -23,6 +24,7 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
         case .reminders: "Reminders"
         case .contacts: "Contacts"
         case .bluetooth: "Bluetooth"
+        case .screenRecording: "Screen Recording"
         }
     }
 
@@ -35,6 +37,7 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
         case .reminders: "Reminders module"
         case .contacts: "Caller names and texting back"
         case .bluetooth: "Connected devices"
+        case .screenRecording: "Screenshots, window previews, hiding the notch while the screen is shared"
         }
     }
 
@@ -46,6 +49,7 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
         case .reminders: "checklist"
         case .contacts: "person.crop.circle"
         case .bluetooth: "dot.radiowaves.left.and.right"
+        case .screenRecording: "rectangle.dashed.badge.record"
         }
     }
 
@@ -59,6 +63,7 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
         case .reminders: anchor = "Privacy_Reminders"
         case .contacts: anchor = "Privacy_Contacts"
         case .bluetooth: anchor = "Privacy_Bluetooth"
+        case .screenRecording: anchor = "Privacy_ScreenCapture"
         }
         return URL(string: "x-apple.systempreferences:com.apple.preference.security?" + anchor)
     }
@@ -79,6 +84,8 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
             return Self.contacts()
         case .bluetooth:
             return Self.bluetooth()
+        case .screenRecording:
+            return CGPreflightScreenCaptureAccess()
         }
     }
 
@@ -97,11 +104,32 @@ enum Permission: String, CaseIterable, Identifiable, Sendable {
             case .reminders:
                 _ = try? await EKEventStore().requestFullAccessToReminders()
                 return
-            case .fullDiskAccess, .accessibility, .bluetooth:
+            case .fullDiskAccess, .accessibility, .bluetooth, .screenRecording:
                 break
             }
         }
+        // The first request adds Dynotch to the list in System Settings.
+        if self == .screenRecording, !CGPreflightScreenCaptureAccess() { _ = CGRequestScreenCaptureAccess() }
         if let settingsURL { NSWorkspace.shared.open(settingsURL) }
+    }
+
+    /// A module or option in use needs it, so its absence breaks something (spec C-8d).
+    @MainActor
+    func isNeeded(by settings: AppSettings) -> Bool {
+        switch self {
+        case .fullDiskAccess: settings.isEnabled(.notifications)
+        case .accessibility: true
+        case .calendar: settings.isEnabled(.calendar)
+        case .reminders: settings.isEnabled(.reminders)
+        case .contacts: settings.callsEnabled
+        case .bluetooth, .screenRecording: false
+        }
+    }
+
+    /// The permissions in use that are missing.
+    @MainActor
+    static func missing(settings: AppSettings, notificationsReadable: Bool) -> [Permission] {
+        allCases.filter { $0.isNeeded(by: settings) && $0.isGranted(notificationsReadable: notificationsReadable) == false }
     }
 
     private static func contacts() -> Bool? {

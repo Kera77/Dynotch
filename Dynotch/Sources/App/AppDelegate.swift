@@ -66,6 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         focusFollowsMouse.start()
         services.claudeUsage.start()
         services.hud.start()
+        services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
         services.badges.start()
         MenuBarSpacerService.shared.start()
         services.calls.start()

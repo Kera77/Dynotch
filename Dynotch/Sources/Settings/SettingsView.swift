@@ -20,9 +20,14 @@ struct SettingsView: View {
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
 
+    /// Sections with something to fix: a permission a module in use needs (spec C-8d).
+    private var warnings: Set<SettingsTab> {
+        Permission.missing(settings: settings, notificationsReadable: notifications.status == .running).isEmpty ? [] : [.permissions]
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            SettingsSidebar(selected: $selectedTab, search: $search)
+            SettingsSidebar(selected: $selectedTab, search: $search, warnings: warnings)
             Divider()
             // Changing sections slides in, like the notification tabs (spec C-10).
             content
@@ -62,7 +67,7 @@ struct SettingsView: View {
         case .menuBar:
             MenuBarSettingsView(spacers: MenuBarSpacerService.shared)
         case .permissions:
-            PermissionsSettingsView(notifications: notifications)
+            PermissionsSettingsView(notifications: notifications, settings: settings)
         case .about:
             AboutSettingsView(updates: updates, settings: settings, notifications: notifications)
         }

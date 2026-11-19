@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- Settings › Permissions lists Screen Recording too; a permission that a module in use needs but lacks is flagged orange there and with a dot beside Permissions in the sidebar.
+- During a macOS Focus a new app badge does not pulse (same rule as the notification pop-ups).
+
 ### Changed
 - Less work in the background: full screen, Mission Control, screen sharing and incoming calls share one window list read in the background, instead of five timers asking on the main thread.
 - A new badge pulses with a system animation instead of redrawing the notch 20 times a second for five minutes.

@@ -245,6 +245,12 @@ extension NotificationService {
         due.forEach { bringBack($0.notification) }
     }
 
+    /// A macOS Focus silences Dynotch now (spec E-20, B-5b): no pop-ups, no pulsing badges.
+    var isSilencedByFocus: Bool {
+        guard preferences.respectsFocus, let focus = MacFocus.current() else { return false }
+        return !Self.isIgnored(focus, ignored: preferences.ignoredFocus)
+    }
+
     /// Whether a notification may pop up now: not while a Focus is on, unless its source may.
     func popsUp(_ notification: AppNotification) -> Bool {
         guard preferences.respectsFocus, let focus = MacFocus.current() else { return true }

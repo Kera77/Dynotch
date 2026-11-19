@@ -87,6 +87,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 struct SettingsSidebar: View {
     @Binding var selected: SettingsTab
     @Binding var search: String
+    var warnings: Set<SettingsTab> = []
 
     static let width: CGFloat = 160
 
@@ -106,6 +107,10 @@ struct SettingsSidebar: View {
                                 Text(tab.title)
                                     .font(.system(size: 13))
                                 Spacer(minLength: 0)
+                                if warnings.contains(tab) {
+                                    Circle().fill(Color.orange).frame(width: 7, height: 7)
+                                        .help("A module in use is missing a permission")
+                                }
                             }
                             .foregroundStyle(tab == selected ? Color.white : Color.primary)
                             .padding(.horizontal, 8)
@@ -134,6 +139,7 @@ struct SettingsSidebar: View {
 /// Settings › Permissions: every permission, granted or not, with a way to grant it (spec C-8).
 struct PermissionsSettingsView: View {
     @ObservedObject var notifications: NotificationService
+    @ObservedObject var settings: AppSettings
     @State private var refresh = 0
 
     var body: some View {
@@ -147,6 +153,10 @@ struct PermissionsSettingsView: View {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(permission.title)
                             Text(permission.purpose).font(.caption).foregroundStyle(.secondary)
+                            if isMissingInUse(permission) {
+                                Label("A module you use needs it", systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption).foregroundStyle(.orange)
+                            }
                         }
                         Spacer()
                         status(permission)
@@ -161,6 +171,10 @@ struct PermissionsSettingsView: View {
         .formStyle(.grouped)
         .id(refresh)
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in refresh += 1 }
+    }
+
+    private func isMissingInUse(_ permission: Permission) -> Bool {
+        permission.isNeeded(by: settings) && permission.isGranted(notificationsReadable: notifications.status == .running) == false
     }
 
     @ViewBuilder private func status(_ permission: Permission) -> some View {
