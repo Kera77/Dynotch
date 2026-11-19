@@ -146,26 +146,36 @@ enum GoogleChatWebReader {
         var sendButton: AXUIElement?
         private var visited = 0
 
-        mutating func walk(_ element: AXUIElement) {
-            visited += 1
-            guard visited < GoogleChatWebReader.elementLimit else { return }
+        /// Depth first, in page order, without recursion: the page is deeper than a background
+        /// thread's stack allows (a crash in 0.69.0).
+        mutating func walk(_ root: AXUIElement) {
+            var stack = [root]
+            while let element = stack.popLast() {
+                visited += 1
+                guard visited < GoogleChatWebReader.elementLimit else { return }
+                if visit(element) { stack += AXRead.children(element).reversed() }
+            }
+        }
+
+        /// Reads one element; whether its children are to be read.
+        private mutating func visit(_ element: AXUIElement) -> Bool {
             let role = AXRead.string(element, kAXRoleAttribute) ?? ""
             if role == "AXWebArea" { readPage(element) }
             let domID = AXRead.string(element, "AXDOMIdentifier") ?? ""
             if let id = GoogleChatWebReader.conversationID(fromDOM: domID) {
                 readItem(element, id: id)
-                return
+                return false
             }
             if domID.hasSuffix(GoogleChatWebReader.messageSuffix) {
                 let text = AXRead.texts(in: element).joined(separator: " ")
                 messages.append(ChatWebMessage(id: String(domID.dropLast(GoogleChatWebReader.messageSuffix.count)), text: text))
-                return
+                return false
             }
             if role == (kAXTextAreaRole as String), composer == nil { composer = element }
             if role == (kAXButtonRole as String), composer != nil, sendButton == nil, isSendButton(element) {
                 sendButton = element
             }
-            for child in AXRead.children(element) { walk(child) }
+            return true
         }
 
         private func isSendButton(_ button: AXUIElement) -> Bool {

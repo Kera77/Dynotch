@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.69.2] - 2026-11-19
+
+### Fixed
+- Dynotch could crash while reading the Google Chat web app (its page is deeper than a background thread's stack); the page is now walked without recursion.
+
 ## [0.69.1] - 2026-11-19
 
 ### Fixed

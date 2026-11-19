@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.69.1 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.69.2 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -709,6 +709,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-5b | (v0.69) **Olvasatlan, de értesítés nélküli beszélgetés:** ha a webapp oldalsávja egy beszélgetést olvasatlannak mutat, és a listában nincs hozzá Google Chat-értesítés (a Google nyitott webapp mellett nem mindig küld), a Dynotch kártyát tesz az Értesítések közé a beszélgetés nevével, „Unread in Google Chat” szöveggel (az oldalsáv nem ad üzenetszöveget). Az indításkor talált olvasatlanok csak a listába kerülnek, a később jöttek felugranak. Az elolvasott beszélgetés kártyája GW-7 szerint eltűnik; a hozzá később érkező valódi értesítés lecseréli. Az X-szel bezárt kártya csak akkor jön újra, ha a beszélgetés közben olvasott lett. |
 | GW-5c | (v0.69.1) **Név és szöveg:** a beszélgetés neve az oldalsáv feliratai közül az „Olvasatlan” jelzés, a privát üzenetek állapota („Nincs a gépnél”) és a darabszám („1 értesítés”) nélkül: csoportnál az első, privát üzenetnél az utolsó megmaradt felirat. A kártya szövege „N unread message(s) in Google Chat”. **A kártya lenyitásakor** a Dynotch a háttérben megnyitja a beszélgetést a webappban (mint GW-8, a Chatben is olvasott lesz), és a kártyába beírja az utolsó olvasatlan üzeneteket (legfeljebb 8). |
 | GW-6 | **Frissítés:** a Dynotch 10 mp-enként (beállítható 5–30 mp) újraolvassa a webappot, és minden Google Chat-értesítéskor azonnal. Egy változás legfeljebb 30 mp alatt megjelenik a notchban. |
+| GW-6b | (v0.69.2, hiba) A webapp bejárása **nem rekurzív** (saját veremmel, oldalsorrendben), mert a Chat oldala mélyebb, mint amit egy háttérszál verme elbír: 0.69.0-ban ez összeomlást okozott. |
 | GW-7 | **Változás a Chatből a notchba:** ha egy beszélgetést a Chatben (vagy máshol, pl. telefonon) elolvasol, a Google Chat-értesítései eltűnnek a notchból: ha a beszélgetést az értesítés óta olvasatlannak látta, vagy az értesítés 90 mp-nél régebbi. Ismeretlen vagy több beszélgetésre illő név esetén az értesítés marad. |
 | GW-8 | **Változás a notchból a Chatbe:** ha a notchban a válaszmezőbe kattintasz vagy válaszolsz (UM-3b), a Dynotch a webappban a háttérben megnyitja a beszélgetést (kattintás a kisegítő felületen, az ablak előtérbe hozása nélkül, ha a böngésző engedi), így a Chatben is olvasott lesz. Ha a háttérben nem megy, a beszélgetés olvasatlan marad, amíg meg nem nyitod. |
 | GW-9 | **Válasz:** a Dynotch a háttérben megnyitja a beszélgetést, és **csak akkor** ír, ha a webapp címe a cél beszélgetés azonosítóját mutatja, és az üzenetmező üres. A szöveget közvetlenül a mezőbe írja, és az engedélyezett „Send message” gombot nyomja meg, vágólap és billentyűleütés nélkül. Ha a beszélgetés név alapján nem azonosítható egyértelműen, vagy a mező nem írható, semmi nem megy el, és a meglévő begépelés jön (E-11b, E-11d). |
@@ -908,6 +909,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.69.2** | Összeomlás javítása a Google Chat-webapp olvasásakor (túl mély rekurzió) |
 | **v0.69.1** | A színezés a menüsoron (fölötte, áttetszőn, a notch kihagyásával); Google Chat-kártyák helyes névvel, lenyitva az üzenetekkel |
 | **v0.69.0** | „Kész” sor kattintásra az appra visz (Claude, ChatGPT/Codex), színezett menüsor, Join után eltűnő meeting-sor, a Dynotch saját értesítései kapcsolhatók; hibák: Dock-hover, BT-befagyás, megosztásban látszó notch, jelvény-elcsúszás, Google Chat értesítés nélkül |
 | **v0.68.0** | Google Chat a Safari-webappból (Kisegítő hozzáférés, GCP nélkül): a Chatben olvasott beszélgetés eltűnik a notchból, a válasz közvetlenül a webapp üzenetmezőjébe megy, ellenőrzéssel |
