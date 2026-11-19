@@ -14,6 +14,8 @@ final class NotchViewModel: ObservableObject {
     @Published private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
     @Published private(set) var isPreview = false
+    /// What the wider side of the preview needs (spec PV-8).
+    @Published var previewSide: CGFloat = 200
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
     @Published private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
@@ -146,7 +148,7 @@ final class NotchViewModel: ObservableObject {
 
     /// Swiping steps through the tabs first (spec UM-8); false at either end.
     func stepNotificationsTab(by offset: Int) -> Bool {
-        let tabs = NotificationsTab.allCases
+        let tabs = NotificationsTab.shown(mail: settings.mailSource == .appleMail)
         guard let index = tabs.firstIndex(of: notificationsTab), tabs.indices.contains(index + offset) else { return false }
         notificationsTab = tabs[index + offset]
         updateLarge()
@@ -226,7 +228,7 @@ final class NotchViewModel: ObservableObject {
         if isShowingOverlayPage {
             return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
         }
-        if isPreview { return geometry.previewSize }
+        if isPreview { return geometry.previewSize(side: previewSide) }
         // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }

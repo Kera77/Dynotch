@@ -6,6 +6,8 @@ enum NotificationsTab: String, CaseIterable, Sendable {
     case chats
     case beeper
     case googleChat
+    /// The unread mail of the accounts read from Apple Mail (spec GM-6).
+    case mail
 
     var title: String {
         switch self {
@@ -13,7 +15,13 @@ enum NotificationsTab: String, CaseIterable, Sendable {
         case .chats: "Chats"
         case .beeper: "Beeper"
         case .googleChat: "Google Chat"
+        case .mail: "Mail"
         }
+    }
+
+    /// The tabs in the picker and the swipe order: Mail only with Mail as Gmail's source (spec GM-6).
+    static func shown(mail: Bool) -> [Self] {
+        mail ? allCases : allCases.filter { $0 != .mail }
     }
 
     /// The Beeper tab needs the larger panel (spec BP-1); Google Chat is a list like All (spec GC-6).
@@ -46,6 +54,7 @@ enum ChatSources {
 struct NotificationsTabsView: View {
     @ObservedObject var service: NotificationService
     @ObservedObject var beeper: BeeperService
+    @ObservedObject var mail: MailService
     @Binding var tab: NotificationsTab
     var isActive = false
     /// The pointer is over the tab picker: only there a swipe steps between the tabs (spec UM-8d).
@@ -54,8 +63,12 @@ struct NotificationsTabsView: View {
     var body: some View {
         VStack(spacing: 6) {
             HStack {
-                CapsulePicker(items: NotificationsTab.allCases, selection: $tab, title: \.title) { item in
-                    item == .beeper ? beeper.unreadTotal : nil
+                CapsulePicker(items: NotificationsTab.shown(mail: mail.isActive), selection: $tab, title: \.title) { item in
+                    switch item {
+                    case .beeper: beeper.unreadTotal
+                    case .mail: mail.state == .reading ? mail.totalUnread : nil
+                    default: nil
+                    }
                 }
                 Spacer()
             }
@@ -78,7 +91,12 @@ struct NotificationsTabsView: View {
         switch tab {
         case .all:
             // No unread bubbles here; the Chats tab has them as cards (spec UM-8b).
-            NotificationsFeatureView(service: service, isActive: isActive) { !readInBeeper($0) }
+            // Mail's unread above, standing for Gmail's notifications (spec GM-6).
+            NotificationsFeatureView(
+                service: service, isActive: isActive,
+                include: { !readInBeeper($0) && !service.isShownByMail($0) },
+                leading: mail.isActive && mail.totalUnread > 0 ? AnyView(MailUnreadList(mail: mail, limit: 3)) : nil
+            )
         case .chats:
             // Unread Beeper chats as notification cards, like before Beeper got its own tab;
             // Beeper's own notifications would be the same messages twice (spec UM-9).
@@ -94,6 +112,8 @@ struct NotificationsTabsView: View {
             )
         case .beeper:
             BeeperTabView(service: beeper)
+        case .mail:
+            MailTabView(mail: mail)
         case .googleChat:
             // Only the unread messages, like the All tab (spec GC-6).
             NotificationsFeatureView(service: service, isActive: isActive) { ChatSources.isGoogleChat($0, catalog: service.catalog) }

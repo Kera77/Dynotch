@@ -46,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var textService: TextServiceProvider?
     private var switcherObserver: AnyCancellable?
     private var screenshotObserver: AnyCancellable?
+    private var mailBadgeObserver: AnyCancellable?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -67,6 +68,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.claudeUsage.start()
         services.hud.start()
         services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
+        services.badges.labelOverride = { [weak notifications = services.notifications] in notifications?.mailBadgeLabel(for: $0) }
+        mailBadgeObserver = services.notifications.mail.objectWillChange.sink { [weak badges = services.badges] in
+            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
+        }
         services.badges.start()
         MenuBarSpacerService.shared.start()
         MenuBarTintService.shared.start()

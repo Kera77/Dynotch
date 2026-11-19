@@ -297,6 +297,11 @@ extension NotchController {
             openChatTab(tab)
             return
         }
+        // Gmail read from Mail: its own tab (spec GM-7).
+        if notifications.mail.isActive, NotificationService.isGmailApp(badge.app) {
+            openChatTab(.mail)
+            return
+        }
         notifications.clearPeek()
         setHoveredBadge(nil)
         // The filter is in place before the panel and the list appear.

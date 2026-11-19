@@ -6,7 +6,7 @@ import SwiftUI
 extension NotchController {
     /// The strip may show: turned on, nothing else at the notch.
     private var stripAvailable: Bool {
-        settings.moduleStrip && !model.isExpanded && notifications.peek == nil && !callIsShown
+        settings.moduleStrip && !settings.hoverPreview && !model.isExpanded && notifications.peek == nil && !callIsShown
             && !model.isHiddenForFullScreen && ModuleStripChoice.features(from: settings.listedFeatures).count > 1
     }
 
@@ -17,7 +17,7 @@ extension NotchController {
     }
 
     /// The strip itself, where the pointer may go to pick a module.
-    private var stripArea: CGRect {
+    var stripArea: CGRect {
         model.geometry.moduleStripRect(count: ModuleStripChoice.features(from: settings.listedFeatures).count)
             .offsetBy(dx: 0, dy: -pillGap)
             .insetBy(dx: -6, dy: -6)
@@ -70,7 +70,7 @@ extension NotchController {
     /// A click on a module in the strip opens the notch on it (spec MS-3).
     func openFromStrip(_ feature: FeatureID) {
         hideStrip()
-        expand()
+        if model.isPreview { openFully() } else { expand() }
         withAnimation(Self.animation) { model.select(feature) }
     }
 }

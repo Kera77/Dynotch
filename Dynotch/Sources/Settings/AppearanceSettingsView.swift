@@ -71,21 +71,11 @@ struct AppearanceSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                Toggle("Show only a preview on hover", isOn: $settings.hoverPreview)
-                LabeledContent("Open fully after") {
-                    HStack {
-                        Slider(value: $settings.previewDelay, in: AppSettings.previewDelayRange, step: 0.5)
-                            .frame(width: 160)
-                        Text(settings.previewDelay == 0 ? "Never" : "\(settings.previewDelay, specifier: "%.1f") s")
-                            .monospacedDigit()
-                            .frame(width: 48, alignment: .trailing)
-                    }
-                }
-                .disabled(!settings.hoverPreview)
-                Toggle("Click the preview to open fully", isOn: $settings.previewOpensOnClick)
-                    .disabled(!settings.hoverPreview)
+                Toggle("DyNotch Wings", isOn: $settings.hoverPreview)
             } footer: {
-                Text("The preview shows one line about the current feature. Shortcuts always open the whole panel.")
+                Text("Hovering spreads the notch into wings at both sides with the current module at a glance (and the "
+                    + "module strip below, if on). A click on the notch or a two-finger swipe down opens it fully; the wings' "
+                    + "buttons work on their own.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

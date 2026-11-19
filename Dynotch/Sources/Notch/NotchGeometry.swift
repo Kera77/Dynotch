@@ -99,10 +99,14 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
-    /// The small panel shown on hover in preview mode (spec PV-1).
-    var previewSize: CGSize {
-        CGSize(width: max(notchSize.width + 220, 420), height: notchSize.height + 58)
+    /// DyNotch Wings: the notch widened to both sides at its own height, as far as the wider
+    /// side's content needs, at most two thirds of the display (spec PV-4, PV-8).
+    func previewSize(side: CGFloat) -> CGSize {
+        let wanted = notchSize.width + 2 * max(side, Self.previewMinSide)
+        return CGSize(width: max(min(wanted, screenFrame.width * 2 / 3), notchSize.width), height: notchSize.height)
     }
+
+    static let previewMinSide: CGFloat = 120
 
     /// The Claude chat with a conversation: grows downwards (spec CC-3).
     var chatSize: CGSize {

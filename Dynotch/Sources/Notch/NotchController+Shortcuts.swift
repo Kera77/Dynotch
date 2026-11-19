@@ -142,24 +142,29 @@ extension NotchController {
 // MARK: - Preview on hover (spec PV-1…PV-3)
 
 extension NotchController {
-    /// The panel shows the preview; after the configured time it opens fully by itself.
+    /// The panel shows the preview; only a click or a swipe down opens it fully (spec PV-5).
     func startPreview() {
+        model.stripOrigin = NSEvent.mouseLocation.x - model.geometry.notchRect.midX
         model.setPreview(true)
-        previewTask?.cancel()
-        let delay = settings.previewDelay
-        guard delay > 0 else { return }
-        previewTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
-            guard !Task.isCancelled else { return }
-            self?.openFully()
-        }
     }
 
     func openFully() {
-        previewTask?.cancel()
-        previewTask = nil
         guard model.isPreview else { return }
         withAnimation(Self.animation) { model.setPreview(false) }
+    }
+
+    /// A two-finger swipe down over the preview opens the panel fully (spec PV-5).
+    func handlePreviewScroll(_ event: NSEvent) -> Bool {
+        let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
+        if previewSwipe.handle(phase: Self.phase(of: event), fingerUp: fingerDown, deltaX: event.scrollingDeltaX) {
+            openFully()
+        }
+        return true
+    }
+
+    /// The module strip under the preview (spec PV-6).
+    var showsPreviewStrip: Bool {
+        model.isPreview && settings.moduleStrip && ModuleStripChoice.features(from: settings.listedFeatures).count > 1
     }
 }
 

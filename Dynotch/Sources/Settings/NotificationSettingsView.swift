@@ -114,6 +114,8 @@ struct NotificationSettingsView: View {
 
             GoogleChatWebSettingsSection(chatWeb: service.chatWeb)
 
+            MailSettingsSection(settings: settings, mail: service.mail)
+
             DynotchAlertsSection(preferences: service.preferences)
 
             Section {

@@ -32,6 +32,8 @@ final class NotificationService: ObservableObject {
     let catalog = NotificationAppCatalog()
     /// Google Chat read from its web app (spec GW-1).
     let chatWeb: GoogleChatWebService
+    /// Gmail and other accounts read from Apple Mail (spec GM-1).
+    let mail: MailService
     /// The websites seen and every source's rules (spec E-15).
     let preferences: NotificationPreferences
     private var preferencesObserver: AnyCancellable?
@@ -61,6 +63,7 @@ final class NotificationService: ObservableObject {
         self.settings = settings
         preferences = NotificationPreferences(defaults: settings.defaults)
         chatWeb = GoogleChatWebService(defaults: settings.defaults)
+        mail = MailService(settings: settings)
         catalog.update(sites: preferences.sites, names: preferences.names)
         preferencesObserver = preferences.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
@@ -77,6 +80,7 @@ final class NotificationService: ObservableObject {
     func start() {
         settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
+        mail.start()
     }
 
     func content(for notification: AppNotification) -> NotificationContent {
@@ -267,6 +271,7 @@ final class NotificationService: ObservableObject {
         }
         guard let newest = incoming.last else { return }
         chatWebNoticed(incoming)
+        mailNoticed(incoming)
         // A record updated in place replaces its earlier version (spec E-1d).
         let ids = Set(incoming.map(\.id))
         // A kept website notification posted again replaces the kept copy (spec E-13c).

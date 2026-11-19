@@ -46,8 +46,7 @@ final class AppSettings: ObservableObject {
         static let focusDelay = "focusDelay"
         static let calls = "calls"
         static let hoverPreview = "hoverPreview"
-        static let previewDelay = "previewDelay"
-        static let previewClick = "previewClick"
+        static let mailSource = "mailSource"
     }
 
     /// Also used by the other stores, so tests can give everything one private domain.
@@ -132,26 +131,14 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(hudEnabled, forKey: Key.hud) }
     }
 
-    static let previewDelayRange: ClosedRange<Double> = 0...5
-
     /// Hovering the notch shows a small preview first (spec PV-1).
     @Published var hoverPreview: Bool {
         didSet { defaults.set(hoverPreview, forKey: Key.hoverPreview) }
     }
 
-    /// Seconds of hovering until the preview opens fully; 0: never by itself (spec PV-2).
-    @Published var previewDelay: Double {
-        didSet {
-            let range = Self.previewDelayRange
-            let clamped = (min(max(previewDelay, range.lowerBound), range.upperBound) * 2).rounded() / 2
-            if clamped != previewDelay { previewDelay = clamped; return }
-            defaults.set(previewDelay, forKey: Key.previewDelay)
-        }
-    }
-
-    /// A click on the preview opens the panel fully (spec PV-3).
-    @Published var previewOpensOnClick: Bool {
-        didSet { defaults.set(previewOpensOnClick, forKey: Key.previewClick) }
+    /// Where Gmail's unread messages come from (spec GM-12).
+    @Published var mailSource: MailSource {
+        didSet { defaults.set(mailSource.rawValue, forKey: Key.mailSource) }
     }
 
     /// Incoming calls in the notch (spec P-1).
@@ -328,8 +315,7 @@ final class AppSettings: ObservableObject {
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)
-        previewDelay = Self.stored(defaults, Key.previewDelay, default: 1.5, in: Self.previewDelayRange)
-        previewOpensOnClick = defaults.object(forKey: Key.previewClick) as? Bool ?? true
+        mailSource = defaults.string(forKey: Key.mailSource).flatMap(MailSource.init(rawValue:)) ?? .notifications
         claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))
         claudeUsageAlerts = defaults.object(forKey: Key.claudeAlerts) as? Bool ?? true

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.73 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.74 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -495,6 +495,13 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-1 | Beállítás (General): **hoverre csak előnézet**. Bekapcsolva a notch fölé vitt egérre egy kis panel nyílik: az aktuális modul ikonja, neve és egy sor róla (következő esemény, legutóbbi értesítés, utolsó számítás, jegyzet első sora, nyitott emlékeztetők, AI-keret, Claude utolsó válasza). |
 | PV-2 | Beállítás: **hány másodperc hover után nyíljon ki teljesen** (0–5 s, fél másodperces lépésekben; 0 = magától soha). |
 | PV-3 | Beállítás: **kattintásra nyíljon ki teljesen**. A gyorsbillentyűk, a jelvények és a „Claude answered” sor mindig a teljes panelt nyitják. |
+| PV-4 | (v0.74) **Előnézet mód új formája:** hoverre a notch **nem nyílik le**, csak **balra és jobbra szélesedik** a notch magasságában, legfeljebb a kijelző **2/3-áig**. A notch bal oldalán a modul ikonja és neve, jobb oldalán a sor róla (PV-1). A PV-2 (késleltetett magától nyílás) megszűnik. |
+| PV-5 | (v0.74) Előnézet módban a teljes panel **csak kattintásra** vagy **két ujjas lefelé swipe-ra** nyílik, késleltetés nélkül; a PV-3 kapcsoló megszűnik (mindig így működik). |
+| PV-6 | (v0.74) Előnézet módban, ha az ikonsor (MS-1) be van kapcsolva, hoverre a szélesedett notch alá **azonnal lecsúszik az ikonsor** (nincs külön sáv és várakozás, MS-2); ikonra kattintva az a modul nyílik teljesen. Amíg az egér a notchon vagy a soron van, mindkettő marad. |
+| PV-7 | (v0.74) Előnézetben **csak a notch helyére** (a fizikai notch / pill szélessége) kattintva nyílik ki teljesen a panel; a két oldalsó rész gombjai (Join, pipa, ⏯ stb.) a saját dolgukat csinálják, és nem nyitnak. |
+| PV-8 | (v0.74) Az előnézet szélessége **a tartalomhoz igazodik** (a hosszabbik oldal szabja meg, a notch két oldala egyforma), legfeljebb a kijelző 2/3-áig; a túl hosszú szöveg „…”-ra végződik. |
+| PV-9 | (v0.74) **Tartalom modulonként (bal \| jobb):** Calendar: következő esemény ideje + „25 min” \| cím, meetingnél **Join**. Notifications: appikonok olvasatlan-számmal (max. 4) \| legutóbbi feladó · első sor. Calculator: utolsó kifejezés \| eredmény (kattintásra másol). Notes: első sor \| következő sor halványan. Reminders: nyitott db, a lejártak pirossal \| legközelebbi határidős tétel + idő, **pipa**. AI Usage: 5 órás keret mini sáv + % \| heti keret sáv + nullázás ideje. Claude chat: beszélgetés címe / „Working…” \| utolsó válasz első sora. Batteries: Mac akku + % \| eszközök ikonnal és %-kal. Clipboard: utolsó elem típusikonnal \| előző 2–3 elem chipként (kattintásra másol). Tray: 3–4 fájl bélyegképe \| **AirDrop**. Stats: CPU és memória mini görbe \| **memória + swap**. Home: óra \| dátum. Info: verzió \| kijelző neve. Összevont modulnál (MG) az aktuális fül tartalma. |
+| PV-10 | (v0.74) Az előnézet-mód neve **DyNotch Wings**: a beállítás „DyNotch Wings” (a notch hoverre szárnyakat nyit a két oldalra), a magyarázó szöveg ezt írja le. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 4p. Akkumulátorok (v0.26)
@@ -893,6 +900,23 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a helyén marad, behúzva, a be/ki kapcsolója letiltva (a gazdamodulét követi). |
 | MG-8 | Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek. |
 
+## 4ő+++. Levelek olvasatlanjai az Apple Mailből (v0.74)
+
+| # | Követelmény |
+|---|-------------|
+| GM-1 | **Cél:** a notch mutassa a kiválasztott levelezőfiókok Inboxának **összes olvasatlan** levelét: feladó, tárgy, idő. Azokat is, amelyekről nem jött értesítés, vagy a Dynotch indítása előtt jöttek (B-10d hiánya). Levélszöveg nem kell (E-7). A Dynotch **soha nem jelöl olvasottnak** semmit. |
+| GM-2 | **Forrás: az Apple Mail**, amelyben a fiókok (pl. a Gmail) be vannak állítva. A Dynotch AppleScripttel (Apple Events) csak **olvas**: fiókok, Inbox, a levelek olvasott-állapota, feladó, tárgy, dátum. A levél szövegét nem kéri le. Ehhez a macOS Automatizálás-engedélyt kér a Mailhez (`NSAppleEventsUsageDescription`). Hálózati kérés nincs, Google-beállítás nem kell. (A Gmail API és a webapp-olvasás elvetve: beállítás, illetve csak a látható sorok.) |
+| GM-3 | **Fiókok külön:** a Beállításokban a Mail minden fiókja külön kapcsolóval szerepel (a Mailben megadott nevével, pl. „Gmail”, „Work”). Alapból a Gmail-fiók(ok) be vannak kapcsolva (`imap.gmail.com`), a többi ki. Minden bekapcsolt fiók **külön csoport** a fiók nevével és olvasatlan-számával; a Gmail-fiókok száma a Gmail jelvényé (GM-7). |
+| GM-4 | **Mit olvas:** fiókonként az Inbox olvasatlan levelei (a legfrissebb 50), és a valódi olvasatlan-szám. Ha több van, mint ami látszik: „+N more”. A Gmail fülei (Primary, Promotions…) IMAP-on nem látszanak, ezért az egész Inbox számít. |
+| GM-5 | **Frissítés:** 60 mp-enként (30–300 mp, állítható), és azonnal minden Mail-, illetve Gmail-értesítéskor. Ami máshol (telefonon, weben, a Mailben) olvasott lett, az a Mail szinkronja után a következő frissítéskor eltűnik. |
+| GM-6 | **Megjelenés:** a Notifications modulban egy **Mail** fül (az UM-8 fülsorban, swipe-pal is elérhető, csak Apple Mail forrással), benne fiókonként egy csoport (név, „N unread”, sorok, „+N more”); az All fülön felül fiókonként egy csoport a 3 legfrissebb levéllel. Soronként egy levél: feladó (félkövér), tárgy, idő. Az értesítésből érkező kártya és a Mailből olvasott sor **egy sor** (egyezés: fiók + feladó + tárgy), nem duplán. |
+| GM-7 | **Jelvény:** a fiók jelvényének száma a GM-4 valódi olvasatlan-száma (a B-10d helyett). Jobb klikkre a fiók füle nyílik (B-6b). |
+| GM-8 | **Kattintás egy sorra:** a levél a Gmail webappban nyílik (Gmail-fióknál, a Message-ID alapján keresve); más fióknál a Mailben. A notch nem jelöl olvasottnak. |
+| GM-9 | **A Mail csendben:** a Dynotch-nak a Mailnek futnia kell, hogy szinkronizáljon. Beállítás: *„Keep Mail running in the background”*: a Dynotch rejtve indítja el a Mailt, ha nem fut. A Mail saját jelzéseit a macOS-ben kell kikapcsolni (*Rendszerbeállítások › Értesítések › Mail*: értesítések ki, jelvény ki); a Beállítások ezt elmagyarázzák, és egy gombbal megnyitják ezt az oldalt. |
+| GM-10 | **Adatvédelem:** feladó és tárgy csak memóriában van; lemezre és a naplóba nem kerül. A napló csak darabszámot és hibát ír (UM-7, GW-13). |
+| GM-11 | **Állapot és hiba:** a Beállítások kiírják: „Reading · N unread”, „Mail isn't running”, „Needs Automation access to Mail”, „No accounts in Mail”. Hiba esetén az értesítés-alapú mód marad (E-7, B-10d). |
+| GM-12 | **Forrás választható:** *Settings › Notifications › Gmail › Source*: **Notifications** (a mostani mód: csak az értesítésekből kiolvasott feladó és tárgy, E-7, B-10d) vagy **Apple Mail** (GM-1…GM-11). Alapból Notifications, amíg a Mail-hozzáférés nincs meg. Apple Mail módban a Gmail-értesítés frissítést indít (GM-5), felugrik, mint eddig, de a listában nem lesz belőle külön kártya (a Mail sora áll helyette). A váltás azonnal érvényes, és a lista, a jelvény meg a fül a választott forrásból jön. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -939,6 +963,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.74.0** | DyNotch Wings: hoverre oldalra szélesedő notch, modulonkénti tartalommal, kattintás/swipe-ra nyílik, ikonsor alatta (PV-4…PV-10); Gmail olvasatlanok az Apple Mailből, Mail fül, választható forrás (GM-1…GM-12) |
 | **v0.73.0** | Apple stílus kapcsolóval (D-15…D-15i); Google Chat: saját üzenet kék (GW-20), gyorsabb betöltés (GW-20b) |
 | **v0.71.0** | Felvétel-sáv a notch alatt (idő, Stop; SH-5b); Google Chat: minden kártya megnyitja a beszélgetést, üzenetek betöltése és visszajelölés javítva (GW-17b); smart opening: kimásolt kód → Vágólap, kész letöltés → Tray, reggeli első nyitás → Naptár (SO-5…SO-8) |
 | **v0.70.0** | Google Chat-kártya: üzenetek a webappból, válasz vagy „Open in Google Chat”, válasz nélkül vissza olvasatlanba; háromszínű menüsor-átmenet, nyíló színválasztók; switcher: rövid swipe csak vált, késleltetés, előző app; területfelvétel; értesítés-fülek swipe csak a füleken; külön memória- és swap-figyelmeztetés |

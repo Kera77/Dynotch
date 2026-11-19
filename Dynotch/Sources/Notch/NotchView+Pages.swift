@@ -43,7 +43,7 @@ extension NotchView {
             CalendarFeatureView(service: calendar, model: model)
         case .notifications:
             NotificationsTabsView(
-                service: notifications, beeper: beeper, tab: $model.notificationsTab,
+                service: notifications, beeper: beeper, mail: notifications.mail, tab: $model.notificationsTab,
                 isActive: model.isExpanded && model.currentFeature == .notifications,
                 onHoverTabs: { [model] in model.isOverNotificationsTabs = $0 }
             )

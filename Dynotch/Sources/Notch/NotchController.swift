@@ -42,7 +42,7 @@ final class NotchController {
     /// The larger area of before a size change made by a click in the panel: still "inside"
     /// until the pointer leaves it (spec N-20).
     var stickyZone: CGRect?
-    var previewTask: Task<Void, Never>?
+    var previewSwipe = VerticalSwipe()
     let openSettings: () -> Void
     let model: NotchViewModel
     let panel: NotchPanel
@@ -153,7 +153,8 @@ final class NotchController {
     }
 
     var keepOpenZone: CGRect {
-        reachingDown(model.geometry.keepOpenZone(for: model.openSize))
+        let zone = reachingDown(model.geometry.keepOpenZone(for: model.openSize))
+        return showsPreviewStrip ? zone.union(stripArea) : zone
     }
 
     /// A pill floats a little below the top edge: its zones reach that much further (spec D-7).
@@ -243,8 +244,6 @@ final class NotchController {
         stopHoverTimer()
         graceUntil = nil
         isHeldOpen = false
-        previewTask?.cancel()
-        previewTask = nil
         panel.ignoresMouseEvents = true
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         // Google Chat cards closed without a reply go back to unread (spec GW-17).
@@ -299,6 +298,8 @@ final class NotchController {
         switch event.type {
         case .scrollWheel:
             // No module switching under the screenshot editor (spec SH-7).
+            // Over the preview a swipe down opens the panel fully (spec PV-5).
+            if model.isPreview { return handlePreviewScroll(event) }
             return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)

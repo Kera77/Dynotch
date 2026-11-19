@@ -13,45 +13,54 @@ struct FeaturePreview: Equatable, Sendable {
     }
 }
 
-/// The small panel shown on hover when "preview on hover" is on (spec PV-1): the current
-/// feature's icon, name and one line about it.
-struct FeaturePreviewView: View {
-    let feature: FeatureID
-    let preview: FeaturePreview
-    let notchHeight: CGFloat
-    /// Shown when a click opens the whole panel.
-    let hint: String?
+/// DyNotch Wings (spec PV-4, PV-7, PV-8): the notch widened to both sides at its own height.
+/// Only a click on the notch itself opens the panel; the sides' buttons do their own thing.
+/// Each side is measured at its natural width so the notch grows as far as the wider one needs.
+struct WingsView<Left: View, Right: View>: View {
+    let notchWidth: CGFloat
+    let openFully: () -> Void
+    let measured: (CGFloat) -> Void
+    @ViewBuilder let left: Left
+    @ViewBuilder let right: Right
+
+    @State private var leftWidth: CGFloat = 0
+    @State private var rightWidth: CGFloat = 0
+
+    static var padding: CGFloat { 14 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Color.clear.frame(height: notchHeight)
-            HStack(spacing: 10) {
-                Image(systemName: feature.symbolName)
-                    .font(.notch(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous).fill(Color.white.level(0.12)))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(preview.title)
-                        .font(.notch(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                    Text(preview.detail)
-                        .font(.notch(size: 12))
-                        .foregroundStyle(Color.white.level(0.65))
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                if let hint {
-                    Text(hint)
-                        .font(.notch(size: 10, weight: .medium))
-                        .foregroundStyle(Color.white.level(0.4))
-                }
+        GeometryReader { proxy in
+            let side = max((proxy.size.width - notchWidth) / 2, 0)
+            HStack(spacing: 0) {
+                left
+                    .lineLimit(1)
+                    .padding(.horizontal, Self.padding)
+                    .frame(width: side, alignment: .leading)
+                    .clipped()
+                Color.clear
+                    .frame(width: notchWidth)
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: openFully)
+                right
+                    .lineLimit(1)
+                    .padding(.horizontal, Self.padding)
+                    .frame(width: side, alignment: .trailing)
+                    .clipped()
             }
-            .padding(.horizontal, 14)
-            .frame(maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .contentShape(Rectangle())
+        .background(alignment: .leading) {
+            // The natural widths, never shown.
+            ZStack {
+                left.lineLimit(1).fixedSize().readWidth($leftWidth)
+                right.lineLimit(1).fixedSize().readWidth($rightWidth)
+            }
+            .hidden()
+            .allowsHitTesting(false)
+        }
+        .onChange(of: max(leftWidth, rightWidth), initial: true) { _, width in
+            measured(width + 2 * Self.padding)
+        }
     }
 }
 
@@ -92,7 +101,7 @@ extension NotchView {
         case .stats:
             detail = "CPU \(StatsFormat.percent(stats.snapshot.cpu)) · ↓ \(StatsFormat.rate(stats.snapshot.download))"
         case .home, .info:
-            detail = "Hover longer or click to open"
+            detail = "Click or swipe down to open"
         }
         return FeaturePreview(title: feature.title, detail: detail)
     }

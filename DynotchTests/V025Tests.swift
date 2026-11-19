@@ -159,8 +159,11 @@ struct V025Tests {
         model.setExpanded(true)
         model.setPreview(true)
         #expect(model.isPreview)
-        #expect(model.openSize == geometry.previewSize)
-        #expect(geometry.previewSize.height < geometry.expandedSize.height)
+        #expect(model.openSize == geometry.previewSize(side: model.previewSide))
+        #expect(model.openSize.height == geometry.notchSize.height)
+        // As wide as the content needs, never beyond two thirds of the display (spec PV-8).
+        #expect(geometry.previewSize(side: 10_000).width <= geometry.screenFrame.width * 2 / 3)
+        #expect(geometry.previewSize(side: 0).width == geometry.notchSize.width + 2 * NotchGeometry.previewMinSide)
         #expect(!model.wantsKeyboard)
 
         model.select(.calculator)
@@ -176,15 +179,9 @@ struct V025Tests {
         let defaults = makeDefaults()
         let settings = AppSettings(defaults: defaults)
         #expect(!settings.hoverPreview)
-        #expect(settings.previewDelay == 1.5)
-        #expect(settings.previewOpensOnClick)
         settings.hoverPreview = true
-        settings.previewDelay = 9
-        settings.previewOpensOnClick = false
         let reloaded = AppSettings(defaults: defaults)
         #expect(reloaded.hoverPreview)
-        #expect(reloaded.previewDelay == 5)
-        #expect(!reloaded.previewOpensOnClick)
         #expect(AppSettings.menuBarFeatures.contains(.claudeChat))
 
         #expect(FeaturePreview.line(of: "\n  first \nsecond", fallback: "-") == "first")

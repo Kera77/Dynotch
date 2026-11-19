@@ -186,12 +186,13 @@ struct NotchView: View {
                     .frame(width: model.openSize.width, height: model.openSize.height)
                     .transition(Self.contentTransition)
                 } else if model.isExpanded, model.isPreview {
-                    FeaturePreviewView(
-                        feature: model.currentFeature, preview: featurePreview, notchHeight: geometry.notchSize.height,
-                        hint: settings.previewOpensOnClick ? "Click to open" : nil
+                    WingsView(
+                        notchWidth: geometry.notchSize.width, openFully: openFully,
+                        measured: { [model] width in if abs(model.previewSide - width) > 1 { model.previewSide = width } },
+                        left: { wingsLeft },
+                        right: { wingsRight }
                     )
                     .frame(width: model.openSize.width, height: model.openSize.height)
-                    .onTapGesture { if settings.previewOpensOnClick { openFully() } }
                     .transition(.opacity)
                 } else if model.isExpanded {
                     expandedContent
@@ -222,14 +223,14 @@ struct NotchView: View {
         .padding(.top, isPill ? Self.pillGap : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .top) {
-            if layer == .content, model.isShowingStrip, !model.isExpanded {
+            if layer == .content, showsStrip {
                 ModuleStripView(features: stripFeatures, origin: model.stripOrigin, open: openModule) { feature, index in
                     settings.moveFeature(feature, to: index, among: stripFeatures)
                 }
                     .padding(.top, geometry.notchSize.height + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
             }
         }
-        .animation(Self.quickAnimation, value: model.isShowingStrip)
+        .animation(Self.quickAnimation, value: showsStrip)
         .animation(NotchController.animation, value: model.notificationsTab)
         .animation(Self.quickAnimation, value: indicatorItems.map(\.id))
         .animation(Self.quickAnimation, value: badges.visible.map { $0.id + $0.text })

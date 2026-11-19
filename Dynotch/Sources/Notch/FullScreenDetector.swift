@@ -79,7 +79,8 @@ extension NotchController {
     var openingZone: CGRect {
         if model.isHiddenForFullScreen { return model.geometry.topEdgeZone }
         // With the module strip, the notch's bottom edge shows the strip instead (spec MS-2).
-        guard settings.moduleStrip, notifications.peek == nil else { return hoverZone }
+        // In preview mode the whole notch opens the preview, the strip comes with it (spec PV-6).
+        guard settings.moduleStrip, !settings.hoverPreview, notifications.peek == nil else { return hoverZone }
         let zone = hoverZone
         let bandTop = stripBand.maxY
         return CGRect(x: zone.minX, y: bandTop, width: zone.width, height: max(zone.maxY - bandTop, 0))

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.74.0] - 2026-11-19
+
+### Changed
+- Preview on hover: the notch no longer drops down; it widens to the left and right at its own height (up to two thirds of the display), the module's icon and name on the left, its line on the right. It opens fully only on a click or a two-finger swipe down; the delay and the click toggle are gone.
+- Preview on hover with the module strip on: hovering shows the strip under the widened notch straight away.
+- The preview is now called DyNotch Wings. The wings are as wide as their content needs, and show each module at a glance: the next event with Join, app icons with counts, the last calculation, the note's first lines, open and overdue reminders with a check-off, the AI limits, Claude's last answer, the batteries, the last copies as chips, the tray's files with AirDrop, the song with play/pause and next, CPU, memory and swap. Only a click on the notch itself opens the panel; the wings' buttons do their own thing.
+
+### Added
+- Gmail from Apple Mail (Settings › Notifications › Gmail › Source): every unread message of the chosen Mail accounts, also those that came without a notification, in a new Mail tab and at the top of All, one group per account. The Gmail badge counts them, its hover list shows them, and a click opens the message in Gmail. Mail is only read, nothing is marked read; Mail can be kept running hidden, and its own alerts silenced from a button. The notification-based way stays as the other choice.
+
 ## [0.73.0] - 2026-11-19
 
 ### Added

@@ -4,7 +4,10 @@ import SwiftUI
 
 extension NotchView {
     var cornerRadius: CGFloat {
-        if model.isExpanded { return model.isPreview ? 18 : 24 }
+        if model.isExpanded, model.isPreview {
+            return settings.roundedNotch ? NotchCorners.radius(notchHeight: geometry.notchSize.height) : 10
+        }
+        if model.isExpanded { return 24 }
         if isCapsule { return NotchCorners.radius(notchHeight: geometry.notchSize.height) }
         if hud.display != nil { return 10 }
         if calls.call != nil { return 20 }
@@ -25,6 +28,12 @@ extension NotchView {
 
     /// The modules the strip shows (spec MS-5).
     var stripFeatures: [FeatureID] { ModuleStripChoice.features(from: settings.listedFeatures) }
+
+    /// The strip under the closed notch, or under the preview (spec MS-1, PV-6).
+    var showsStrip: Bool {
+        if model.isExpanded { return model.isPreview && settings.moduleStrip && stripFeatures.count > 1 }
+        return model.isShowingStrip
+    }
 
     /// The gap between a pill and the top edge, and between it and the menu bar's bottom.
     static var pillGap: CGFloat { 3 }

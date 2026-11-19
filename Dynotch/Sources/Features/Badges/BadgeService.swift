@@ -26,6 +26,8 @@ final class BadgeService: ObservableObject {
     }
     /// A macOS Focus is on that silences Dynotch: a new badge does not pulse (spec B-5b).
     var isSilenced: () -> Bool = { false }
+    /// A count from elsewhere than the Dock: Gmail's from Mail (spec GM-7); "" hides the badge.
+    var labelOverride: (BadgeApp) -> String? = { _ in nil }
     /// Reading the Dock needs Accessibility access.
     @Published private(set) var isTrusted = true
 
@@ -59,7 +61,8 @@ final class BadgeService: ObservableObject {
     /// Enabled apps that have a badge now.
     var visible: [BadgeItem] {
         apps.compactMap { app in
-            guard app.isEnabled, hidden[app.bundleID] == nil, let label = labels[app.bundleID], !label.isEmpty else { return nil }
+            guard app.isEnabled, hidden[app.bundleID] == nil, let label = labelOverride(app) ?? labels[app.bundleID], !label.isEmpty
+            else { return nil }
             return BadgeItem(app: app, label: label, pulseStart: pulses[app.bundleID])
         }
     }

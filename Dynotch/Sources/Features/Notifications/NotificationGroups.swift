@@ -85,6 +85,7 @@ extension NotificationService {
     /// kept after the page closes them, so only as many as the badge counts are unread (spec B-10d).
     func badgeListRows(for badge: BadgeItem, beeper: BeeperService) -> [BadgeNotificationRow] {
         let app = badge.app
+        if let mailRows = mailBadgeRows(for: app) { return mailRows }
         var rows = badgeRows(for: app)
         if WebNotificationSource.isWebApp(app.bundleID), let count = BadgeTracker.count(badge.label) {
             rows = Array(rows.prefix(max(count, 0)))

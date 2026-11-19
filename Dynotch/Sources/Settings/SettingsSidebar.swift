@@ -62,7 +62,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general:
             "launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay "
                 + "tasks reminders counter"
-        case .appearance: "design glass liquid pill notch rounded full screen preview hover strip smart opening"
+        case .appearance: "design glass liquid pill notch rounded full screen preview wings hover strip smart opening"
         case .features: "modules order shortcuts menu bar pin"
         case .calendar: "meetings countdown lead time"
         case .notifications: "banner beeper token sources websites reply unread"
