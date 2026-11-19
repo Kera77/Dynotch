@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.74 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.75 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -976,6 +976,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.75.0** | Csak Apple stílus (D-16); Wings: szétnyíló animáció, swipe-ok (le/fel/modulváltás), értesítések a notch két oldalán, Tray/AirDrop drop a szárnyakra (PV-11…PV-14); modulonkénti Wings-tartalom: AI session-kör, Stats kihúzható eszközlista, Notifications appváltás, Reminders, Notes, futó szöveg, Calculator, Clipboard (PV-15…PV-22) |
 | **v0.74.0** | DyNotch Wings: hoverre oldalra szélesedő notch, modulonkénti tartalommal, kattintás/swipe-ra nyílik, ikonsor alatta (PV-4…PV-10); Gmail olvasatlanok az Apple Mailből, Mail fül, választható forrás (GM-1…GM-12) |
 | **v0.73.0** | Apple stílus kapcsolóval (D-15…D-15i); Google Chat: saját üzenet kék (GW-20), gyorsabb betöltés (GW-20b) |
 | **v0.71.0** | Felvétel-sáv a notch alatt (idő, Stop; SH-5b); Google Chat: minden kártya megnyitja a beszélgetést, üzenetek betöltése és visszajelölés javítva (GW-17b); smart opening: kimásolt kód → Vágólap, kész letöltés → Tray, reggeli első nyitás → Naptár (SO-5…SO-8) |

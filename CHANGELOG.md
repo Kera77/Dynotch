@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.75.0] - 2026-11-19
+
 ### Changed
 - The Apple style is now the only look: the Style switch in Settings › Appearance is gone, and the former look's code with it.
 - DyNotch Wings spread out of the middle of the notch to the left and right on hover, and slide back in when it closes.
