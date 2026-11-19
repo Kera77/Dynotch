@@ -110,7 +110,7 @@ struct NotchView: View {
     }
 
     /// A sticky notice is written under the notch unless an indicator's details are open there.
-    var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
+    var shownNotice: StickyNotice? { labelIndex == nil && screenshots.recordingSince == nil ? notices.notice : nil }
 
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     var labelIndex: Int? {
@@ -165,7 +165,7 @@ struct NotchView: View {
                     screenshotPeek
                         .frame(width: screenshotPeekSize.width, height: screenshotPeekSize.height)
                         .transition(.opacity)
-                } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
+                } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || showsUnderLine {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
                     // Laid out at full size and kept in place while the black area unfolds over it.
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
@@ -346,7 +346,7 @@ extension NotchView {
         if devices.current != nil { return geometry.devicePeekSize }
         if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
-            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
+            ?? (showsUnderLine ? IndicatorLayout.labelHeight : nil)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)

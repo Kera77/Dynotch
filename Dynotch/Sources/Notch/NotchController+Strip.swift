@@ -81,22 +81,42 @@ extension NotchController {
     /// Opening by hover: the module the moment calls for, if a rule applies.
     func applySmartOpening() {
         let now = Date()
-        let context = SmartContext(
+        let isOn = settings.isSmartRuleOn
+        var context = SmartContext(
             meeting: settings.isEnabled(.calendar) ? calendar.indicatorEvents.first?.id : nil,
             reminder: settings.isEnabled(.reminders) ? SmartOpening.dueReminder(in: reminders.open, now: now)?.id : nil,
             clipboard: settings.isEnabled(.calculator) ? ClipboardWatcher.shared.recentCalculation(now: now) : nil,
             battery: battery.warnings.first?.id,
             usage: settings.isEnabled(.claudeUsage) ? claudeUsage.peak?.utilization : nil
         )
-        guard let choice = SmartOpening.choose(context, isOn: settings.isSmartRuleOn, used: model.smartUsed),
+        if isOn(.code), settings.isEnabled(.clipboard) { context.code = ClipboardWatcher.shared.recentCode(now: now) }
+        // Downloads is only looked at with its rule on: the first look asks for access (spec SO-6).
+        if isOn(.download), settings.isEnabled(.tray) { context.download = SmartOpening.recentDownload(now: now) }
+        if settings.isEnabled(.calendar) { context.morning = SmartOpening.morningKey(now: now) }
+        guard let choice = SmartOpening.choose(context, isOn: isOn, used: model.smartUsed),
               settings.isEnabled(choice.feature)
         else { return }
         model.smartUsed.insert(choice.key)
-        if choice.feature == .calculator, let copied = context.clipboard {
+        prepare(choice, context: context)
+        model.select(choice.feature)
+    }
+
+    /// What the chosen module gets ready with: the calculation, the code, the file or today.
+    private func prepare(_ choice: SmartOpening.Choice, context: SmartContext) {
+        switch choice.feature {
+        case .calculator:
+            guard let copied = context.clipboard else { return }
             // The copied calculation on a line of its own, with its result (spec SO-2).
             let text = calculator.text
             calculator.text = text.isEmpty || text.hasSuffix("\n") ? text + copied.text : text + "\n" + copied.text
+        case .clipboard:
+            if let code = context.code { clipboard.highlight(code.text) }
+        case .tray:
+            if let file = context.download { tray.add([file]) }
+        case .calendar:
+            if choice.key.hasPrefix("morning:") { calendar.selectedDay = calendar.today }
+        default:
+            break
         }
-        model.select(choice.feature)
     }
 }

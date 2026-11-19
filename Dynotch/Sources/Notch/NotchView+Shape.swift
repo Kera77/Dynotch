@@ -13,7 +13,7 @@ extension NotchView {
 
     /// A notification, a call or a line hanging below makes the closed notch taller.
     private var isTall: Bool {
-        notifications.peek != nil || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
+        notifications.peek != nil || devices.current != nil || calls.call != nil || labelIndex != nil || showsUnderLine
     }
 
     /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon

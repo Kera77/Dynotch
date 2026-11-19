@@ -152,17 +152,48 @@ final class GoogleChatWebService: ObservableObject {
         guard state == .reading, let pid = Self.webAppPID() else { return }
         let hint = windowTokenHint
         Task {
+            let known = await Task.detached { GoogleChatWebReader.menus(pid: pid, windowToken: hint).count }.value
             let opened = await Task.detached { GoogleChatWebReader.openOptions(id, pid: pid, windowToken: hint) }.value
             var marked = false
-            if opened {
-                try? await Task.sleep(for: .milliseconds(600))
-                marked = await Task.detached { GoogleChatWebReader.pressMarkUnread(pid: pid, windowToken: hint) }.value
+            // The menu is built on its first opening: it may take a few seconds.
+            let deadline = ContinuousClock.now + Self.menuTimeout
+            while opened, ContinuousClock.now < deadline {
+                try? await Task.sleep(for: .milliseconds(300))
+                let pressed = await Task.detached { GoogleChatWebReader.pressMarkUnread(after: known, pid: pid, windowToken: hint) }.value
+                guard let pressed else { continue }
+                marked = pressed
+                break
             }
             DiagnosticsLog.append("google-chat-web", "mark unread: options=\(opened) marked=\(marked)")
             try? await Task.sleep(for: .milliseconds(800))
             refresh()
         }
     }
+
+    private static let menuTimeout: Duration = .seconds(5)
+
+    /// Opens the conversation in the background and gives its messages once the page shows
+    /// them, not the previous conversation's (spec GW-17); nil when it did not open in time.
+    func openAndRead(conversationID id: String) async -> [ChatWebMessage]? {
+        guard state == .reading, let pid = Self.webAppPID() else { return nil }
+        let hint = windowTokenHint
+        let key = ChatWebConversation(id: id, name: "", isUnread: true).key
+        let before = await read(pid)
+        let wasOpen = before?.openID == key
+        if !wasOpen {
+            guard await Task.detached(operation: { GoogleChatWebReader.open(id, pid: pid, windowToken: hint) }).value
+            else { return nil }
+        }
+        let old = Set(before?.messages.map(\.id) ?? [])
+        let shown = await waitFor(pid, timeout: Self.loadTimeout) { snapshot in
+            snapshot.openID == key && !snapshot.messages.isEmpty
+                && (wasOpen || Set(snapshot.messages.map(\.id)).isDisjoint(with: old))
+        }
+        refresh()
+        return shown?.messages
+    }
+
+    private static let loadTimeout: Duration = .seconds(6)
 
     /// Brings the web app forward with the conversation open (spec GW-19).
     /// - Returns: false when the web app is not running.

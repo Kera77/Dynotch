@@ -20,6 +20,7 @@ final class NotchController {
     let tasks: TaskIndicator
     let calculator: CalculatorStore
     let tray: TrayStore
+    let clipboard: ClipboardStore
     let devices: DeviceWatcher
     let badges: BadgeService
     let calls: CallService
@@ -97,6 +98,7 @@ final class NotchController {
         tasks = services.tasks
         calculator = services.calculator
         tray = services.tray
+        clipboard = services.clipboard
         devices = services.devices
         badges = services.badges
         calls = services.calls

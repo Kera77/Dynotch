@@ -54,6 +54,9 @@ enum ClipboardRules {
 final class ClipboardStore: ObservableObject {
     @Published private(set) var history: [ClipItem] = []
     @Published private(set) var saved: [ClipItem] = []
+    /// A copied code the smart opening points at, for 2 minutes (spec SO-5).
+    @Published private(set) var highlighted: UUID?
+    private var highlightTask: Task<Void, Never>?
 
     /// How many copies are kept.
     @Published var limit: Int {
@@ -127,6 +130,19 @@ final class ClipboardStore: ObservableObject {
     }
 
     // MARK: - Watching the pasteboard
+
+    /// Outlines the newest history item with this text (polling the copy first, so it is there).
+    func highlight(_ text: String) {
+        poll()
+        let wanted = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        highlighted = history.first { $0.kind == .text && $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == wanted }?.id
+        highlightTask?.cancel()
+        highlightTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(SmartOpening.clipboardWindow))
+            guard !Task.isCancelled else { return }
+            self?.highlighted = nil
+        }
+    }
 
     func start() {
         guard timer == nil else { return }

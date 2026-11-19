@@ -154,6 +154,41 @@ extension NotchIndicatorView {
     }
 }
 
+extension NotchIndicatorView {
+    /// Under the notch while recording, like a notice: the time so far on the left, Stop on the
+    /// right (spec SH-5b).
+    func recordingStripLabel(since: Date, now: Date) -> some View {
+        let seconds = max(Int(now.timeIntervalSince(since)), 0)
+        return HStack(spacing: 7) {
+            Circle().fill(Theme.red).frame(width: 8, height: 8)
+            Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+            Text("Recording")
+                .font(.system(size: 11))
+                .foregroundStyle(Color.white.opacity(0.6))
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button(action: stopRecording) {
+                Label("Stop", systemImage: "stop.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .frame(height: 20)
+                    .background(Capsule().fill(Theme.red))
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .help("Stop recording")
+            .accessibilityLabel("Stop recording")
+        }
+        .padding(.horizontal, 12)
+        .frame(height: IndicatorLayout.labelHeight - 4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 /// A red dot and the time recorded so far (spec SH-5).
 struct RecordingSlot: View {
     let since: Date

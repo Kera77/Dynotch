@@ -48,12 +48,12 @@ extension GoogleChatWebService {
         return "Sent"
     }
 
-    private func read(_ pid: pid_t) async -> ChatWebSnapshot? {
+    func read(_ pid: pid_t) async -> ChatWebSnapshot? {
         let hint = windowTokenHint
         return await Task.detached { GoogleChatWebReader.snapshot(pid: pid, windowToken: hint)?.0 }.value
     }
 
-    private func waitFor(
+    func waitFor(
         _ pid: pid_t, timeout: Duration, _ condition: @escaping (ChatWebSnapshot) -> Bool
     ) async -> ChatWebSnapshot? {
         let deadline = ContinuousClock.now + timeout

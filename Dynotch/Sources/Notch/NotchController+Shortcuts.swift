@@ -106,7 +106,7 @@ extension NotchController {
 
     /// Hovering a question of Claude Code brings the app it runs in forward, once (spec CQ-3).
     func bringsAskerForward(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard let notice = notices.notice, notice.isQuestion, let app = notice.appIdentifier,
+        guard screenshots.recordingSince == nil, let notice = notices.notice, notice.isQuestion, let app = notice.appIdentifier,
               model.hoveredIndicator == nil, calendar.announcement == nil, noticeArea(for: layout).contains(point)
         else { return false }
         guard activatedQuestion != notice.date else { return true }
@@ -130,8 +130,8 @@ extension NotchController {
 
     /// Hovering the "Claude answered" line opens the chat.
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
-              settings.isEnabled(.claudeChat), noticeArea(for: layout).contains(point)
+        guard notices.notice?.opensChat == true, screenshots.recordingSince == nil, model.hoveredIndicator == nil,
+              calendar.announcement == nil, settings.isEnabled(.claudeChat), noticeArea(for: layout).contains(point)
         else { return false }
         setHoveredBadge(nil)
         expand()

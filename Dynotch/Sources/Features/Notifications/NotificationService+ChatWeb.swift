@@ -8,7 +8,6 @@ extension NotificationService {
 
     func startChatWeb() {
         chatWeb.onSnapshot = { [weak self] snapshot in
-            self?.fillOpenedCards(snapshot)
             self?.dropReadInChat(snapshot)
             self?.addUnreadFromChat(snapshot)
         }
@@ -89,32 +88,47 @@ extension NotificationService {
         return "\(count) unread messages in Google Chat"
     }
 
-    /// Opening a card made without a notification opens its conversation in the web app in the
-    /// background (read there too, GW-8), so its messages can be shown (spec GW-5c, GW-17).
+    /// Opening a Google Chat card opens its conversation in the web app in the background (read
+    /// there too, GW-8). A card made without a notification also gets the messages, as it has
+    /// no text of its own (spec GW-5c, GW-17, GW-17b). One conversation is opened once.
     func cardOpened(_ stack: [AppNotification]) {
-        for card in stack where card.sourceIdentifier == Self.chatWebSource {
-            guard chatWebOpened[card.id] == nil,
-                  let conversation = chatWeb.conversation(forTitle: card.title), conversation.isUnread
-            else { continue }
+        var opened = Set<String>()
+        for card in stack.reversed() where card.sourceIdentifier == Self.chatWebSource || isGoogleChat(card) {
+            guard chatWebOpened[card.id] == nil else { continue }
+            let found = chatWeb.conversation(forTitle: card.title)
+            guard let conversation = found, conversation.isUnread, opened.insert(conversation.id).inserted else {
+                // Why nothing was opened, without names (spec GW-13).
+                DiagnosticsLog.append("google-chat-web", "card opened: matched=\(found != nil) unread=\(found?.isUnread == true)")
+                continue
+            }
             chatWebOpened[card.id] = conversation.id
             chatWebHeld[card.id] = .distantFuture
-            if chatWebTexts[card.id] == nil {
-                chatWebPending[conversation.id] = card.id
-                giveUpLoading(conversation.id, card: card.id)
+            guard card.sourceIdentifier == Self.chatWebSource, chatWebTexts[card.id] == nil else {
+                chatWeb.markRead(title: card.title)
+                continue
             }
-            chatWeb.markRead(title: card.title)
+            chatWebPending[conversation.id] = card.id
+            let wanted = max(conversation.unreadCount ?? 1, Self.unreadCount(in: card.body) ?? 1)
+            Task { [weak self] in
+                let messages = await self?.chatWeb.openAndRead(conversationID: conversation.id)
+                self?.fill(card.id, conversationID: conversation.id, from: messages, wanted: wanted)
+            }
         }
     }
 
-    /// The messages did not come in time: the card shows its count again (spec GW-19).
-    private func giveUpLoading(_ conversationID: String, card: Int64) {
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(8))
-            guard let self, self.chatWebPending[conversationID] == card else { return }
-            self.chatWebPending[conversationID] = nil
+    /// The opened conversation's last messages go into its card: as many as were unread (1…8);
+    /// none read in time, the card shows its count again (spec GW-17, GW-19).
+    private func fill(_ cardID: Int64, conversationID: String, from messages: [ChatWebMessage]?, wanted: Int) {
+        guard chatWebPending[conversationID] == cardID else { return }
+        chatWebPending[conversationID] = nil
+        let texts = (messages ?? []).suffix(min(max(wanted, 1), 8)).map(\.text).filter { !$0.isEmpty }
+        guard !texts.isEmpty else {
             DiagnosticsLog.append("google-chat-web", "card messages not read in time")
-            self.objectWillChange.send()
+            objectWillChange.send()
+            return
         }
+        chatWebTexts[cardID] = Array(texts)
+        DiagnosticsLog.append("notification-records", "Google Chat card filled from the web app: \(texts.count) message(s)")
     }
 
     /// Closed without a reply: the conversation goes back to unread in the web app, and its card
@@ -153,21 +167,6 @@ extension NotificationService {
     /// "Open in Google Chat": the web app in front with the conversation, or the app (spec GW-19).
     func openInGoogleChat(_ notification: AppNotification) {
         if !chatWeb.openInApp(title: notification.title) { catalog.open(notification.appIdentifier) }
-    }
-
-    /// The opened conversation's last messages go into its card: as many as were unread (1…8).
-    func fillOpenedCards(_ snapshot: ChatWebSnapshot) {
-        guard !chatWebPending.isEmpty, let openID = snapshot.openID, !snapshot.messages.isEmpty else { return }
-        for (conversationID, cardID) in chatWebPending where conversationID.split(separator: "/").last.map(String.init) == openID {
-            chatWebPending[conversationID] = nil
-            let count = min(max(snapshot.conversations.first { $0.id == conversationID }?.unreadCount ?? 0, 1), 8)
-            let card = recent.first { $0.id == cardID }
-            let wanted = max(count, Self.unreadCount(in: card?.body) ?? 1)
-            let texts = snapshot.messages.suffix(wanted).map(\.text).filter { !$0.isEmpty }
-            guard !texts.isEmpty else { continue }
-            chatWebTexts[cardID] = Array(texts)
-            DiagnosticsLog.append("notification-records", "Google Chat card filled from the web app: \(texts.count) message(s)")
-        }
     }
 
     /// The count in a card's "N unread messages…" text.

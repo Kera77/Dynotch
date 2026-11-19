@@ -47,6 +47,8 @@
 	<string>Dynotch shows your upcoming events in the notch.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Dynotch looks up the caller's phone number to send them a text.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Dynotch puts a file you just downloaded into the Tray when the notch opens.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Dynotch</string>
 	<key>NSMicrophoneUsageDescription</key>

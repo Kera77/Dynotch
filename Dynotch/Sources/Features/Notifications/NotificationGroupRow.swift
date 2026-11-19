@@ -34,7 +34,9 @@ struct NotificationGroupRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(isExpanded ? 0.1 : 0.07)))
         // A Google Chat card opened reads its conversation; closed without a reply it is unread again (spec GW-17).
-        .onChange(of: isExpanded, initial: true) { _, open in
+        // Only a real change closes: a row appearing closed must not mark a just-opened one unread.
+        .onAppear { if isExpanded { service.cardOpened(group.notifications) } }
+        .onChange(of: isExpanded) { _, open in
             if open { service.cardOpened(group.notifications) } else { service.cardsClosed(group.notifications) }
         }
     }

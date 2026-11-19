@@ -95,6 +95,12 @@ struct ClipboardFeatureView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(0.07)))
+        // A code just copied, opened by the smart opening (spec SO-5).
+        .overlay {
+            if tab == .history, store.highlighted == item.id {
+                RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.blue, lineWidth: 1.5)
+            }
+        }
         .contentShape(Rectangle())
         .onTapGesture {
             close()

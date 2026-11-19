@@ -1,6 +1,12 @@
 import SwiftUI
 
 extension NotchView {
+    /// A running recording hangs under the notch in the notice's place (spec SH-5b).
+    var shownRecording: Date? { labelIndex == nil ? screenshots.recordingSince : nil }
+
+    /// Something is written under the row: a notice or the recording.
+    var showsUnderLine: Bool { shownNotice != nil || shownRecording != nil }
+
     /// The closed notch's row: badges on the left, indicators on the right, the hovered one's
     /// details below (spec B-4, K-7…K-9). Also above a notification (spec E-24).
     func indicatorRow(
@@ -47,6 +53,7 @@ extension NotchView {
         )
         row.showsBadgeList = showsBadgeList
         row.stopRecording = { screenshots.stopRecording() }
+        if showsBadgeList { row.recordingStrip = shownRecording }
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
         row.openNotice = { openNotice() }
         row.music = music

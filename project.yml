@@ -8,7 +8,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.70.0"
+    MARKETING_VERSION: "0.71.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -35,6 +35,7 @@ targets:
         NSBluetoothAlwaysUsageDescription: "Dynotch shows a notice when a Bluetooth device connects or disconnects, with its battery."
         NSAppleEventsUsageDescription: "Dynotch reads and saves your notes in Notes, sends a text through Messages when you reply to a call, and shows and controls what Spotify plays."
         NSMicrophoneUsageDescription: "Dynotch records your voice with a screen recording when you turn the microphone on."
+        NSDownloadsFolderUsageDescription: "Dynotch puts a file you just downloaded into the Tray when the notch opens."
         NSContactsUsageDescription: "Dynotch looks up the caller's phone number to send them a text."
         NSRemindersFullAccessUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
         NSRemindersUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."

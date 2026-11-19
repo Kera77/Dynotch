@@ -4,6 +4,8 @@ Personal macOS notch app (SwiftUI + AppKit agent app, no sandbox, Swift 6 strict
 XcodeGen `project.yml`). The owner writes in Hungarian: **answer in Hungarian**. The app's UI
 text is English. Requirements live in `docs/SPEC.md` (Hungarian, numbered rows such as `B-8`,
 `N-10`; check that a number is free before using it), changes in `CHANGELOG.md` (`[Unreleased]`).
+When a request mixes fixes or changes with something new that needs specifying, write the SPEC rows
+first, then do all the fixes and the new work together in one go.
 Unplanned ideas live in `docs/BACKLOG.md`: read or add to it only when the owner asks about the
 backlog or asks to put something there.
 

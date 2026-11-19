@@ -43,6 +43,8 @@ struct NotchIndicatorView: View {
     var showsMusicPlayer = false
     /// Stops a screen recording (spec SH-5).
     var stopRecording: () -> Void = {}
+    /// A recording since this time: it hangs under the notch with its time and Stop (spec SH-5b).
+    var recordingStrip: Date?
     /// The cover's progress and the stats' numbers (spec MU-3, SY-7).
     var music: MusicService?
     var stats: StatsService?
@@ -84,6 +86,8 @@ struct NotchIndicatorView: View {
                         rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) },
                         hide: { hideBadge(badge, $0) }
                     )
+                } else if let recordingStrip {
+                    recordingStripLabel(since: recordingStrip, now: context.date)
                 } else if let notice {
                     noticeLabel(notice)
                 }

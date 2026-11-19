@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.71.0] - 2026-11-19
+
+### Added
+- Smart opening: a code just copied (4–8 digits) opens Clipboard with the code outlined; a file just downloaded opens the Tray with the file on top; the first opening of the morning opens Calendar on today. Each can be turned off in Settings › Appearance › Smart opening.
+- Screen and area recording: while recording, a line hangs under the notch like a notice, with the time so far on the left and Stop on the right.
+
+### Fixed
+- Google Chat cards made from a real notification also open their conversation in the web app when opened, so it is read there (only cards without a notification did before), and a card row appearing closed no longer marks its conversation unread.
+- Google Chat cards opened from the notch show the messages again: Dynotch waits until the web app shows the opened conversation (not the previous one) for up to 6 seconds.
+- "Mark as unread" after closing a Google Chat card without a reply works: Dynotch waits for the web app's menu (built on its first opening) and presses the item only in the menu it just opened.
+
 ## [0.70.0] - 2026-11-19
 
 ### Added
