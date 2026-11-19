@@ -54,8 +54,20 @@ struct NotchIndicatorView: View {
         items.compactMap { if case .meeting(let event) = $0 { event } else { nil } }
     }
 
+    /// Every second only while something counts seconds (a meeting, a recording, a hover label);
+    /// otherwise the row is redrawn rarely.
+    private var tickInterval: TimeInterval {
+        let counts = hoveredIndex != nil || items.contains { item in
+            switch item {
+            case .meeting, .recording: true
+            default: false
+            }
+        }
+        return counts ? 1 : 15
+    }
+
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(.periodic(from: .now, by: tickInterval)) { context in
             VStack(spacing: 0) {
                 HStack(spacing: 0) {
                     leftSide(now: context.date)

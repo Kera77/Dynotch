@@ -86,24 +86,21 @@ private struct BadgeChip: View {
     let now: Date
 
     private static let period: TimeInterval = 1.8
+    @State private var dimmed = false
 
+    /// The pulse is a repeating animation the system runs on its own, not a redraw 20 times a
+    /// second for five minutes.
     var body: some View {
         if BadgeTracker.isPulsing(since: badge.pulseStart, now: now) {
-            TimelineView(.animation(minimumInterval: 1.0 / 20)) { context in
-                let wave = Self.wave(at: context.date, since: badge.pulseStart)
-                content
-                    .opacity(0.62 + 0.38 * wave)
-                    .scaleEffect(0.96 + 0.08 * wave)
-            }
+            content
+                .opacity(dimmed ? 0.62 : 1)
+                .scaleEffect(dimmed ? 0.96 : 1.04)
+                .animation(.easeInOut(duration: Self.period / 2).repeatForever(autoreverses: true), value: dimmed)
+                .onAppear { dimmed = true }
+                .onDisappear { dimmed = false }
         } else {
             content
         }
-    }
-
-    /// 0…1, a slow sine starting at full strength.
-    static func wave(at date: Date, since start: Date?) -> Double {
-        guard let start, BadgeTracker.isPulsing(since: start, now: date) else { return 1 }
-        return (cos(date.timeIntervalSince(start) / period * 2 * .pi) + 1) / 2
     }
 
     private var content: some View {

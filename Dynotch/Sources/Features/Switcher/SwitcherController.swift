@@ -43,9 +43,7 @@ final class SwitcherController: ObservableObject {
 
     func start() {
         installHandler()
-        observer = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.registerShortcut() } }
-        }
+        observer = settings.afterChange { [weak self] in self?.registerShortcut() }
         registerShortcut()
     }
 

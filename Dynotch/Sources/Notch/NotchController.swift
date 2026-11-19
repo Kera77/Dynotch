@@ -56,7 +56,7 @@ final class NotchController {
     private var settingsObserver: AnyCancellable?
     var beeperListObserver: AnyCancellable?
     private var hoverTimer: Timer?
-    var fullScreenTimer: Timer?
+    var fullScreenWatch: WindowListMonitor.Token?
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
     var swipe = SwipeDetector()
@@ -268,12 +268,7 @@ final class NotchController {
     /// non-key panel, and polling only runs while the panel is open.
     func startHoverTimer() {
         guard hoverTimer == nil else { return }
-        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.pointerMoved() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        hoverTimer = timer
+        hoverTimer = RepeatingTimer.start(every: 0.05) { [weak self] in self?.pointerMoved() }
     }
 
     func stopHoverTimer() {
@@ -328,11 +323,7 @@ extension NotchController {
         sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
             MainActor.assumeIsolated { self?.sizeChanged(large: large) }
         }
-        chatObserver = chat.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.chatChanged() }
-            }
-        }
+        chatObserver = chat.afterChange { [weak self] in self?.chatChanged() }
         chatChanged()
         startFullScreenChecks()
         OpenMenus.start()
@@ -344,14 +335,10 @@ extension NotchController {
             // Only a safety net: the animation follows the swipe itself.
             MainActor.assumeIsolated {
                 self?.spaceSwipeLifted()
-                self?.checkFullScreen()
+                self?.checkFullScreenNow()
             }
         }
-        callObserver = calls.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.callChanged() }
-            }
-        }
+        callObserver = calls.afterChange { [weak self] in self?.callChanged() }
         observeModel()
     }
 

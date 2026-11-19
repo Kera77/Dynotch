@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+- Less work in the background: full screen, Mission Control, screen sharing and incoming calls share one window list read in the background, instead of five timers asking on the main thread.
+- A new badge pulses with a system animation instead of redrawing the notch 20 times a second for five minutes.
+- The row beside the notch is redrawn every second only while a meeting, a recording or a hover label counts; otherwise every 15 seconds.
+- Spotify is asked every 3 seconds only while its player is on screen; otherwise its own announcements are followed, with a check every 30 seconds.
+- One timer watches the clipboard instead of two.
+
 ### Fixed
 - Apple Notes, Messages, Bluetooth and update tools that hang are stopped after a time limit, so a stuck Notes no longer leaves the Notes module dead until Dynotch restarts.
 - Log lines written at the same time from different threads are no longer lost; writing the logs never holds up the notch.

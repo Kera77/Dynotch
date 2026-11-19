@@ -41,6 +41,7 @@ final class MusicService: ObservableObject {
 
     private let settings: AppSettings
     private var timer: Timer?
+    private var isVisible = false
     private var observers: [NSObjectProtocol] = []
     private var settingsObserver: AnyCancellable?
     private var hidingObserver: AnyCancellable?
@@ -49,7 +50,10 @@ final class MusicService: ObservableObject {
     private var artworkTrack: String?
     private var hasRead = false
 
+    /// Spotify announces play, pause and track changes itself; the script only fills the gaps:
+    /// often while the player is on screen (seeking), rarely otherwise.
     private static let pollInterval: TimeInterval = 3
+    private static let backgroundPollInterval: TimeInterval = 30
     private static let announceDuration: TimeInterval = 4
 
     init(settings: AppSettings) {
@@ -84,23 +88,14 @@ final class MusicService: ObservableObject {
                 MainActor.assumeIsolated { self?.refresh() }
             })
         }
-        hidingObserver = hiding.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.updateGlance() } }
-        }
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.applyEnabled() } }
-        }
+        hidingObserver = hiding.afterChange { [weak self] in self?.updateGlance() }
+        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
     }
 
     private func applyEnabled() {
         if isOn, timer == nil {
-            let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refresh() }
-            }
-            timer.tolerance = 0.5
-            RunLoop.main.add(timer, forMode: .common)
-            self.timer = timer
+            schedule()
             refresh()
         } else if !isOn, timer != nil {
             timer?.invalidate()
@@ -108,6 +103,22 @@ final class MusicService: ObservableObject {
             apply(nil)
         }
         updateGlance()
+    }
+
+    /// The Music module shown or hidden.
+    func setVisible(_ visible: Bool) {
+        guard visible != isVisible else { return }
+        isVisible = visible
+        guard isOn else { return }
+        schedule()
+        if visible { refresh() }
+    }
+
+    private func schedule() {
+        timer?.invalidate()
+        timer = RepeatingTimer.start(every: isVisible ? Self.pollInterval : Self.backgroundPollInterval) { [weak self] in
+            self?.refresh()
+        }
     }
 
     func refresh() {

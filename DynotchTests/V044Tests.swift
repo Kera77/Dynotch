@@ -44,9 +44,8 @@ struct V044Tests {
 
     @Test func missionControlIsADockWindowOverAWholeDisplay() {
         let screen = CGRect(x: 0, y: 0, width: 2560, height: 1440)
-        func dock(_ width: Int, _ height: Int, layer: Int = 20) -> [String: Any] {
-            [kCGWindowOwnerName as String: "Dock", kCGWindowLayer as String: layer,
-             kCGWindowBounds as String: ["X": 0, "Y": 0, "Width": width, "Height": height]]
+        func dock(_ width: Int, _ height: Int, layer: Int = 20) -> ListedWindow {
+            ListedWindow(owner: "Dock", layer: layer, frame: CGRect(x: 0, y: 0, width: width, height: height))
         }
         #expect(MissionControlWatcher.isMissionControl([dock(2560, 1440)], screens: [screen]))
         // The Dock bar itself, or another layer, is not Mission Control.

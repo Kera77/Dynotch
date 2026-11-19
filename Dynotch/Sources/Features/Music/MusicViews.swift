@@ -65,8 +65,9 @@ struct MusicFeatureView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { if isActive { service.refresh() } }
-        .onChange(of: isActive) { _, active in if active { service.refresh() } }
+        .onAppear { service.setVisible(isActive) }
+        .onChange(of: isActive) { _, active in service.setVisible(active) }
+        .onDisappear { service.setVisible(false) }
     }
 
     private var empty: some View {
@@ -303,6 +304,8 @@ struct MusicDropdown: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear { service.setVisible(true) }
+            .onDisappear { service.setVisible(false) }
         }
     }
 }

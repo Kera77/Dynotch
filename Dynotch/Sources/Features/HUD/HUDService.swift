@@ -38,11 +38,7 @@ final class HUDService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.applyEnabled() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
         listenToVolume()
     }

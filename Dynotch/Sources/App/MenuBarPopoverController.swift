@@ -64,11 +64,7 @@ final class MenuBarPopoverController: NSObject {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.updateStatusItem() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.updateStatusItem() }
         badgeObserver = badge?.changes.sink { [weak self] in
             // objectWillChange fires before the change; read the value on the next turn.
             DispatchQueue.main.async {

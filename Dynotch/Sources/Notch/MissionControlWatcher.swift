@@ -11,9 +11,10 @@ final class MissionControlWatcher {
     private var dockPID: pid_t = 0
     private var launchObserver: NSObjectProtocol?
     private let changed: (Bool) -> Void
-    private var timer: Timer?
+    private var watch: WindowListMonitor.Token?
     private var isShown = false
     private static let pollInterval: TimeInterval = 0.3
+    private static let slowPollInterval: TimeInterval = 1
 
     nonisolated private static let showing = ["AXExposeShowAllWindows", "AXExposeShowFrontWindows", "AXExposeShowDesktop"]
     nonisolated private static let exit = "AXExposeExit"
@@ -24,12 +25,7 @@ final class MissionControlWatcher {
 
     func start() {
         attach()
-        let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.poll() }
-        }
-        timer.tolerance = Self.pollInterval * 0.2
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
+        watch = WindowListMonitor.shared.subscribe(every: Self.pollInterval) { [weak self] windows in self?.poll(windows) }
         // The Dock restarts now and then (and after a crash): attach to the new one.
         launchObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
@@ -70,12 +66,13 @@ final class MissionControlWatcher {
     }
 
     private func received(_ name: String) {
+        // The Dock's notices arrive: the window list is only a slower safety net now.
+        if let watch { WindowListMonitor.shared.setInterval(Self.slowPollInterval, for: watch) }
         set(Self.isShowing(after: name))
     }
 
-    private func poll() {
-        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]
-        set(Self.isMissionControl(windows ?? [], screens: NSScreen.screens.map(\.frame)))
+    private func poll(_ windows: [ListedWindow]) {
+        set(Self.isMissionControl(windows, screens: NSScreen.screens.map(\.frame)))
     }
 
     private func set(_ shown: Bool) {
@@ -86,15 +83,10 @@ final class MissionControlWatcher {
     }
 
     /// A Dock window named "Dock" in the Dock's layer covering a whole display.
-    nonisolated static func isMissionControl(_ windows: [[String: Any]], screens: [CGRect]) -> Bool {
+    nonisolated static func isMissionControl(_ windows: [ListedWindow], screens: [CGRect]) -> Bool {
         windows.contains { window in
-            guard window[kCGWindowOwnerName as String] as? String == "Dock",
-                  window[kCGWindowLayer as String] as? Int == 20,
-                  let bounds = window[kCGWindowBounds as String] as? [String: Any],
-                  let width = (bounds["Width"] as? NSNumber)?.doubleValue,
-                  let height = (bounds["Height"] as? NSNumber)?.doubleValue
-            else { return false }
-            return screens.contains { width >= $0.width && height >= $0.height * 0.9 }
+            guard window.owner == "Dock", window.layer == 20 else { return false }
+            return screens.contains { window.frame.width >= $0.width && window.frame.height >= $0.height * 0.9 }
         }
     }
 

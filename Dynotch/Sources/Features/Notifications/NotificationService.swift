@@ -72,11 +72,7 @@ final class NotificationService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.applyEnabled() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
     }
 
@@ -144,12 +140,7 @@ final class NotificationService: ObservableObject {
             NativeBannerDismisser.requestTrust()
         }
         if enabled, pollTimer == nil {
-            let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.poll() }
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            timer.tolerance = timer.timeInterval * 0.2
-            pollTimer = timer
+            pollTimer = RepeatingTimer.start(every: Self.pollInterval) { [weak self] in self?.poll() }
             poll()
         } else if !enabled, pollTimer != nil {
             pollTimer?.invalidate()

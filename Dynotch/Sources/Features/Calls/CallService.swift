@@ -16,7 +16,8 @@ final class CallService: ObservableObject {
     @Published private(set) var contact: CallerContact?
 
     private let settings: AppSettings
-    private var timer: Timer?
+    private var watch: WindowListMonitor.Token?
+    private var hasBaseline = false
     private var knownWindows: Set<CGWindowID> = []
     private var isScanning = false
     /// Scans without the banner; it may flicker, so the call ends after two.
@@ -32,23 +33,23 @@ final class CallService: ObservableObject {
     }
 
     func start() {
-        guard timer == nil else { return }
-        knownWindows = Set(CallBannerScanner.topWindows().map(\.id))
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.tick() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        self.timer = timer
+        guard watch == nil else { return }
+        watch = WindowListMonitor.shared.subscribe(every: 1) { [weak self] windows in self?.tick(windows) }
     }
 
-    private func tick() {
+    private func tick(_ listed: [ListedWindow]) {
+        let windows = CallBannerScanner.topWindows(in: listed)
+        // The windows already up at launch are not new.
+        guard hasBaseline else {
+            hasBaseline = true
+            knownWindows = Set(windows.map(\.id))
+            return
+        }
         guard settings.callsEnabled, AXIsProcessTrusted() else {
             if call != nil { end() }
             return
         }
         phoneHider.update(isRinging: call != nil)
-        let windows = CallBannerScanner.topWindows()
         for window in windows where Self.mayShowCalls(window.pid) {
             let isNew = !knownWindows.contains(window.id)
             // Banner hosts are watched while their window is on screen, others when one appears.

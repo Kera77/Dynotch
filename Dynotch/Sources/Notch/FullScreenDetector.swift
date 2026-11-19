@@ -6,19 +6,10 @@ enum FullScreenDetector {
     /// - Parameters:
     ///   - screenFrame: the display, in AppKit coordinates (origin bottom-left).
     ///   - primaryHeight: height of the primary display, to convert to window coordinates.
-    static func hasFullScreenWindow(screenFrame: CGRect, primaryHeight: CGFloat) -> Bool {
-        let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
-        guard let list = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else { return false }
+    static func hasFullScreenWindow(in windows: [ListedWindow], screenFrame: CGRect, primaryHeight: CGFloat) -> Bool {
         let ownPID = ProcessInfo.processInfo.processIdentifier
         let target = windowRect(of: screenFrame, primaryHeight: primaryHeight)
-        return list.contains { info in
-            guard (info[kCGWindowLayer as String] as? Int) == 0,
-                  (info[kCGWindowOwnerPID as String] as? Int32) != ownPID,
-                  let bounds = info[kCGWindowBounds as String] as? [String: CGFloat]
-            else { return false }
-            let rect = CGRect(x: bounds["X"] ?? 0, y: bounds["Y"] ?? 0, width: bounds["Width"] ?? 0, height: bounds["Height"] ?? 0)
-            return covers(rect, target)
-        }
+        return windows.contains { $0.layer == 0 && $0.pid != ownPID && covers($0.frame, target) }
     }
 
     /// AppKit screen coordinates → window-server coordinates (origin top-left of the primary display).
@@ -37,30 +28,33 @@ extension NotchController {
     static let fullScreenCheckInterval: TimeInterval = 1
 
     func startFullScreenChecks() {
-        let timer = Timer(timeInterval: Self.fullScreenCheckInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.checkFullScreen() }
+        fullScreenWatch = WindowListMonitor.shared.subscribe(every: Self.fullScreenCheckInterval) { [weak self] windows in
+            self?.checkFullScreen(windows)
         }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        fullScreenTimer = timer
+    }
+
+    /// Right after a Space change: a fresh look instead of waiting for the next tick.
+    func checkFullScreenNow() {
+        Task { [weak self] in
+            let windows = await Task.detached { WindowListMonitor.onScreenWindows() }.value
+            self?.checkFullScreen(windows)
+        }
     }
 
     func stopFullScreenChecks() {
-        fullScreenTimer?.invalidate()
-        fullScreenTimer = nil
+        if let fullScreenWatch { WindowListMonitor.shared.unsubscribe(fullScreenWatch) }
+        fullScreenWatch = nil
     }
 
     /// Hides the closed notch while a full-screen app is in front on this display (spec N-12).
-    func checkFullScreen() {
-        // The same tick notes copies, for the smart opening (spec SO-2).
-        ClipboardWatcher.shared.poll()
+    func checkFullScreen(_ windows: [ListedWindow]) {
         guard settings.hideInFullScreen else {
             model.setHiddenForFullScreen(false)
             return
         }
         let primaryHeight = NSScreen.screens.first?.frame.height ?? model.geometry.screenFrame.height
         let hidden = FullScreenDetector.hasFullScreenWindow(
-            screenFrame: model.geometry.screenFrame, primaryHeight: primaryHeight
+            in: windows, screenFrame: model.geometry.screenFrame, primaryHeight: primaryHeight
         )
         guard hidden != model.isHiddenForFullScreen else { return }
         DiagnosticsLog.append("fullscreen", "\(model.screenName): hidden=\(hidden)")

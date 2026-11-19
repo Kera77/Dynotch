@@ -107,12 +107,7 @@ final class NotchManager {
     /// The menu bar is measured when another app becomes active (its menus change) and every few
     /// seconds, so the badges never cover its items (spec B-8).
     private func watchMenuBar() {
-        let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.measureMenuBar() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        menuBarTimer = timer
+        menuBarTimer = RepeatingTimer.start(every: 3) { [weak self] in self?.measureMenuBar() }
         activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in

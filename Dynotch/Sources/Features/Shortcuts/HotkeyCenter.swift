@@ -24,11 +24,7 @@ final class HotkeyCenter {
     func start() {
         installHandler()
         // Fires before the change; register from the new state on the next run loop turn.
-        observer = store.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.register() }
-            }
-        }
+        observer = store.afterChange { [weak self] in self?.register() }
         register()
     }
 

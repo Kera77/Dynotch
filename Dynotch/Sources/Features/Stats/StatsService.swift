@@ -85,12 +85,7 @@ final class StatsService: ObservableObject {
         timer?.invalidate()
         timer = nil
         guard wanted > 0 else { return }
-        let timer = Timer(timeInterval: wanted, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.read() }
-        }
-        timer.tolerance = wanted * 0.1
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
+        self.timer = RepeatingTimer.start(every: wanted, tolerance: 0.1) { [weak self] in self?.read() }
         read()
     }
 

@@ -130,15 +130,12 @@ final class ClipboardStore: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        let timer = Timer(timeInterval: 0.75, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.poll() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        self.timer = timer
+        self.timer = RepeatingTimer.start(every: 0.75) { [weak self] in self?.poll() }
     }
 
     private func poll() {
+        // The same tick notes copies for the smart opening (spec SO-2).
+        ClipboardWatcher.shared.poll()
         let board = NSPasteboard.general
         guard board.changeCount != lastCount else { return }
         lastCount = board.changeCount

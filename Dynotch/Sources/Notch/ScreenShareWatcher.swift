@@ -6,7 +6,6 @@ import AppKit
 /// macOS's own recording controls.
 @MainActor
 final class ScreenShareWatcher {
-    private var timer: Timer?
     private var isSharing = false
     private let changed: (Bool) -> Void
     private static let interval: TimeInterval = 2
@@ -16,18 +15,11 @@ final class ScreenShareWatcher {
     }
 
     func start() {
-        let timer = Timer(timeInterval: Self.interval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.check() }
-        }
-        timer.tolerance = Self.interval * 0.2
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
-        check()
+        WindowListMonitor.shared.subscribe(every: Self.interval) { [weak self] windows in self?.check(windows) }
     }
 
-    private func check() {
-        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]
-        let sharing = Self.isSharing(windows ?? [])
+    private func check(_ windows: [ListedWindow]) {
+        let sharing = Self.isSharing(windows)
         guard sharing != isSharing else { return }
         isSharing = sharing
         DiagnosticsLog.append("spaces", sharing ? "screen sharing started" : "screen sharing ended")
@@ -35,17 +27,17 @@ final class ScreenShareWatcher {
     }
 
     /// Whether one of the windows is a sharing indicator.
-    nonisolated static func isSharing(_ windows: [[String: Any]]) -> Bool {
+    nonisolated static func isSharing(_ windows: [ListedWindow]) -> Bool {
         windows.contains { window in
-            let owner = (window[kCGWindowOwnerName as String] as? String ?? "").lowercased()
-            let name = (window[kCGWindowName as String] as? String ?? "").lowercased()
+            let owner = window.owner.lowercased()
+            let name = window.name.lowercased()
             if name.contains("is sharing your screen") || name.contains("is sharing a window") || name.contains("is sharing this tab") {
                 return true
             }
             if name.contains("sharing indicator") { return true }
             if owner.contains("zoom"), name.contains("share toolbar") || name.contains("share statusbar") { return true }
             if owner.contains("teams"), name.contains("sharing control bar") { return true }
-            return owner == "screencaptureui" && (window[kCGWindowLayer as String] as? Int ?? 0) > 0
+            return owner == "screencaptureui" && window.layer > 0
         }
     }
 }

@@ -95,23 +95,14 @@ final class ClaudeUsageService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.applyEnabled() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
     }
 
     private func applyEnabled() {
         let enabled = settings.isEnabled(.claudeUsage)
         if enabled, timer == nil {
-            let timer = Timer(timeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refresh() }
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            timer.tolerance = timer.timeInterval * 0.2
-            self.timer = timer
+            self.timer = RepeatingTimer.start(every: Self.refreshInterval) { [weak self] in self?.refresh() }
             refresh()
         } else if !enabled, let timer {
             timer.invalidate()

@@ -36,8 +36,8 @@ struct V052Tests {
     }
 
     @Test func sharingIndicatorsAreRecognised() {
-        func window(_ owner: String, _ name: String, layer: Int = 0) -> [String: Any] {
-            [kCGWindowOwnerName as String: owner, kCGWindowName as String: name, kCGWindowLayer as String: layer]
+        func window(_ owner: String, _ name: String, layer: Int = 0) -> ListedWindow {
+            ListedWindow(owner: owner, name: name, layer: layer)
         }
         #expect(ScreenShareWatcher.isSharing([window("Google Chrome", "meet.google.com is sharing your screen.")]))
         #expect(ScreenShareWatcher.isSharing([window("Zen", "Zen — Sharing Indicator")]))

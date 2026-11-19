@@ -24,19 +24,14 @@ enum CallBannerScanner {
         var isBannerHost: Bool { CallBannerScanner.bannerHosts.contains(owner) }
     }
 
-    static func topWindows() -> [TopWindow] {
-        let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+    static func topWindows(in windows: [ListedWindow]) -> [TopWindow] {
         let own = ProcessInfo.processInfo.processIdentifier
-        return info.compactMap { window -> TopWindow? in
-            guard let layer = window[kCGWindowLayer as String] as? Int, layer > 0, layer < 1000,
-                  let id = window[kCGWindowNumber as String] as? CGWindowID,
-                  let pid = window[kCGWindowOwnerPID as String] as? pid_t, pid != own,
-                  let owner = window[kCGWindowOwnerName as String] as? String, !ignoredOwners.contains(owner),
-                  let bounds = window[kCGWindowBounds as String] as? NSDictionary,
-                  let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary),
-                  rect.width >= 100, rect.height >= 30
+        return windows.compactMap { window -> TopWindow? in
+            guard window.layer > 0, window.layer < 1000, window.pid != own, !ignoredOwners.contains(window.owner),
+                  window.frame.width >= 100, window.frame.height >= 30
             else { return nil }
-            return TopWindow(id: id, pid: pid, owner: owner, shape: "layer \(layer) \(Int(rect.width))x\(Int(rect.height))")
+            let shape = "layer \(window.layer) \(Int(window.frame.width))x\(Int(window.frame.height))"
+            return TopWindow(id: window.id, pid: window.pid, owner: window.owner, shape: shape)
         }
     }
 

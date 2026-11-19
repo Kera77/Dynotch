@@ -37,11 +37,7 @@ final class ClipboardPicker: ObservableObject {
 
     func start() {
         installHandler()
-        observer = store.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.registerPermanent() }
-            }
-        }
+        observer = store.afterChange { [weak self] in self?.registerPermanent() }
         registerPermanent()
     }
 
@@ -145,12 +141,7 @@ final class ClipboardPicker: ObservableObject {
         startedAt = Date()
         let shortcut = wanted == .history ? store.historyShortcut : store.savedShortcut
         registerTemporary(modifiers: (shortcut?.modifiers ?? UInt32(optionKey)) & UInt32(optionKey | cmdKey | controlKey))
-        let timer = Timer(timeInterval: 0.03, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.checkRelease() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        releaseTimer = timer
+        releaseTimer = RepeatingTimer.start(every: 0.03) { [weak self] in self?.checkRelease() }
     }
 
     private func move(by step: Int) {

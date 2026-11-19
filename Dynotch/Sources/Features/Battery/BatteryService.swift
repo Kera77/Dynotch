@@ -27,12 +27,7 @@ final class BatteryService: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        let timer = Timer(timeInterval: Self.interval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        self.timer = timer
+        self.timer = RepeatingTimer.start(every: Self.interval) { [weak self] in self?.refresh() }
         refresh()
     }
 

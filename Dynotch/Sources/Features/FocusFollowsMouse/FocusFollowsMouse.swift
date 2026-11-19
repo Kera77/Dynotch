@@ -18,11 +18,7 @@ final class FocusFollowsMouse {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.apply() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.apply() }
         apply()
     }
 

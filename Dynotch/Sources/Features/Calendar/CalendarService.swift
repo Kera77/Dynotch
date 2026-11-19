@@ -74,19 +74,9 @@ final class CalendarService: ObservableObject {
             MainActor.assumeIsolated { self?.fetch() }
         }
 
-        let timer = Timer(timeInterval: Self.tickInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.tick() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        timer.tolerance = timer.timeInterval * 0.2
-        tickTimer = timer
+        tickTimer = RepeatingTimer.start(every: Self.tickInterval) { [weak self] in self?.tick() }
 
-        settingsObserver = settings.objectWillChange.sink { [weak self] in
-            // objectWillChange fires before the value changes; recompute on the next runloop turn.
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.recompute() }
-            }
-        }
+        settingsObserver = settings.afterChange { [weak self] in self?.recompute() }
 
         if access == .notDetermined, settings.isEnabled(.calendar) {
             requestAccess()
