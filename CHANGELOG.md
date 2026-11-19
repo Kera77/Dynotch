@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-11-19
+
 ### Added
 - Merged modules: *Settings › Features* can show Batteries as a tab of System ("In System") and AI Usage as a tab of AI ("In AI"). Merged, the module leaves the module row, the strip and the swipes; its alerts, notch indicators, shortcut and size stay as they were, and the host opens on the tab last shown.
 
