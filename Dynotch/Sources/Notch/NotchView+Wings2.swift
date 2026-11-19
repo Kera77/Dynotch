@@ -28,38 +28,6 @@ extension NotchView {
         }
     }
 
-    // MARK: Clipboard
-
-    @ViewBuilder var clipboardWingLeft: some View {
-        if let first = clipboard.history.first {
-            HStack(spacing: 6) {
-                WingSymbol(first.kind == .image ? "photo" : "doc.on.clipboard")
-                WingText(first.text).frame(maxWidth: 240, alignment: .leading)
-            }
-        } else {
-            WingLabel(symbol: "doc.on.clipboard", text: "Nothing copied yet")
-        }
-    }
-
-    var clipboardWingRight: some View {
-        HStack(spacing: 6) {
-            ForEach(clipboard.history.dropFirst().prefix(3)) { item in
-                Button { WingFormat.copy(item.text) } label: {
-                    Text(item.text)
-                        .font(.notch(size: 11, weight: .medium))
-                        .foregroundStyle(Color.white.level(0.85))
-                        .lineLimit(1)
-                        .frame(maxWidth: 90)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.white.level(0.12)))
-                }
-                .buttonStyle(.plain)
-                .help("Copy")
-            }
-        }
-    }
-
     // MARK: Tray
 
     var trayWingLeft: some View {
@@ -118,31 +86,6 @@ extension NotchView {
                     music.playPause()
                 }
                 WingButton(title: nil, symbol: "forward.fill", help: "Next") { music.next() }
-            }
-        }
-    }
-
-    // MARK: Stats
-
-    var statsWingLeft: some View {
-        HStack(spacing: 6) {
-            WingText("CPU", dim: true)
-            StatsSparkline(values: stats.cpuHistory, top: 1, color: .green).frame(width: 50, height: 14)
-            WingText(StatsFormat.percent(stats.snapshot.cpu), bold: true)
-            WingText("Mem", dim: true)
-            StatsBar(fraction: stats.snapshot.memoryShare, color: .blue).frame(width: 36)
-        }
-        .onAppear { stats.setVisible(true) }
-        .onDisappear { stats.setVisible(model.isExpanded && !model.isPreview && model.currentFeature == .stats) }
-    }
-
-    @ViewBuilder var statsWingRight: some View {
-        if let memory = stats.snapshot.memory {
-            HStack(spacing: 6) {
-                WingText("Memory", dim: true)
-                WingText(StatsFormat.bytes(Double(memory.used)), bold: true)
-                WingText("· Swap", dim: true)
-                WingText(StatsFormat.bytes(Double(memory.swapUsed)), bold: true)
             }
         }
     }

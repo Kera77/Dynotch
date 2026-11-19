@@ -8,6 +8,14 @@
 - DyNotch Wings: a two-finger swipe left or right on the wings switches to the next or previous module (round the end); a swipe up over the open panel's top row folds it back into the wings.
 - DyNotch Wings: a new notification shows beside the notch (the app and who wrote at the left, the first line at the right) instead of dropping down; a swipe up puts it away, a swipe down opens it.
 - DyNotch Wings: files dragged onto the notch no longer open the panel: the wings spread with Keep in Tray at the left and AirDrop at the right; a file kept in the tray shows in the wings.
+- DyNotch Wings, AI Usage: the current session on the right as a percentage with a ring in the notch indicator's colours; the weekly limit on the left.
+- DyNotch Wings, Stats: the Mac's and the devices' batteries on the left, as many as fit; a button on the right widens the wings to the display's edges to show every device, and they narrow again when the pointer heads back to the notch. Memory and swap stay on the right.
+- DyNotch Wings, Notifications: the apps' icons on the left, the newest next to the notch with its name; hovering an icon shows that app's name and latest message, a click opens its notifications.
+- DyNotch Wings, Reminders: the task added last on the left; resting on the task icon drops the task list down, as under the notch's task counter.
+- DyNotch Wings, Notes: the note changed last, its folder and name on the left, its text on the right.
+- DyNotch Wings: text that does not fit runs from right to left, rests at its end and starts again (not with Reduce motion).
+- DyNotch Wings, Calculator: the result without the "=" sign.
+- DyNotch Wings, Clipboard: the three newest items on the left, the next three on the right; a click copies one.
 
 ## [0.74.0] - 2026-11-19
 
