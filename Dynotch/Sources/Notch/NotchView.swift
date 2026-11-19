@@ -37,7 +37,8 @@ struct NotchView: View {
     /// Watched by its own views, not by the whole notch (spec N-16).
     let tray: TrayStore
     /// Watched by its own views, not by the whole notch (spec N-16).
-    let beeper: BeeperService
+    /// Observed: its unread chats show in the Notifications wings (spec PV-52).
+    @ObservedObject var beeper: BeeperService
     @ObservedObject var devices: DeviceWatcher
     /// Only whether a cover or a value shows beside the notch; the numbers are watched by their
     /// own views (spec MU-2, SY-7).
@@ -62,6 +63,8 @@ struct NotchView: View {
     var openModule: (FeatureID) -> Void = { _ in }
     /// The notice under the closed notch clicked (spec CN-6).
     var openNotice: () -> Void = {}
+    /// The X of a notice beside the notch: it swims into the notch (spec PV-48).
+    var dismissNotice: () -> Void = {}
     /// A meeting joined from its row under the closed notch (spec K-8k).
     var joinedMeeting: (CalendarEvent) -> Void = { _ in }
     /// Files dropped on the notch's "Keep" / "AirDrop" targets (spec FT-1, FT-3).
@@ -159,7 +162,7 @@ struct NotchView: View {
                         }
                     }
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
-                    .transition(settings.hoverPreview ? .wingsSpread : .opacity)
+                    .transition(settings.hoverPreview ? .wingsSpreadIn : .opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     devicePeek(event)
                 } else if !model.isExpanded, showsScreenshotPeek {
@@ -168,7 +171,7 @@ struct NotchView: View {
                         .transition(.opacity)
                 } else if let notice = wingsNoticePeek {
                     // In Wings mode the notice stands beside the notch, over the row (spec PV-37).
-                    wingsPeekView(notice).transition(.wingsSpread)
+                    wingsPeekView(notice).transition(.wingsSpreadIn)
                 } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
                     // Laid out at full size and kept in place while the black area unfolds over it.

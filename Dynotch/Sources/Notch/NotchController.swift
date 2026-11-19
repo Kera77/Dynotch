@@ -81,6 +81,8 @@ final class NotchController {
     var isOverNotice = false
     /// The pointer is on a small notice beside the closed notch in Wings mode (spec PV-38).
     var isOverWingsPeek = false
+    /// A notice beside the notch was put away: the notch unfolds again after it (spec PV-48).
+    var peekFoldTask: Task<Void, Never>?
     /// Another icon the pointer is on while a drop-down is open, and since when (spec N-23).
     var pendingHover: (target: String, since: Date)?
     /// The question notice whose app was already brought forward (spec CQ-3).
@@ -124,6 +126,7 @@ final class NotchController {
         let rootView = makeRootView(services)
         observeBeeperList(services.beeper)
         model.requestCollapse = { [weak self] in self?.collapse() }
+        model.recheckPointer = { [weak self] in self?.evaluatePointerWhileExpanded() }
         var glassView = rootView
         glassView.layer = .glass
         glassPanel.contentView = NSHostingView(rootView: glassView)
@@ -154,11 +157,6 @@ final class NotchController {
         let row = layout.isEmpty ? 0 : layout.size(notch: geometry.notchSize, labelHeight: nil).width
         let zone = geometry.keepOpenZone(for: CGSize(width: max(peek.width, row), height: peek.height))
         return reachingDown(zone.offsetBy(dx: layout.horizontalOffset, dy: 0))
-    }
-
-    var keepOpenZone: CGRect {
-        let zone = reachingDown(model.geometry.keepOpenZone(for: model.openSize).offsetBy(dx: model.openOffset, dy: 0))
-        return showsPreviewStrip ? zone.union(stripArea) : zone
     }
 
     private func pointerMoved() {

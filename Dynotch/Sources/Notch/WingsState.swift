@@ -115,7 +115,11 @@ struct WingsMarquee: View {
                 .fixedSize()
                 .readWidth($natural)
                 .offset(x: offset)
-                .frame(minWidth: 0, idealWidth: natural, maxWidth: max(natural, 1), alignment: .leading)
+                .frame(
+                    // Not measured yet: as wide as the text, never zero, so it always shows (spec PV-51).
+                    minWidth: 0, idealWidth: natural > 0 ? natural : nil, maxWidth: natural > 0 ? natural : .infinity,
+                    alignment: .leading
+                )
                 .readWidth($shown)
                 .clipped()
                 .task(id: "\(text)|\(Int(natural))|\(Int(shown))") { await run() }

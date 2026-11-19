@@ -69,6 +69,8 @@ extension NotchController {
     /// notch (badges, indicators) stays usable; the notch and the notification open (spec E-24).
     func opens(at point: CGPoint) -> Bool {
         guard openingZone.contains(point) else { return false }
+        // A small notice beside the notch: hovering leaves it, a swipe up puts it away first (spec PV-47).
+        if settings.hoverPreview, showsWingsPeek { return false }
         guard notifications.peek != nil else { return true }
         // A notification in the wings opens only with a swipe down (spec PV-13).
         if settings.hoverPreview { return false }

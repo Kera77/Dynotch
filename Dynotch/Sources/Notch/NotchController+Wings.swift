@@ -73,7 +73,7 @@ extension NotchController {
         let swipedUp = wingsSwipes.peekUp.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX)
         let swipedDown = wingsSwipes.peekDown.handle(phase: phase, fingerUp: -fingerUp, deltaX: event.scrollingDeltaX)
         if swipedUp {
-            withAnimation(Self.animation) { notifications.clearPeek() }
+            foldPeekAway { notifications.clearPeek() }
         } else if swipedDown {
             expand()
         }
@@ -96,4 +96,66 @@ extension NotchViewModel {
         wings = WingsState()
         setPreview(true)
     }
+}
+
+// MARK: - Putting a notice beside the notch away (spec PV-47, PV-48)
+
+extension NotchController {
+    /// How long the notice takes to swim into the notch.
+    static let peekFoldDuration: TimeInterval = 0.16
+
+    /// A small notice stands beside the closed notch in Wings mode.
+    var showsWingsPeek: Bool {
+        notifications.peek != nil || devices.current != nil
+            || (notices.notice != nil && calendar.announcement == nil && model.hoveredIndicator == nil)
+    }
+
+    /// The notice swims into the notch and the shape draws in to the notch; only then do the
+    /// module's wings (pointer on the notch) or the closed notch's own items swim out (spec PV-48).
+    func foldPeekAway(_ dismiss: () -> Void) {
+        guard settings.hoverPreview, !model.isExpanded, !AppleStyle.reducesMotion else {
+            withAnimation(NotchView.quickAnimation, dismiss)
+            return
+        }
+        withAnimation(.easeIn(duration: Self.peekFoldDuration)) {
+            model.setGathered(true)
+            dismiss()
+        }
+        peekFoldTask?.cancel()
+        peekFoldTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.peekFoldDuration + 0.03))
+            guard let self, !Task.isCancelled else { return }
+            self.peekFoldTask = nil
+            self.unfoldAfterPeek()
+        }
+    }
+
+    private func unfoldAfterPeek() {
+        guard model.isGathered else { return }
+        if !model.isExpanded, !callIsShown, opens(at: NSEvent.mouseLocation) {
+            model.setGathered(false)
+            hideStrip()
+            setHoveredIndicator(nil)
+            setHoveredBadge(nil)
+            expand(preview: true, smart: true)
+        } else {
+            withAnimation(Self.unfoldAnimation) { model.setGathered(false) }
+        }
+    }
+}
+
+// MARK: - Keeping the open panel (spec N-4, PV-54)
+
+extension NotchController {
+    var keepOpenZone: CGRect {
+        var zone = reachingDown(model.geometry.keepOpenZone(for: model.openSize).offsetBy(dx: model.openOffset, dy: 0))
+        // An open clipboard item keeps the wings for its two seconds a little below the notch too (spec PV-54).
+        if model.isPreview, model.wings.hoveredClip != nil {
+            zone = CGRect(x: zone.minX, y: zone.minY - Self.clipHoldBand, width: zone.width, height: zone.height + Self.clipHoldBand)
+        }
+        return showsPreviewStrip ? zone.union(stripArea) : zone
+    }
+
+    /// How far below the wings an open clipboard item still keeps them (spec PV-54).
+    static let clipHoldBand: CGFloat = 40
 }

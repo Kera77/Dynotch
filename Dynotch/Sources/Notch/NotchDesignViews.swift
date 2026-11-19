@@ -150,18 +150,21 @@ struct DesignBackground<S: Shape>: View {
             ZStack {
                 shape.fill(solid)
                     .opacity(glass ? 0 : open)
-                if refined, isOpen, design == .black {
+                // Always there and faded: inserted, it would stand at the open size before the
+                // panel has grown into it (spec PV-49).
+                if refined, design == .black {
                     // Pure black at the top, merging with the notch; a touch lighter at the bottom.
                     shape.fill(LinearGradient(colors: [.clear, .white.level(0.045)], startPoint: .top, endPoint: .bottom))
-                        .opacity(open)
+                        .opacity(isOpen ? open : 0)
                 }
                 if design == .blend {
                     shape.fill(solid)
                         .mask { blendMask }
                         .opacity(glass ? open : 0)
                 }
-                if refined, isOpen {
+                if refined {
                     RimLight(shape: shape, topRow: topRow)
+                        .opacity(isOpen ? 1 : 0)
                 }
             }
         }

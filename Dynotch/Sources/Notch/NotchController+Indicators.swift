@@ -228,7 +228,7 @@ extension NotchController {
             if isSwipeUp(event) {
                 deviceHoverTask?.cancel()
                 deviceHoverTask = nil
-                withAnimation(NotchView.quickAnimation) { devices.dismiss() }
+                foldPeekAway { devices.dismiss() }
             }
             return true
         }
@@ -244,7 +244,7 @@ extension NotchController {
             // No announcement: the notice is what is written under the notch.
             guard notices.notice != nil, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
             if isSwipeUp(event) {
-                withAnimation(NotchView.quickAnimation) { notices.dismiss() }
+                foldPeekAway { notices.dismiss() }
             }
             return true
         }

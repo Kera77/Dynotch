@@ -52,7 +52,7 @@ extension NotchView {
     var wingsContent: some View {
         WingsView(
             notchWidth: geometry.notchSize.width, sides: model.wingsSides, openFully: openFully,
-            measured: wingsMeasured,
+            measured: wingsMeasured, identity: wingsFeature.rawValue,
             left: { wingsLeft },
             right: { wingsRight }
         )
@@ -142,9 +142,13 @@ extension NotchView {
 
     // MARK: AI usage (spec PV-43)
 
-    /// The AI module's icon and name, the merged module's when it is merged.
+    /// The AI chosen in the module: its logo and name; the chat tab's own AI there (spec PV-50).
     private var aiWingLeft: some View {
-        let host = settings.hostFeature(of: model.currentFeature)
-        return WingLabel(symbol: host.symbolName, text: host.title)
+        AIWing(usage: claudeUsage, chat: chat, isChat: model.currentFeature == .claudeChat, side: .left)
+    }
+
+    /// That AI's current session (spec PV-50).
+    var usageSessionWing: some View {
+        AIWing(usage: claudeUsage, chat: chat, isChat: model.currentFeature == .claudeChat, side: .right)
     }
 }

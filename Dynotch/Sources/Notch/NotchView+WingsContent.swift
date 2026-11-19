@@ -3,31 +3,14 @@ import SwiftUI
 // MARK: - DyNotch Wings content per module (spec PV-15, PV-32, PV-34, PV-35)
 
 extension NotchView {
-    // MARK: AI usage (spec PV-15)
-
-    /// The current five-hour session: "62%" and the ring in the notch indicator's colours.
-    @ViewBuilder var usageSessionWing: some View {
-        if let limit = claudeUsage.limits.first(where: { $0.id == "five_hour" }) {
-            let color = NotchIndicatorView.color(for: limit.level)
-            HStack(spacing: 6) {
-                WingText("\(Int(limit.utilization.rounded()))%", bold: true)
-                    .foregroundStyle(color)
-                    .monospacedDigit()
-                LevelRing(fraction: limit.utilization / 100, color: color, label: "")
-                    .scaleEffect(0.75)
-                    .frame(width: LevelRing.size * 0.75, height: LevelRing.size * 0.75)
-            }
-            .help("Current session")
-        } else {
-            WingLabel(symbol: "gauge.with.dots.needle.50percent", text: "No usage loaded")
-        }
-    }
-
     // MARK: Notifications (spec PV-17)
 
     /// The apps with new notifications, newest first; Mail's unread first when it is the source.
     var wingsApps: [WingsApp] {
-        var apps = Dictionary(grouping: notifications.recent, by: \.appIdentifier)
+        // Beeper's unread chats count as Beeper, without its notifications of the same messages (spec PV-52).
+        let chats = beeper.keepsUnread && beeper.state == .ready ? beeper.unreadChats : []
+        let shown = chats.isEmpty ? notifications.recent : notifications.recent.filter { !ChatSources.isBeeper($0) }
+        var apps = Dictionary(grouping: shown, by: \.appIdentifier)
             .compactMap { key, list -> WingsApp? in
                 guard let newest = list.max(by: { $0.date < $1.date }) else { return nil }
                 let app = notifications.catalog.app(for: key)
@@ -35,12 +18,28 @@ extension NotchView {
                 let line = "\(content.sender) · \(content.detail)"
                 return WingsApp(id: key, name: app.name, count: list.count, date: newest.date, app: app, line: line)
             }
-            .sorted { $0.date > $1.date }
+        if let entry = beeperWingsApp(chats) { apps.append(entry) }
+        apps.sort { $0.date > $1.date }
         if notifications.mail.isActive, notifications.mail.totalUnread > 0 {
             let count = notifications.mail.totalUnread
             apps.insert(WingsApp(id: WingsApp.mailID, name: "Mail", count: count, date: .now, app: nil, line: "\(count) unread"), at: 0)
         }
         return Array(apps.prefix(5))
+    }
+
+    /// Beeper's unread chats as one app: the newest chat's sender and message.
+    private func beeperWingsApp(_ chats: [BeeperChatInfo]) -> WingsApp? {
+        let dated = chats.map { chat in
+            (chat, (chat.preview?.timestamp ?? chat.lastActivity).flatMap(BeeperAPI.date(from:)) ?? .distantPast)
+        }
+        guard let (newest, date) = dated.max(by: { $0.1 < $1.1 }) else { return nil }
+        let identifier = notifications.recent.first(where: ChatSources.isBeeper)?.appIdentifier ?? "com.automattic.beeper.desktop"
+        let app = notifications.catalog.app(for: identifier)
+        let sender = newest.preview?.senderName.flatMap { $0.isEmpty ? nil : $0 } ?? newest.name
+        let text = newest.preview?.text ?? ""
+        let line = text.isEmpty ? sender : "\(sender) · \(text)"
+        let count = chats.reduce(0) { $0 + $1.unread }
+        return WingsApp(id: WingsApp.beeperID, name: "Beeper", count: count, date: date, app: app, line: line)
     }
 
     /// The app whose name and message show: the hovered one, else the newest.
@@ -93,6 +92,8 @@ extension NotchView {
     private func openWingsApp(_ entry: WingsApp) {
         if entry.id == WingsApp.mailID {
             model.notificationsTab = .mail
+        } else if entry.id == WingsApp.beeperID {
+            model.notificationsTab = .all
         } else if let app = entry.app {
             notifications.setFocus(bundleID: app.identifier, name: app.name, count: nil)
             model.notificationsTab = .all
@@ -160,13 +161,21 @@ extension NotchView {
         let hovered = model.wings.hoveredClip
         let rowHasHover = items.contains { $0.id.uuidString == hovered }
         let motion = AppleStyle.spring(response: 0.3, dampingFraction: 0.86)
+        // Hovered, the row keeps the wing's width and the open item stands where the pointer
+        // is, so a short text never pulls it away from under the pointer (spec PV-53).
+        let fills = rowHasHover && items.count > 1
         return HStack(spacing: 6) {
-            ForEach(items) { item in
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 let key = item.id.uuidString
                 WingsClip(
                     item: item, image: item.kind == .image ? clipboard.image(of: item) : nil,
                     isOpen: key == hovered, isDot: rowHasHover && key != hovered
                 ) { clipboard.copy(item) }
+                .frame(
+                    maxWidth: fills && key == hovered ? .infinity : nil,
+                    alignment: index == 0 ? .leading : index == items.count - 1 ? .trailing : .center
+                )
+                .contentShape(Rectangle())
                 .onHover { inside in
                     guard inside else { return }
                     model.wings.clipMoves += 1
@@ -177,6 +186,7 @@ extension NotchView {
                 }
             }
         }
+        .frame(maxWidth: fills ? .infinity : nil)
         .contentShape(Rectangle())
         .onHover { inside in
             guard !inside, rowHasHover else { return }
@@ -186,6 +196,8 @@ extension NotchView {
                 try? await Task.sleep(for: Self.clipFoldDelay)
                 guard model.wings.clipMoves == move, model.wings.hoveredClip != nil else { return }
                 withAnimation(motion) { model.wings.hoveredClip = nil }
+                // Left below the wings, they close now (spec PV-54).
+                model.recheckPointer()
             }
         }
     }
@@ -245,6 +257,7 @@ struct WingsClip: View {
 /// An app with new notifications in the Wings (spec PV-17).
 struct WingsApp: Identifiable, Equatable {
     static let mailID = "dynotch.mail"
+    static let beeperID = "dynotch.beeper-chats"
 
     let id: String
     let name: String
@@ -288,5 +301,79 @@ struct WingsAppIcon: View {
         .buttonStyle(.plain)
         .help("Show \(entry.name)'s notifications")
         .onHover { if $0 { hover() } }
+    }
+}
+
+/// The AI wings: the AI chosen in the module at the left, its session at the right (spec PV-50).
+struct AIWing: View {
+    enum Side { case left, right }
+
+    @ObservedObject var usage: ClaudeUsageService
+    @ObservedObject var chat: ClaudeChatService
+    /// The merged AI module's chat tab is the current one: its own AI counts.
+    let isChat: Bool
+    let side: Side
+
+    /// The AI picked in the usage view (spec AI-6).
+    @AppStorage("usageProvider") private var usageProvider = AIProvider.claude.rawValue
+
+    private var provider: AIProvider {
+        isChat ? chat.provider : AIProvider(rawValue: usageProvider) ?? .claude
+    }
+
+    var body: some View {
+        switch side {
+        case .left:
+            HStack(spacing: 6) {
+                AIProviderLogo(provider: provider)
+                WingText(provider.title, bold: true)
+            }
+        case .right:
+            session
+        }
+    }
+
+    /// The five-hour session: Claude's, or ChatGPT's primary window.
+    private var limit: UsageLimit? {
+        switch provider {
+        case .claude: usage.limits.first { $0.id == "five_hour" } ?? usage.session
+        case .chatgpt: usage.gptLimits.first { $0.id == "gpt_primary" } ?? usage.gptLimits.first
+        }
+    }
+
+    @ViewBuilder private var session: some View {
+        if let limit {
+            let color = NotchIndicatorView.color(for: limit.level)
+            HStack(spacing: 6) {
+                WingText("\(Int(limit.utilization.rounded()))%", bold: true)
+                    .foregroundStyle(color)
+                    .monospacedDigit()
+                LevelRing(fraction: limit.utilization / 100, color: color, label: "")
+                    .scaleEffect(0.75)
+                    .frame(width: LevelRing.size * 0.75, height: LevelRing.size * 0.75)
+            }
+            .help("Current session")
+        } else {
+            WingLabel(symbol: "gauge.with.dots.needle.50percent", text: "No usage loaded")
+                .onAppear { if provider == .chatgpt { usage.refreshChatGPT() } }
+        }
+    }
+}
+
+/// Claude's mark, or the ChatGPT app's icon.
+struct AIProviderLogo: View {
+    let provider: AIProvider
+
+    var body: some View {
+        switch provider {
+        case .claude:
+            BrandGlyphView(glyph: .claude, size: 14)
+        case .chatgpt:
+            if let icon = BadgeIconCache.appIcon(bundleID: "com.openai.chat") ?? BadgeIconCache.appIcon(bundleID: "com.openai.codex") {
+                Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+            } else {
+                WingSymbol("bubble.left.and.text.bubble.right")
+            }
+        }
     }
 }

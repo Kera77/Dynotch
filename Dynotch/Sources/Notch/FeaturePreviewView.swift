@@ -22,6 +22,8 @@ struct WingsView<Left: View, Right: View>: View {
     let sides: WingsSides
     let openFully: () -> Void
     let measured: (WingsSides) -> Void
+    /// What the wings show (the module): changed, the sides are measured afresh (spec PV-51).
+    var identity: String = ""
     @ViewBuilder let left: Left
     @ViewBuilder let right: Right
 
@@ -64,12 +66,24 @@ struct WingsView<Left: View, Right: View>: View {
                 left.lineLimit(1).fixedSize().readWidth($leftWidth)
                 right.lineLimit(1).fixedSize().readWidth($rightWidth)
             }
+            // A new module's content is measured as new, never as the last one's leftovers.
+            .id(identity)
             .hidden()
             .allowsHitTesting(false)
         }
         .onChange(of: WingsSides(left: leftWidth, right: rightWidth), initial: true) { _, natural in
-            measured(WingsSides(left: natural.left + 2 * Self.padding, right: natural.right + 2 * Self.padding))
+            report(natural)
         }
+        // Once the new module is laid out, its widths count even if they equal the last ones.
+        .task(id: identity) {
+            try? await Task.sleep(for: .milliseconds(60))
+            guard !Task.isCancelled else { return }
+            report(WingsSides(left: leftWidth, right: rightWidth))
+        }
+    }
+
+    private func report(_ natural: WingsSides) {
+        measured(WingsSides(left: natural.left + 2 * Self.padding, right: natural.right + 2 * Self.padding))
     }
 }
 

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+- DyNotch Wings: while a small notice stands beside the notch, hovering the notch no longer opens the module's wings over it. Swiped up (or closed with X or a click), the notice swims into the notch first, then the module's wings open if the pointer is on the notch, otherwise the notch's own items swim out.
+- AI Wings: the logo and name of the AI chosen in the module (Claude or ChatGPT; the chat's AI on the chat tab), and that AI's own session usage on the right.
+- Notifications: the All tab and the Notifications wings show everything, Beeper's unread chats too (once, not again as Beeper notifications).
+- Clipboard Wings: a hovered dot opens where it is, so a short text no longer pulls the item away from the pointer; an open item also keeps the wings a little below the notch for its two seconds.
+
+### Fixed
+- Opening fully from the wings: the open panel's shadow and rim no longer appear at the final size as a grey frame before the module has opened into it.
+- Switching modules with a swipe in the wings: the wings always fit the new module ("No new notifications" starts at the notch's edge, Reminders' right side always shows and runs when too long).
+
 ## [0.77.0] - 2026-11-19
 
 ### Changed

@@ -127,12 +127,13 @@ extension NotchController {
         }
         if let app = notice.appIdentifier { NoticeApp.bringForward(app, project: notice.detail) }
         guard !notice.isQuestion else { return }
-        withAnimation(NotchView.quickAnimation) { notices.dismiss() }
+        foldPeekAway { notices.dismiss() }
     }
 
     /// Hovering the "Claude answered" line opens the chat.
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
+        // Beside the notch in Wings mode it opens only on a click (spec PV-47).
+        guard !settings.hoverPreview, notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
               settings.isEnabled(.claudeChat), noticeArea(for: layout).contains(point)
         else { return false }
         setHoveredBadge(nil)

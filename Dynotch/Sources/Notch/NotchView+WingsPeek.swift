@@ -29,7 +29,7 @@ extension NotchView {
     /// A device notice: beside the notch in Wings mode, else under it (spec DV-6, PV-37).
     @ViewBuilder func devicePeek(_ event: DeviceEvent) -> some View {
         if settings.hoverPreview {
-            wingsPeekView(.device(event)).transition(.wingsSpread)
+            wingsPeekView(.device(event)).transition(.wingsSpreadIn)
         } else {
             DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
                 .frame(width: geometry.devicePeekSize.width, height: geometry.devicePeekSize.height)
@@ -122,7 +122,7 @@ extension NotchView {
             // A click brings forward the app the work ran in (spec CN-6).
             .onTapGesture(perform: openNotice)
             Button {
-                withAnimation(Self.quickAnimation) { notices.dismiss() }
+                dismissNotice()
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.notch(size: 13))

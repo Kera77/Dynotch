@@ -37,8 +37,6 @@ final class NotchViewModel: ObservableObject {
     var isHeldByClick: Bool { holdsForSettings || holdsForTyping }
     /// A tray file's Quick Look is open: the notch stays whatever the pointer does (spec FT-8b).
     var holdsForPreview = false
-    /// Anything that keeps the open panel from closing when the pointer leaves.
-    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil }
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     @Published var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
@@ -63,6 +61,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Closes the panel; set by the controller (spec AI-7).
     var requestCollapse: () -> Void = {}
+    /// Looks again whether the pointer still keeps the open panel (spec PV-54).
+    var recheckPointer: () -> Void = {}
 
     /// Events that already opened their module by the smart opening (spec SO-3).
     var smartUsed: Set<String> = []
@@ -375,4 +375,9 @@ final class NotchViewModel: ObservableObject {
             withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.5)) { self?.bounceOffset = 0 }
         }
     }
+}
+
+extension NotchViewModel {
+    /// Anything that keeps the open panel from closing when the pointer leaves.
+    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil }
 }

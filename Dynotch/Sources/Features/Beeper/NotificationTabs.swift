@@ -90,17 +90,20 @@ struct NotificationsTabsView: View {
     @ViewBuilder private var content: some View {
         switch tab {
         case .all:
-            // No unread bubbles here; the Chats tab has them as cards (spec UM-8b).
-            // Mail's unread above, standing for Gmail's notifications (spec GM-6).
+            // Everything, the chats too (spec PV-52): Mail's unread above, standing for Gmail's
+            // notifications (spec GM-6), then Beeper's unread chats as cards, without Beeper's
+            // own notifications of the same messages.
+            let cards = showsBeeperCards
+            let showsMail = mail.isActive && mail.totalUnread > 0
             NotificationsFeatureView(
                 service: service, isActive: isActive,
-                include: { !readInBeeper($0) && !service.isShownByMail($0) },
-                leading: mail.isActive && mail.totalUnread > 0 ? AnyView(MailUnreadList(mail: mail, limit: 3)) : nil
+                include: { !readInBeeper($0) && !service.isShownByMail($0) && !(cards && ChatSources.isBeeper($0)) },
+                leading: showsMail || cards ? AnyView(allLeading(mail: showsMail, cards: cards)) : nil
             )
         case .chats:
             // Unread Beeper chats as notification cards, like before Beeper got its own tab;
             // Beeper's own notifications would be the same messages twice (spec UM-9).
-            let cards = beeper.keepsUnread && beeper.state == .ready && !beeper.unreadChats.isEmpty
+            let cards = showsBeeperCards
             NotificationsFeatureView(
                 service: service,
                 isActive: isActive,
@@ -118,6 +121,16 @@ struct NotificationsTabsView: View {
             // Only the unread messages, like the All tab (spec GC-6).
             NotificationsFeatureView(service: service, isActive: isActive) { ChatSources.isGoogleChat($0, catalog: service.catalog) }
         }
+    }
+
+    /// Beeper's unread chats stand as cards (spec UM-9, PV-52).
+    private var showsBeeperCards: Bool {
+        beeper.keepsUnread && beeper.state == .ready && !beeper.unreadChats.isEmpty
+    }
+
+    @ViewBuilder private func allLeading(mail showsMail: Bool, cards: Bool) -> some View {
+        if showsMail { MailUnreadList(mail: mail, limit: 3) }
+        if cards { BeeperUnreadCards(beeper: beeper, open: open) }
     }
 
     /// A Beeper message whose chat Beeper no longer counts as unread goes from the list (spec UM-10).
