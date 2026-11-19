@@ -48,6 +48,8 @@ struct V054Tests {
         #expect(BadgeNotificationRow.bySender(rows, limit: 5).first?.rows.map(\.id) == [1, 3])
         #expect(IndicatorLayout.badgeDropdownHeight(rows: rows) == CGFloat(8 + 2 * 20 + 3 * 18))
         let many = (0..<12).map { row(Int64($0), "Anna") }
-        #expect(IndicatorLayout.badgeDropdownHeight(rows: many) == CGFloat(8 + 20 + 5 * 18))
+        // All twelve are in the list; it stops growing at its limit and scrolls (spec B-10e).
+        #expect(IndicatorLayout.badgeContentHeight(rows: many) == CGFloat(8 + 20 + 12 * 18))
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: many) == IndicatorLayout.badgeDropdownMaxHeight)
     }
 }

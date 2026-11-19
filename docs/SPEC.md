@@ -410,6 +410,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10b | (v0.57) A lenyíló listában az üzenetek **küldőnként csoportosítva**: a küldő neve egyszer, alatta az üzenetei egymás alatt időponttal. |
 | B-10c | (v0.58) A **Beeper** jelvényénél, ha az Értesítési központban már nincs Beeper-értesítés (a Beeper pár másodperc után törli őket), a lista a Beeper **olvasatlan csevegéseit** mutatja a legutóbbi üzenettel. |
 | B-10d | (v0.62) Webapp jelvényénél (Gmail, Google Chat) a lista a megtartott értesítésekből **legfeljebb annyit** mutat, amennyi a jelvény száma (a legfrissebbeket); amiről a Dynotch nem kapott értesítést (pl. az indítása előtt jött), az nem látszik. |
+| B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. |
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 
 ## 4i. Billentyűzetzár (v0.21)
@@ -838,7 +839,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
-| **v0.65.1** | AI oldalsáv: csak a notchban folytatott beszélgetések, webes előzmények nélkül |
+| **v0.65.1** | AI oldalsáv: csak a notchban folytatott beszélgetések, webes előzmények nélkül; görgethető jelvény-lista |
 | **v0.65** | Mission Control: gyors felcsúszó eltűnés, trackpad-gesztusra azonnal; AI-előzmények: appbeli kérdések és a webes Claude/ChatGPT beszélgetések, Claude Code/Codex nélkül |
 | **v0.64** | Stabilitás és energia: időkorlát a külső eszközökre, szálbiztos napló, háttérben olvasott értesítés-adatbázis és ablaklista, rendszeranimációs jelvény-pulzálás, ritkább Spotify- és jelzősor-frissítés, a chat és a naptár nem rajzolja újra a notchot; Screen Recording és hiányzó-engedély jelzés; nincs pulzálás Fókusz alatt |
 | **v0.63.1** | Beragadó notch (holtpont a menüsor mérésénél) javítva; BT-szalagcím keresése a Vezérlőközpontban is, naplóval; középre igazított, pöccintéssel eltüntethető eszköz-felugró |

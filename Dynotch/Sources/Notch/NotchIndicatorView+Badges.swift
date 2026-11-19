@@ -30,36 +30,44 @@ struct BadgeDropdown: View {
                 .padding(.horizontal, 12)
                 .frame(height: 34)
             } else {
-                // Each sender's name once, their messages under it (spec B-10b).
-                ForEach(BadgeNotificationRow.bySender(rows, limit: IndicatorLayout.badgeRows), id: \.sender) { group in
-                    Button(action: openNotifications) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(group.sender)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                                .frame(height: IndicatorLayout.badgeSenderHeight)
-                            ForEach(group.rows) { row in
-                                HStack(spacing: 6) {
-                                    Text(row.detail.isEmpty ? "—" : row.detail)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(Color.white.opacity(0.75))
+                // More than fit: the list scrolls under the pointer (spec B-10e).
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Each sender's name once, their messages under it (spec B-10b).
+                        ForEach(BadgeNotificationRow.bySender(rows, limit: IndicatorLayout.badgeRows), id: \.sender) { group in
+                            Button(action: openNotifications) {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    Text(group.sender)
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundStyle(.white)
                                         .lineLimit(1)
-                                    Spacer(minLength: 4)
-                                    Text(row.date.formatted(date: .omitted, time: .shortened))
-                                        .font(.system(size: 9))
-                                        .monospacedDigit()
-                                        .foregroundStyle(Color.white.opacity(0.4))
+                                        .frame(height: IndicatorLayout.badgeSenderHeight)
+                                    ForEach(group.rows) { row in
+                                        HStack(spacing: 6) {
+                                            Text(row.detail.isEmpty ? "—" : row.detail)
+                                                .font(.system(size: 11))
+                                                .foregroundStyle(Color.white.opacity(0.75))
+                                                .lineLimit(1)
+                                            Spacer(minLength: 4)
+                                            Text(row.date.formatted(date: .omitted, time: .shortened))
+                                                .font(.system(size: 9))
+                                                .monospacedDigit()
+                                                .foregroundStyle(Color.white.opacity(0.4))
+                                        }
+                                        .frame(height: IndicatorLayout.badgeMessageHeight)
+                                    }
                                 }
-                                .frame(height: IndicatorLayout.badgeMessageHeight)
+                                .padding(.horizontal, 12)
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                         }
-                        .padding(.horizontal, 12)
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
+                .scrollIndicators(.automatic)
+                .scrollBounceBehavior(.basedOnSize)
+                .frame(height: IndicatorLayout.badgeDropdownHeight(rows: rows))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

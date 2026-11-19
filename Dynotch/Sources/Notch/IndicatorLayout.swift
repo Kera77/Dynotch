@@ -151,11 +151,18 @@ struct IndicatorLayout: Equatable {
     static let labelHeight: CGFloat = 26
     /// Tasks listed in the counter's drop-down at most; Open shows the rest.
     static let taskRows = 6
-    /// A badge's hover list: at most this many notifications (spec B-10).
-    static let badgeRows = 5
+    /// A badge's hover list holds this many notifications at most; more than fit scroll (spec B-10e).
+    static let badgeRows = 50
+    /// The list grows to five senders with a message each, then scrolls (spec B-10e).
+    static let badgeDropdownMaxHeight: CGFloat = 8 + 5 * (badgeSenderHeight + badgeMessageHeight)
 
     /// The hover list's height under the row; an empty list shows one line and Open.
     static func badgeDropdownHeight(rows: [BadgeNotificationRow]) -> CGFloat {
+        min(badgeContentHeight(rows: rows), badgeDropdownMaxHeight)
+    }
+
+    /// The whole list's height, scrolled or not.
+    static func badgeContentHeight(rows: [BadgeNotificationRow]) -> CGFloat {
         let groups = BadgeNotificationRow.bySender(rows, limit: badgeRows)
         guard !groups.isEmpty else { return 34 }
         // A name line per sender, a line per message (spec B-10b).

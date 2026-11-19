@@ -6,6 +6,7 @@
 
 ### Changed
 - AI: the sidebar lists only the conversations held in the notch, for Claude and ChatGPT alike; the "On the web" list is gone.
+- A badge's hover list holds all its messages (up to 50) and scrolls when there are more than fit.
 
 ## [0.65.0] - 2026-11-19
 
