@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.63.1 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.64 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -836,6 +836,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.64** | Stabilitás és energia: időkorlát a külső eszközökre, szálbiztos napló, háttérben olvasott értesítés-adatbázis és ablaklista, rendszeranimációs jelvény-pulzálás, ritkább Spotify- és jelzősor-frissítés, a chat és a naptár nem rajzolja újra a notchot; Screen Recording és hiányzó-engedély jelzés; nincs pulzálás Fókusz alatt |
 | **v0.63.1** | Beragadó notch (holtpont a menüsor mérésénél) javítva; BT-szalagcím keresése a Vezérlőközpontban is, naplóval; középre igazított, pöccintéssel eltüntethető eszköz-felugró |
 | **v0.63** | Bluetooth-felugró: ikon, név, „Connected”, AirPods füles- és tokszint; a macOS BT-szalagcímei („Move to iPhone”) a notchba kerülnek kék gombbal; magasabb eszköz-felugró; ismétlődő újracsatlakozás csendben |
 | **v0.62.1** | Beállítások › App badges: a Show után a rejtés sora azonnal eltűnik |

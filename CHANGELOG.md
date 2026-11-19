@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-11-19
+
 ### Added
 - Settings › Permissions lists Screen Recording too; a permission that a module in use needs but lacks is flagged orange there and with a dot beside Permissions in the sidebar.
 - During a macOS Focus a new app badge does not pulse (same rule as the notification pop-ups).
