@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.76.0] - 2026-11-19
+
 ### Changed
 - DyNotch Wings: a click on the notch opens the panel fully, a second click on the open panel's notch folds it back into the wings; the wings go when the pointer leaves the notch.
 - DyNotch Wings: each side is only as wide as its own content, so the wings no longer take empty room.
