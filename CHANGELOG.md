@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.77.0] - 2026-11-19
+
 ### Changed
 - DyNotch Wings: the small drop-downs (Claude or ChatGPT finished, Claude asks, Dynotch updated, a device connected) stand beside the notch instead of under it: the icon and who it is from on the left, the notice itself on the right.
 - DyNotch Wings: a notification beside the notch takes only the room it needs on the left; its text starts at the notch's edge, runs to its end when it does not fit, and starts again when hovered. While the pointer is on it, it stays; the newest one shows after.

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.76 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.77 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1000,6 +1000,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.77.0** | Wings: kis lenyílók (Claude/ChatGPT kész, frissítés, eszköz) a notch két oldalán, értesítés aszimmetrikusan, futó szöveg, hoverre megáll; szélesség megtartása Notifications/Clipboard hovernél, modulsor egyszerre, Tray „Drop files”, AI ikon + név és session-kör, Reminders Undo helyett újrakattintás, Clipboard 2 mp késleltetés, billentyűzet visszaadása Wings-kattintás után (PV-37…PV-46) |
 | **v0.76.0** | Wings: kattintásra ki/vissza, oldalanként dinamikus szélesség, bezárási sorrend (tartalom be, notch-elemek ki), modulsor fentről és a lenyílt rész alá; Calendar következő esemény bármely napon, AI mindig session, Stats 4 eszköz + balra bővülés, Notifications léptetés, Reminders karika + Undo, Notes név / szöveg egyszer fut, Clipboard kinyíló elem + pöttyök, Tray kapszula (PV-23…PV-36) |
 | **v0.75.0** | Csak Apple stílus (D-16); Wings: szétnyíló animáció, swipe-ok (le/fel/modulváltás), értesítések a notch két oldalán, Tray/AirDrop drop a szárnyakra (PV-11…PV-14); modulonkénti Wings-tartalom: AI session-kör, Stats kihúzható eszközlista, Notifications appváltás, Reminders, Notes, futó szöveg, Calculator, Clipboard (PV-15…PV-22) |
 | **v0.74.0** | DyNotch Wings: hoverre oldalra szélesedő notch, modulonkénti tartalommal, kattintás/swipe-ra nyílik, ikonsor alatta (PV-4…PV-10); Gmail olvasatlanok az Apple Mailből, Mail fül, választható forrás (GM-1…GM-12) |
