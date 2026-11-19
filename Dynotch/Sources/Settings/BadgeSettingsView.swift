@@ -77,7 +77,7 @@ struct BadgeSettingsView: View {
 
 private struct BadgeAppRow: View {
     let app: BadgeApp
-    let service: BadgeService
+    @ObservedObject var service: BadgeService
 
     var body: some View {
         HStack(spacing: 8) {
