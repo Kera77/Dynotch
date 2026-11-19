@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.61 elfogadva** · Utolsó módosítás: 2026-11-19
+> Állapot: **v0.62 elfogadva** · Utolsó módosítás: 2026-11-19
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -828,6 +828,7 @@ Jelenleg nincs.
 | **v0.17** | App-ikon; értesítések bezárása/törlése; kék meeting-dátum, egységes Join; napsáv-swipe csak új mozdulattal |
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
+| **v0.62** | Menüsor-hézagok (üres vagy vonal, ⌘-húzással); jelvény elrejtése időre vagy új üzenetig; Gmail és Google Chat webapp-jelvény listája a megtartott értesítésekből |
 | **v0.61** | Éles képmetsző kivágás; Quick Look kattintás nélkül; Tray és Screenshots fülszín; a szerkesztő után a korábbi app visszakapja a billentyűzetet; gyorsabb váltó |
 | **v0.60** | Tálca: a teljes név buboréka a széleken nem vágódik le, rugós hover, megemelkedő ikon; csatolt mappák pöttyének színe állítható; éles kép a képmetsző szerkesztőben |
 | **v0.59** | Tálca: fájlnevek középen rövidítve, teljes név egérrel fölé, mozaik / lista mappánként; a nyitott lenyíló nem cserélődik át egy szomszédos ikonon áthaladva; a teszt nem írja a vágólapot |

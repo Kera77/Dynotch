@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.62.0] - 2026-11-19
+
 ### Added
 - Menu bar spaces: empty gaps or thin lines among the menu bar icons, added in Settings › Menu bar or from a space's menu; ⌘-drag places them.
 - App badges can be hidden from the notch for an hour, a day, until a new message, or until shown again; Settings › App badges shows how long and brings them back.
