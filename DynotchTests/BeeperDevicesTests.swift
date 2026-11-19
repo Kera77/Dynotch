@@ -69,6 +69,13 @@ struct BluetoothBannerTests {
         #expect(BluetoothBanner.callToAction(from: ["AXPress", "Bezárás"]) == nil)
     }
 
+    @Test func reconnectingWithoutDisconnectIsQuiet() {
+        let now = Date()
+        #expect(BluetoothRepeat.isRepeat(since: now.addingTimeInterval(-15 * 60), now: now, window: 1800))
+        #expect(!BluetoothRepeat.isRepeat(since: now.addingTimeInterval(-31 * 60), now: now, window: 1800))
+        #expect(!BluetoothRepeat.isRepeat(since: nil, now: now, window: 1800))
+    }
+
     @Test func devicePeekHasRoomBelowTheNotch() {
         let geometry = NotchGeometry.make(
             screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,

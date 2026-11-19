@@ -8,6 +8,7 @@
 
 ### Fixed
 - The device notice is taller with room at the bottom, so its text no longer touches the notch's lower edge.
+- A Bluetooth device that reconnects every few minutes without going away no longer pops up each time (once in 30 minutes).
 
 ## [0.62.1] - 2026-11-19
 

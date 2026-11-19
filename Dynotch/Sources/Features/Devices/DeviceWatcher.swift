@@ -68,11 +68,14 @@ final class DeviceWatcher: NSObject, ObservableObject {
 
     private static let quietTime: TimeInterval = 30
     private static let flapTime: TimeInterval = 10
+    private static let repeatTime: TimeInterval = 30 * 60
 
     private let settings: AppSettings
     private let defaults: UserDefaults
     private var quietUntil = Date().addingTimeInterval(quietTime)
     private var lastSeen: [String: Date] = [:]
+    /// Bluetooth devices connected without a disconnect since, and when (spec DV-12).
+    private var bluetoothConnectedAt: [String: Date] = [:]
     private var hideTask: Task<Void, Never>?
     private var observers: [NSObjectProtocol] = []
     private var screens: Set<String> = []
@@ -149,6 +152,17 @@ final class DeviceWatcher: NSObject, ObservableObject {
     }
 
     private func bluetooth(_ name: String, connected: Bool) {
+        let now = Date()
+        // A device that reconnects again and again without going away: one notice in 30 min.
+        if connected {
+            defer { bluetoothConnectedAt[name] = now }
+            if BluetoothRepeat.isRepeat(since: bluetoothConnectedAt[name], now: now, window: Self.repeatTime) {
+                DiagnosticsLog.append("devices", "bluetooth connected again, not shown")
+                return
+            }
+        } else {
+            bluetoothConnectedAt[name] = nil
+        }
         let kind = BatteryDevice.Kind.detect(name)
         var event = DeviceEvent(category: .bluetooth, name: name, symbol: DeviceSymbols.symbol(for: kind), isConnected: connected)
         if connected, kind == .earbuds || kind == .headphones, AudioOutputs.defaultOutputName() != name {
@@ -306,5 +320,13 @@ enum BluetoothConnection {
 
     nonisolated private static func device(named name: String) -> IOBluetoothDevice? {
         ((IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []).first { $0.name == name }
+    }
+}
+
+/// A Bluetooth connection without a disconnect since the previous one (spec DV-12).
+enum BluetoothRepeat {
+    static func isRepeat(since previous: Date?, now: Date, window: TimeInterval) -> Bool {
+        guard let previous else { return false }
+        return now.timeIntervalSince(previous) < window
     }
 }
