@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.81.0] - 2026-11-20
+
 ### Changed
 - The bin icon is gone everywhere: notices beside the notch (also the first "Dynotch updated"), notification groups, "Clear all" and Clipboard items show the usual X.
 - Notifications wings: an X at the right edge removes the shown app's notifications from Dynotch.
