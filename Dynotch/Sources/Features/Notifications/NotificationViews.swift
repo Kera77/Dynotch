@@ -192,7 +192,7 @@ struct NotificationsFeatureView: View {
                 Button {
                     withAnimation(.easeOut(duration: 0.2)) { service.clearAll() }
                 } label: {
-                    Label("Clear all", systemImage: "trash")
+                    Label("Clear all", systemImage: "xmark")
                         .font(.notch(size: 11, weight: .semibold))
                         .foregroundStyle(Color.white.level(0.75))
                 }

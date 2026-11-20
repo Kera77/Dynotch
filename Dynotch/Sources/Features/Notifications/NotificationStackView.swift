@@ -129,7 +129,7 @@ struct NotificationStackView: View {
             .fixedSize()
             .help("Remind me later")
             .accessibilityLabel("Remind me later")
-            NotificationHeaderButton(symbol: "trash", help: "Clear all notifications", action: clearAll)
+            NotificationHeaderButton(symbol: "xmark", help: "Clear all notifications", action: clearAll)
             NotificationHeaderButton(symbol: "xmark", help: "Close", action: close)
         }
         .padding(.horizontal, 12)

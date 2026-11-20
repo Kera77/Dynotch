@@ -77,15 +77,34 @@ extension NotchView {
 
     @ViewBuilder var notificationsWingRightV2: some View {
         if let active = activeWingsApp(in: wingsApps) {
-            // The line steps the way the pointer went (spec PV-32).
-            ZStack(alignment: .leading) {
-                // Runs to its end when it does not fit (spec PV-38).
-                WingsMarquee(text: active.line, repeats: false)
-                    .id(active.id)
-                    .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
+            HStack(spacing: 6) {
+                // The line steps the way the pointer went (spec PV-32).
+                ZStack(alignment: .leading) {
+                    // Runs to its end when it does not fit (spec PV-38).
+                    WingsMarquee(text: active.line, repeats: false)
+                        .id(active.id)
+                        .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
+                }
+                .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active.id)
+                // At the right edge: removes the shown app's notifications from Dynotch (spec PV-64).
+                if active.id != WingsApp.mailID, active.id != WingsApp.beeperID {
+                    Button { removeWingsApp(active) } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.notch(size: 13))
+                            .foregroundStyle(Color.white.level(0.55))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.notch)
+                    .help("Remove these notifications")
+                    .accessibilityLabel("Remove")
+                }
             }
-            .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active.id)
         }
+    }
+
+    private func removeWingsApp(_ entry: WingsApp) {
+        let shown = notifications.recent.filter { $0.appIdentifier == entry.id }
+        withAnimation(.easeOut(duration: 0.2)) { shown.forEach { notifications.remove($0) } }
     }
 
     /// A click on an app: the panel opens on that app's notifications (spec PV-17, B-6).

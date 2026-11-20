@@ -271,9 +271,10 @@ extension NotchController {
     private func holdGlassWhileSwitcherDrops() {
         model.hidesGlass = true
         Task { [weak self] in
-            try? await Task.sleep(for: .seconds(0.24))
+            // As soon as the drop-down settles, not later (spec AS-19).
+            try? await Task.sleep(for: .seconds(0.16))
             guard let self, self.model.isShowingSwitcher else { return }
-            withAnimation(.easeOut(duration: 0.15)) { self.model.hidesGlass = false }
+            withAnimation(.easeOut(duration: 0.08)) { self.model.hidesGlass = false }
         }
     }
 }

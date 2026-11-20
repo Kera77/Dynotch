@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+- The bin icon is gone everywhere: notices beside the notch (also the first "Dynotch updated"), notification groups, "Clear all" and Clipboard items show the usual X.
+- Notifications wings: an X at the right edge removes the shown app's notifications from Dynotch.
+
+### Fixed
+- Notes wings: while the latest note has not loaded, it is fetched again every second, for at most 10 seconds.
+- Window switcher: the glass turns grey as soon as the drop-down ends, without a delay.
+
 ## [0.80.0] - 2026-11-20
 
 ### Changed

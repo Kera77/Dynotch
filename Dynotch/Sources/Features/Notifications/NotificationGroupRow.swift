@@ -66,12 +66,12 @@ struct NotificationGroupRow: View {
                         .font(.notch(size: 10))
                         .foregroundStyle(Color.white.level(0.45))
                         .lineLimit(1)
-                    // Like the pop-up's header: the bin removes, the small X closes (spec E-5c).
-                    NotificationHeaderButton(symbol: "trash", help: "Remove") {
+                    // The X removes; an open group closes with the arrow (spec E-5c, PV-62).
+                    NotificationHeaderButton(symbol: "xmark", help: "Remove") {
                         withAnimation(.easeOut(duration: 0.2)) { group.notifications.forEach { service.remove($0) } }
                     }
                     if isExpanded {
-                        NotificationHeaderButton(symbol: "xmark", help: "Close", action: toggle)
+                        NotificationHeaderButton(symbol: "chevron.up", help: "Close", action: toggle)
                     }
                 }
                 if !isExpanded, !content.detail.isEmpty {

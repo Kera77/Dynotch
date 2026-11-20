@@ -47,8 +47,10 @@ final class NotesStore: ObservableObject {
     @Published private(set) var convertibleHTML: String?
     @Published private(set) var saveState: SaveState = .idle
     /// The note changed last, for the Wings (spec PV-19).
-    @Published private(set) var latest: LatestNote?
-    private var latestLoaded: Date?
+    /// Set only by `NotesStore+Latest.swift`.
+    @Published var latest: LatestNote?
+    var latestLoaded: Date?
+    var isFetchingLatest = false
 
     static let autosaveDelay: Duration = .milliseconds(1500)
     private static let refreshInterval: TimeInterval = 60
@@ -377,22 +379,6 @@ extension NotesStore {
             access = .denied
         } else {
             access = .failed("\(error)")
-        }
-    }
-}
-
-// MARK: - The newest note (spec PV-19)
-
-extension NotesStore {
-    /// Looks up the note changed last, at most every 20 seconds.
-    func refreshLatest(now: Date = Date()) {
-        // Also before the Notes panel was opened: only a refusal stops it (spec PV-34).
-        guard access != .denied, latestLoaded.map({ now.timeIntervalSince($0) > 20 }) ?? true else { return }
-        latestLoaded = now
-        Task {
-            do {
-                if let found = try await bridge.latest(), found != latest { latest = found }
-            } catch { latestLoaded = Date().addingTimeInterval(-17) } // Failed: again soon (spec PV-60).
         }
     }
 }

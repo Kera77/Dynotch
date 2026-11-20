@@ -85,7 +85,7 @@ struct ClipboardFeatureView: View {
             Button {
                 store.remove(item, from: tab)
             } label: {
-                Image(systemName: "trash").foregroundStyle(Color.white.level(0.45))
+                Image(systemName: "xmark").foregroundStyle(Color.white.level(0.45))
             }
             .buttonStyle(.notch)
             .help("Remove")

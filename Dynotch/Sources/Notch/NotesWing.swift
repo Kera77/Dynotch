@@ -22,6 +22,8 @@ struct NotesWing: View {
                 }
             }
             .onAppear { notes.refreshLatest() }
+            // Not there yet: again every second, for 10 seconds at most (spec PV-63).
+            .task { await notes.retryLatestWhileMissing() }
         case .right:
             // Before the latest note has loaded, the same note the left side names (spec PV-56).
             let body = notes.latest.map { NotchView.noteBody($0.text) } ?? NotchView.noteBody(notes.text)

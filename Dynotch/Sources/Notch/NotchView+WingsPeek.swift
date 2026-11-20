@@ -96,10 +96,11 @@ extension NotchView {
                     .id("\(notification.id)-\(model.wingsLasting.peekHovers)")
                 // Deletes it from Dynotch, not from the Notification Centre (spec PV-55).
                 Button(action: dismissNotice) {
-                    Image(systemName: "trash")
-                        .font(.notch(size: 11, weight: .medium))
+                    // The usual X, never a bin (spec PV-62).
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.notch(size: 13))
                         .foregroundStyle(Color.white.level(0.55))
-                        .contentShape(Rectangle())
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.notch)
                 .help("Delete (or swipe up with two fingers)")
