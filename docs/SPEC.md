@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.81 elfogadva** · Utolsó módosítás: 2026-11-20
+> Állapot: **v0.82 elfogadva** · Utolsó módosítás: 2026-11-20
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1028,6 +1028,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.82.0** | Alacsony-akku küszöb eszközönként a Notifications beállításokban, piros szintkarika a notch mellett, Értesítések Wings jobb oldala a tartalomhoz igazodik, váltó üvege 0,1 mp-cel a lenyílás vége előtt (BT-7, PV-65, AS-20) |
 | **v0.81.0** | Kuka helyett X mindenhol, Notes Wings 10 mp-ig másodpercenként újrapróbál, X az Értesítések Wings jobb szélén, váltó üvege késleltetés nélkül (PV-62…PV-64, AS-19) |
 | **v0.80.0** | Wings: AI-kör hoverre jobbra nyílik (reset idő + X), modulsor hoverre a szárnyakat váltja, kattintásra nyit, Tray fájlnév kinyílik, mint a Clipboard; 2 mp késleltetés értesítés eltüntetése után; Notes Wings azonnal frissül; váltó üvegrétege nem marad le (PV-58…PV-61, MS-8, AS-18, CL-6c) |
 | **v0.79.0** | Kész letöltés értesítés (ikon + zöld pipa, 3 mp, hoverre Tray), module strip megnyitás hoverre állítható késleltetéssel, értesítés törlése felfelé swipe-pal / kukával a szárnyakon, fehér feladatszámláló görgethető listával, váltó szellem-árnyék javítás és gyorsabb lenyílás, szárnyak újramérése modulváltás után (R-16, PV-55…PV-57, MS-7, AS-17) |

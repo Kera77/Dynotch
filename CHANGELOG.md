@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.82.0] - 2026-11-20
+
 ### Added
 - Settings › Notifications › Low battery: choose per device at which level the notch warns (Off, 5–50 %, 20 % by default).
 
