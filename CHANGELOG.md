@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.80.0] - 2026-11-20
+
 ### Changed
 - Wings: the AI usage ring beside the notch (from 70 %) no longer drops down on hover; it widens to the right with the reset time and an X.
 - Wings: resting on a module strip icon switches the Wings to that module; a click opens it fully.
