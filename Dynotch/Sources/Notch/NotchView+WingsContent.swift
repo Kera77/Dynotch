@@ -115,13 +115,22 @@ extension NotchView {
     private func openWingsApp(_ entry: WingsApp) {
         if entry.id == WingsApp.mailID {
             model.notificationsTab = .mail
-        } else if entry.id == WingsApp.beeperID {
-            model.notificationsTab = .all
+        } else if entry.id == WingsApp.beeperID || ChatSources.isBeeper(entry.id) {
+            // The chat apps open on their own tab, like their badges (spec PV-72).
+            notifications.clearFocus()
+            model.notificationsTab = .beeper
+        } else if isGoogleChatApp(entry) {
+            notifications.clearFocus()
+            model.notificationsTab = .googleChat
         } else if let app = entry.app {
             notifications.setFocus(bundleID: app.identifier, name: app.name, count: nil)
             model.notificationsTab = .all
         }
         openFully()
+    }
+
+    private func isGoogleChatApp(_ entry: WingsApp) -> Bool {
+        notifications.recent.contains { $0.appIdentifier == entry.id && ChatSources.isGoogleChat($0, catalog: notifications.catalog) }
     }
 
     // MARK: Notes (spec PV-34, PV-60)

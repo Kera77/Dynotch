@@ -85,6 +85,9 @@ final class NotchController {
     var isOverWingsPeek = false
     /// A notice beside the notch was put away: the notch unfolds again after it (spec PV-48).
     var peekFoldTask: Task<Void, Never>?
+    /// Since when the pointer rests on the notch while a small notice hangs under it (spec PV-71).
+    var dropDownHoverSince: Date?
+    var dropDownHoverTask: Task<Void, Never>?
     /// Another icon the pointer is on while a drop-down is open, and since when (spec N-23).
     var pendingHover: (target: String, since: Date)?
     /// The question notice whose app was already brought forward (spec CQ-3).
@@ -148,20 +151,7 @@ final class NotchController {
 
     // MARK: - Hover (spec N-2…N-4)
 
-    /// Area that opens the panel: the notch, or the whole peek while a notification shows.
-    var hoverZone: CGRect {
-        let geometry = model.geometry
-        // A notification beside the notch in Wings mode opens only with a swipe down (spec PV-13).
-        guard notifications.peek != nil, !settings.noticesBeside else { return reachingDown(geometry.hoverZone) }
-        // The notification hangs under the row, as wide as it and moved with it (spec E-24b).
-        let layout = collapsedRow().layout
-        let peek = notifications.peekSize(in: geometry)
-        let row = layout.isEmpty ? 0 : layout.size(notch: geometry.notchSize, labelHeight: nil).width
-        let zone = geometry.keepOpenZone(for: CGSize(width: max(peek.width, row), height: peek.height))
-        return reachingDown(zone.offsetBy(dx: layout.horizontalOffset, dy: 0))
-    }
-
-    private func pointerMoved() {
+    func pointerMoved() {
         guard !model.isHiddenForMissionControl else { return }
         updateWingsPeekHover(at: NSEvent.mouseLocation)
         if callIsShown {

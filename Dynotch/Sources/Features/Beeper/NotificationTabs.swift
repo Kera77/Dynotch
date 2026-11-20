@@ -31,7 +31,11 @@ enum NotificationsTab: String, CaseIterable, Sendable {
 @MainActor
 enum ChatSources {
     nonisolated static func isBeeper(_ notification: AppNotification) -> Bool {
-        notification.appIdentifier.lowercased().contains("beeper")
+        isBeeper(notification.appIdentifier)
+    }
+
+    nonisolated static func isBeeper(_ appIdentifier: String) -> Bool {
+        appIdentifier.lowercased().contains("beeper")
     }
 
     /// True when a chat of that name is known and has nothing unread; an unknown name stays.

@@ -65,12 +65,30 @@ extension NotchController {
         }
     }
 
+    /// Area that opens the panel: the notch, or the whole peek while a notification shows.
+    var hoverZone: CGRect {
+        let geometry = model.geometry
+        // A notification beside the notch in Wings mode opens only with a swipe down (spec PV-13).
+        guard notifications.peek != nil, !settings.noticesBeside else { return reachingDown(geometry.hoverZone) }
+        // The notification hangs under the row, as wide as it and moved with it (spec E-24b).
+        let layout = collapsedRow().layout
+        let peek = notifications.peekSize(in: geometry)
+        let row = layout.isEmpty ? 0 : layout.size(notch: geometry.notchSize, labelHeight: nil).width
+        let zone = geometry.keepOpenZone(for: CGSize(width: max(peek.width, row), height: peek.height))
+        return reachingDown(zone.offsetBy(dx: layout.horizontalOffset, dy: 0))
+    }
+
     /// Whether the pointer opens the closed notch here. Over a notification the row beside the
     /// notch (badges, indicators) stays usable; the notch and the notification open (spec E-24).
     func opens(at point: CGPoint) -> Bool {
-        guard openingZone.contains(point) else { return false }
+        guard openingZone.contains(point) else {
+            dropDownHoverSince = nil
+            return false
+        }
         // A small notice beside the notch: hovering leaves it, a swipe up puts it away first (spec PV-47).
         if settings.noticesBeside, showsWingsPeek { return false }
+        // A small notice under the notch: the Wings wait for the pointer to rest a moment (spec PV-71).
+        if holdsWingsForDropDown() { return false }
         guard notifications.peek != nil else { return true }
         // A notification in the wings opens only with a swipe down (spec PV-13).
         if settings.noticesBeside { return false }

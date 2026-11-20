@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.84.0] - 2026-11-20
+
+### Changed
+- With small notices dropping down, the Wings open only after the pointer rests on the notch for a moment while a notice hangs under it (PV-71).
+- Notifications Wings: clicking Beeper or Google Chat opens its own tab, not All (PV-72).
+- No track announcement while the notch is open on Music (MU-10).
+
 ## [0.83.0] - 2026-11-20
 
 ### Added

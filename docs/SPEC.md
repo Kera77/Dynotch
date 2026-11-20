@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.83 elfogadva** · Utolsó módosítás: 2026-11-20
+> Állapot: **v0.84 elfogadva** · Utolsó módosítás: 2026-11-20
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -566,6 +566,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-68 | (v0.83) **Zeneszám-bejelentés a notch mellett (MU-4):** ha a kis értesítések helye *Beside the notch* (PV-66), számváltáskor a borító, a cím és az előadó nem nyílik le, hanem a notch vonalában áll: balra a kis borító és a cím, jobbra az előadó (ha nem fér ki, egyszer végigfut); pár másodperc múlva a notchba úszik. |
 | PV-69 | (v0.83) **Hover-részletek oldalra (K-8d, BT-3/BT-6, PV-58):** *Beside the notch* módban a hoverre lenyíló részletek nem lefelé nyílnak, hanem a jelzőből **jobbra szélesednek ki** a notch magasságában, mint az AI-kör (PV-58): **meeting** – a visszaszámláló mellett a név, az idő („10:00–10:30 · starting”), Join (ha van link) és X; **alacsony akku** – a karika mellett az eszköz neve és X; **AI-kör** – a PV-58 szerint (ez mostantól is ezt a beállítást követi). Az egeret levéve visszahúzódnak. Az app-jelvények listája (B-10), a teendőlista (R-12) és a zenelejátszó (MU-2) továbbra is lenyílik, mert ezek több soros listák / vezérlők. |
 | PV-70 | (v0.83) **Notifications Wings ikonjai nem mozdulnak (PV-17/PV-32 módosítása):** a bal oldali appikonok mellett nem nyílik ki a név, így hoverre egyik ikon sem csúszik el az egér alól (rövidebb nevű appra váltva sem ugrik a hover egy harmadik appra). Az aktív app ikonja teljes fényerejű, a többi halványabb; az aktív app **neve a jobb oldalon**, az üzenet előtt áll („Slack · …”), és vele együtt vált. |
+| PV-71 | (v0.84) **Wings késleltetés lenyíló kis értesítésnél:** ha a kis értesítések helye *Drop down* (PV-66), és a notch alatt épp lenyíló kis értesítés áll (pl. zeneszám-bejelentés, meeting, „Dynotch updated”), a notch fölé vitt egér **nem nyitja ki azonnal** a modul Wingsét, csak ha ~0,6 mp-ig a notchon marad; így közben le lehet húzni (swipe) vagy rá lehet kattintani. Ha az egér közben elhagyja a notchot, a várakozás újraindul. |
+| PV-72 | (v0.84) **Notifications Wings – chat ikonok (PV-17 módosítása):** a Beeper ikonjára kattintva a panel a **Beeper** fülön nyílik, a Google Chat ikonjára kattintva a **Google Chat** fülön (mint a jelvényükre kattintva, BP-12, GC-5), nem az All fülön. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 4p. Akkumulátorok (v0.26)
@@ -900,6 +902,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
 | MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. |
 | MU-9 | Szüneteltetett zenénél a borító elrejthető. A modul szem ikonos menüjében: **Hide Now** (elrejti, amíg újra nem szól), és **Hide After a Pause**: azonnal, 1, 5 (alap) vagy 15 perc szünet után, vagy soha. Lejátszáskor a borító visszajön. |
+| MU-10 | (v0.84) **Nincs számváltás-bejelentés nyitott Music modulnál:** ha a notch (bármelyik kijelzőn) a Music modulon nyitva van (teljesen vagy Wingsben), számváltáskor nem jelenik meg a bejelentés (MU-4, PV-68), és a panel bezárása után sem jön elő. |
 
 ## 4ű. Rendszerstatisztika (v0.56)
 
@@ -1039,6 +1042,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.84.0** | Wings csak rövid várakozás után nyílik, ha lenyíló kis értesítés áll a notch alatt; a Beeper és a Google Chat ikon a Notifications Wingsben a saját fülét nyitja; nincs számváltás-bejelentés nyitott Music modulnál (PV-71, PV-72, MU-10) |
 | **v0.83.0** | Kis értesítések helye kapcsoló (lenyíló / notch mellett), meeting- és zeneszám-bejelentés a notch mellett, hover-részletek oldalra, Notifications Wings ikonjai nem mozdulnak, felvételi idő a notch bal oldalán, késleltetett képmetsző-sáv, szerkesztő bezárása kívülre kattintva, modulsor-késleltetés Wingsben, kattintások nem akadnak el a notch ablakán, meeting ikon mindig teljes fényerővel (PV-66…PV-70, SH-5c, SH-14, SH-15, MS-9, F-16, K-8l) |
 | **v0.82.0** | Alacsony-akku küszöb eszközönként a Notifications beállításokban, piros szintkarika a notch mellett, Értesítések Wings jobb oldala a tartalomhoz igazodik, váltó üvege 0,1 mp-cel a lenyílás vége előtt (BT-7, PV-65, AS-20) |
 | **v0.81.0** | Kuka helyett X mindenhol, Notes Wings 10 mp-ig másodpercenként újrapróbál, X az Értesítések Wings jobb szélén, váltó üvege késleltetés nélkül (PV-62…PV-64, AS-19) |

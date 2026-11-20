@@ -188,6 +188,33 @@ extension NotchController {
     }
 }
 
+// MARK: - Wings after a moment under a drop-down notice (spec PV-71)
+
+extension NotchController {
+    /// How long the pointer rests on the notch before the Wings open over a drop-down notice.
+    static let dropDownWingsDelay: TimeInterval = 0.6
+
+    /// True while the Wings still wait: a small notice hangs under the notch (Drop down) and the
+    /// pointer has not rested on the notch long enough. A notification opens its cards as before.
+    func holdsWingsForDropDown() -> Bool {
+        guard settings.hoverPreview, !settings.noticesBeside, notifications.peek == nil, showsWingsPeek else {
+            dropDownHoverSince = nil
+            return false
+        }
+        guard let since = dropDownHoverSince else {
+            dropDownHoverSince = Date()
+            dropDownHoverTask?.cancel()
+            dropDownHoverTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(Self.dropDownWingsDelay + 0.02))
+                guard let self, !Task.isCancelled, !self.model.isExpanded else { return }
+                self.pointerMoved()
+            }
+            return true
+        }
+        return Date().timeIntervalSince(since) < Self.dropDownWingsDelay
+    }
+}
+
 // MARK: - Keeping the open panel (spec N-4, PV-54)
 
 extension NotchController {

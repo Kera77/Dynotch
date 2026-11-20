@@ -173,7 +173,11 @@ final class MusicService: ObservableObject {
         if glance == nil, indicator.isAnnouncing { indicator.isAnnouncing = false }
     }
 
+    /// True while a notch is open on the Music module: the track is in view there (spec MU-10).
+    var holdsAnnouncement: () -> Bool = { false }
+
     private func announce() {
+        guard !holdsAnnouncement() else { return }
         indicator.isAnnouncing = true
         endAnnouncement(after: Self.announceDuration)
     }
