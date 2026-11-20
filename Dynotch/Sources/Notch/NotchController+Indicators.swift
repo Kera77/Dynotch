@@ -19,7 +19,7 @@ extension NotchController {
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince
         )
-        let items = IndicatorItem.unfoldingUsage(found, hovered: model.hoveredIndicator, wings: settings.hoverPreview)
+        let items = IndicatorItem.unfoldingUsage(found, hovered: model.hoveredIndicator, wings: settings.noticesBeside)
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         return CollapsedRow(layout: IndicatorLayout(items: items, badges: fit.shown, overflow: fit.hidden > 0), fit: fit, items: items)
     }
@@ -35,9 +35,10 @@ extension NotchController {
             || opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
-        setOverNotice(notices.notice != nil && notifications.peek == nil && model.hoveredIndicator == nil
+        let besideMeeting = settings.noticesBeside && (calendar.announcement != nil || isAnnouncingTrack)
+        setOverNotice((notices.notice != nil || besideMeeting) && notifications.peek == nil && model.hoveredIndicator == nil
             && noticeArea(for: layout).contains(point))
-        if settings.hoverPreview, notifications.peek != nil || notices.notice != nil {
+        if settings.noticesBeside, notifications.peek != nil || notices.notice != nil || besideMeeting {
             // The notice beside the notch covers the row (spec PV-13, PV-37).
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
@@ -144,8 +145,9 @@ extension NotchController {
     /// K-8f). The panel then takes the mouse, so a click on its X or Join never reaches the app
     /// behind the notch (spec K-8i).
     private func labelIndex(at point: CGPoint, items: [IndicatorItem], layout: IndicatorLayout) -> Int? {
-        let announced = calendar.announcement.flatMap { announcement in
-            items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }
+        // Beside the notch the announced meeting has no row under it (spec PV-67).
+        let announced = settings.noticesBeside ? nil : calendar.announcement.flatMap { announcement in
+            items.firstIndex { if case .meeting(let item, _) = $0 { item.id == announcement.id } else { false } }
         }
         guard let index = model.hoveredIndicator.flatMap({ items.indices.contains($0) ? $0 : nil }) ?? announced else { return nil }
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
@@ -234,22 +236,15 @@ extension NotchController {
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
         if handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
-        // A device notice is flicked away upwards (spec DV-14).
-        if devices.current != nil, devicePeekZone.contains(NSEvent.mouseLocation) {
-            if isSwipeUp(event) {
-                deviceHoverTask?.cancel()
-                deviceHoverTask = nil
-                foldPeekAway { devices.dismiss() }
-            }
-            return true
-        }
+        if let handled = handleDevicePeekScroll(event) { return handled }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
+        if let handled = handleBesideMeetingScroll(event) { return handled }
         let announced = calendar.announcement.flatMap { announcement in
-            items.firstIndex { if case .meeting(let item) = $0 { item.id == announcement.id } else { false } }
+            items.firstIndex { if case .meeting(let item, _) = $0 { item.id == announcement.id } else { false } }
         }
         guard let announced else {
             // No announcement: the notice is what is written under the notch.
@@ -269,6 +264,28 @@ extension NotchController {
                 setHoveredIndicator(nil)
             }
         }
+        return true
+    }
+}
+
+extension NotchController {
+    /// A device notice is flicked away upwards (spec DV-14); nil when the pointer is not on one.
+    private func handleDevicePeekScroll(_ event: NSEvent) -> Bool? {
+        guard devices.current != nil, devicePeekZone.contains(NSEvent.mouseLocation) else { return nil }
+        if isSwipeUp(event) {
+            deviceHoverTask?.cancel()
+            deviceHoverTask = nil
+            foldPeekAway { devices.dismiss() }
+        }
+        return true
+    }
+
+    /// The announced meeting beside the notch is flicked away into it (spec PV-67); nil when it
+    /// is not there.
+    private func handleBesideMeetingScroll(_ event: NSEvent) -> Bool? {
+        guard settings.noticesBeside, calendar.announcement != nil else { return nil }
+        guard wingsPeekZone.contains(NSEvent.mouseLocation) else { return false }
+        if isSwipeUp(event) { foldPeekAway { calendar.dismissAnnouncement() } }
         return true
     }
 }

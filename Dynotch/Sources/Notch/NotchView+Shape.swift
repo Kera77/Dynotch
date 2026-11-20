@@ -18,7 +18,7 @@ extension NotchView {
     private var isTall: Bool {
         // In Wings mode the small notices stay at the notch's height beside it (spec PV-13, PV-37).
         if wingsPeek != nil { return false }
-        return (notifications.peek != nil && !settings.hoverPreview)
+        return (notifications.peek != nil && !settings.noticesBeside)
             || devices.current != nil || calls.call != nil || shownNotice != nil
             // An AI ring unfolded sideways (spec PV-58) or the recording's Stop drop nothing down.
             || labelIndex.map { labelHeight(of: $0) > 0 } == true

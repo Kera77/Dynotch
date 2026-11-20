@@ -153,13 +153,16 @@ struct RecordingSlot: View {
             .buttonStyle(.notch)
             .help("Stop recording")
             .accessibilityLabel("Stop recording")
-            Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
+            Text(seconds >= 3600
+                ? String(format: "%d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60)
+                : String(format: "%d:%02d", seconds / 60, seconds % 60))
                 .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white)
         }
         .animation(AppleStyle.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
-        .frame(width: IndicatorLayout.slotWidth, height: IndicatorLayout.capsuleHeight)
+        .fixedSize()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -195,6 +198,82 @@ extension NotchIndicatorView {
                 .fixedSize()
             Spacer(minLength: 0)
             dismissButton(for: item, help: "Hide until usage reaches the next 10%")
+        }
+        .frame(width: item.slotWidth, alignment: .leading)
+        .transition(.opacity)
+    }
+}
+
+extension NotchIndicatorView {
+    /// What is left of the lead time or of the meeting, shrinking clockwise; beside the notch,
+    /// hovered, it opens to the right (spec K-8, PV-69).
+    @ViewBuilder
+    func meetingCapsule(_ item: IndicatorItem, event: CalendarEvent, unfolded: Bool, now: Date) -> some View {
+        let status = CalendarAgenda.status(of: event, now: now, leadTime: leadTime)
+        let countdown = capsule(text: CalendarAgenda.countdownText(status.remaining), color: Self.color(for: status.phase),
+                                trim: status.progress...1)
+        if unfolded {
+            unfoldedMeeting(item, event: event, countdown: countdown, now: now)
+        } else {
+            countdown
+        }
+    }
+
+    /// A red ring filled to the charge, the level inside (spec BT-7); beside the notch, hovered,
+    /// it opens to the right (spec PV-69).
+    @ViewBuilder
+    func batteryCapsule(_ item: IndicatorItem, device: BatteryDevice, unfolded: Bool) -> some View {
+        let ring = LevelRing(fraction: Double(device.level) / 100, color: BatteryFeatureView.red, label: "\(device.level)")
+            .frame(width: IndicatorLayout.batterySlotWidth, height: LevelRing.size)
+        if unfolded {
+            unfoldedBattery(item, device: device, ring: ring)
+        } else {
+            ring
+        }
+    }
+
+    /// Beside the notch: the countdown opens to the right with the name, the time, Join and the
+    /// X (spec PV-69).
+    func unfoldedMeeting(_ item: IndicatorItem, event: CalendarEvent, countdown: some View, now: Date) -> some View {
+        let phase = CalendarAgenda.status(of: event, now: now, leadTime: leadTime).phase
+        return HStack(spacing: 6) {
+            countdown
+            Text(event.title)
+                .font(.notch(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: 200, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(IndicatorLayout.meetingTimeText(event, phase: phase == .ongoing ? "in progress" : "starting"))
+                .font(.notch(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(CalendarStyle.eventTime)
+                .lineLimit(1)
+                .fixedSize()
+            Spacer(minLength: 0)
+            if event.meetingURL != nil {
+                JoinButton(style: .muted) { join(event) }
+                    .help("Join the meeting")
+                    .accessibilityLabel("Join the meeting")
+            }
+            dismissButton(for: item, help: "Hide this countdown")
+        }
+        .frame(width: item.slotWidth, alignment: .leading)
+        .transition(.opacity)
+    }
+
+    /// Beside the notch: the low battery's ring opens to the right with the name and the X
+    /// (spec PV-69).
+    func unfoldedBattery(_ item: IndicatorItem, device: BatteryDevice, ring: some View) -> some View {
+        HStack(spacing: 6) {
+            ring
+            Text(device.name)
+                .font(.notch(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: 180, alignment: .leading)
+            Spacer(minLength: 0)
+            dismissButton(for: item, help: "Hide until it has been recharged")
         }
         .frame(width: item.slotWidth, alignment: .leading)
         .transition(.opacity)

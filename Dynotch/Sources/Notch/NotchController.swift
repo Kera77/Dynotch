@@ -152,7 +152,7 @@ final class NotchController {
     var hoverZone: CGRect {
         let geometry = model.geometry
         // A notification beside the notch in Wings mode opens only with a swipe down (spec PV-13).
-        guard notifications.peek != nil, !settings.hoverPreview else { return reachingDown(geometry.hoverZone) }
+        guard notifications.peek != nil, !settings.noticesBeside else { return reachingDown(geometry.hoverZone) }
         // The notification hangs under the row, as wide as it and moved with it (spec E-24b).
         let layout = collapsedRow().layout
         let peek = notifications.peekSize(in: geometry)
@@ -181,8 +181,8 @@ final class NotchController {
             expand(preview: settings.hoverPreview, smart: true)
         } else if handleStrip(at: NSEvent.mouseLocation) {
             // On the module strip or the band that shows it (spec MS-1).
-        } else if !model.isHiddenForFullScreen {
-            updateHoveredIndicator()
+        } else {
+            settleAfterHover()
         }
     }
 

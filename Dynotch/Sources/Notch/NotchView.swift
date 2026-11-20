@@ -112,13 +112,15 @@ struct NotchView: View {
     var labelIndex: Int? {
         // The recording drops nothing down: its dot becomes Stop (spec SH-5b).
         if let hoveredIndicator { return isRecordingHovered ? nil : hoveredIndicator }
-        if let announcement = calendarIndicator.announcement {
+        // Beside the notch the announced meeting is a notice of its own (spec PV-67).
+        if let announcement = calendarIndicator.announcement, !settings.noticesBeside {
             return indicatorItems.firstIndex { item in
-                if case .meeting(let event) = item { event.id == announcement.id } else { false }
+                if case .meeting(let event, _) = item { event.id == announcement.id } else { false }
             }
         }
         // A new track's name, for a moment (spec MU-4).
-        guard musicIndicator.isAnnouncing else { return nil }
+        // Beside the notch it is a small notice of its own (spec PV-68).
+        guard musicIndicator.isAnnouncing, !settings.noticesBeside else { return nil }
         return indicatorItems.firstIndex { if case .music = $0 { true } else { false } }
     }
 
@@ -148,13 +150,13 @@ struct NotchView: View {
                     ZStack(alignment: .top) {
                         peekView(notification, width: naturalCollapsedSize.width)
                         // In Wings mode the notification stands beside the notch, over the row (spec PV-13).
-                        if !indicatorLayout.isEmpty, !settings.hoverPreview {
+                        if !indicatorLayout.isEmpty, !settings.noticesBeside {
                             indicatorRow(hoveredIndex: nil, notice: nil, showsBadgeList: false)
                                 .frame(width: naturalCollapsedSize.width, height: geometry.notchSize.height, alignment: .top)
                         }
                     }
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
-                    .transition(settings.hoverPreview ? .wingsSpreadIn : .opacity)
+                    .transition(settings.noticesBeside ? .wingsSpreadIn : .opacity)
                 } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
                     devicePeek(event)
                 } else if !model.isExpanded, showsScreenshotPeek {
@@ -162,7 +164,7 @@ struct NotchView: View {
                         .frame(width: screenshotPeekSize.width, height: screenshotPeekSize.height)
                         .transition(.opacity)
                 } else if let notice = wingsNoticePeek {
-                    // In Wings mode the notice stands beside the notch, over the row (spec PV-37).
+                    // The notice or the announced meeting stands beside the notch, over the row (spec PV-37, PV-67).
                     wingsPeekView(notice).transition(.wingsSpreadIn)
                 } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
@@ -224,7 +226,8 @@ struct NotchView: View {
                 ModuleStripView(
                     features: stripFeatures, origin: model.stripOrigin, fromAbove: model.isPreview, open: openModule,
                     move: { feature, index in settings.moveFeature(feature, to: index, among: stripFeatures) },
-                    hoverOpenDelay: stripHoverOpenDelay, hoverSwitch: stripHoverSwitch
+                    hoverOpenDelay: stripHoverOpenDelay, hoverSwitch: stripHoverSwitch,
+                    hoverSwitchDelay: settings.moduleStripHoverDelay
                 )
                     // Under whatever hangs below the Wings (spec PV-29).
                     .padding(.top, stripTop + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))

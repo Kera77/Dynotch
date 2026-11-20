@@ -40,3 +40,18 @@ enum ExternalNotchStyle: String, CaseIterable, Sendable {
         }
     }
 }
+
+/// Where the small notices of the closed notch stand (spec PV-66).
+enum NoticePlacement: String, CaseIterable, Sendable {
+    /// Dropping down under the notch.
+    case dropDown
+    /// In the notch's line, on both sides of it.
+    case beside
+
+    var title: String {
+        switch self {
+        case .dropDown: "Drop down"
+        case .beside: "Beside the notch"
+        }
+    }
+}

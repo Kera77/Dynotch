@@ -15,6 +15,8 @@ struct ModuleStripView: View {
     var hoverOpenDelay: Double?
     /// Under the Wings resting on an icon only switches the Wings to it; a click opens (spec MS-8).
     var hoverSwitch: ((FeatureID) -> Void)?
+    /// How long the pointer rests on an icon before the Wings switch to it (spec MS-9).
+    var hoverSwitchDelay: Double = 0
 
     @State private var hovered: FeatureID?
     @State private var isOut = false
@@ -61,9 +63,9 @@ struct ModuleStripView: View {
                         }
                     }
                     if let hoverSwitch {
-                        if inside, dragged == nil { hoverSwitch(feature) }
+                        scheduleHoverAction(inside && dragged == nil ? feature : nil, delay: hoverSwitchDelay, hoverSwitch)
                     } else {
-                        scheduleHoverOpen(inside ? feature : nil)
+                        scheduleHoverAction(inside ? feature : nil, delay: hoverOpenDelay, open)
                     }
                 }
             }
@@ -73,15 +75,16 @@ struct ModuleStripView: View {
         .transition(.opacity)
     }
 
-    /// Starts the wait again on every icon; leaving the strip or dragging cancels it (spec MS-7).
-    private func scheduleHoverOpen(_ feature: FeatureID?) {
+    /// Starts the wait again on every icon; leaving the strip or dragging cancels it (spec MS-7, MS-9).
+    private func scheduleHoverAction(_ feature: FeatureID?, delay: Double?, _ action: @escaping (FeatureID) -> Void) {
         hoverOpen?.cancel()
         hoverOpen = nil
-        guard let feature, let delay = hoverOpenDelay else { return }
+        guard let feature, let delay else { return }
+        guard delay > 0 else { return action(feature) }
         hoverOpen = Task { @MainActor in
             try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled, hovered == feature, dragged == nil else { return }
-            open(feature)
+            action(feature)
         }
     }
 

@@ -66,7 +66,7 @@ extension NotchController {
     /// Over a notification beside the closed notch: a swipe up deletes it from Dynotch (not from
     /// the Notification Centre), a swipe down opens it (spec PV-13, PV-55).
     func handleWingsPeekScroll(_ event: NSEvent) -> Bool {
-        guard settings.hoverPreview, notifications.peek != nil, !model.isExpanded, !callIsShown else { return false }
+        guard settings.noticesBeside, notifications.peek != nil, !model.isExpanded, !callIsShown else { return false }
         guard wingsPeekZone.contains(NSEvent.mouseLocation) else { return false }
         let phase = Self.phase(of: event)
         let fingerUp = event.isDirectionInvertedFromDevice ? -event.scrollingDeltaY : event.scrollingDeltaY
@@ -114,9 +114,12 @@ extension NotchController {
 
     /// A small notice stands beside the closed notch in Wings mode.
     var showsWingsPeek: Bool {
-        notifications.peek != nil || devices.current != nil
-            || (notices.notice != nil && calendar.announcement == nil && model.hoveredIndicator == nil)
+        notifications.peek != nil || devices.current != nil || calendar.announcement != nil || isAnnouncingTrack
+            || (notices.notice != nil && model.hoveredIndicator == nil)
     }
+
+    /// A new track's name stands beside the notch for a moment (spec PV-68).
+    var isAnnouncingTrack: Bool { music.indicator.isAnnouncing && music.indicator.glance != nil }
 
     /// The notice swims into the notch and the shape draws in to the notch; only then do the
     /// module's wings (pointer on the notch) or the closed notch's own items swim out (spec PV-48).
@@ -130,6 +133,9 @@ extension NotchController {
     func dismissPeek() {
         if notifications.peek != nil {
             deletePeekedNotification()
+        } else if calendar.announcement != nil, settings.noticesBeside {
+            // The countdown stays; only the name goes (spec PV-67).
+            foldPeekAway { calendar.dismissAnnouncement() }
         } else {
             foldPeekAway { notices.dismiss() }
         }
@@ -137,7 +143,7 @@ extension NotchController {
 
     func foldPeekAway(_ dismiss: () -> Void) {
         pauseIndicatorHover()
-        guard settings.hoverPreview, !model.isExpanded, !AppleStyle.reducesMotion else {
+        guard settings.noticesBeside, !model.isExpanded, !AppleStyle.reducesMotion else {
             withAnimation(NotchView.quickAnimation, dismiss)
             return
         }

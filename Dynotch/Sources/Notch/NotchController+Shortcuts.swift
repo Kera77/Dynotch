@@ -66,7 +66,7 @@ extension NotchController {
     /// Where the notice is written: under the indicators, or under the bare notch.
     func noticeArea(for layout: IndicatorLayout) -> CGRect {
         // Beside the notch in Wings mode (spec PV-37).
-        if settings.hoverPreview { return wingsPeekZone }
+        if settings.noticesBeside { return wingsPeekZone }
         let geometry = model.geometry
         let rect = layout.isEmpty
             ? geometry.rect(for: CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + IndicatorLayout.labelHeight))
@@ -133,8 +133,10 @@ extension NotchController {
     /// Hovering the "Claude answered" line opens the chat.
     /// The pointer on a finished download's notice opens the Tray with the file on top (spec PV-57).
     func opensTrayForDownload(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard let file = notices.notice?.download, !model.isExpanded, settings.isEnabled(.tray) else { return false }
-        let zone = settings.hoverPreview ? wingsPeekZone : noticeArea(for: layout)
+        guard let file = notices.notice?.download, !model.isExpanded, settings.isEnabled(.tray),
+              !(settings.noticesBeside && calendar.announcement != nil)
+        else { return false }
+        let zone = settings.noticesBeside ? wingsPeekZone : noticeArea(for: layout)
         guard zone.contains(point) else { return false }
         notices.dismiss()
         tray.add([file])
@@ -146,7 +148,7 @@ extension NotchController {
 
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
         // Beside the notch in Wings mode it opens only on a click (spec PV-47).
-        guard !settings.hoverPreview, notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
+        guard !settings.noticesBeside, notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,
               settings.isEnabled(.claudeChat), noticeArea(for: layout).contains(point)
         else { return false }
         setHoveredBadge(nil)

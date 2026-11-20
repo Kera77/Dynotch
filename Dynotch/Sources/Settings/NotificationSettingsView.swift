@@ -122,6 +122,10 @@ struct NotificationSettingsView: View {
             if let battery { LowBatterySettingsSection(battery: battery) }
 
             Section {
+                // Under the notch or in its line, with or without Wings (spec PV-66).
+                Picker("Small notices", selection: $settings.noticePlacement) {
+                    ForEach(NoticePlacement.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
                 PeekSettingsRows(preferences: service.preferences)
                 FocusToggle(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)

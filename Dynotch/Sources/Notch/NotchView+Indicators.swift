@@ -32,10 +32,10 @@ extension NotchView {
                 withAnimation(Self.quickAnimation) {
                     model.hoveredIndicator = nil
                     switch item {
-                    case .meeting(let event): calendar.dismissIndicator(event)
+                    case .meeting(let event, _): calendar.dismissIndicator(event)
                     case .usage: claudeUsage.dismissIndicator()
                     case .working: break
-                    case .battery(let device): battery.dismissWarning(for: device)
+                    case .battery(let device, _): battery.dismissWarning(for: device)
                     case .tasks: tasks.hide()
                     case .stats: stats.dismissWarnings()
                     case .music, .recording: break
@@ -80,7 +80,7 @@ extension NotchView {
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
         )
-        return IndicatorItem.unfoldingUsage(items, hovered: model.hoveredIndicator, wings: settings.hoverPreview)
+        return IndicatorItem.unfoldingUsage(items, hovered: model.hoveredIndicator, wings: settings.noticesBeside)
     }
 
     /// The module strip under the Wings: resting on an icon switches the Wings to it (spec MS-8).

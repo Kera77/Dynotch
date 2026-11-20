@@ -81,8 +81,12 @@ extension NotchView {
                 // The line steps the way the pointer went (spec PV-32).
                 ZStack(alignment: .leading) {
                     // Runs to its end when it does not fit (spec PV-38).
-                    WingsMarquee(text: active.line, repeats: false)
-                        .id(active.id)
+                    // The app's name before its message, so the icons on the left stay put (spec PV-70).
+                    HStack(spacing: 6) {
+                        WingText(active.name, bold: true).fixedSize()
+                        WingsMarquee(text: active.line, repeats: false)
+                    }
+                    .id(active.id)
                         .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
                 }
                 .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active.id)
@@ -278,7 +282,7 @@ struct WingsApp: Identifiable, Equatable {
     }
 }
 
-/// An app's icon with its count; the active one also shows its name, which opens and closes.
+/// An app's icon with its count; the active one is lit (spec PV-70).
 struct WingsAppIcon: View {
     let entry: WingsApp
     let isActive: Bool
@@ -295,14 +299,9 @@ struct WingsAppIcon: View {
                         WingSymbol("envelope.fill")
                     }
                 }
-                // The name opens and closes in place, so the icons beside it step aside (spec PV-32).
-                WingText(entry.name, bold: true)
-                    .fixedSize()
-                    .padding(.leading, 5)
-                    .frame(width: isActive ? nil : 0, alignment: .leading)
-                    .clipped()
-                    .opacity(isActive ? 1 : 0)
             }
+            // The icons never move: the active one is lit, its name stands on the right (spec PV-70).
+            .opacity(isActive ? 1 : 0.55)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -7,28 +7,38 @@ enum WingsPeek {
     case notification(AppNotification)
     case device(DeviceEvent)
     case notice(StickyNotice)
+    /// The announced meeting (spec PV-67).
+    case meeting(CalendarEvent)
+    /// A new track (spec PV-68).
+    case music(MusicIndicator.Glance)
 }
 
 extension NotchView {
     /// The small notice shown beside the closed notch, in the order the closed notch shows them.
     var wingsPeek: WingsPeek? {
-        guard settings.hoverPreview, !model.isExpanded, !model.isScreenShared, hud.display == nil, calls.call == nil
+        guard settings.noticesBeside, !model.isExpanded, !model.isScreenShared, hud.display == nil, calls.call == nil
         else { return nil }
         if let peek = notifications.peek { return .notification(peek) }
         if let event = devices.current { return .device(event) }
         if showsScreenshotPeek { return nil }
+        // The announced meeting stands in the notch's line too (spec PV-67).
+        if let event = calendarIndicator.announcement { return .meeting(event) }
+        // A new track, for a moment (spec PV-68).
+        if musicIndicator.isAnnouncing, let glance = musicIndicator.glance { return .music(glance) }
         return shownNotice.map(WingsPeek.notice)
     }
 
-    /// A sticky notice beside the notch, in place of the closed notch's row.
+    /// A sticky notice or the announced meeting beside the notch, in place of the closed notch's row.
     var wingsNoticePeek: WingsPeek? {
-        if case .notice = wingsPeek { return wingsPeek }
-        return nil
+        switch wingsPeek {
+        case .notice, .meeting, .music: wingsPeek
+        default: nil
+        }
     }
 
     /// A device notice: beside the notch in Wings mode, else under it (spec DV-6, PV-37).
     @ViewBuilder func devicePeek(_ event: DeviceEvent) -> some View {
-        if settings.hoverPreview {
+        if settings.noticesBeside {
             wingsPeekView(.device(event)).transition(.wingsSpreadIn)
         } else {
             DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
@@ -76,6 +86,13 @@ extension NotchView {
                 .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(Theme.blue)
                 .accessibilityLabel("Download")
+        case .meeting(let event):
+            meetingWingLeft(event)
+        case .music(let glance):
+            HStack(spacing: 6) {
+                MusicArtwork(image: glance.artwork, cornerRadius: AppleStyle.corner(3)).frame(width: 16, height: 16)
+                WingText(glance.title, bold: true)
+            }
         case .notice(let notice):
             HStack(spacing: 6) {
                 NoticeIcon(notice: notice)
@@ -115,6 +132,50 @@ extension NotchView {
                 .accessibilityLabel("Finished")
         case .notice(let notice):
             noticeWingRight(notice)
+        case .meeting(let event):
+            meetingWingRight(event)
+        case .music(let glance):
+            WingsMarquee(text: glance.artist, dim: true, repeats: false).id(glance.trackID)
+        }
+    }
+
+    /// The camera (or calendar) in the phase's colour, and the meeting's name (spec PV-67).
+    private func meetingWingLeft(_ event: CalendarEvent) -> some View {
+        TimelineView(.periodic(from: .now, by: 15)) { context in
+            let phase = CalendarAgenda.status(of: event, now: context.date, leadTime: calendar.leadTime).phase
+            HStack(spacing: 6) {
+                Image(systemName: event.meetingURL != nil ? "video.fill" : "calendar")
+                    .font(.notch(size: 13, weight: .semibold))
+                    .foregroundStyle(NotchIndicatorView.color(for: phase))
+                WingText(event.title, bold: true)
+            }
+        }
+    }
+
+    /// When, Join and the X, which puts the name away as a swipe up does (spec PV-67, K-8f).
+    private func meetingWingRight(_ event: CalendarEvent) -> some View {
+        TimelineView(.periodic(from: .now, by: 15)) { context in
+            let status = CalendarAgenda.status(of: event, now: context.date, leadTime: calendar.leadTime)
+            HStack(spacing: 6) {
+                Text(IndicatorLayout.meetingTimeText(event, phase: status.phase == .ongoing ? "in progress" : "starting"))
+                    .font(.notch(size: 11))
+                    .monospacedDigit()
+                    .foregroundStyle(CalendarStyle.eventTime)
+                    .lineLimit(1)
+                    .fixedSize()
+                if event.meetingURL != nil {
+                    WingButton(title: "Join", symbol: "video.fill", prominent: true) { joinedMeeting(event) }
+                }
+                Button(action: dismissNotice) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.notch(size: 13))
+                        .foregroundStyle(Color.white.level(0.55))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.notch)
+                .help("Dismiss (or swipe up with two fingers)")
+                .accessibilityLabel("Dismiss")
+            }
         }
     }
 
@@ -204,14 +265,15 @@ extension NotchController {
 
     /// Where a device notice stands: beside the notch in Wings mode, else under it.
     var devicePeekZone: CGRect {
-        settings.hoverPreview ? wingsPeekZone : model.geometry.keepOpenZone(for: model.geometry.devicePeekSize)
+        settings.noticesBeside ? wingsPeekZone : model.geometry.keepOpenZone(for: model.geometry.devicePeekSize)
     }
 
     /// The pointer on a notice beside the notch: a notification stays while it is there, and its
     /// line starts again (spec PV-38, PV-39).
     func updateWingsPeekHover(at point: CGPoint) {
         let shows = notifications.peek != nil || devices.current != nil || notices.notice != nil
-        let inside = settings.hoverPreview && shows && !model.isExpanded && wingsPeekZone.contains(point)
+            || calendar.announcement != nil || isAnnouncingTrack
+        let inside = settings.noticesBeside && shows && !model.isExpanded && wingsPeekZone.contains(point)
         notifications.holdPeek(inside && notifications.peek != nil, by: ObjectIdentifier(self))
         guard inside != isOverWingsPeek else { return }
         isOverWingsPeek = inside

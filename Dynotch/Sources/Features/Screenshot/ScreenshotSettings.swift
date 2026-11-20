@@ -96,6 +96,9 @@ final class ScreenshotSettings: ObservableObject {
     }
     @Published var recordsSystemAudio: Bool { didSet { defaults.set(recordsSystemAudio, forKey: Key.audio) } }
     @Published var recordsMicrophone: Bool { didSet { defaults.set(recordsMicrophone, forKey: Key.microphone) } }
+    /// How long the modifiers stay down before the modes show (spec SH-14).
+    @Published var chooserDelay: Double { didSet { defaults.set(chooserDelay, forKey: Key.chooserDelay) } }
+    static let chooserDelayRange: ClosedRange<Double> = 0...1
 
     /// ⌃⇧S (spec SH-1).
     static let defaultShortcut = KeyShortcut(keyCode: UInt32(kVK_ANSI_S), modifiers: UInt32(controlKey | shiftKey), display: "⌃⇧S")
@@ -104,6 +107,7 @@ final class ScreenshotSettings: ObservableObject {
         static let isOn = "screenshotsOn", order = "screenshotModes", modesOff = "screenshotModesOff"
         static let toolsOff = "screenshotToolsOff", shortcut = "screenshotShortcut"
         static let audio = "screenshotSystemAudio", microphone = "screenshotMicrophone"
+        static let chooserDelay = "screenshotChooserDelay"
     }
 
     private let defaults: UserDefaults
@@ -121,6 +125,7 @@ final class ScreenshotSettings: ObservableObject {
         }
         recordsSystemAudio = defaults.object(forKey: Key.audio) as? Bool ?? true
         recordsMicrophone = defaults.bool(forKey: Key.microphone)
+        chooserDelay = min(max(defaults.object(forKey: Key.chooserDelay) as? Double ?? 0.15, 0), 1)
     }
 
     /// Every mode once, the stored order first.

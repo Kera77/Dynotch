@@ -26,14 +26,17 @@ struct ClockwiseCapsule: Shape {
 /// Something shown beside the closed notch: a meeting countdown, or the Claude usage (spec
 /// K-7, CL-6).
 enum IndicatorItem: Identifiable, Equatable {
-    case meeting(CalendarEvent)
+    /// Unfolded: beside the notch the hovered countdown widens to the right with the name, the
+    /// time, Join and an X (spec PV-69).
+    case meeting(CalendarEvent, unfolded: Bool = false)
     /// All usage limits; the capsule shows the fullest one. Unfolded: in Wings mode the hovered
     /// ring widens to the right with the reset time and an X (spec PV-58).
     case usage([UsageLimit], unfolded: Bool = false)
     /// Claude is writing an answer in the chat (spec CC-4).
     case working
     /// A device whose battery is low (spec BT-3).
-    case battery(BatteryDevice)
+    /// Unfolded: the name, the time left and an X right of the ring (spec PV-69).
+    case battery(BatteryDevice, unfolded: Bool = false)
     /// Today's or the open tasks (spec R-10).
     case tasks(TaskCount)
     /// Spotify's cover with the track's progress (spec MU-2).
@@ -45,10 +48,10 @@ enum IndicatorItem: Identifiable, Equatable {
 
     var id: String {
         switch self {
-        case .meeting(let event): "meeting-\(event.id)"
+        case .meeting(let event, _): "meeting-\(event.id)"
         case .usage: "claude-usage"
         case .working: "claude-working"
-        case .battery(let device): "battery-\(device.id)"
+        case .battery(let device, _): "battery-\(device.id)"
         case .tasks: "tasks"
         case .music: "music"
         case .stats: "stats"
@@ -76,22 +79,27 @@ enum IndicatorItem: Identifiable, Equatable {
     /// Width of the item's place right of the notch: a countdown capsule, or the usage ring.
     var slotWidth: CGFloat {
         switch self {
-        case .meeting: IndicatorLayout.slotWidth
+        case .meeting(let event, let unfolded):
+            IndicatorLayout.slotWidth + (unfolded ? IndicatorLayout.meetingUnfoldWidth(for: event) : 0)
         case .usage(let limits, let unfolded):
             IndicatorLayout.ringSlotWidth + (unfolded ? IndicatorLayout.usageUnfoldWidth(for: limits) : 0)
         case .working: IndicatorLayout.ringSlotWidth
-        case .battery: IndicatorLayout.batterySlotWidth
+        case .battery(let device, let unfolded):
+            IndicatorLayout.batterySlotWidth + (unfolded ? IndicatorLayout.batteryUnfoldWidth(for: device) : 0)
         case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
         // Only on the left, next to the notch (spec MU-2).
         case .music: 0
         case .stats(let values): IndicatorLayout.statsWidth(values: values)
-        case .recording: IndicatorLayout.slotWidth
+        // Left of the notch, as wide as its time (spec SH-5c).
+        case .recording: 0
         }
     }
 
     /// Height of the hover label below the notch.
     var labelHeight: CGFloat {
         switch self {
+        // Unfolded beside the notch, nothing drops down (spec PV-69).
+        case .meeting(_, true), .battery(_, true): 0
         case .meeting, .working, .battery, .stats: IndicatorLayout.labelHeight
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
         case .recording: 0
@@ -112,18 +120,22 @@ enum IndicatorItem: Identifiable, Equatable {
         tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil
     ) -> [IndicatorItem] {
         (recording.map { [.recording($0)] } ?? [])
-            + (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
-            + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats.map { [.stats($0)] } ?? [])
+            + (music.map { [.music($0)] } ?? []) + meetings.map { .meeting($0) } + (usage.map { [.usage($0)] } ?? [])
+            + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? [])
     }
 
-    /// In Wings mode the hovered AI ring unfolds to the right instead of dropping down (spec PV-58).
+    /// Beside the notch the hovered AI ring, countdown or low battery unfolds to the right
+    /// instead of dropping down (spec PV-58, PV-69).
     static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool) -> [IndicatorItem] {
-        guard wings, let hovered, items.indices.contains(hovered), case .usage(let limits, false) = items[hovered] else {
-            return items
-        }
+        guard wings, let hovered, items.indices.contains(hovered) else { return items }
         var unfolded = items
-        unfolded[hovered] = .usage(limits, unfolded: true)
+        switch items[hovered] {
+        case .usage(let limits, false): unfolded[hovered] = .usage(limits, unfolded: true)
+        case .meeting(let event, false): unfolded[hovered] = .meeting(event, unfolded: true)
+        case .battery(let device, false): unfolded[hovered] = .battery(device, unfolded: true)
+        default: return items
+        }
         return unfolded
     }
 
@@ -137,6 +149,8 @@ enum IndicatorItem: Identifiable, Equatable {
     /// for the first meeting, the Claude icon for the usage.
     static func iconSlots(for items: [IndicatorItem]) -> [Int] {
         var slots: [Int] = []
+        // The recording's dot and time right next to the notch (spec SH-5c).
+        if let recording = items.firstIndex(where: \.isRecording) { slots.append(recording) }
         // The cover sits next to the notch (spec MU-2).
         if let music = items.firstIndex(where: { if case .music = $0 { true } else { false } }) { slots.append(music) }
         if let meeting = items.firstIndex(where: { if case .meeting = $0 { true } else { false } }) { slots.append(meeting) }
@@ -217,6 +231,8 @@ struct IndicatorLayout: Equatable {
     let slotWidths: [CGFloat]
     /// For each icon on the left (from the notch outwards), the place it stands for.
     let iconSlots: [Int]
+    /// Each icon's width, in the order of `iconSlots`: the recording's time is wider (spec SH-5c).
+    let iconWidths: [CGFloat]
     /// Width of each app badge at the far left, from left to right (spec B-4).
     let badgeWidths: [CGFloat]
     /// The "+" for badges that do not fit beside the menu bar, at the very left (spec B-8).
@@ -230,16 +246,23 @@ struct IndicatorLayout: Equatable {
         self.init(slotWidths: Array(repeating: Self.slotWidth, count: max(count, 0)), iconSlots: iconSlots)
     }
 
-    init(slotWidths: [CGFloat], iconSlots: [Int]? = nil, badgeWidths: [CGFloat] = [], overflow: Bool = false) {
+    init(
+        slotWidths: [CGFloat], iconSlots: [Int]? = nil, iconWidths: [CGFloat]? = nil, badgeWidths: [CGFloat] = [],
+        overflow: Bool = false
+    ) {
         self.slotWidths = slotWidths
-        self.iconSlots = slotWidths.isEmpty ? [] : (iconSlots ?? [0])
+        let slots = slotWidths.isEmpty ? [] : (iconSlots ?? [0])
+        self.iconSlots = slots
+        self.iconWidths = iconWidths.flatMap { $0.count == slots.count ? $0 : nil }
+            ?? Array(repeating: Self.iconWidth, count: slots.count)
         self.badgeWidths = badgeWidths
         self.overflowWidth = overflow ? Self.overflowChipWidth : 0
     }
 
     init(items: [IndicatorItem], badges: [BadgeItem] = [], overflow: Bool = false) {
+        let slots = IndicatorItem.iconSlots(for: items)
         self.init(
-            slotWidths: items.map(\.slotWidth), iconSlots: IndicatorItem.iconSlots(for: items),
+            slotWidths: items.map(\.slotWidth), iconSlots: slots, iconWidths: slots.map { items[$0].iconWidth },
             badgeWidths: badges.map(\.width), overflow: overflow
         )
     }
@@ -254,9 +277,8 @@ struct IndicatorLayout: Equatable {
 
     /// The icons next to the notch, without margins.
     var iconsWidth: CGFloat {
-        guard !iconSlots.isEmpty else { return 0 }
-        let icons = CGFloat(iconSlots.count)
-        return icons * Self.iconWidth + (icons - 1) * Self.spacing
+        guard !iconWidths.isEmpty else { return 0 }
+        return iconWidths.reduce(0, +) + CGFloat(iconWidths.count - 1) * Self.spacing
     }
 
     /// The app badges, without margins.
@@ -315,7 +337,9 @@ struct IndicatorLayout: Equatable {
 
     /// Horizontal centre of icon `index` (0 = next to the notch).
     func iconCenter(_ index: Int = 0, notchRect: CGRect) -> CGFloat {
-        notchRect.minX - Self.padding - Self.iconWidth / 2 - CGFloat(index) * (Self.iconWidth + Self.spacing)
+        let before = iconWidths.prefix(index).reduce(0, +) + CGFloat(index) * Self.spacing
+        let width = iconWidths.indices.contains(index) ? iconWidths[index] : Self.iconWidth
+        return notchRect.minX - Self.padding - before - width / 2
     }
 
     /// The indicator under a point (global coordinates), if any.

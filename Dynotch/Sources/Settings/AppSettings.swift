@@ -48,6 +48,7 @@ final class AppSettings: ObservableObject {
         static let focusDelay = "focusDelay"
         static let calls = "calls"
         static let hoverPreview = "hoverPreview"
+        static let noticePlacement = "noticePlacement"
         static let mailSource = "mailSource"
     }
 
@@ -136,6 +137,11 @@ final class AppSettings: ObservableObject {
     /// Hovering the notch shows a small preview first (spec PV-1).
     @Published var hoverPreview: Bool {
         didSet { defaults.set(hoverPreview, forKey: Key.hoverPreview) }
+    }
+
+    /// Where the small notices stand; nil follows the Wings mode (spec PV-66).
+    @Published var noticePlacementChoice: NoticePlacement? {
+        didSet { defaults.set(noticePlacementChoice?.rawValue, forKey: Key.noticePlacement) }
     }
 
     /// Where Gmail's unread messages come from (spec GM-12).
@@ -323,6 +329,7 @@ final class AppSettings: ObservableObject {
         hudEnabled = defaults.object(forKey: Key.hud) as? Bool ?? true
         callsEnabled = defaults.object(forKey: Key.calls) as? Bool ?? true
         hoverPreview = defaults.bool(forKey: Key.hoverPreview)
+        noticePlacementChoice = defaults.string(forKey: Key.noticePlacement).flatMap(NoticePlacement.init(rawValue:))
         mailSource = defaults.string(forKey: Key.mailSource).flatMap(MailSource.init(rawValue:)) ?? .notifications
         claudeSessionPinned = defaults.bool(forKey: Key.claudeSessionPinned)
         hiddenFromMenuBar = Set((defaults.stringArray(forKey: Key.hiddenFromMenuBar) ?? []).compactMap(FeatureID.init(rawValue:)))

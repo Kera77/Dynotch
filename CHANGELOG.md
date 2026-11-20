@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.83.0] - 2026-11-20
+
+### Added
+- Settings › Notifications › Small notices: Drop down or Beside the notch, with or without Wings (PV-66).
+- The announced meeting can stand beside the notch like the other small notices, with Join and an X (PV-67).
+- Settings › Screenshots › Show modes after (default 0.15 s): a quick ⌃⇧S takes the first mode without the bar (SH-14).
+- Beside the notch, a new track's name stands in the notch's line (PV-68).
+- Beside the notch, a hovered meeting countdown or low battery opens to the right instead of dropping down (PV-69).
+
+### Changed
+- A click outside the screenshot editor closes it, like Close (SH-15).
+- The meeting icon beside the notch never dims (K-8l).
+- The recording's dot and time sit left of the notch, which widens to fit the time (SH-5c).
+- Under the Wings, the module strip switches only after the Open after delay (MS-9).
+- Notifications Wings: the app icons never move; the active app's name stands on the right before its message (PV-70).
+
+### Fixed
+- The notch's window no longer keeps catching clicks after a notice or drop-down went away (e.g. Zen's sidebar folders and essentials) (F-16).
+
 ## [0.82.0] - 2026-11-20
 
 ### Added

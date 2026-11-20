@@ -112,7 +112,8 @@ struct AppearanceSettingsView: View {
                         .frame(width: 48, alignment: .trailing)
                 }
             }
-            .disabled(!settings.moduleStrip || !settings.moduleStripHover)
+            // Under the Wings the same wait comes before switching them (spec MS-9).
+            .disabled(!settings.moduleStrip || !(settings.moduleStripHover || settings.hoverPreview))
             StripModulesRows(settings: settings)
                 .disabled(!settings.moduleStrip)
         } header: {

@@ -112,6 +112,13 @@ extension NotchController {
     /// panel never activates Dynotch, so the clicked app, already in front, would show its caret
     /// while the keys still came here (spec F-15b).
     func clickedInAnotherApp() {
+        // A click beside the screenshot editor closes it, as Close does; the clicked app keeps
+        // the keyboard (spec SH-15).
+        if model.editor != nil, !keepOpenZone.contains(NSEvent.mouseLocation) {
+            model.appBeforeEditor = nil
+            closeScreenshotEditor()
+            return
+        }
         guard panel.isKeyWindow else { return }
         Task { [weak self] in
             // Let the click activate its app first, so that one gets the keyboard back.

@@ -54,7 +54,7 @@ struct NotchIndicatorView: View {
     private var layout: IndicatorLayout { IndicatorLayout(items: items, badges: badges, overflow: hiddenBadges > 0) }
 
     private var meetings: [CalendarEvent] {
-        items.compactMap { if case .meeting(let event) = $0 { event } else { nil } }
+        items.compactMap { if case .meeting(let event, _) = $0 { event } else { nil } }
     }
 
     /// Every second only while something counts seconds (a meeting, a recording, a hover label);
@@ -126,10 +126,11 @@ struct NotchIndicatorView: View {
     /// the Claude icon.
     private func icons(now: Date) -> some View {
         HStack(spacing: IndicatorLayout.spacing) {
-            ForEach(Array(layout.iconSlots.enumerated().reversed()), id: \.offset) { _, slot in
+            ForEach(Array(layout.iconSlots.enumerated().reversed()), id: \.offset) { offset, slot in
                 icon(for: items[slot], now: now)
-                    .frame(width: IndicatorLayout.iconWidth, height: IndicatorLayout.iconHeight)
-                    .opacity(hoveredIndex == nil || hoveredIndex == slot ? 1 : 0.45)
+                    .frame(width: layout.iconWidths[offset], height: IndicatorLayout.iconHeight)
+                    // The meeting's icon never dims (spec K-8l).
+                    .opacity(hoveredIndex == nil || hoveredIndex == slot || items[slot].isMeeting ? 1 : 0.45)
             }
         }
     }
@@ -137,12 +138,12 @@ struct NotchIndicatorView: View {
     @ViewBuilder
     private func icon(for item: IndicatorItem, now: Date) -> some View {
         switch item {
-        case .meeting(let first):
+        case .meeting(let first, _):
             let color = Self.color(for: CalendarAgenda.status(of: first, now: now, leadTime: leadTime).phase)
             Image(systemName: meetings.contains { $0.meetingURL != nil } ? "video.fill" : "calendar")
                 .font(.notch(size: 15, weight: .semibold))
                 .foregroundStyle(color)
-        case .battery(let device):
+        case .battery(let device, _):
             BatteryDeviceIcon(kind: device.kind, size: 14)
         case .usage, .working:
             // Always white (spec CL-6); the ring carries the level's colour.
@@ -150,8 +151,11 @@ struct NotchIndicatorView: View {
         case .music(let glance):
             // Next to the notch on the left (spec MU-2).
             if let music { MusicCoverRing(service: music, glance: glance) }
-        case .tasks, .stats, .recording:
-            // Only on the right (spec R-10, SY-7, SH-5).
+        case .recording(let since):
+            // Left of the notch, as wide as its time (spec SH-5c).
+            RecordingSlot(since: since, now: now, isHovered: recordingHovered, stop: stopRecording)
+        case .tasks, .stats:
+            // Only on the right (spec R-10, SY-7).
             EmptyView()
         }
     }
@@ -171,11 +175,8 @@ struct NotchIndicatorView: View {
     @ViewBuilder
     private func capsule(for item: IndicatorItem, now: Date) -> some View {
         switch item {
-        case .meeting(let event):
-            let status = CalendarAgenda.status(of: event, now: now, leadTime: leadTime)
-            // What is left of the lead time or of the meeting; it shrinks clockwise.
-            capsule(text: CalendarAgenda.countdownText(status.remaining), color: Self.color(for: status.phase),
-                    trim: status.progress...1)
+        case .meeting(let event, let unfolded):
+            meetingCapsule(item, event: event, unfolded: unfolded, now: now)
         case .usage(let limits, let unfolded):
             let used = limits.map(\.utilization).max() ?? 0
             if unfolded {
@@ -186,18 +187,17 @@ struct NotchIndicatorView: View {
         case .working:
             WorkingDots()
                 .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
-        case .battery(let device):
-            // A red ring filled to the charge, the level inside (spec BT-7).
-            LevelRing(fraction: Double(device.level) / 100, color: BatteryFeatureView.red, label: "\(device.level)")
-                .frame(width: IndicatorLayout.batterySlotWidth, height: LevelRing.size)
+        case .battery(let device, let unfolded):
+            batteryCapsule(item, device: device, unfolded: unfolded)
         case .tasks(let count):
             TasksCounter(count: count, width: item.slotWidth, open: openTasks)
         case .music:
             EmptyView()
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
-        case .recording(let since):
-            RecordingSlot(since: since, now: now, isHovered: recordingHovered, stop: stopRecording)
+        case .recording:
+            // Left of the notch (spec SH-5c).
+            EmptyView()
         }
     }
 
@@ -209,7 +209,7 @@ struct NotchIndicatorView: View {
     }
 
     /// Not animated: an animation on the outline would also delay the capsule when it moves.
-    private func capsule(text: String, color: Color, trim: ClosedRange<Double>) -> some View {
+    func capsule(text: String, color: Color, trim: ClosedRange<Double>) -> some View {
         Text(text)
             .font(.notch(size: 11, weight: .semibold, design: .rounded))
             .monospacedDigit()
@@ -230,12 +230,15 @@ extension NotchIndicatorView {
     @ViewBuilder
     private func label(for item: IndicatorItem, now: Date) -> some View {
         switch item {
-        case .meeting(let event):
+        case .meeting(let event, false):
             meetingLabel(for: event, now: now)
-        case .usage(let limits, let unfolded):
-            if !unfolded { usageLabel(for: limits, now: now) }
-        case .battery(let device):
+        case .usage(let limits, false):
+            usageLabel(for: limits, now: now)
+        case .battery(let device, false):
             batteryLabel(device, item: item)
+        // Unfolded beside the notch, nothing drops down (spec PV-58, PV-69).
+        case .meeting(_, true), .usage(_, true), .battery(_, true):
+            EmptyView()
         case .tasks(let count):
             tasksLabel(count, item: item)
         case .music(let glance):

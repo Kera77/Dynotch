@@ -98,3 +98,16 @@ extension AppSettings {
         moduleStripHoverDelay = Self.stored(defaults, "moduleStripHoverDelay", default: 0.5, in: Self.moduleStripHoverDelayRange)
     }
 }
+
+// MARK: - Small notices (spec PV-66)
+
+extension AppSettings {
+    /// The chosen place, or the Wings mode's own one while nothing is chosen.
+    var noticePlacement: NoticePlacement {
+        get { noticePlacementChoice ?? (hoverPreview ? .beside : .dropDown) }
+        set { noticePlacementChoice = newValue }
+    }
+
+    /// The small notices stand in the notch's line, beside it (spec PV-66).
+    var noticesBeside: Bool { noticePlacement == .beside }
+}

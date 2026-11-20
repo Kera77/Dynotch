@@ -107,7 +107,7 @@ extension NotchView {
     /// in Wings mode beside the notch (spec PV-13).
     @ViewBuilder func peekView(_ notification: AppNotification, width: CGFloat) -> some View {
         let peekSize = notifications.peekSize(in: geometry)
-        if settings.hoverPreview {
+        if settings.noticesBeside {
             wingsPeekView(.notification(notification))
         } else {
             standardPeek(notification, width: width, size: peekSize)

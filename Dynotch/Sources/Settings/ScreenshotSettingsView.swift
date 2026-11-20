@@ -14,6 +14,16 @@ struct ScreenshotSettingsView: View {
                 LabeledContent("Shortcut") {
                     ShortcutRecorder(shortcut: settings.shortcut) { settings.shortcut = $0 }
                 }
+                // A quick press takes the first mode without the bar popping up (spec SH-14).
+                LabeledContent("Show modes after") {
+                    HStack(spacing: 8) {
+                        Slider(value: $settings.chooserDelay, in: ScreenshotSettings.chooserDelayRange, step: 0.05)
+                            .frame(width: 160)
+                        Text(String(format: "%.2f s", settings.chooserDelay))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 if !isAllowed {
                     HStack {
                         Text("Needs Screen Recording.").foregroundStyle(.secondary)

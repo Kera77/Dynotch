@@ -174,7 +174,7 @@ extension NotchController {
             return false
         }
         // In Wings mode the notice beside the notch never opens on hover (spec PV-47).
-        if event.actions.isEmpty, event.category == .bluetooth, settings.isEnabled(.battery), !settings.hoverPreview {
+        if event.actions.isEmpty, event.category == .bluetooth, settings.isEnabled(.battery), !settings.noticesBeside {
             // Resting half a second opens the batteries; a flick before that only hides it (spec DV-14).
             panel.ignoresMouseEvents = false
             guard deviceHoverTask == nil else { return true }

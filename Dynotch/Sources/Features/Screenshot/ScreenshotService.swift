@@ -15,8 +15,11 @@ struct ScreenshotShot: Identifiable, Equatable {
 /// modifiers are held, letting go takes the picture; it is saved, copied and announced.
 @MainActor
 final class ScreenshotService: ObservableObject {
-    /// The mode chosen while the modifiers are held (spec SH-1).
+    /// The mode chosen while the modifiers are held, once the bar shows (spec SH-1, SH-14).
     @Published private(set) var choosing: CaptureMode?
+    /// The mode chosen, shown or not yet (spec SH-14).
+    private var chosen: CaptureMode?
+    private var chooserTimer: Timer?
     @Published private(set) var peek: ScreenshotShot?
     @Published private(set) var recordingSince: Date?
     private var areaFrame: NSWindow?
@@ -67,9 +70,34 @@ final class ScreenshotService: ObservableObject {
             return
         }
         guard !isBusy else { return }
-        let first = choosing == nil
-        choosing = Self.next(after: choosing, in: settings.modes)
-        if first { watchRelease() }
+        let first = chosen == nil
+        chosen = Self.next(after: chosen, in: settings.modes)
+        if first {
+            watchRelease()
+            showChooserLater()
+        } else {
+            // Stepping on: the bar shows at once (spec SH-14).
+            showChooser()
+        }
+    }
+
+    /// The bar pops up only if the modifiers stay down a moment; a quick press just takes the
+    /// first mode (spec SH-14).
+    private func showChooserLater() {
+        let delay = settings.chooserDelay
+        guard delay > 0 else { return showChooser() }
+        let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.showChooser() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        chooserTimer = timer
+    }
+
+    private func showChooser() {
+        chooserTimer?.invalidate()
+        chooserTimer = nil
+        guard let chosen else { return }
+        choosing = chosen
     }
 
     private func watchRelease() {
@@ -90,7 +118,7 @@ final class ScreenshotService: ObservableObject {
         if modifiers & UInt32(optionKey) != 0, !flags.contains(.maskAlternate) { held = false }
         if modifiers & UInt32(cmdKey) != 0, !flags.contains(.maskCommand) { held = false }
         guard !held else { return }
-        let mode = choosing
+        let mode = chosen
         endChoosing()
         if let mode { run(mode) }
     }
@@ -99,6 +127,9 @@ final class ScreenshotService: ObservableObject {
         releaseTimer?.invalidate()
         releaseTimer = nil
         unregisterEscape()
+        chooserTimer?.invalidate()
+        chooserTimer = nil
+        chosen = nil
         choosing = nil
     }
 
