@@ -63,7 +63,8 @@ struct NotchView: View {
     var openModule: (FeatureID) -> Void = { _ in }
     /// The notice under the closed notch clicked (spec CN-6).
     var openNotice: () -> Void = {}
-    /// The X of a notice beside the notch: it swims into the notch (spec PV-48).
+    /// The X of a notice beside the notch: it swims into the notch (spec PV-48); a notification's
+    /// bin deletes it from Dynotch (spec PV-55).
     var dismissNotice: () -> Void = {}
     /// A meeting joined from its row under the closed notch (spec K-8k).
     var joinedMeeting: (CalendarEvent) -> Void = { _ in }
@@ -230,10 +231,10 @@ struct NotchView: View {
         .overlay(alignment: .top) {
             if layer == .content, showsStrip {
                 ModuleStripView(
-                    features: stripFeatures, origin: model.stripOrigin, fromAbove: model.isPreview, open: openModule
-                ) { feature, index in
-                    settings.moveFeature(feature, to: index, among: stripFeatures)
-                }
+                    features: stripFeatures, origin: model.stripOrigin, fromAbove: model.isPreview, open: openModule,
+                    move: { feature, index in settings.moveFeature(feature, to: index, among: stripFeatures) },
+                    hoverOpenDelay: settings.moduleStripHover ? settings.moduleStripHoverDelay : nil
+                )
                     // Under whatever hangs below the Wings (spec PV-29).
                     .padding(.top, stripTop + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
             }

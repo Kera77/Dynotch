@@ -63,8 +63,8 @@ extension NotchController {
         )
     }
 
-    /// Over a notification beside the closed notch: a swipe up puts it away, a swipe down opens
-    /// it (spec PV-13).
+    /// Over a notification beside the closed notch: a swipe up deletes it from Dynotch (not from
+    /// the Notification Centre), a swipe down opens it (spec PV-13, PV-55).
     func handleWingsPeekScroll(_ event: NSEvent) -> Bool {
         guard settings.hoverPreview, notifications.peek != nil, !model.isExpanded, !callIsShown else { return false }
         guard wingsPeekZone.contains(NSEvent.mouseLocation) else { return false }
@@ -73,7 +73,7 @@ extension NotchController {
         let swipedUp = wingsSwipes.peekUp.handle(phase: phase, fingerUp: fingerUp, deltaX: event.scrollingDeltaX)
         let swipedDown = wingsSwipes.peekDown.handle(phase: phase, fingerUp: -fingerUp, deltaX: event.scrollingDeltaX)
         if swipedUp {
-            foldPeekAway { notifications.clearPeek() }
+            deletePeekedNotification()
         } else if swipedDown {
             expand()
         }
@@ -112,6 +112,21 @@ extension NotchController {
 
     /// The notice swims into the notch and the shape draws in to the notch; only then do the
     /// module's wings (pointer on the notch) or the closed notch's own items swim out (spec PV-48).
+    /// The notification beside the notch goes from Dynotch's lists too (spec PV-55).
+    func deletePeekedNotification() {
+        guard let peek = notifications.peek else { return }
+        foldPeekAway { notifications.remove(peek) }
+    }
+
+    /// The X (or bin) beside the notch: a notification is deleted, a notice put away.
+    func dismissPeek() {
+        if notifications.peek != nil {
+            deletePeekedNotification()
+        } else {
+            foldPeekAway { notices.dismiss() }
+        }
+    }
+
     func foldPeekAway(_ dismiss: () -> Void) {
         guard settings.hoverPreview, !model.isExpanded, !AppleStyle.reducesMotion else {
             withAnimation(NotchView.quickAnimation, dismiss)

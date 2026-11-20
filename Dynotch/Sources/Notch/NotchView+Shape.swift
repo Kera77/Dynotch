@@ -123,7 +123,13 @@ extension NotchView {
         if layer == .glass, settings.refinedDesign {
             OuterShadow(shape: shape)
                 .opacity(showsDesign ? 1 : 0)
-                .animation(showsDesign ? .easeOut(duration: 0.2).delay(0.12) : .easeIn(duration: 0.1), value: showsDesign)
+                .animation(showsDesign ? shadowFadeIn : .easeIn(duration: 0.1), value: showsDesign)
         }
+    }
+
+    /// The window switcher drops down from a notch that may stand off-centre: its shadow comes
+    /// only once it is in place, so no dark ghost slides in from the side (spec AS-17).
+    private var shadowFadeIn: Animation {
+        model.isShowingSwitcher ? .easeOut(duration: 0.15).delay(0.22) : .easeOut(duration: 0.2).delay(0.12)
     }
 }

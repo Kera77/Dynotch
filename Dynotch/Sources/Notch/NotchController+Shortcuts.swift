@@ -131,6 +131,19 @@ extension NotchController {
     }
 
     /// Hovering the "Claude answered" line opens the chat.
+    /// The pointer on a finished download's notice opens the Tray with the file on top (spec PV-57).
+    func opensTrayForDownload(at point: CGPoint, layout: IndicatorLayout) -> Bool {
+        guard let file = notices.notice?.download, !model.isExpanded, settings.isEnabled(.tray) else { return false }
+        let zone = settings.hoverPreview ? wingsPeekZone : noticeArea(for: layout)
+        guard zone.contains(point) else { return false }
+        notices.dismiss()
+        tray.add([file])
+        setHoveredBadge(nil)
+        model.select(.tray)
+        expand(preview: settings.hoverPreview)
+        return true
+    }
+
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {
         // Beside the notch in Wings mode it opens only on a click (spec PV-47).
         guard !settings.hoverPreview, notices.notice?.opensChat == true, model.hoveredIndicator == nil, calendar.announcement == nil,

@@ -11,11 +11,14 @@ struct ModuleStripView: View {
     let open: (FeatureID) -> Void
     /// Dragging an icon sideways puts it to a new place (spec MS-6).
     var move: (FeatureID, Int) -> Void = { _, _ in }
+    /// Resting on an icon this long opens it too; nil: only a click does (spec MS-7).
+    var hoverOpenDelay: Double?
 
     @State private var hovered: FeatureID?
     @State private var isOut = false
     @State private var dragged: FeatureID?
     @State private var dragX: CGFloat = 0
+    @State private var hoverOpen: Task<Void, Never>?
 
     var body: some View {
         HStack(spacing: NotchGeometry.stripSpacing) {
@@ -55,11 +58,25 @@ struct ModuleStripView: View {
                             hovered = nil
                         }
                     }
+                    scheduleHoverOpen(inside ? feature : nil)
                 }
             }
         }
         .onAppear { isOut = true }
+        .onDisappear { hoverOpen?.cancel() }
         .transition(.opacity)
+    }
+
+    /// Starts the wait again on every icon; leaving the strip or dragging cancels it (spec MS-7).
+    private func scheduleHoverOpen(_ feature: FeatureID?) {
+        hoverOpen?.cancel()
+        hoverOpen = nil
+        guard let feature, let delay = hoverOpenDelay else { return }
+        hoverOpen = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled, hovered == feature, dragged == nil else { return }
+            open(feature)
+        }
     }
 
     private var step: CGFloat { NotchGeometry.stripIconSize + NotchGeometry.stripSpacing }
@@ -82,7 +99,10 @@ struct ModuleStripView: View {
     private func drag(_ feature: FeatureID, from index: Int) -> some Gesture {
         DragGesture(minimumDistance: 4)
             .onChanged { value in
-                if dragged == nil { withAnimation(Motion.hover) { dragged = feature } }
+                if dragged == nil {
+                    hoverOpen?.cancel()
+                    withAnimation(Motion.hover) { dragged = feature }
+                }
                 withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.86)) { dragX = value.translation.width }
             }
             .onEnded { _ in

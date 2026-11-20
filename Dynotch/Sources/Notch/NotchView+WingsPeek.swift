@@ -70,6 +70,12 @@ extension NotchView {
                     .foregroundStyle(event.isConnected ? Theme.green : Color.white.level(0.6))
                 WingText(event.name, bold: true)
             }
+        case .notice(let notice) where notice.download != nil:
+            // Only the icon: the notice stays about as wide as the notch (spec PV-57).
+            Image(systemName: "arrow.down.circle.fill")
+                .font(.notch(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.blue)
+                .accessibilityLabel("Download")
         case .notice(let notice):
             HStack(spacing: 6) {
                 NoticeIcon(notice: notice)
@@ -84,11 +90,28 @@ extension NotchView {
     @ViewBuilder private func wingsPeekRight(_ peek: WingsPeek) -> some View {
         switch peek {
         case .notification(let notification):
-            // Runs once to its end; hovered, it starts again (spec PV-38).
-            WingsMarquee(text: Self.peekLine(notifications.content(for: notification).detail), dim: true, repeats: false)
-                .id("\(notification.id)-\(model.wingsLasting.peekHovers)")
+            HStack(spacing: 6) {
+                // Runs once to its end; hovered, it starts again (spec PV-38).
+                WingsMarquee(text: Self.peekLine(notifications.content(for: notification).detail), dim: true, repeats: false)
+                    .id("\(notification.id)-\(model.wingsLasting.peekHovers)")
+                // Deletes it from Dynotch, not from the Notification Centre (spec PV-55).
+                Button(action: dismissNotice) {
+                    Image(systemName: "trash")
+                        .font(.notch(size: 11, weight: .medium))
+                        .foregroundStyle(Color.white.level(0.55))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.notch)
+                .help("Delete (or swipe up with two fingers)")
+                .accessibilityLabel("Delete")
+            }
         case .device(let event):
             deviceWingRight(event)
+        case .notice(let notice) where notice.download != nil:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.notch(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.green)
+                .accessibilityLabel("Finished")
         case .notice(let notice):
             noticeWingRight(notice)
         }

@@ -118,7 +118,8 @@ extension NotchView {
     }
 
     @ViewBuilder var notesWingRightV2: some View {
-        let body = notes.latest.map { Self.noteBody($0.text) } ?? ""
+        // Before the latest note has loaded, the same note the left side names (spec PV-56).
+        let body = notes.latest.map { Self.noteBody($0.text) } ?? Self.noteBody(notes.text)
         if !body.isEmpty {
             // Runs once to its end and stays there.
             WingsMarquee(text: body, dim: true, repeats: false)

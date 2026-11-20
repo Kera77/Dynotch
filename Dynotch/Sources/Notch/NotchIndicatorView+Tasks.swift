@@ -15,7 +15,7 @@ struct TasksCounter: View {
                 .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
         }
-        .foregroundStyle(Color.white.level(count.isToday ? 0.95 : 0.6))
+        .foregroundStyle(.white)
         .frame(width: width, height: IndicatorLayout.capsuleHeight)
         .contentShape(Rectangle())
         .onTapGesture(perform: open)
@@ -30,12 +30,19 @@ extension NotchIndicatorView {
     func tasksLabel(_ count: TaskCount, item: IndicatorItem) -> some View {
         VStack(spacing: 0) {
             tasksHeader(count, item: item)
-            // The tasks themselves, checked off with their circle (spec R-12).
-            VStack(spacing: 0) {
-                ForEach(taskItems().prefix(IndicatorLayout.taskRows)) { task in
-                    TaskDropDownRow(task: task) { completeTask(task) }
+            // The tasks themselves, checked off with their circle (spec R-12); more than six
+            // scroll (spec R-16).
+            let tasks = taskItems()
+            ScrollView(.vertical) {
+                VStack(spacing: 0) {
+                    ForEach(tasks) { task in
+                        TaskDropDownRow(task: task) { completeTask(task) }
+                    }
                 }
             }
+            .scrollIndicators(.never)
+            .scrollDisabled(tasks.count <= IndicatorLayout.taskRows)
+            .frame(height: CGFloat(min(tasks.count, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight)
             .padding(.bottom, 6)
         }
     }
@@ -96,6 +103,6 @@ struct TaskDropDownRow: View {
             }
         }
         .padding(.horizontal, 14)
-        .frame(height: 22)
+        .frame(height: IndicatorLayout.taskRowHeight)
     }
 }

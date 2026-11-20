@@ -30,7 +30,8 @@ extension NotchController {
         let (layout, fit, items) = (row.layout, row.fit, row.items)
         let shownBadges = fit.shown
         let point = NSEvent.mouseLocation
-        if notifications.peek == nil, opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
+        if notifications.peek == nil, opensTrayForDownload(at: point, layout: layout)
+            || opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
         setOverNotice(notices.notice != nil && notifications.peek == nil && model.hoveredIndicator == nil

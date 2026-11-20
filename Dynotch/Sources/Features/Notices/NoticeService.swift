@@ -18,6 +18,16 @@ struct StickyNotice: Equatable, Sendable {
     var iconApp: String?
     /// Who it is from, when the icon does not tell (e.g. the chat's service).
     var sourceName: String?
+    /// A finished download: a download icon and a green tick, gone after 3 s (spec PV-57).
+    var download: URL?
+
+    /// A download in `~/Downloads` finished (spec PV-57).
+    static func downloaded(_ file: URL) -> StickyNotice {
+        StickyNotice(
+            title: "Downloaded", detail: String(file.lastPathComponent.prefix(60)), date: Date(),
+            symbol: "arrow.down.circle.fill", sourceName: "Downloads", download: file
+        )
+    }
 
     /// The chat in the notch answered (spec CC-5).
     static func answered(by service: String, in chat: String) -> StickyNotice {
@@ -37,8 +47,25 @@ struct StickyNotice: Equatable, Sendable {
 final class NoticeService: ObservableObject {
     @Published private(set) var notice: StickyNotice?
 
+    private var downloadExpiry: Task<Void, Never>?
+    /// How long a finished download stays (spec PV-57).
+    static let downloadStays: TimeInterval = 3
+
     func show(_ notice: StickyNotice) {
         self.notice = notice
+    }
+
+    /// A finished download, unless something more important stands there; it goes by itself.
+    func showDownload(_ file: URL) {
+        if let notice, notice.download == nil { return }
+        let shown = StickyNotice.downloaded(file)
+        notice = shown
+        downloadExpiry?.cancel()
+        downloadExpiry = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.downloadStays))
+            guard !Task.isCancelled, let self, self.notice == shown else { return }
+            self.notice = nil
+        }
     }
 
     func dismiss() {

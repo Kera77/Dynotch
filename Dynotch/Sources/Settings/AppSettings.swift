@@ -38,6 +38,8 @@ final class AppSettings: ObservableObject {
         static let moduleStrip = "moduleStrip"
         static let moduleStripDelay = "moduleStripDelay"
         static let moduleStripBand = "moduleStripBand"
+        static let moduleStripHover = "moduleStripHover"
+        static let moduleStripHoverDelay = "moduleStripHoverDelay"
         static let smartRulesOff = "smartRulesOff"
         static let keepsPhoneInDock = "keepsPhoneInDock"
         static let hud = "hud"
@@ -198,6 +200,12 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(moduleStripBand, forKey: Key.moduleStripBand) }
     }
 
+    /// A module of the strip also opens when the pointer rests on its icon (spec MS-7).
+    @Published var moduleStripHover = false { didSet { defaults.set(moduleStripHover, forKey: Key.moduleStripHover) } }
+    @Published var moduleStripHoverDelay = 0.5 {
+        didSet { defaults.set(moduleStripHoverDelay, forKey: Key.moduleStripHoverDelay) }
+    }
+    static let moduleStripHoverDelayRange: ClosedRange<Double> = 0.2...1.5
     static let moduleStripDelayRange: ClosedRange<Double> = 0.1...1
     static let moduleStripBandRange: ClosedRange<Double> = 0.25...0.5
 

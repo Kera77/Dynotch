@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+- A finished download shows beside the notch: a download icon on the left and a green tick on the right, for 3 seconds; hovering it opens the Tray with the file on top.
+- Module strip: a module can also open when the pointer rests on its icon (Settings › Appearance › Module strip, with an adjustable delay).
+- Notifications beside the notch: swipe up (or click the small bin) to delete one from Dynotch; the Notification Centre keeps it.
+
+### Changed
+- The tasks counter is always white, like the badges; its drop-down shows six tasks and scrolls when there are more.
+- The window switcher drops down a little faster.
+
+### Fixed
+- The window switcher no longer shows a dark ghost shadow when it drops down from a notch that is wider on one side.
+- After swiping to another module in the wings, the right side's text (e.g. Notes) no longer stays empty.
+
 ## [0.78.0] - 2026-11-20
 
 ### Changed

@@ -101,13 +101,25 @@ struct AppearanceSettingsView: View {
                 }
             }
             .disabled(!settings.moduleStrip)
+            Toggle("Open a module when resting on its icon", isOn: $settings.moduleStripHover)
+                .disabled(!settings.moduleStrip)
+            LabeledContent("Open after") {
+                HStack {
+                    Slider(value: $settings.moduleStripHoverDelay, in: AppSettings.moduleStripHoverDelayRange, step: 0.05)
+                        .frame(width: 160)
+                    Text("\(settings.moduleStripHoverDelay, specifier: "%.2f") s")
+                        .monospacedDigit()
+                        .frame(width: 48, alignment: .trailing)
+                }
+            }
+            .disabled(!settings.moduleStrip || !settings.moduleStripHover)
             StripModulesRows(settings: settings)
                 .disabled(!settings.moduleStrip)
         } header: {
             Text("Module strip")
         } footer: {
-            Text("Rest the pointer on the bottom part of the notch and the modules appear under it; click one to open it. "
-                + "Moving higher opens the notch as before.")
+            Text("Rest the pointer on the bottom part of the notch and the modules appear under it; click one to open it "
+                + "(or rest on it, when turned on). Moving higher opens the notch as before.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

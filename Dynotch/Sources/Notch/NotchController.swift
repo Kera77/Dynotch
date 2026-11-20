@@ -7,7 +7,7 @@ import SwiftUI
 final class NotchController {
     static var animation: Animation { Motion.spring }
     /// The window switcher drops down much faster than the notch opens (spec AS-15).
-    static var switcherAnimation: Animation { AppleStyle.spring(response: 0.2, dampingFraction: 0.86) }
+    static var switcherAnimation: Animation { AppleStyle.spring(response: 0.16, dampingFraction: 0.88) }
     /// After the panel shrinks from the large size, the pointer may be outside the smaller
     /// panel; keep it open this long so it doesn't close under the user's hand.
     private static let shrinkGracePeriod: TimeInterval = 2.5

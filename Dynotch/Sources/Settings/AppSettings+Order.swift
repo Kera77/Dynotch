@@ -94,5 +94,7 @@ extension AppSettings {
         mergedFeatures = Set((defaults.stringArray(forKey: "mergedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         showsNowPlaying = defaults.object(forKey: "musicShowsNowPlaying") as? Bool ?? true
         refinedDesign = defaults.object(forKey: "refinedDesign") as? Bool ?? true
+        moduleStripHover = defaults.bool(forKey: "moduleStripHover")
+        moduleStripHoverDelay = Self.stored(defaults, "moduleStripHoverDelay", default: 0.5, in: Self.moduleStripHoverDelayRange)
     }
 }

@@ -53,6 +53,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         options: [.userInitiatedAllowingIdleSystemSleep], reason: "The notch reacts to the pointer at once"
     )
     private var hotkeys: HotkeyCenter?
+    /// A finished download shows beside the notch (spec PV-57).
+    private lazy var downloadWatcher = DownloadWatcher { [notices = services.notices] in notices.showDownload($0) }
     private var menuBarPanels: [MenuBarPopoverController] = []
     private lazy var focusFollowsMouse = FocusFollowsMouse(settings: settings)
 
@@ -236,6 +238,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Batteries, music, the stats and screenshots, with their own notifications.
     private func startDeviceAndMediaModules() {
+        downloadWatcher.start()
         services.battery.onCharged = { [notifications] device in
             notifications.present(
                 title: "\(device.name) is charged", body: "100%", appIdentifier: AppInfo.bundleIdentifier, kind: .batteries

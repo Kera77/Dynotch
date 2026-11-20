@@ -42,6 +42,8 @@ struct WingsView<Left: View, Right: View>: View {
             let rightSide = room - leftSide
             HStack(spacing: 0) {
                 left
+                    // A new module's sides start fresh (their running text too), spec PV-56.
+                    .id(identity)
                     .lineLimit(1)
                     .padding(.horizontal, Self.padding)
                     .frame(width: leftSide, alignment: .trailing)
@@ -52,6 +54,7 @@ struct WingsView<Left: View, Right: View>: View {
                     .contentShape(Rectangle())
                     .onTapGesture(perform: openFully)
                 right
+                    .id(identity)
                     .lineLimit(1)
                     .padding(.horizontal, Self.padding)
                     .frame(width: rightSide, alignment: .leading)
@@ -75,10 +78,14 @@ struct WingsView<Left: View, Right: View>: View {
             report(natural)
         }
         // Once the new module is laid out, its widths count even if they equal the last ones.
+        // Again once the swipe's motion has settled: a side measured mid-move (or before its
+        // text loaded) never stays empty (spec PV-56).
         .task(id: identity) {
-            try? await Task.sleep(for: .milliseconds(60))
-            guard !Task.isCancelled else { return }
-            report(WingsSides(left: leftWidth, right: rightWidth))
+            for wait in [60, 350, 900] {
+                try? await Task.sleep(for: .milliseconds(wait))
+                guard !Task.isCancelled else { return }
+                report(WingsSides(left: leftWidth, right: rightWidth))
+            }
         }
     }
 
