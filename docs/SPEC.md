@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.78 elfogadva** · Utolsó módosítás: 2026-11-20
+> Állapot: **v0.79 elfogadva** · Utolsó módosítás: 2026-11-20
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1014,6 +1014,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.79.0** | Kész letöltés értesítés (ikon + zöld pipa, 3 mp, hoverre Tray), module strip megnyitás hoverre állítható késleltetéssel, értesítés törlése felfelé swipe-pal / kukával a szárnyakon, fehér feladatszámláló görgethető listával, váltó szellem-árnyék javítás és gyorsabb lenyílás, szárnyak újramérése modulváltás után (R-16, PV-55…PV-57, MS-7, AS-17) |
 | **v0.78.0** | Wings: kis értesítés mellett hoverre nem nyílik a modul, bezáráskor beúszik a notchba és utána úszik ki a tartalom; árnyék/perem nem áll előre szürke keretként; AI Wings a kiválasztott AI logójával, nevével és keretével; swipe-os modulváltáskor újramérés; All fül és Notifications Wings a Beeper chatekkel; Clipboard pötty helyben nyílik, késleltetés a notch alatti sávban (PV-47…PV-54) |
 | **v0.77.0** | Wings: kis lenyílók (Claude/ChatGPT kész, frissítés, eszköz) a notch két oldalán, értesítés aszimmetrikusan, futó szöveg, hoverre megáll; szélesség megtartása Notifications/Clipboard hovernél, modulsor egyszerre, Tray „Drop files”, AI ikon + név és session-kör, Reminders Undo helyett újrakattintás, Clipboard 2 mp késleltetés, billentyűzet visszaadása Wings-kattintás után (PV-37…PV-46) |
 | **v0.76.0** | Wings: kattintásra ki/vissza, oldalanként dinamikus szélesség, bezárási sorrend (tartalom be, notch-elemek ki), modulsor fentről és a lenyílt rész alá; Calendar következő esemény bármely napon, AI mindig session, Stats 4 eszköz + balra bővülés, Notifications léptetés, Reminders karika + Undo, Notes név / szöveg egyszer fut, Clipboard kinyíló elem + pöttyök, Tray kapszula (PV-23…PV-36) |

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.79.0] - 2026-11-20
+
 ### Added
 - A finished download shows beside the notch: a download icon on the left and a green tick on the right, for 3 seconds; hovering it opens the Tray with the file on top.
 - Module strip: a module can also open when the pointer rests on its icon (Settings › Appearance › Module strip, with an adjustable delay).
