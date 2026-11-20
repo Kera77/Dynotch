@@ -390,7 +390,9 @@ extension NotesStore {
         guard access != .denied, latestLoaded.map({ now.timeIntervalSince($0) > 20 }) ?? true else { return }
         latestLoaded = now
         Task {
-            if let found = try? await bridge.latest(), found != latest { latest = found }
+            do {
+                if let found = try await bridge.latest(), found != latest { latest = found }
+            } catch { latestLoaded = Date().addingTimeInterval(-17) } // Failed: again soon (spec PV-60).
         }
     }
 }

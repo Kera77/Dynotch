@@ -13,6 +13,8 @@ struct ModuleStripView: View {
     var move: (FeatureID, Int) -> Void = { _, _ in }
     /// Resting on an icon this long opens it too; nil: only a click does (spec MS-7).
     var hoverOpenDelay: Double?
+    /// Under the Wings resting on an icon only switches the Wings to it; a click opens (spec MS-8).
+    var hoverSwitch: ((FeatureID) -> Void)?
 
     @State private var hovered: FeatureID?
     @State private var isOut = false
@@ -58,7 +60,11 @@ struct ModuleStripView: View {
                             hovered = nil
                         }
                     }
-                    scheduleHoverOpen(inside ? feature : nil)
+                    if let hoverSwitch {
+                        if inside, dragged == nil { hoverSwitch(feature) }
+                    } else {
+                        scheduleHoverOpen(inside ? feature : nil)
+                    }
                 }
             }
         }

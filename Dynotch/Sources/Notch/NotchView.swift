@@ -82,15 +82,6 @@ struct NotchView: View {
 
     var geometry: NotchGeometry { model.geometry }
 
-    /// Meeting countdowns and the Claude usage beside the closed notch.
-    var indicatorItems: [IndicatorItem] {
-        IndicatorItem.items(
-            meetings: calendarIndicator.events, usage: claudeUsage.notchLimits, working: chatIndicator.isWorking,
-            lowBatteries: battery.warnings, tasks: tasks.shown,
-            music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
-        )
-    }
-
     /// The badges that fit beside the menu bar, and how many wait behind the "+" (spec B-8).
     var badgeFit: BadgeFit {
         BadgeFit.make(badges: badges.visible, items: indicatorItems, room: model.badgeRoom, unfolded: model.badgesUnfolded)
@@ -233,7 +224,7 @@ struct NotchView: View {
                 ModuleStripView(
                     features: stripFeatures, origin: model.stripOrigin, fromAbove: model.isPreview, open: openModule,
                     move: { feature, index in settings.moveFeature(feature, to: index, among: stripFeatures) },
-                    hoverOpenDelay: settings.moduleStripHover ? settings.moduleStripHoverDelay : nil
+                    hoverOpenDelay: stripHoverOpenDelay, hoverSwitch: stripHoverSwitch
                 )
                     // Under whatever hangs below the Wings (spec PV-29).
                     .padding(.top, stripTop + NotchGeometry.stripGap + (isPill ? Self.pillGap : 0))
@@ -365,7 +356,7 @@ extension NotchView {
     }
 
     /// The cover's player drops down only when hovered; announced, only the track's name (spec MU-2, MU-4).
-    private func labelHeight(of index: Int) -> CGFloat {
+    func labelHeight(of index: Int) -> CGFloat {
         if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.musicAnnounceHeight }
         return indicatorItems[index].labelHeight
     }

@@ -19,7 +19,9 @@ extension NotchView {
         // In Wings mode the small notices stay at the notch's height beside it (spec PV-13, PV-37).
         if wingsPeek != nil { return false }
         return (notifications.peek != nil && !settings.hoverPreview)
-            || devices.current != nil || calls.call != nil || labelIndex != nil || shownNotice != nil
+            || devices.current != nil || calls.call != nil || shownNotice != nil
+            // An AI ring unfolded sideways (spec PV-58) or the recording's Stop drop nothing down.
+            || labelIndex.map { labelHeight(of: $0) > 0 } == true
     }
 
     /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon
@@ -108,6 +110,10 @@ extension NotchView {
 
 extension NotchView {
     var designBackground: some View {
+        designFill.opacity(glassOpacity)
+    }
+
+    private var designFill: some View {
         DesignBackground(
             design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity,
             refined: settings.refinedDesign, topRow: geometry.menuBarHeight,
@@ -124,8 +130,12 @@ extension NotchView {
             OuterShadow(shape: shape)
                 .opacity(showsDesign ? 1 : 0)
                 .animation(showsDesign ? shadowFadeIn : .easeIn(duration: 0.1), value: showsDesign)
+                .opacity(glassOpacity)
         }
     }
+
+    /// The glass window's design is hidden while the switcher moves (spec AS-18).
+    var glassOpacity: Double { layer == .glass && model.hidesGlass ? 0 : 1 }
 
     /// The window switcher drops down from a notch that may stand off-centre: its shadow comes
     /// only once it is in place, so no dark ghost slides in from the side (spec AS-17).

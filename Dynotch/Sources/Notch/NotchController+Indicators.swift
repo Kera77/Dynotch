@@ -14,11 +14,12 @@ extension NotchController {
     }
 
     func collapsedRow() -> CollapsedRow {
-        let items = IndicatorItem.items(
+        let found = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince
         )
+        let items = IndicatorItem.unfoldingUsage(found, hovered: model.hoveredIndicator, wings: settings.hoverPreview)
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         return CollapsedRow(layout: IndicatorLayout(items: items, badges: fit.shown, overflow: fit.hidden > 0), fit: fit, items: items)
     }
@@ -42,7 +43,8 @@ extension NotchController {
             setHoveredBadge(nil)
             return
         }
-        guard !layout.isEmpty else {
+        // Just after a notice was flicked away the icons under it wait (spec PV-59).
+        guard !isIndicatorHoverPaused, !layout.isEmpty else {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             return
@@ -69,6 +71,14 @@ extension NotchController {
             return
         }
         hoverIndicator(at: point, items: items, layout: layout)
+    }
+
+    /// A notice beside the notch was put away less than two seconds ago (spec PV-59).
+    private var isIndicatorHoverPaused: Bool {
+        guard let until = indicatorHoverPausedUntil else { return false }
+        if Date() < until { return true }
+        indicatorHoverPausedUntil = nil
+        return false
     }
 
     /// The indicator under the pointer, or the details it has moved down onto.

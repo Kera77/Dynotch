@@ -76,6 +76,8 @@ final class NotchController {
     /// After the announcement was swiped away the pointer is still on it: no hover details until
     /// it leaves, so only the countdown stays (spec K-8f).
     var suppressIndicatorHover = false
+    /// A notice beside the notch was just put away: the icons under it wait (spec PV-59).
+    var indicatorHoverPausedUntil: Date?
     var wasExpanded = false
     /// The pointer is on the notice under the notch: its X can be clicked (spec CN-5b).
     var isOverNotice = false
@@ -215,6 +217,7 @@ final class NotchController {
     func expand(preview: Bool = false, smart: Bool = false, animation: Animation = NotchController.animation) {
         cancelClose()
         graceUntil = nil
+        if model.hidesGlass { model.hidesGlass = false } // Hidden only around the switcher (spec AS-18).
         panel.ignoresMouseEvents = false
         calendar.panelDidOpen()
         Haptics.perform(.open, settings: settings)

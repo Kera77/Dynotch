@@ -176,9 +176,13 @@ struct NotchIndicatorView: View {
             // What is left of the lead time or of the meeting; it shrinks clockwise.
             capsule(text: CalendarAgenda.countdownText(status.remaining), color: Self.color(for: status.phase),
                     trim: status.progress...1)
-        case .usage(let limits):
+        case .usage(let limits, let unfolded):
             let used = limits.map(\.utilization).max() ?? 0
-            usageRing(used: used)
+            if unfolded {
+                unfoldedUsage(item, limits: limits, ring: usageRing(used: used), now: now)
+            } else {
+                usageRing(used: used)
+            }
         case .working:
             WorkingDots()
                 .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
@@ -230,8 +234,8 @@ extension NotchIndicatorView {
         switch item {
         case .meeting(let event):
             meetingLabel(for: event, now: now)
-        case .usage(let limits):
-            usageLabel(for: limits, now: now)
+        case .usage(let limits, let unfolded):
+            if !unfolded { usageLabel(for: limits, now: now) }
         case .battery(let device):
             batteryLabel(device, item: item)
         case .tasks(let count):

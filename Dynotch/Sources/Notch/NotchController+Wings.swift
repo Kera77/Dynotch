@@ -96,6 +96,14 @@ extension NotchViewModel {
         wings = WingsState()
         setPreview(true)
     }
+
+    /// The module strip under the Wings: resting on an icon switches the Wings to it (spec MS-8).
+    func showWings(of feature: FeatureID) {
+        guard isPreview, isExpanded, settings.hostFeature(of: currentFeature) != feature else { return }
+        select(feature)
+        wings = WingsState()
+        setPreview(true)
+    }
 }
 
 // MARK: - Putting a notice beside the notch away (spec PV-47, PV-48)
@@ -128,6 +136,7 @@ extension NotchController {
     }
 
     func foldPeekAway(_ dismiss: () -> Void) {
+        pauseIndicatorHover()
         guard settings.hoverPreview, !model.isExpanded, !AppleStyle.reducesMotion else {
             withAnimation(NotchView.quickAnimation, dismiss)
             return
@@ -142,6 +151,20 @@ extension NotchController {
             guard let self, !Task.isCancelled else { return }
             self.peekFoldTask = nil
             self.unfoldAfterPeek()
+        }
+    }
+
+    /// How long the icons beside the notch wait after a notice was put away (spec PV-59).
+    static let indicatorHoverPause: TimeInterval = 2
+
+    /// The icons under the pointer drop nothing down for two seconds; then, if the pointer is
+    /// still there, they do as usual.
+    func pauseIndicatorHover() {
+        indicatorHoverPausedUntil = Date().addingTimeInterval(Self.indicatorHoverPause)
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.indicatorHoverPause + 0.05))
+            guard let self, !self.model.isExpanded, !self.model.isHiddenForFullScreen else { return }
+            self.updateHoveredIndicator()
         }
     }
 

@@ -181,3 +181,22 @@ struct NoticeIcon: View {
         }
     }
 }
+
+extension NotchIndicatorView {
+    /// Wings: the AI ring opens to the right with the reset time and the X (spec PV-58).
+    func unfoldedUsage(_ item: IndicatorItem, limits: [UsageLimit], ring: some View, now: Date) -> some View {
+        HStack(spacing: 4) {
+            ring
+            Text(IndicatorItem.usageResetText(limits, now: now))
+                .font(.notch(size: 11, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(Color.white.level(0.85))
+                .lineLimit(1)
+                .fixedSize()
+            Spacer(minLength: 0)
+            dismissButton(for: item, help: "Hide until usage reaches the next 10%")
+        }
+        .frame(width: item.slotWidth, alignment: .leading)
+        .transition(.opacity)
+    }
+}

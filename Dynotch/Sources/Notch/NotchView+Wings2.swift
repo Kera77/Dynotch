@@ -30,22 +30,41 @@ extension NotchView {
 
     // MARK: Tray
 
+    /// Up to four files; hovered, a file opens to the right with its name and the others shrink to
+    /// dots, like the clipboard's items (spec PV-61).
     var trayWingLeft: some View {
-        let files = tray.trayFiles
+        let all = tray.trayFiles
+        let files = Array(all.prefix(4))
+        let hovered = model.wings.hoveredClip
+        let rowHasHover = files.contains { Self.trayKey($0.item) == hovered }
+        // The open file fills the row, so it stays under the pointer (spec PV-53).
+        let fills = rowHasHover && files.count > 1
         return HStack(spacing: 4) {
             if files.isEmpty {
                 // The same capsule as AirDrop at the right (spec PV-36, PV-42).
                 WingButton(title: "Drop files", symbol: "tray", help: "Drop files on the notch to keep them in the tray") {}
                     .allowsHitTesting(false)
             }
-            ForEach(files.prefix(4), id: \.item.id) { file in
-                Image(nsImage: NSWorkspace.shared.icon(forFile: file.url.path))
-                    .resizable()
-                    .frame(width: 18, height: 18)
+            ForEach(files, id: \.item.id) { file in
+                let key = Self.trayKey(file.item)
+                WingsTrayFile(url: file.url, name: file.item.name, isOpen: key == hovered, isDot: rowHasHover && key != hovered)
+                    .frame(maxWidth: fills && key == hovered ? .infinity : nil, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onHover { inside in
+                        if inside { openWingItem(key) }
+                    }
             }
-            if files.count > 4 { WingText("+\(files.count - 4)", dim: true) }
+            if all.count > 4 { WingText("+\(all.count - 4)", dim: true) }
+        }
+        .frame(maxWidth: fills ? .infinity : nil)
+        .contentShape(Rectangle())
+        .onHover { inside in
+            if !inside, rowHasHover { foldWingItemLater() }
         }
     }
+
+    /// Tray files share the clipboard's hover state (and its hold below the wings, spec PV-54).
+    static func trayKey(_ item: TrayItem) -> String { "tray-" + item.id.uuidString }
 
     /// AirDrop for the tray's files: a click sends them all, files dropped on it go too.
     var trayWingRight: some View {
@@ -214,5 +233,44 @@ enum WingFormat {
         case .high: .orange
         case .critical: .red
         }
+    }
+}
+
+/// A tray file in the wings: its icon, opened with its name while hovered, or a dot (spec PV-61).
+struct WingsTrayFile: View {
+    let url: URL
+    let name: String
+    let isOpen: Bool
+    let isDot: Bool
+
+    var body: some View {
+        Group {
+            if isDot {
+                Circle()
+                    .fill(Color.white.level(0.55))
+                    .frame(width: 6, height: 6)
+                    .frame(width: 14, height: 18)
+            } else {
+                HStack(spacing: 5) {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                        .resizable()
+                        .frame(width: 18, height: 18)
+                    if isOpen {
+                        Text(name)
+                            .font(.notch(size: 11, weight: .medium))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .transition(.opacity)
+                    }
+                }
+                .padding(.trailing, isOpen ? 7 : 0)
+                .padding(.vertical, 1)
+                .background(Capsule().fill(Color.white.level(isOpen ? 0.2 : 0)))
+            }
+        }
+        .contentShape(Rectangle())
+        .layoutPriority(isOpen ? 1 : 0)
+        .help(name)
     }
 }

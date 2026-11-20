@@ -253,13 +253,27 @@ extension NotchController {
             count: switcher.items.count, style: settings.style, scale: settings.size.scale,
             notchHeight: model.geometry.notchSize.height, room: room
         )
+        let wasShown = model.isShowingSwitcher
         if !model.isExpanded { expand(animation: Self.switcherAnimation) }
         isHeldOpen = true
         withAnimation(Self.switcherAnimation) { model.setSwitcher(true, size: size) }
+        if !wasShown { holdGlassWhileSwitcherDrops() }
     }
 
     func hideSwitcher() {
+        // The glass goes at once, before the panel draws in (spec AS-18).
+        withAnimation(.easeOut(duration: 0.06)) { model.hidesGlass = true }
         withAnimation(Self.animation) { model.setSwitcher(false) }
         collapse()
+    }
+
+    /// The glass and its shadow come only once the switcher is in place (spec AS-18).
+    private func holdGlassWhileSwitcherDrops() {
+        model.hidesGlass = true
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(0.24))
+            guard let self, self.model.isShowingSwitcher else { return }
+            withAnimation(.easeOut(duration: 0.15)) { self.model.hidesGlass = false }
+        }
     }
 }

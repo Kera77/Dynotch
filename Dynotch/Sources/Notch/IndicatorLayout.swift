@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Capsule outline that starts at the top centre and runs clockwise, so trimming its start
@@ -26,8 +27,9 @@ struct ClockwiseCapsule: Shape {
 /// K-7, CL-6).
 enum IndicatorItem: Identifiable, Equatable {
     case meeting(CalendarEvent)
-    /// All usage limits; the capsule shows the fullest one.
-    case usage([UsageLimit])
+    /// All usage limits; the capsule shows the fullest one. Unfolded: in Wings mode the hovered
+    /// ring widens to the right with the reset time and an X (spec PV-58).
+    case usage([UsageLimit], unfolded: Bool = false)
     /// Claude is writing an answer in the chat (spec CC-4).
     case working
     /// A device whose battery is low (spec BT-3).
@@ -75,7 +77,9 @@ enum IndicatorItem: Identifiable, Equatable {
     var slotWidth: CGFloat {
         switch self {
         case .meeting: IndicatorLayout.slotWidth
-        case .usage, .working: IndicatorLayout.ringSlotWidth
+        case .usage(let limits, let unfolded):
+            IndicatorLayout.ringSlotWidth + (unfolded ? IndicatorLayout.usageUnfoldWidth(for: limits) : 0)
+        case .working: IndicatorLayout.ringSlotWidth
         case .battery: IndicatorLayout.batterySlotWidth
         case .tasks(let count): count.count > 9 ? IndicatorLayout.tasksSlotWidth + 7 : IndicatorLayout.tasksSlotWidth
         // Only on the left, next to the notch (spec MU-2).
@@ -95,7 +99,9 @@ enum IndicatorItem: Identifiable, Equatable {
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count):
             IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight + 6
-        case .usage(let limits): 12 + CGFloat(max(limits.count, 1)) * 20
+        // Unfolded beside the notch, nothing drops down (spec PV-58).
+        case .usage(_, true): 0
+        case .usage(let limits, false): 12 + CGFloat(max(limits.count, 1)) * 20
         }
     }
 
@@ -109,6 +115,22 @@ enum IndicatorItem: Identifiable, Equatable {
             + (music.map { [.music($0)] } ?? []) + meetings.map(IndicatorItem.meeting) + (usage.map { [.usage($0)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map(IndicatorItem.battery) + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? [])
+    }
+
+    /// In Wings mode the hovered AI ring unfolds to the right instead of dropping down (spec PV-58).
+    static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool) -> [IndicatorItem] {
+        guard wings, let hovered, items.indices.contains(hovered), case .usage(let limits, false) = items[hovered] else {
+            return items
+        }
+        var unfolded = items
+        unfolded[hovered] = .usage(limits, unfolded: true)
+        return unfolded
+    }
+
+    /// "Resets today 14:30" of the fullest limit, beside the ring (spec PV-58).
+    static func usageResetText(_ limits: [UsageLimit], now: Date = Date()) -> String {
+        guard let reset = limits.max(by: { $0.utilization < $1.utilization })?.resetsAt else { return "Usage high" }
+        return "Resets " + UsageAlerts.resetText(reset, now: now)
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
@@ -132,6 +154,16 @@ struct IndicatorLayout: Equatable {
     static let slotWidth: CGFloat = 46
     /// The AI usage is a ring without text (spec CL-6).
     static let ringSlotWidth: CGFloat = 32
+
+    /// The reset time and the X right of the unfolded ring (spec PV-58).
+    static func usageUnfoldWidth(for limits: [UsageLimit], now: Date = Date()) -> CGFloat {
+        let font = NSFont.systemFont(ofSize: 11, weight: .medium)
+        let text = (IndicatorItem.usageResetText(limits, now: now) as NSString).size(withAttributes: [.font: font]).width
+        return ceil(text) + usageUnfoldExtras
+    }
+
+    /// Gaps, the X and a little slack around the reset text.
+    static let usageUnfoldExtras: CGFloat = 4 + 6 + 15 + 6
     /// "18%" in red (spec BT-3).
     static let batterySlotWidth: CGFloat = 34
     /// The checklist icon and a one-digit count, like the menu bar's (spec R-10).
@@ -257,7 +289,8 @@ struct IndicatorLayout: Equatable {
     func size(notch: CGSize, labelHeight: CGFloat?) -> CGSize {
         guard !isEmpty else { return notch }
         let width = rowWidth(notch: notch)
-        guard let labelHeight else { return CGSize(width: width, height: notch.height) }
+        // Nothing below the row (an AI ring unfolded sideways, spec PV-58): only the row.
+        guard let labelHeight, labelHeight > 0 else { return CGSize(width: width, height: notch.height) }
         return CGSize(width: max(width, Self.labelWidth), height: notch.height + labelHeight)
     }
 

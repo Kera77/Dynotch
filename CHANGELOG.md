@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+- Wings: the AI usage ring beside the notch (from 70 %) no longer drops down on hover; it widens to the right with the reset time and an X.
+- Wings: resting on a module strip icon switches the Wings to that module; a click opens it fully.
+- Wings: hovering a file in the Tray wing opens it to the right with its name, like the clipboard items (stays under the pointer, holds for 2 seconds).
+- After a notice beside the notch is flicked away (or binned), the icons under the pointer (tasks, badges, AI ring) wait 2 seconds before dropping down.
+
+### Fixed
+- Notes wings: the latest note now shows as soon as it has loaded, and a failed load is retried sooner.
+- Window switcher: the glass layer and its shadow no longer trail behind the drop-down as a dark ghost on both sides.
+
 ## [0.79.0] - 2026-11-20
 
 ### Added

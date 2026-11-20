@@ -181,14 +181,12 @@ final class NotchViewModel: ObservableObject {
     /// The window switcher in the notch (spec AS-6), and its measured size.
     @Published private(set) var isShowingSwitcher = false
     private(set) var switcherSize = CGSize.zero
+    /// The glass (and its shadow) waits while the switcher moves: it would trail behind (spec AS-18).
+    @Published var hidesGlass = false
 
     func setSwitcher(_ shown: Bool, size: CGSize = .zero) {
         if shown { switcherSize = size }
         if shown != isShowingSwitcher { isShowingSwitcher = shown }
-    }
-
-    var isShowingOverlayPage: Bool {
-        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil
     }
 
     /// The screenshot editor, large in the notch (spec SH-7).
@@ -380,4 +378,10 @@ final class NotchViewModel: ObservableObject {
 extension NotchViewModel {
     /// Anything that keeps the open panel from closing when the pointer leaves.
     var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil }
+}
+
+extension NotchViewModel {
+    var isShowingOverlayPage: Bool {
+        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil
+    }
 }

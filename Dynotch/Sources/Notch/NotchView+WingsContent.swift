@@ -101,34 +101,11 @@ extension NotchView {
         openFully()
     }
 
-    // MARK: Notes (spec PV-34)
+    // MARK: Notes (spec PV-34, PV-60)
 
-    @ViewBuilder var notesWingLeftV2: some View {
-        Group {
-            if let latest = notes.latest {
-                HStack(spacing: 6) {
-                    WingSymbol("note.text")
-                    WingText(latest.name, bold: true)
-                }
-            } else {
-                WingLabel(symbol: "note.text", text: noteFirstLine ?? "Notes")
-            }
-        }
-        .onAppear { notes.refreshLatest() }
-    }
+    var notesWingLeftV2: some View { NotesWing(notes: notes, side: .left) }
 
-    @ViewBuilder var notesWingRightV2: some View {
-        // Before the latest note has loaded, the same note the left side names (spec PV-56).
-        let body = notes.latest.map { Self.noteBody($0.text) } ?? Self.noteBody(notes.text)
-        if !body.isEmpty {
-            // Runs once to its end and stays there.
-            WingsMarquee(text: body, dim: true, repeats: false)
-        }
-    }
-
-    private var noteFirstLine: String? {
-        notes.text.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }.first { !$0.isEmpty }
-    }
+    var notesWingRightV2: some View { NotesWing(notes: notes, side: .right) }
 
     /// The note's text from its second line, on one line.
     static func noteBody(_ text: String) -> String {
@@ -161,7 +138,6 @@ extension NotchView {
     private func clipRow(_ items: [ClipItem]) -> some View {
         let hovered = model.wings.hoveredClip
         let rowHasHover = items.contains { $0.id.uuidString == hovered }
-        let motion = AppleStyle.spring(response: 0.3, dampingFraction: 0.86)
         // Hovered, the row keeps the wing's width and the open item stands where the pointer
         // is, so a short text never pulls it away from under the pointer (spec PV-53).
         let fills = rowHasHover && items.count > 1
@@ -178,28 +154,39 @@ extension NotchView {
                 )
                 .contentShape(Rectangle())
                 .onHover { inside in
-                    guard inside else { return }
-                    model.wings.clipMoves += 1
-                    model.wings.holdsWidth = true
-                    if model.wings.hoveredClip != key {
-                        withAnimation(motion) { model.wings.hoveredClip = key }
-                    }
+                    if inside { openWingItem(key) }
                 }
             }
         }
         .frame(maxWidth: fills ? .infinity : nil)
         .contentShape(Rectangle())
         .onHover { inside in
-            guard !inside, rowHasHover else { return }
-            model.wings.clipMoves += 1
-            let move = model.wings.clipMoves
-            Task { [model] in
-                try? await Task.sleep(for: Self.clipFoldDelay)
-                guard model.wings.clipMoves == move, model.wings.hoveredClip != nil else { return }
-                withAnimation(motion) { model.wings.hoveredClip = nil }
-                // Left below the wings, they close now (spec PV-54).
-                model.recheckPointer()
-            }
+            if !inside, rowHasHover { foldWingItemLater() }
+        }
+    }
+
+    static var wingItemMotion: Animation { AppleStyle.spring(response: 0.3, dampingFraction: 0.86) }
+
+    /// The pointer on an item of a clipboard or tray row: it opens, and the wings keep their
+    /// width (spec PV-35, PV-40, PV-61).
+    func openWingItem(_ key: String) {
+        model.wings.clipMoves += 1
+        model.wings.holdsWidth = true
+        if model.wings.hoveredClip != key {
+            withAnimation(Self.wingItemMotion) { model.wings.hoveredClip = key }
+        }
+    }
+
+    /// The pointer left the row: the open item stays two more seconds (spec PV-46, PV-54).
+    func foldWingItemLater() {
+        model.wings.clipMoves += 1
+        let move = model.wings.clipMoves
+        Task { [model] in
+            try? await Task.sleep(for: Self.clipFoldDelay)
+            guard model.wings.clipMoves == move, model.wings.hoveredClip != nil else { return }
+            withAnimation(Self.wingItemMotion) { model.wings.hoveredClip = nil }
+            // Left below the wings, they close now (spec PV-54).
+            model.recheckPointer()
         }
     }
 

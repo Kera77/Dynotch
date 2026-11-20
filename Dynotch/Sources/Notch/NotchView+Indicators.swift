@@ -71,3 +71,28 @@ extension NotchView {
         return IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: badge, beeper: beeper))
     }
 }
+
+extension NotchView {
+    /// Meeting countdowns and the Claude usage beside the closed notch.
+    var indicatorItems: [IndicatorItem] {
+        let items = IndicatorItem.items(
+            meetings: calendarIndicator.events, usage: claudeUsage.notchLimits, working: chatIndicator.isWorking,
+            lowBatteries: battery.warnings, tasks: tasks.shown,
+            music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
+        )
+        return IndicatorItem.unfoldingUsage(items, hovered: model.hoveredIndicator, wings: settings.hoverPreview)
+    }
+
+    /// The module strip under the Wings: resting on an icon switches the Wings to it (spec MS-8).
+    var stripHoverSwitch: ((FeatureID) -> Void)? {
+        guard model.isPreview else { return nil }
+        return { [model] feature in
+            withAnimation(NotchController.animation) { model.showWings(of: feature) }
+        }
+    }
+
+    /// Resting on an icon of the strip under the closed notch opens it (spec MS-7), not under the Wings.
+    var stripHoverOpenDelay: Double? {
+        settings.moduleStripHover && !model.isPreview ? settings.moduleStripHoverDelay : nil
+    }
+}
