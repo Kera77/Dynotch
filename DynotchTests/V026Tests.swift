@@ -59,9 +59,9 @@ struct V026Tests {
         let name = "V026Tests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name) ?? .standard
         defaults.removePersistentDomain(forName: name)
-        let service = BatteryService(settings: AppSettings(defaults: defaults))
+        let service = BatteryService(settings: AppSettings(defaults: defaults), defaults: defaults)
 
-        service.apply([device("mouse", 19), device("keys", 20), device("pad", 5, charging: true), device("buds", 8)])
+        service.apply([device("mouse", 19), device("keys", 21), device("pad", 5, charging: true), device("buds", 8)])
         #expect(service.warnings.map(\.id) == ["buds", "mouse"])
 
         service.dismissWarning(for: device("mouse", 19))
@@ -75,6 +75,27 @@ struct V026Tests {
         service.apply([device("mouse", 90), device("buds", 8)])
         service.apply([device("mouse", 15), device("buds", 8)])
         #expect(service.warnings.map(\.id) == ["buds", "mouse"])
+    }
+
+    /// Spec BT-7: each device warns at its own level; Off never warns; the re-arm follows the level.
+    @Test func eachDeviceHasItsOwnLowLevel() {
+        let name = "V026Tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        let service = BatteryService(settings: AppSettings(defaults: defaults), defaults: defaults)
+        service.setThreshold(40, for: "mouse")
+        service.setThreshold(0, for: "buds")
+
+        service.apply([device("mouse", 40), device("buds", 3), device("keys", 20)])
+        #expect(service.warnings.map(\.id) == ["keys", "mouse"])
+        #expect(service.known["mouse"] == "mouse")
+        service.dismissWarning(for: device("mouse", 40))
+        service.apply([device("mouse", 45), device("buds", 3), device("keys", 20)])
+        service.apply([device("mouse", 38), device("buds", 3), device("keys", 20)])
+        #expect(service.warnings.map(\.id) == ["keys"])
+        service.apply([device("mouse", 50), device("buds", 3), device("keys", 20)])
+        service.apply([device("mouse", 38), device("buds", 3), device("keys", 20)])
+        #expect(service.warnings.map(\.id) == ["keys", "mouse"])
     }
 
     @Test func aLowBatteryHasItsOwnIconAndPlace() {

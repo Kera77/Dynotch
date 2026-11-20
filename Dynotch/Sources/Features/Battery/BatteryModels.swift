@@ -47,25 +47,35 @@ struct BatteryDevice: Identifiable, Equatable, Sendable {
     let level: Int
     var isCharging = false
 
-    var isLow: Bool { level < BatteryRules.lowLevel && !isCharging }
+    var isLow: Bool { isLow(below: BatteryRules.lowLevel) }
+
+    /// At or under the device's own threshold and not charging; 0 never warns (spec BT-7).
+    func isLow(below threshold: Int) -> Bool { threshold > 0 && level <= threshold && !isCharging }
 }
 
-/// When a battery counts as low, and which warnings stay hidden (spec BT-3).
+/// When a battery counts as low, and which warnings stay hidden (spec BT-3, BT-7).
 enum BatteryRules {
     static let lowLevel = 20
-    /// A dismissed warning comes back only after the device was charged above this.
-    static let rearmLevel = 30
+    /// A dismissed warning comes back only after the device was charged this far above its threshold.
+    static let rearmMargin = 10
+    static var rearmLevel: Int { lowLevel + rearmMargin }
+    /// The thresholds offered in Settings; 0 is Off (spec BT-7).
+    static let thresholdChoices = [0, 5, 10, 15, 20, 25, 30, 40, 50]
 
     /// The low devices to warn about, lowest first, without the dismissed ones.
-    static func warnings(for devices: [BatteryDevice], dismissed: Set<String>) -> [BatteryDevice] {
-        devices.filter { $0.isLow && !dismissed.contains($0.id) }.sorted { $0.level < $1.level }
+    static func warnings(
+        for devices: [BatteryDevice], dismissed: Set<String>, threshold: (String) -> Int = { _ in lowLevel }
+    ) -> [BatteryDevice] {
+        devices.filter { $0.isLow(below: threshold($0.id)) && !dismissed.contains($0.id) }.sorted { $0.level < $1.level }
     }
 
     /// Dismissals that still hold: the device is gone for now, or has not been recharged.
-    static func dismissedStillHolding(_ dismissed: Set<String>, devices: [BatteryDevice]) -> Set<String> {
+    static func dismissedStillHolding(
+        _ dismissed: Set<String>, devices: [BatteryDevice], threshold: (String) -> Int = { _ in lowLevel }
+    ) -> Set<String> {
         dismissed.filter { id in
             guard let device = devices.first(where: { $0.id == id }) else { return true }
-            return device.level < rearmLevel && !device.isCharging
+            return device.level < threshold(id) + rearmMargin && !device.isCharging
         }
     }
 

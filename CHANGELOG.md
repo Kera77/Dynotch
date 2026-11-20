@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- Settings › Notifications › Low battery: choose per device at which level the notch warns (Off, 5–50 %, 20 % by default).
+
+### Changed
+- Low battery beside the notch: the level now sits in a red ring filled to the battery's charge.
+- Notifications wings: the right side (the text) always fits its content, also while hovering.
+
+### Fixed
+- Window switcher: the glass turns grey 0.1 s before the drop-down ends, with no pause in between.
+
 ## [0.81.0] - 2026-11-20
 
 ### Changed

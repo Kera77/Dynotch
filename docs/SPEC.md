@@ -558,6 +558,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-62 | (v0.81) **X a kuka helyett mindenhol (PV-55, E-5c módosítása):** az app sehol nem használ kuka ikont: a notch melletti értesítés (pl. „Dynotch updated” első felugrásakor is), az értesítéscsoport fejléce, a „Clear all” és a Clipboard elemei a megszokott **X**-et mutatják, ugyanazzal a működéssel (törlés a Dynotchból). Kinyitott értesítéscsoportnál a bezárás felfelé mutató nyíl, hogy ne legyen két X. |
 | PV-63 | (v0.81) **Notes Wings újrapróbál (PV-60 kiegészítése):** amíg a Notes szárnyak látszanak és a legutóbbi jegyzet még nem töltődött be (a lekérés hibás vagy üres), a Dynotch **másodpercenként újra lekéri**, legfeljebb **10 mp-ig**; utána nem próbálkozik tovább (a gépet nem terheli), csak a szárnyak következő megnyitásakor. Egyszerre csak egy lekérés fut. |
 | PV-64 | (v0.81) **X az Értesítések Wingsben:** a Notifications modul szárnyainak jobb oldalán, a jobb szélen kis **X**: az éppen mutatott app értesítéseit törli a Dynotchból (a macOS Értesítési központjából nem), utána a következő app látszik. A Mail és a Beeper bejegyzésnél nincs X. |
+| PV-65 | (v0.82) **Értesítések Wings jobb oldala (PV-40 módosítása):** a Notifications szárnyain a jobb oldal (a tartalom) hover közben is mindig a szöveghez igazodik, nem tartja meg a korábbi szélességet; a bal oldal (appok) továbbra sem keskenyedik hover közben. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 4p. Akkumulátorok (v0.26)
@@ -571,6 +572,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BT-4 | (v0.43) **Előzmény:** eszközönként egy hét töltöttsége a lemezen; egy sorra kattintva lenyílik a grafikon a becsült hátralévő idővel (az elmúlt nap merülése alapján). |
 | BT-5 | (v0.43) **Feltöltve:** értesítés, amikor egy eszköz eléri a 100%-ot. |
 | BT-6 | (v0.43) A becsukott notch melletti alacsony-akku jelzés hover-címkéjén kis grafikon (utolsó 24 óra) és a becsült hátralévő idő. |
+| BT-7 | (v0.82) **Akku-küszöb eszközönként (BT-3 kiegészítése):** a Beállítások › Notifications „Low battery” részében minden ismert eszközhöz (a Mac, billentyűzet, egér, AirPods és tokja…) külön választható, hány %-on jelezzen a notch (Off, 5…50%, alapból 20%). A jelző: **bal oldalt az eszköz ikonja, jobb oldalt piros karika** a töltöttségnek megfelelően kitöltve, közepén az aktuális szint (mint a többi szintkarika, H-3). Kiikszelve akkor jön újra, ha az eszköz a küszöb fölé 10 ponttal feltöltődött. |
 
 ## 4q. Frissítés és telepítés (v0.27)
 
@@ -871,6 +873,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-17 | (v0.79) **Váltó lenyitása elcsúszott notchból:** ha a zárt notch valamelyik oldalra szélesebb (jelzők, badge-ek), a váltó lenyílásakor nem látszik fekete „szellem” árnyék: a panel árnyéka csak a lenyílás végén jelenik meg. A lenyílás kicsit gyorsabb (rövidebb rugó, AS-15). |
 | AS-18 | (v0.80) **Váltó üveg nélkül mozgásban (AS-17 kiegészítése):** az üveges / blend dizájn üvegrétege (és árnyéka) a váltó lenyílása közben rejtve van, és csak a lenyílás végén úszik be; bezáráskor azonnal eltűnik, mielőtt a panel összehúzódik. Így a két oldalon nem marad le fekete „szellem” a mozgás mögött. |
 | AS-19 | (v0.81) **Üveg azonnal (AS-18 javítása):** a váltó üvegrétege és árnyéka **a lenyílás végén azonnal** megjelenik (≈0,16 mp, rövid 0,08 mp-es beúszással), nem késleltetve szürkül be az átmenetes rész. |
+| AS-20 | (v0.82) **Üveg a lenyílás vége előtt (AS-19 módosítása):** a váltó üvegrétege és árnyéka **0,1 mp-cel a lenyílás vége előtt** már teljesen megjelenik (kb. 0,03 mp után 0,03 mp-es beúszással), így a lenyílás és a szürkülés között nincs érezhető szünet. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
 ---

@@ -140,6 +140,8 @@ extension NotchView {
     /// The window switcher drops down from a notch that may stand off-centre: its shadow comes
     /// only once it is in place, so no dark ghost slides in from the side (spec AS-17).
     private var shadowFadeIn: Animation {
-        model.isShowingSwitcher ? .easeOut(duration: 0.08).delay(0.16) : .easeOut(duration: 0.2).delay(0.12)
+        model.isShowingSwitcher
+            ? .easeOut(duration: NotchController.glassFade).delay(NotchController.glassWait)
+            : .easeOut(duration: 0.2).delay(0.12)
     }
 }

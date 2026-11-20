@@ -16,6 +16,7 @@ struct SettingsView: View {
     let tasks: TaskIndicator
     var switcher: SwitcherSettings?
     var screenshots: ScreenshotSettings?
+    var battery: BatteryService?
 
     @State private var selectedTab = SettingsTab.general
     @State private var search = ""
@@ -65,7 +66,7 @@ struct SettingsView: View {
         case .calendar:
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
-            NotificationSettingsView(settings: settings, service: notifications, beeper: beeper)
+            NotificationSettingsView(settings: settings, service: notifications, beeper: beeper, battery: battery)
         case .badges:
             BadgeSettingsView(service: badges)
         case .clipboard:

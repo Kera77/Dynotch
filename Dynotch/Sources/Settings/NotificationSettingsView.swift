@@ -4,6 +4,7 @@ struct NotificationSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var service: NotificationService
     @ObservedObject var beeper: BeeperService
+    var battery: BatteryService?
     @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
     @State private var beeperToken = ""
     @State private var appSearch = ""
@@ -117,6 +118,8 @@ struct NotificationSettingsView: View {
             MailSettingsSection(settings: settings, mail: service.mail)
 
             DynotchAlertsSection(preferences: service.preferences)
+
+            if let battery { LowBatterySettingsSection(battery: battery) }
 
             Section {
                 PeekSettingsRows(preferences: service.preferences)

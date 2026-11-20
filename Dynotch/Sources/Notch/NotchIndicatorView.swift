@@ -187,11 +187,9 @@ struct NotchIndicatorView: View {
             WorkingDots()
                 .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
         case .battery(let device):
-            Text("\(device.level)%").numericTransition()
-                .font(.notch(size: 12, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(BatteryFeatureView.red)
-                .frame(width: IndicatorLayout.batterySlotWidth, height: IndicatorLayout.capsuleHeight)
+            // A red ring filled to the charge, the level inside (spec BT-7).
+            LevelRing(fraction: Double(device.level) / 100, color: BatteryFeatureView.red, label: "\(device.level)")
+                .frame(width: IndicatorLayout.batterySlotWidth, height: LevelRing.size)
         case .tasks(let count):
             TasksCounter(count: count, width: item.slotWidth, open: openTasks)
         case .music:

@@ -34,3 +34,46 @@ struct BeeperSettingsRows: View {
         Toggle("Show the chat list in the Beeper tab", isOn: $beeper.showsChatList)
     }
 }
+
+/// Settings › Notifications › Low battery: each device's warning level (spec BT-7).
+struct LowBatterySettingsSection: View {
+    @ObservedObject var battery: BatteryService
+
+    /// Connected devices first, then the ones seen before, by name.
+    private var rows: [BatteryDevice] {
+        let connected = battery.devices
+        let away = battery.known.filter { id, _ in !battery.devices.contains { $0.id == id } }
+            .map { id, name in BatteryDevice(id: id, name: name, kind: Self.kind(id: id, name: name), level: 0) }
+        return connected.sorted { $0.name < $1.name } + away.sorted { $0.name < $1.name }
+    }
+
+    var body: some View {
+        Section {
+            if rows.isEmpty {
+                Text("Devices appear here once their battery has been read.")
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(rows, id: \.id) { row in
+                Picker(selection: Binding(get: { battery.threshold(for: row.id) }, set: { battery.setThreshold($0, for: row.id) })) {
+                    ForEach(BatteryRules.thresholdChoices, id: \.self) { value in
+                        Text(value == 0 ? "Off" : "\(value)%").tag(value)
+                    }
+                } label: {
+                    Label { Text(row.name).lineLimit(1) } icon: { BatteryDeviceIcon(kind: row.kind, size: 13, color: .primary) }
+                }
+            }
+        } header: {
+            Text("Low battery")
+        } footer: {
+            Text("Beside the notch: the device's icon and a red ring with its level, once it is at or under this level and not "
+                + "charging. Closed with the X, it comes back after the device was charged 10 points above it.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private static func kind(id: String, name: String) -> BatteryDevice.Kind {
+        if id == "mac" { return .mac }
+        return id.hasPrefix("bt-case:") ? .earbudsCase : .detect(name)
+    }
+}

@@ -264,7 +264,7 @@ struct NotchView: View {
                     settings: settings, calendar: calendar, notifications: notifications,
                     badges: badges, shortcuts: shortcuts, updates: updates, clipboard: clipboard, tray: tray, beeper: beeper,
                     devices: devices, chat: chat, tasks: tasks, switcher: switcher?.settings,
-                    screenshots: screenshots.settings
+                    screenshots: screenshots.settings, battery: battery
                 )
                     .scrollContentBackground(.hidden)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

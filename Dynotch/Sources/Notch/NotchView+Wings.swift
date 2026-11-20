@@ -62,9 +62,11 @@ extension NotchView {
     /// Each side's natural width, measured by the Wings (spec PV-24).
     func wingsMeasured(_ needs: WingsSides) {
         let old = model.wingsLasting.needs
-        // While something is hovered the wings never narrow under the pointer (spec PV-40).
+        // While something is hovered the wings never narrow under the pointer (spec PV-40); the
+        // Notifications text on the right always fits its content (spec PV-65).
+        let fitsRight = wingsFeature == .notifications
         let needs = model.wings.holdsWidth
-            ? WingsSides(left: max(old.left, needs.left), right: max(old.right, needs.right)) : needs
+            ? WingsSides(left: max(old.left, needs.left), right: fitsRight ? needs.right : max(old.right, needs.right)) : needs
         guard abs(old.left - needs.left) > 1 || abs(old.right - needs.right) > 1 else { return }
         withAnimation(Self.quickAnimation) { model.wingsLasting.needs = needs }
     }

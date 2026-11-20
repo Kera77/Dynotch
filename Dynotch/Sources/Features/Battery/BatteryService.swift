@@ -9,6 +9,11 @@ final class BatteryService: ObservableObject {
     /// Devices whose warning was closed with the X; kept until they are recharged.
     @Published private(set) var dismissed: Set<String> = []
     @Published private(set) var lastUpdated: Date?
+    /// Per device: the level at which the notch warns, when it differs from 20 % (spec BT-7).
+    @Published private(set) var thresholds: [String: Int]
+    /// Every device seen so far (id → name), so Settings lists it while it is away (spec BT-7).
+    @Published private(set) var known: [String: String]
+    private let defaults: UserDefaults
 
     private let settings: AppSettings
     private var timer: Timer?
@@ -16,13 +21,26 @@ final class BatteryService: ObservableObject {
     /// system_profiler is heavy: every five minutes (spec BT-1b).
     private static let interval: TimeInterval = 300
 
-    init(settings: AppSettings) {
+    init(settings: AppSettings, defaults: UserDefaults = .standard) {
         self.settings = settings
+        self.defaults = defaults
+        thresholds = defaults.dictionary(forKey: Self.thresholdsKey) as? [String: Int] ?? [:]
+        known = defaults.dictionary(forKey: Self.knownKey) as? [String: String] ?? [:]
+    }
+
+    private static let thresholdsKey = "batteryLowThresholds"
+    private static let knownKey = "batteryKnownDevices"
+
+    func threshold(for id: String) -> Int { thresholds[id] ?? BatteryRules.lowLevel }
+
+    func setThreshold(_ value: Int, for id: String) {
+        thresholds[id] = value == BatteryRules.lowLevel ? nil : value
+        defaults.set(thresholds, forKey: Self.thresholdsKey)
     }
 
     /// The low devices shown beside the notch (spec BT-3).
     var warnings: [BatteryDevice] {
-        settings.isEnabled(.battery) ? BatteryRules.warnings(for: devices, dismissed: dismissed) : []
+        settings.isEnabled(.battery) ? BatteryRules.warnings(for: devices, dismissed: dismissed, threshold: threshold(for:)) : []
     }
 
     func start() {
@@ -55,7 +73,13 @@ final class BatteryService: ObservableObject {
         }
         history.record(found)
         if found != devices { devices = found }
-        let holding = BatteryRules.dismissedStillHolding(dismissed, devices: found)
+        var names = known
+        for device in found { names[device.id] = device.name }
+        if names != known {
+            known = names
+            defaults.set(names, forKey: Self.knownKey)
+        }
+        let holding = BatteryRules.dismissedStillHolding(dismissed, devices: found, threshold: threshold(for:))
         if holding != dismissed { dismissed = holding }
         lastUpdated = Date()
     }

@@ -267,14 +267,20 @@ extension NotchController {
         collapse()
     }
 
+    /// The drop-down's length (`switcherAnimation`) and when the glass starts and fades in, so
+    /// it is whole 0.1 s before the end (spec AS-20).
+    static let switcherDrop: TimeInterval = 0.16
+    static let glassFade: TimeInterval = 0.03
+    static var glassWait: TimeInterval { max(switcherDrop - 0.1 - glassFade, 0) }
+
     /// The glass and its shadow come only once the switcher is in place (spec AS-18).
     private func holdGlassWhileSwitcherDrops() {
         model.hidesGlass = true
         Task { [weak self] in
-            // As soon as the drop-down settles, not later (spec AS-19).
-            try? await Task.sleep(for: .seconds(0.16))
+            // Fully grey 0.1 s before the drop-down ends (spec AS-20).
+            try? await Task.sleep(for: .seconds(Self.glassWait))
             guard let self, self.model.isShowingSwitcher else { return }
-            withAnimation(.easeOut(duration: 0.08)) { self.model.hidesGlass = false }
+            withAnimation(.easeOut(duration: Self.glassFade)) { self.model.hidesGlass = false }
         }
     }
 }
