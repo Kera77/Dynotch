@@ -13,6 +13,14 @@ extension NotchController {
         let items: [IndicatorItem]
     }
 
+    /// The music player has dropped down under the closed notch (spec MU-10).
+    var showsMusicDropdown: Bool {
+        guard let index = model.hoveredIndicator, !model.isExpanded else { return false }
+        let items = collapsedRow().items
+        guard items.indices.contains(index), case .music = items[index] else { return false }
+        return true
+    }
+
     func collapsedRow() -> CollapsedRow {
         let found = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,

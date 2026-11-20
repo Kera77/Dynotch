@@ -4,29 +4,45 @@ import Testing
 
 /// Reading Apple Mail's unread messages (spec GM-2…GM-4).
 struct MailTests {
-    @Test func parsesAccountsNewestFirst() throws {
-        let json = """
-        [{"name":"Gmail","server":"imap.gmail.com","addresses":[],"unread":7,
-          "messages":[{"id":"<a@x>","sender":"Anna Kovács <anna@example.com>","subject":"Hi","date":1000},
-                      {"id":"<b@x>","sender":"bob@example.com","subject":"","date":5000}]},
-         {"name":"Work","server":"mail.example.com","addresses":["me@example.com"],"unread":0,"messages":[]}]
-        """
-        let accounts = try #require(MailParser.accounts(from: Data(json.utf8)))
-        #expect(accounts.count == 2)
-        #expect(accounts[0].isGmail)
-        #expect(!accounts[1].isGmail)
-        #expect(accounts[0].unread == 7)
-        #expect(accounts[0].more == 5)
-        #expect(accounts[0].messages.map(\.id) == ["b@x", "a@x"])
-        #expect(accounts[0].messages[1].sender == "Anna Kovács")
-        #expect(accounts[0].messages[0].sender == "bob@example.com")
+    @Test func parsesAccountsAndSkipsDisabled() throws {
+        let (unit, rec) = ("\u{1F}", "\u{1E}")
+        let text = ["ID-1", "Gmail", "imap.gmail.com", "", "true"].joined(separator: unit)
+            + rec + ["ID-2", "Work", "mail.example.com", "me@example.com", "true"].joined(separator: unit)
+            + rec + ["ID-3", "Old", "mail.example.com", "", "false"].joined(separator: unit) + "\n"
+        let infos = try #require(MailParser.accountInfos(from: Data(text.utf8)))
+        #expect(infos.map(\.id) == ["ID-1", "ID-2"])
+        #expect(infos[0].isGmail)
+        #expect(!infos[1].isGmail)
+        #expect(MailParser.accountInfos(from: Data()) == [])
+        #expect(MailParser.accountInfos(from: Data("nope".utf8)) == nil)
+    }
+
+    @Test func buildsAccountNewestFirst() {
+        let info = MailAccountInfo(id: "ID-1", name: "Gmail", isGmail: true)
+        let rows = [
+            MailRow(messageID: "<a@x>", address: "anna@example.com", displayName: "Anna Kovács", subject: "Hi", received: 1_700_000_000),
+            MailRow(messageID: "<b@x>", address: "bob@example.com", displayName: "", subject: "", received: 1_700_000_500)
+        ]
+        let account = MailParser.account(info, unread: 7, rows: rows)
+        #expect(account.unread == 7)
+        #expect(account.more == 5)
+        #expect(account.messages.map(\.id) == ["b@x", "a@x"])
+        #expect(account.messages[0].sender == "bob@example.com")
+        #expect(account.messages[1].sender == "Anna Kovács")
+        #expect(MailParser.date(received: 800_000_000) == Date(timeIntervalSinceReferenceDate: 800_000_000))
+    }
+
+    @Test func findsInboxes() {
+        #expect(MailParser.inboxAccount(url: "imap://ABC-1/INBOX") == "ABC-1")
+        #expect(MailParser.inboxAccount(url: "ews://ABC-2/Inbox") == "ABC-2")
+        #expect(MailParser.inboxAccount(url: "imap://ABC-1/%5BGmail%5D/All%20Mail") == nil)
+        #expect(MailParser.inboxAccount(url: "imap://ABC-1/Archive/INBOX") == nil)
     }
 
     @Test func recognizesGmail() {
         #expect(MailParser.isGmail(server: "", addresses: ["Someone@Gmail.com"]))
         #expect(MailParser.isGmail(server: "imap.googlemail.com", addresses: []))
         #expect(!MailParser.isGmail(server: "imap.mail.me.com", addresses: ["me@icloud.com"]))
-        #expect(MailParser.accounts(from: Data("nope".utf8)) == nil)
     }
 
     @Test func mailTabOnlyWithMailSource() {

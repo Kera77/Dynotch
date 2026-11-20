@@ -126,8 +126,9 @@ enum MailFormat {
         case .off: "Off"
         case .notRunning: "Mail isn't running"
         case .noAccess: "Needs Automation access to Mail"
+        case .noDiskAccess: "Needs Full Disk Access to read Mail's data"
         case .noAccounts: "No accounts in Mail"
-        case .failed: "Mail didn't answer"
+        case .failed: "Mail's data couldn't be read"
         case .reading:
             mail.shownAccounts.isEmpty ? "No account chosen" : "Reading · \(mail.totalUnread) unread"
         }

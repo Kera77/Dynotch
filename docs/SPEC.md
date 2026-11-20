@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.84 elfogadva** · Utolsó módosítás: 2026-11-20
+> Állapot: **v0.85 elfogadva** · Utolsó módosítás: 2026-11-20
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -902,7 +902,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
 | MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. |
 | MU-9 | Szüneteltetett zenénél a borító elrejthető. A modul szem ikonos menüjében: **Hide Now** (elrejti, amíg újra nem szól), és **Hide After a Pause**: azonnal, 1, 5 (alap) vagy 15 perc szünet után, vagy soha. Lejátszáskor a borító visszajön. |
-| MU-10 | (v0.84) **Nincs számváltás-bejelentés nyitott Music modulnál:** ha a notch (bármelyik kijelzőn) a Music modulon nyitva van (teljesen vagy Wingsben), számváltáskor nem jelenik meg a bejelentés (MU-4, PV-68), és a panel bezárása után sem jön elő. |
+| MU-10 | (v0.84) **Nincs számváltás-bejelentés nyitott Music modulnál:** ha a notch (bármelyik kijelzőn) a Music modulon nyitva van (teljesen vagy Wingsben), vagy a csukott notch alatt le van nyílva a lejátszó (MU-2; v0.85), számváltáskor nem jelenik meg a bejelentés (MU-4, PV-68), és a panel bezárása után sem jön elő. |
 
 ## 4ű. Rendszerstatisztika (v0.56)
 
@@ -993,8 +993,11 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | GM-8 | **Kattintás egy sorra:** a levél a Gmail webappban nyílik (Gmail-fióknál, a Message-ID alapján keresve); más fióknál a Mailben. A notch nem jelöl olvasottnak. |
 | GM-9 | **A Mail csendben:** a Dynotch-nak a Mailnek futnia kell, hogy szinkronizáljon. Beállítás: *„Keep Mail running in the background”*: a Dynotch rejtve indítja el a Mailt, ha nem fut. A Mail saját jelzéseit a macOS-ben kell kikapcsolni (*Rendszerbeállítások › Értesítések › Mail*: értesítések ki, jelvény ki); a Beállítások ezt elmagyarázzák, és egy gombbal megnyitják ezt az oldalt. |
 | GM-10 | **Adatvédelem:** feladó és tárgy csak memóriában van; lemezre és a naplóba nem kerül. A napló csak darabszámot és hibát ír (UM-7, GW-13). |
-| GM-11 | **Állapot és hiba:** a Beállítások kiírják: „Reading · N unread”, „Mail isn't running”, „Needs Automation access to Mail”, „No accounts in Mail”. Hiba esetén az értesítés-alapú mód marad (E-7, B-10d). |
+| GM-11 | **Állapot és hiba:** a Beállítások kiírják: „Reading · N unread”, „Mail isn't running”, „Needs Automation access to Mail”, „No accounts in Mail”; (v0.85) „Needs Full Disk Access to read Mail's data”, „Mail's data couldn't be read” (GM-13). Hiba esetén az értesítés-alapú mód marad (E-7, B-10d). |
 | GM-12 | **Forrás választható:** *Settings › Notifications › Gmail › Source*: **Notifications** (a mostani mód: csak az értesítésekből kiolvasott feladó és tárgy, E-7, B-10d) vagy **Apple Mail** (GM-1…GM-11). Alapból Notifications, amíg a Mail-hozzáférés nincs meg. Apple Mail módban a Gmail-értesítés frissítést indít (GM-5), felugrik, mint eddig, de a listában nem lesz belőle külön kártya (a Mail sora áll helyette). A váltás azonnal érvényes, és a lista, a jelvény meg a fül a választott forrásból jön. |
+| GM-13 | (v0.85) **A levelek a Mail adatbázisából:** a Dynotch AppleScripttel csak a Mail fiókjait kéri le (név, szerver, címek, be van-e kapcsolva; indításkor, majd legfeljebb 10 percenként, ha a Mail fut), leveleket nem. Az Inboxok olvasatlan-száma és a legfrissebb 50 olvasatlan levél feladója, tárgya, ideje és Message-ID-ja a Mail saját indexéből jön (`~/Library/Mail/V*/MailData/Envelope Index`, csak olvasva, a meglévő Full Disk Accessszel). Gmail-fióknál az Inbox címke is számít. Ok: egy több mint 100 000 leveles Inboxnál a levelek AppleScriptes lekérése perceken át lefoglalta a Mailt („nem válaszol”). Ha a Mail nem fut, a már ismert fiókok adatai továbbra is látszanak. |
+| GM-14 | (v0.85) **Visszalépés:** ha a Mail nem válaszol a fiók-lekérdezésre (15 mp), a következő próba 1, 2, 5, majd 15 perc múlva jön (egymás utáni hibáknál egyre később); a Gmail-értesítés sem kérdez közben. Sikeres válasz után újra a GM-5 ütem. |
+| GM-15 | (v0.85) **Kilőtt Mail nem indul újra:** ha a Mail kilép (kézzel vagy kényszerített kilépéssel), a Dynotch nem indítja el újra rejtve (GM-9), amíg a Mail újra nem fut és nem válaszol. |
 
 ## 5. Nyitott kérdések
 
@@ -1042,6 +1045,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.85.0** | Az Apple Mail nem fagy le: a levelek a Mail saját indexéből jönnek, AppleScripttel csak a fiókok; visszalépés, ha a Mail nem válaszol; kilőtt Mail nem indul újra; lenyílt zenelejátszónál nincs számváltás-bejelentés (GM-13, GM-14, GM-15, MU-10) |
 | **v0.84.0** | Wings csak rövid várakozás után nyílik, ha lenyíló kis értesítés áll a notch alatt; a Beeper és a Google Chat ikon a Notifications Wingsben a saját fülét nyitja; nincs számváltás-bejelentés nyitott Music modulnál (PV-71, PV-72, MU-10) |
 | **v0.83.0** | Kis értesítések helye kapcsoló (lenyíló / notch mellett), meeting- és zeneszám-bejelentés a notch mellett, hover-részletek oldalra, Notifications Wings ikonjai nem mozdulnak, felvételi idő a notch bal oldalán, késleltetett képmetsző-sáv, szerkesztő bezárása kívülre kattintva, modulsor-késleltetés Wingsben, kattintások nem akadnak el a notch ablakán, meeting ikon mindig teljes fényerővel (PV-66…PV-70, SH-5c, SH-14, SH-15, MS-9, F-16, K-8l) |
 | **v0.82.0** | Alacsony-akku küszöb eszközönként a Notifications beállításokban, piros szintkarika a notch mellett, Értesítések Wings jobb oldala a tartalomhoz igazodik, váltó üvege 0,1 mp-cel a lenyílás vége előtt (BT-7, PV-65, AS-20) |

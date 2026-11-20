@@ -22,9 +22,11 @@ final class NotchManager {
 
     func start() {
         rebuildIfNeeded()
-        // The open Music module shows the new track itself (spec MU-10).
+        // The open Music module or the dropped-down player shows the new track itself (spec MU-10).
         services.music.holdsAnnouncement = { [weak self] in
-            self?.controllers.contains { $0.model.isExpanded && $0.model.currentFeature == .music } ?? false
+            self?.controllers.contains {
+                ($0.model.isExpanded && $0.model.currentFeature == .music) || $0.showsMusicDropdown
+            } ?? false
         }
         let monitor = SpaceSwipeMonitor { [weak self] phase in
             self?.spaceSwipe(phase)

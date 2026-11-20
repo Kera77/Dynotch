@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.85.0] - 2026-11-20
+
+### Changed
+- Apple Mail as Gmail source: the unread messages now come from Mail's own index (read only, with the existing Full Disk Access); Mail is asked only for its accounts, so a huge Inbox no longer keeps it busy (GM-13).
+- After Mail doesn't answer, Dynotch asks again only after 1, 2, 5, then 15 minutes, and it no longer restarts Mail after it was quit (GM-14, GM-15).
+
+### Fixed
+- Apple Mail kept freezing ("not responding"): the old read filtered the whole Inbox through Apple Events every minute (GM-13).
+- Skipping a track from the dropped-down player no longer brings up the track announcement, which closed the player (MU-10).
+
 ## [0.84.0] - 2026-11-20
 
 ### Changed

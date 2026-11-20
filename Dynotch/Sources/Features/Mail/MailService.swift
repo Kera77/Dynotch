@@ -9,6 +9,7 @@ final class MailService: ObservableObject {
         case off
         case notRunning
         case noAccess
+        case noDiskAccess
         case noAccounts
         case failed
         case reading
@@ -43,6 +44,20 @@ final class MailService: ObservableObject {
     private var isReading = false
     private var settingsObserver: AnyCancellable?
     private var lastLogged: State?
+    private var quitObserver: NSObjectProtocol?
+    /// Reads that ran out of time in a row; each one waits longer before the next (spec GM-14).
+    private var timeouts = 0
+    private var pausedUntil: Date?
+    /// Mail was quit (or force quit): Dynotch does not start it again until it runs and answers
+    /// (spec GM-15).
+    private var mailWasQuit = false
+    /// Mail's accounts, asked again after `accountsAge` (spec GM-13).
+    private var infos: [MailAccountInfo]?
+    private var infosRead: Date?
+    static let accountsAge: TimeInterval = 600
+
+    /// The waits after the 1st, 2nd, 3rd and later timeouts in a row (spec GM-14).
+    static let backoff: [TimeInterval] = [60, 120, 300, 900]
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -57,6 +72,13 @@ final class MailService: ObservableObject {
     var isActive: Bool { settings.mailSource == .appleMail && settings.isEnabled(.notifications) }
 
     func start() {
+        quitObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard app?.bundleIdentifier == MailService.mailBundleID else { return }
+            MainActor.assumeIsolated { self?.mailQuit() }
+        }
         settingsObserver = settings.afterChange { [weak self] in
             guard let self, self.isActive != (self.timer != nil) else { return }
             self.restart()
@@ -101,34 +123,92 @@ final class MailService: ObservableObject {
     /// Reads Mail now: on a timer, and at every Gmail or Mail notification (spec GM-5).
     func refresh() {
         guard isActive, !isReading else { return }
-        guard NSRunningApplication.runningApplications(withBundleIdentifier: Self.mailBundleID).isEmpty == false else {
+        // After a timeout Mail is left alone for a while (spec GM-14).
+        if let pausedUntil, pausedUntil > Date() { return }
+        let mailRuns = !NSRunningApplication.runningApplications(withBundleIdentifier: Self.mailBundleID).isEmpty
+        if !mailRuns, keepsMailRunning, !mailWasQuit { launchMailHidden() }
+        // Mail is asked only for its accounts, and only now and then (spec GM-13).
+        let asksAccounts = mailRuns && (infos == nil || infosRead.map { Date().timeIntervalSince($0) > Self.accountsAge } ?? true)
+        guard asksAccounts || infos != nil else {
             set(.notRunning)
-            if keepsMailRunning { launchMailHidden() }
+            return
+        }
+        guard let path = MailDatabase.defaultPath else {
+            DiagnosticsLog.append("mail", "Mail's folder can't be listed")
+            set(.noDiskAccess)
             return
         }
         isReading = true
+        let known = infos
         Task.detached(priority: .utility) {
-            let result = ProcessRunner.run("/usr/bin/osascript", ["-l", "JavaScript", "-e", MailParser.script], timeout: 40)
-            let parsed = result.flatMap { $0.succeeded ? MailParser.accounts(from: $0.output) : nil }
-            let errors = result.map { String(bytes: $0.errors, encoding: .utf8) ?? "" } ?? ""
-            await MainActor.run { [weak self] in self?.finish(parsed, errors: errors, timedOut: result?.timedOut == true) }
+            let outcome = Self.read(known: known, asksAccounts: asksAccounts, path: path)
+            await MainActor.run { [weak self] in self?.finish(outcome) }
         }
     }
 
-    private func finish(_ parsed: [MailAccount]?, errors: String, timedOut: Bool) {
+    /// What one read found: Mail's accounts (when asked) and the index's unread headers.
+    private struct Outcome: Sendable {
+        var infos: [MailAccountInfo]?
+        var accounts: [MailAccount]?
+        var scriptErrors = ""
+        var timedOut = false
+        var databaseError: String?
+    }
+
+    /// Blocks: runs off the main thread.
+    nonisolated private static func read(known: [MailAccountInfo]?, asksAccounts: Bool, path: String) -> Outcome {
+        var outcome = Outcome()
+        var current = known
+        if asksAccounts {
+            let result = ProcessRunner.run("/usr/bin/osascript", ["-e", MailParser.accountScript], timeout: 15)
+            if let result, result.succeeded, let parsed = MailParser.accountInfos(from: result.output) {
+                outcome.infos = parsed
+                current = parsed
+            } else {
+                outcome.scriptErrors = result.map { String(bytes: $0.errors, encoding: .utf8) ?? "" } ?? ""
+                outcome.timedOut = result?.timedOut == true
+            }
+        }
+        guard let current else { return outcome }
+        do {
+            outcome.accounts = try MailDatabase.read(accounts: current, path: path)
+        } catch {
+            outcome.databaseError = String(describing: error)
+        }
+        return outcome
+    }
+
+    private func finish(_ outcome: Outcome) {
         isReading = false
         guard isActive else { return }
-        guard let parsed else {
-            let lowered = errors.lowercased()
+        if let fresh = outcome.infos {
+            infos = fresh
+            infosRead = Date()
+            timeouts = 0
+            pausedUntil = nil
+            mailWasQuit = false
+        } else if outcome.timedOut || !outcome.scriptErrors.isEmpty {
+            let lowered = outcome.scriptErrors.lowercased()
             let denied = lowered.contains("-1743") || lowered.contains("not authorized") || lowered.contains("not allowed")
             // Only the kind of failure goes to the log, never what Mail holds (spec GM-10).
-            DiagnosticsLog.append("mail", "read failed: denied=\(denied) timedOut=\(timedOut)")
-            set(denied ? .noAccess : .failed)
+            DiagnosticsLog.append("mail", "accounts not read: denied=\(denied) timedOut=\(outcome.timedOut)")
+            if outcome.timedOut { pauseAfterTimeout() }
+            if infos == nil {
+                set(denied ? .noAccess : .failed)
+                return
+            }
+        }
+        if let error = outcome.databaseError {
+            DiagnosticsLog.append("mail", "index not read: \(error)")
+            let lowered = error.lowercased()
+            let blocked = lowered.contains("authorization denied") || lowered.contains("unable to open")
+            set(blocked ? .noDiskAccess : .failed)
             return
         }
-        if accounts != parsed { accounts = parsed }
+        guard let read = outcome.accounts else { return }
+        if accounts != read { accounts = read }
         lastRead = Date()
-        set(parsed.isEmpty ? .noAccounts : .reading)
+        set(read.isEmpty ? .noAccounts : .reading)
     }
 
     private func set(_ next: State) {
@@ -137,6 +217,21 @@ final class MailService: ObservableObject {
         lastLogged = next
         let counts = accounts.filter(isShown).map { "\($0.unread)" }.joined(separator: ",")
         DiagnosticsLog.append("mail", "state \(next) · unread per shown account: [\(counts)]")
+    }
+
+    /// Mail is busy: the next read waits 1, 2, 5, then 15 minutes (spec GM-14).
+    private func pauseAfterTimeout() {
+        let wait = Self.backoff[min(timeouts, Self.backoff.count - 1)]
+        timeouts += 1
+        pausedUntil = Date().addingTimeInterval(wait)
+        DiagnosticsLog.append("mail", "timeout #\(timeouts) in a row: next read in \(Int(wait)) s")
+    }
+
+    /// The owner quit Mail (or it was force quit while busy): it is not started again (spec GM-15).
+    private func mailQuit() {
+        guard !mailWasQuit else { return }
+        mailWasQuit = true
+        DiagnosticsLog.append("mail", "Mail quit: not starting it again until it runs")
     }
 
     private func launchMailHidden() {
