@@ -74,7 +74,7 @@ final class FocusFollowsMouse {
         let focusedIsDialog = sameApp && frontPID.map(SkyLightFocus.hasFocusedDialog(pid:)) == true
         // Asked only inside the active app, and only when another of its windows is under the pointer.
         let targetIsStandard = sameApp && target.id != focusedWindow
-            && SkyLightFocus.isStandardWindow(pid: target.pid, windowID: target.id)
+            && SkyLightFocus.isStandardWindow(pid: target.pid, windowID: target.id, size: target.bounds.size)
         guard FocusRules.shouldSwitch(
             target: target, frontPID: frontPID, focusedWindow: focusedWindow, focusedIsDialog: focusedIsDialog,
             targetIsStandard: targetIsStandard

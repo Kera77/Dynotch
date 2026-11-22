@@ -65,6 +65,16 @@ enum FocusRules {
     static let minimumSwitchSize = CGSize(width: 120, height: 80)
 
     static let standardSubrole = "AXStandardWindow"
+    /// Floating windows at least this large are real windows too (spec F-14b).
+    static let minimumFloatingSize = CGSize(width: 300, height: 200)
+
+    /// A window focus may move to inside the active app: a standard window, or a large floating
+    /// one (Ardia's mini window is an AXSystemFloatingWindow on the normal layer) (spec F-14b).
+    static func isNormalWindow(subrole: String, size: CGSize) -> Bool {
+        if subrole == standardSubrole { return true }
+        guard ["AXFloatingWindow", "AXSystemFloatingWindow"].contains(subrole) else { return false }
+        return size.width >= minimumFloatingSize.width && size.height >= minimumFloatingSize.height
+    }
 
     /// Focus follows windows, not apps (spec F-13): another app's window always; another window
     /// of the active app only when that app's focused window is known and is not a dialog or

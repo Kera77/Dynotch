@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.87.0] - 2026-11-23
+
+### Changed
+- Gmail and Google Chat badges count the unread number in the titles of their Ardia tabs, read every few seconds while Ardia runs; the Dock badge of a quit web app kept its old number (B-2b).
+
+### Fixed
+- Focus follows the mouse onto large floating windows of the same app too, e.g. Ardia's mini window (F-14b).
+
 ## [0.86.0] - 2026-11-23
 
 ### Added

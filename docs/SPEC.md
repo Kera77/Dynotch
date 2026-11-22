@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.86 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.87 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -378,6 +378,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-12 | (v0.38) **A szoftveresen rajzolt egérmutató nem akadály:** amikor a macOS szoftveresen rajzolja a mutatót (pl. amíg egy iPad kijelzőként csatlakozik), az egy saját ablak a mutató alatt, a legfelső szinten. Ezt (és a fölötte lévő szinteket) a választás átnézi; korábban emiatt a fókusz egyáltalán nem követte az egeret. |
 | F-13 | (v0.45, az F-8 első mondatát felváltja) **Ablakokat követ, nem appokat:** az aktív app egy másik ablakára is vált (pl. ugyanaz a böngésző két monitoron, két ablakban). Az appon belül nem vált, ha az app fókuszált ablaka párbeszédablak, sheet vagy modális, ha a célablak kisebb 120 × 80 pt-nál (felugró ablak), és ha a fókuszált ablak nem állapítható meg (Kisegítő hozzáférés nélkül). Az F-8 kétszeri próbálkozási korlátja marad. |
 | F-14 | (v0.46) Az appon belüli váltás csak **normál ablakra** (`AXStandardWindow`) és csak **normál fókuszált ablakról** történik: a lenyíló és felugró ablakok (pl. a DataGrip projektválasztója, amely külön ablak és fókuszvesztéskor bezárul), menük, tooltipek és alrole nélküli ablakok nem kapnak és nem veszítenek fókuszt. A F-13 120 × 80-as méretszűrője marad. |
+| F-14b | (v0.87) **Nagy lebegő ablak is normál ablak:** az appon belüli váltás (F-14) lebegő ablakra (`AXFloatingWindow`, `AXSystemFloatingWindow`) is megtörténik, ha az normál rétegen van és legalább 300 × 200 pt (pl. az Ardia mini ablaka). A kisebb lebegő ablakok, felugrók és lenyílók továbbra sem kapnak fókuszt. |
 | F-15 | (v0.49) Csukáskor a notch ténylegesen visszaadja a billentyűzetet az előtérben lévő appnak (a `resignKey()` csak jelzés volt, és az ablak félaktív maradt: például a VS Code nem görgetett). Bekapcsolt egérkövetésnél a nyitott notch is megkapja a fókuszt, amikor az egér visszamegy rá. |
 | F-15b | (v0.67.1) Ha a notch-nál van a billentyűzet, és egy másik appba kattintasz, a notch azonnal visszaadja a billentyűzetet annak az appnak (eddig a kurzor villogott, de a gépelés a notch-ba ment). A Refined design árnyéka az egeret átengedő üvegablakban van, így nem fog el kattintást a notch körül. |
 | F-15c | (v0.67.2) A billentyűzet visszaadása akkor is valódi, ha a notch úgy vette el, hogy az előtérben lévő app aktív maradt: a Dynotch egy pillanatra aktív lesz, és átadja az appnak (eddig a kurzor villogott, a gépelés pittyegett egy kattintásig). A napló: `focus.log`. |
@@ -411,6 +412,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 |---|-------------|
 | B-1 | **Beállítások › App badges** fül: a gépen lévő összes alkalmazás (Applications mappák) kereshető listából hozzáadható; a hozzáadott appok egyenként **ki- és bekapcsolhatók**, eltávolíthatók. |
 | B-2 | **Adatforrás:** az app Dock-ikonján lévő jelvény (szám), a Dock Accessibility-felületéről, 2 másodpercenként. Kisegítő lehetőségek (Accessibility) engedély kell hozzá; ha nincs, a fül jelzi. |
+| B-2b | (v0.87) **Gmail és Google Chat az Ardia füleiből:** ha az Ardia fut, és van benne Gmail- vagy Google Chat-fül, a Gmail és a Google Chat jelvény (a nevük alapján felismert app, pl. a Safari-webapp) száma a fül címéből jön („Beérkező levelek (9) – …” → 9), nem a Dock-ikonról, amely a kilépett webappon a régi számon marad. AppleScripttel, 6 másodpercenként, csak amíg az Ardia fut (egyszer Automatizálás-engedélyt kér); csak e fülek címét és címét nézi, a naplóba csak a szám kerül. Fióknként (`/u/N/`) egyszer számol, több fiók összeadódik. Szám nélküli cím 0 (nincs jelvény), kivéve a nem a Beérkező leveleket mutató Gmail-fület, amely nem számít. Ha a Mail a Gmail forrása (GM-7), az elsőbbséget élvez. |
 | B-3 | **Ikon** appenként választható: az app saját ikonja, **előre megadott ikonok** (chat, mail, csengő, telefon, videó, naptár, feladatok, emberek, web, kód, zene, csillag, Claude, valamint fehér **Beeper, Google Chat és Gmail** jel), vagy **saját kép feltöltése**. Ismert app-típusoknál (levelező, chat, Claude) a kezdő ikon a megfelelő fehér jel. |
 | B-4 | **Megjelenés a becsukott notchon:** bal oldalt, a meglévő ikonok (meeting, Claude) után kifelé; köztük **finom függőleges elválasztó vonal**. Appenként ikon + mellette az olvasatlanok száma (99 felett „99+”). Ha nincs olvasatlan (a jelvény eltűnt), az app **nem jelenik meg**. |
 | B-5 | **Új értesítésnél** (a szám nő vagy megjelenik) az ikon **5 percig finoman pulzál**; újabb értesítésnél a pulzálás elölről kezdődik. Ha az egér az ikonra kerül, a pulzálás **abbamarad** (a következő értesítésig). Az app indulásakor már meglévő jelvény nem számít újnak. |
@@ -1047,6 +1049,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.87.0** | A Gmail és a Google Chat jelvény száma az Ardia füleinek címéből jön (nem a kilépett webapp régi Dock-számáról); az egérkövető fókusz az Ardia mini ablakára (nagy lebegő ablak) is vált (B-2b, F-14b) |
 | **v0.86.0** | Ardia böngésző a Zen mellett (értesítések, webappok, válasz); a weboldalak mindig az éppen használt böngészőben nyílnak: meeting Join, Gmail, weboldal-források, Google Chat válasz, Beeper linkek (E-2e, E-2f, K-6) |
 | **v0.85.0** | Az Apple Mail nem fagy le: a levelek a Mail saját indexéből jönnek, AppleScripttel csak a fiókok; visszalépés, ha a Mail nem válaszol; kilőtt Mail nem indul újra; lenyílt zenelejátszónál nincs számváltás-bejelentés (GM-13, GM-14, GM-15, MU-10) |
 | **v0.84.0** | Wings csak rövid várakozás után nyílik, ha lenyíló kis értesítés áll a notch alatt; a Beeper és a Google Chat ikon a Notifications Wingsben a saját fülét nyitja; nincs számváltás-bejelentés nyitott Music modulnál (PV-71, PV-72, MU-10) |

@@ -76,10 +76,11 @@ enum SkyLightFocus {
         return windowID
     }
 
-    /// True if `windowID` is one of the app's standard windows (AXStandardWindow): not a pop-up,
-    /// drop-down, menu or tooltip, which are windows of their own in e.g. JetBrains apps and close
-    /// when they lose the focus (spec F-14).
-    static func isStandardWindow(pid: pid_t, windowID: CGWindowID) -> Bool {
+    /// True if `windowID` is one of the app's standard windows (AXStandardWindow), or a large
+    /// floating one such as Ardia's mini window (spec F-14b): not a pop-up, drop-down, menu or
+    /// tooltip, which are windows of their own in e.g. JetBrains apps and close when they lose
+    /// the focus (spec F-14).
+    static func isStandardWindow(pid: pid_t, windowID: CGWindowID, size: CGSize) -> Bool {
         guard let getWindow else { return false }
         let app = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(app, 0.2)
@@ -92,7 +93,7 @@ enum SkyLightFocus {
             guard getWindow(window, &id) == .success, id == windowID else { continue }
             var subrole: CFTypeRef?
             guard AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole) == .success else { return false }
-            return (subrole as? String) == FocusRules.standardSubrole
+            return FocusRules.isNormalWindow(subrole: subrole as? String ?? "", size: size)
         }
         return false
     }

@@ -38,6 +38,12 @@ final class BadgeService: ObservableObject {
     private var hasBaseline = false
     private var bundleIDs: [String: String] = [:]
     private var loggedSignature = ""
+    /// Unread counts from Ardia's Gmail and Google Chat tabs, by site (spec B-2b).
+    private var tabCounts: [String: Int] = [:]
+    private var isReadingTabs = false
+    private var lastTabRead = Date.distantPast
+    private var loggedTabs = ""
+    private static let tabInterval: TimeInterval = 6
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -80,6 +86,7 @@ final class BadgeService: ObservableObject {
         }
         let trusted = AXIsProcessTrusted()
         if trusted != isTrusted { isTrusted = trusted }
+        readTabsIfDue()
         guard trusted, !isReading else { return }
         isReading = true
         Task { [weak self] in
@@ -91,6 +98,28 @@ final class BadgeService: ObservableObject {
         }
     }
 
+    /// Ardia's tab titles every few seconds, only while Ardia runs (spec B-2b).
+    private func readTabsIfDue() {
+        let now = Date()
+        guard !isReadingTabs, now.timeIntervalSince(lastTabRead) >= Self.tabInterval,
+              apps.contains(where: { $0.isEnabled && BrowserTabBadges.site(forBadgeName: $0.name) != nil })
+        else { return }
+        isReadingTabs = true
+        lastTabRead = now
+        Task { [weak self] in
+            let tabs = await BrowserTabBadges.read()
+            guard let self else { return }
+            self.isReadingTabs = false
+            let counts = tabs.map(BrowserTabBadges.counts(from:)) ?? [:]
+            let signature = counts.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }.joined(separator: ", ")
+            if signature != self.loggedTabs {
+                self.loggedTabs = signature
+                DiagnosticsLog.append("badges", "Ardia tabs: \(signature.isEmpty ? "none" : signature)")
+            }
+            self.tabCounts = counts
+        }
+    }
+
     /// Badge text of the enabled apps, keyed by bundle identifier.
     private func labels(from entries: [DockEntry]) -> [String: String] {
         let enabled = Set(apps.filter(\.isEnabled).map(\.bundleID))
@@ -98,6 +127,12 @@ final class BadgeService: ObservableObject {
         for entry in entries where !entry.label.isEmpty {
             guard let path = entry.path, let bundleID = bundleID(atPath: path), enabled.contains(bundleID) else { continue }
             result[bundleID] = entry.label
+        }
+        // An open Gmail or Google Chat tab in Ardia knows better than a web app's Dock badge,
+        // which stays on the last number once the web app quits (spec B-2b).
+        for app in apps where app.isEnabled {
+            guard let site = BrowserTabBadges.site(forBadgeName: app.name), let count = tabCounts[site] else { continue }
+            result[app.bundleID] = count > 0 ? String(count) : nil
         }
         return result
     }
