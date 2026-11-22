@@ -79,7 +79,7 @@ final class NotificationDatabase: @unchecked Sendable {
         return try query(sql, argument: recordID) { statement in
             NotificationRecord(
                 id: sqlite3_column_int64(statement, 0),
-                appIdentifier: Self.text(statement, 1),
+                appIdentifier: WebNotificationSource.owningApp(Self.text(statement, 1)),
                 data: Self.blob(statement, 2)
             )
         }
@@ -103,7 +103,7 @@ final class NotificationDatabase: @unchecked Sendable {
         return try query(sql, argument: recordID) { statement in
             NotificationRecord(
                 id: sqlite3_column_int64(statement, 0),
-                appIdentifier: Self.text(statement, 1),
+                appIdentifier: WebNotificationSource.owningApp(Self.text(statement, 1)),
                 data: Self.blob(statement, 2)
             )
         }
@@ -121,7 +121,7 @@ final class NotificationDatabase: @unchecked Sendable {
         SELECT a.identifier, r.data FROM record r JOIN app a ON a.app_id = r.app_id
         ORDER BY r.rec_id DESC LIMIT ?
         """
-        return try query(sql, argument: limit) { (Self.text($0, 0), Self.blob($0, 1)) }
+        return try query(sql, argument: limit) { (WebNotificationSource.owningApp(Self.text($0, 0)), Self.blob($0, 1)) }
             .filter { WebNotificationSource.isShared($0.0) }
             .compactMap { identifier, data in
                 let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any]
@@ -130,7 +130,10 @@ final class NotificationDatabase: @unchecked Sendable {
     }
 
     func appIdentifiers() throws -> [String] {
-        try query("SELECT identifier FROM app") { Self.text($0, 0) }
+        // A browser's alert helper is listed as the browser, once (spec E-2e).
+        let identifiers = try query("SELECT identifier FROM app") { WebNotificationSource.owningApp(Self.text($0, 0)) }
+        var seen = Set<String>()
+        return identifiers.filter { seen.insert($0).inserted }
     }
 
     /// Table definitions and the key names of the newest record, for the diagnostics log.

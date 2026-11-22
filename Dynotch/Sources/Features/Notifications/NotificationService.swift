@@ -85,6 +85,8 @@ final class NotificationService: ObservableObject {
         settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
         applyEnabled()
         mail.start()
+        // Web pages and replies go to the browser in use (spec E-2f).
+        ActiveBrowser.shared.start()
     }
 
     func content(for notification: AppNotification) -> NotificationContent {

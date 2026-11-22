@@ -2,7 +2,7 @@ import AppKit
 
 /// Is the screen being shared or recorded (spec N-21)? There is no public signal; the sharing
 /// apps' own indicator windows tell it: the "… is sharing your screen." bar of Chrome-based
-/// browsers, the "Sharing Indicator" of Firefox and Zen, the share bars of Zoom and Teams, and
+/// browsers (Ardia, Chrome…), the "Sharing Indicator" of Firefox and Zen, the share bars of Zoom and Teams, and
 /// macOS's own recording controls.
 @MainActor
 final class ScreenShareWatcher {

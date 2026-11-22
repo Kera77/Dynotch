@@ -247,7 +247,13 @@ struct BeeperAttachmentView: View {
         guard let address = attachment.srcURL ?? attachment.id else { return }
         Task {
             guard let url = try? await BeeperAPI.download(address) else { return }
-            if url.isFileURL { TrayQuickLook.shared.toggle(url) } else { NSWorkspace.shared.open(url) }
+            if url.isFileURL {
+                TrayQuickLook.shared.toggle(url)
+            } else if url.scheme?.hasPrefix("http") == true {
+                ActiveBrowser.shared.open(url)
+            } else {
+                NSWorkspace.shared.open(url)
+            }
         }
     }
 }

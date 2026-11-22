@@ -14,7 +14,7 @@ enum GoogleChatJump {
         let conversation = conversationName(from: title)
         let webApp = chatApp.lowercased().hasPrefix("com.apple.safari.webapp")
             ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: chatApp) : nil
-        guard let appURL = webApp ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: sourceApp),
+        guard let appURL = webApp ?? TypedReply.appURL(for: sourceApp),
               let bundleID = Bundle(url: appURL)?.bundleIdentifier
         else { return try fail(text, "Google Chat could not be opened.") }
 

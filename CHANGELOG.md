@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.86.0] - 2026-11-23
+
+### Added
+- Ardia browser: its Gmail, Google Chat and website notifications are handled like Zen's (web app attribution, website sources, typed replies); its alert-style helper counts as Ardia, its installed web apps as web apps (E-2e).
+- Web pages open in the browser in use (frontmost, else the last active one still running, else the default): meeting Join, Gmail without its web app, website sources, Google Chat replies, Beeper links (E-2f).
+
 ## [0.85.0] - 2026-11-20
 
 ### Changed

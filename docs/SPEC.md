@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.85 elfogadva** · Utolsó módosítás: 2026-11-20
+> Állapot: **v0.86 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -47,7 +47,7 @@
 | N-19b | (v0.65) A notch Mission Controlnál **gyorsan felcsúszik** (és elhalványul), visszafelé ugyanígy lecsúszik (~0,16 mp). A trackpad felfelé húzásánál (Dock függőleges swipe) már a gesztus elején eltűnik, lefelé húzásnál visszajön; a gesztus után az ablaklista megerősíti (félbehagyott húzásnál visszajön). |
 | N-19c | (v0.69, hiba) A **Dock előugrása** (az egér a képernyő aljára ér, automatikusan elrejtett Docknál) nem számít Mission Controlnak: a notch a helyén marad. A Dock ilyenkor ugyanolyan, a kijelzőt beborító ablakot tesz ki, mint a Mission Control; Mission Controlnak csak az számít, ha mellette a WindowManager saját ablakai (a Space-sáv, az ablakok mögötti pajzs) is megjelennek. |
 | N-20 | (v0.52) Ha a panel egy kattintásra **kisebb lesz** (például a Beeper fülről az Allra, a beállításokból egy modulra), a korábbi, nagyobb terület addig a panelhez számít, amíg az egér onnan ki nem megy: a notch nem csukódik be csak azért, mert alatta összement. |
-| N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
+| N-21 | (v0.52) **Képernyőmegosztás és -felvétel alatt** a notch semmit nem mutat magától: nincs felugró értesítés, eszköz-értesítés, jelző, jelvény vagy hover-címke, és a Dynotch ablakai rejtettek a megosztás elől (`sharingType = .none`). A felismerés a megosztó appok jelzőablakaiból történik: Chrome-alapú böngészők, pl. Ardia („… is sharing your screen.”), Firefox/Zen („Sharing Indicator”), Zoom és Teams megosztás-sávja, a macOS képernyőfelvétele. |
 | N-21b | (v0.67.1) A macOS saját képernyőkép- és felvételeszköze (`screencaptureui`) nem számít megosztásnak: a notch rákerül a képernyőképre és a kivágásra, és a jelzők sem tűnnek el. Csak a megbeszélés-appok (böngésző, Zoom, Teams) megosztása rejti el. |
 | N-21c | (v0.69, hiba) Megbeszélés-megosztásnál a Dynotch ablakai **azonnal** kikerülnek a megosztott képből, nem csak a következő interakció után: a megosztási típus változásakor az ablakok újra a képernyőre kerülnek (ki-be, a sorrendjük megtartásával), mert a macOS a már látható ablakra csak így alkalmazza. A megosztás alatt később megnyílt ablakok is (2 mp-en belül) rejtettek lesznek. |
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
@@ -183,7 +183,7 @@
 | K-5 | A napsáv alatt a **kiválasztott nap eseményei**: cím, alatta pirossal a nap rövid neve és a kezdési idő (egész napos eseménynél „egész nap”). Elöl az egész napos események, utána kezdési idő szerint. A már véget ért események halványítva látszanak. Ha nincs esemény: „Mára nincs esemény”. |
 | K-5b | A kiválasztott nap listája úgy görget, hogy **a folyamatban lévő vagy a következő meeting legyen felül** (megnyitáskor, napváltáskor, és amikor egy meeting véget ér). Ha minden meeting véget ért, a lista elejéről indul. |
 | K-5c | A meeting neve alatti dátum és idő **kék**. |
-| K-6 | **Csatlakozás gomb** (zöld kapszula), ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). A meeting **mindig az alapértelmezett böngészőben** nyílik meg, nem közvetlenül a meeting-appban. |
+| K-6 | **Csatlakozás gomb** (zöld kapszula), ha az eseményben Zoom-, Google Meet-, Teams- vagy Webex-link van (az esemény URL-jében, helyszínében vagy jegyzetében, az Outlook Safe Links linkeket is felismerve). A meeting **mindig az éppen használt böngészőben** (E-2f) nyílik meg, nem közvetlenül a meeting-appban. |
 
 ### 4.2b Teljes naptár nézet
 
@@ -228,7 +228,7 @@
 | E-1 | A Dynotch a macOS Értesítési központ helyi adatbázisából olvassa az új értesítéseket (másodpercenként ellenőriz). Ehhez **Teljes lemezelérés** engedély kell; nélküle az Értesítések funkció és a Beállítások egy gombot mutat, amely megnyitja a megfelelő Rendszerbeállítások oldalt. Csak az indítás után érkezett értesítések jelennek meg. |
 | E-2 | Csak a kiválasztott appok értesítései jelennek meg. Alapból: **Beeper**, valamint a **Gmail** és a **Google Chat** Safari-webapp. A Beállításokban bármelyik telepített, értesítést küldő app ki- és bekapcsolható. |
 | E-2c | **Rendszerértesítések** (alapból be, a Rendszerbeállítások ikonjával): bejelentkezési és háttérelemek („Login Items”, pl. „Dynotch can run in the background”), szoftverfrissítés, adatvédelmi engedélyek („Privacy & Security”), Rendszerbeállítások. |
-| E-2b | **Webes értesítések** (Gmail, Google Chat): ha az értesítés egy böngészőből (Zen, Chrome, Firefox, Safari…) vagy a közös Safari „Web App” azonosítóval érkezik, a Dynotch az értesítésben szereplő oldal címéből (például `mail.google.com`, `chat.google.com`) megkeresi a telepített webappot, és annak a nevével, ikonjával és beállításával kezeli. A szöveg (cím, törzs) nem számít ebbe bele. |
+| E-2b | **Webes értesítések** (Gmail, Google Chat): ha az értesítés egy böngészőből (Ardia, Zen, Chrome, Firefox, Safari…) vagy a közös Safari „Web App” azonosítóval érkezik, a Dynotch az értesítésben szereplő oldal címéből (például `mail.google.com`, `chat.google.com`) megkeresi a telepített webappot, és annak a nevével, ikonjával és beállításával kezeli. A szöveg (cím, törzs) nem számít ebbe bele. |
 
 ### Megjelenés
 
@@ -259,6 +259,8 @@
 
 | # | Követelmény |
 |---|-------------|
+| E-2e | (v0.86) **Ardia böngésző:** az Ardia (`com.ardia.browser`) ugyanúgy böngészőnek számít, mint a Zen: a Gmail, Google Chat és más oldalak értesítései a webappjukhoz vagy saját oldalforrásként kerülnek (E-2b, E-15, E-15c), a válasz beírása (E-11b) és a képernyőmegosztás felismerése (N-21, Chromium-sáv) is működik. A Chromium-alapú böngészők riasztás stílusú értesítéseit küldő segédapp (`….framework.AlertNotificationService`) magának a böngészőnek számít; az Ardiából telepített webappok (`com.ardia.browser.app.…`) webappként. |
+| E-2f | (v0.86) **Mindig az éppen használt böngésző:** amit a Dynotch weben nyit meg (meeting Join, K-6; Gmail-levél webapp nélkül, GM-8; weboldal-források, E-15; Google Chat válasz beírása, E-11b/E-11d; Beeper webes linkek), az abban a böngészőben nyílik, amelyik most használatban van: az előtérben lévő böngésző, különben a legutóbb aktív és még futó, különben bármelyik futó böngésző, végül az alapértelmezett. Nem számít, melyik böngésző küldte eredetileg az értesítést. Böngésző minden app, amely webcímet tud megnyitni (a telepített webappok nem). |
 | E-2d | (v0.26) **Minden rendszerértesítés** megjelenik (nem csak a szoftverfrissítés): rendszerértesítésnek számít minden ismert rendszerforrás és minden olyan `com.apple.` azonosítójú szolgáltatás, amelynek nincs saját alkalmazása. A beállításokban egyetlen **„System Settings”** kapcsoló vezérli mindet, és a notchban is ezen a néven látszanak. |
 | E-11c | (v0.29) Ha a válaszmezőbe kattintok (értesítéskártya vagy Értesítések modul), **a notch rögzül**, így gépelés közben nem záródik be. |
 | E-11d | (v0.51, v0.55-ben szigorítva) **Google Chat link nélkül:** ha az értesítés nem tartalmazza a beszélgetés címét, a Dynotch megnyitja a Google Chatet (a Dock-appot, ha telepítve van, különben a chat.google.com-ot a böngészőben), ⌘⇧K-val a beszélgetés nevére ugrik (a „Feladó (Tér)” címből a tér nevére), és **csak akkor küld** (beillesztés, Enter), ha a fókuszban a beszélgetés üres üzenetmezője van, és az vagy az ablak címe a beszélgetés nevét mutatja (kis- és nagybetűtől, ékezettől függetlenül). Ha ez nem igazolható, nem gépel sehova: a szöveg a vágólapon marad. |

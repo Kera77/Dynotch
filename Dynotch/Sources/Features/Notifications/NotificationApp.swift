@@ -112,14 +112,14 @@ final class NotificationAppCatalog {
         return app
     }
 
-    /// Opens the app, or a website in the browser that showed its notifications.
+    /// Opens the app, or a website in the browser in use (spec E-2f).
     func open(_ identifier: String) {
         let app = app(for: identifier)
-        guard let url = app.url else { return }
         if let site = app.site, let page = URL(string: "https://\(site)") {
-            NSWorkspace.shared.open([page], withApplicationAt: url, configuration: NSWorkspace.OpenConfiguration())
+            ActiveBrowser.shared.open(page)
             return
         }
+        guard let url = app.url else { return }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
     }
 }

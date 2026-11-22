@@ -13,6 +13,14 @@ enum TypedReply {
     private static let activationTimeout: Duration = .seconds(6)
     private static let loadDelay: Duration = .milliseconds(2500)
 
+    /// The app to type the reply in: a browser's notification opens in the browser in use now,
+    /// any other in the app that sent it (spec E-2f).
+    @MainActor
+    static func appURL(for sourceApp: String) -> URL? {
+        if WebNotificationSource.isShared(sourceApp), let browser = ActiveBrowser.shared.url() { return browser }
+        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: sourceApp)
+    }
+
     /// - Parameter conversation: the chat's name, for Google Chat notifications without a link.
     static func send(
         _ text: String, link: URL?, sourceApp: String, fallbackApp: String, conversation: String? = nil
@@ -24,7 +32,7 @@ enum TypedReply {
             // Google Chat names no conversation in its notifications: jump to it by name (spec E-11d).
             return try await GoogleChatJump.send(text, to: conversation, sourceApp: sourceApp, chatApp: fallbackApp)
         }
-        guard let link, let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: sourceApp)
+        guard let link, let appURL = appURL(for: sourceApp)
             ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: fallbackApp)
         else {
             // Without the conversation's address the text could land in the wrong chat.

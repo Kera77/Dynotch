@@ -250,7 +250,7 @@ final class MailService: ObservableObject {
 
     // MARK: - Opening (spec GM-8)
 
-    /// A Gmail message opens in the Gmail web app (or the browser), any other in Mail.
+    /// A Gmail message opens in the Gmail web app (or the browser in use, spec E-2f), any other in Mail.
     func open(_ message: MailMessage) {
         let isGmail = accounts.first { $0.name == message.account }?.isGmail ?? false
         let encoded = message.id.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
@@ -261,6 +261,8 @@ final class MailService: ObservableObject {
         if isGmail, let webApp = Self.gmailWebApp() {
             let configuration = NSWorkspace.OpenConfiguration()
             NSWorkspace.shared.open([url], withApplicationAt: webApp, configuration: configuration, completionHandler: nil)
+        } else if isGmail {
+            ActiveBrowser.shared.open(url)
         } else {
             NSWorkspace.shared.open(url)
         }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Web notifications (Gmail, Google Chat…) may arrive from a browser (Zen, Chrome, Safari…) or
+/// Web notifications (Gmail, Google Chat…) may arrive from a browser (Ardia, Zen, Chrome, Safari…) or
 /// under a shared Safari "Web App" identifier instead of the web app's own. This finds the site a
 /// notification came from and the installed web app for that site (spec E-2b).
 enum WebNotificationSource {
@@ -14,10 +14,18 @@ enum WebNotificationSource {
     /// Browsers whose notifications come from many sites.
     static let browserIdentifiers: Set<String> = [
         "com.apple.safari", "com.apple.safari.webapp",
-        "app.zen-browser.zen", "org.mozilla.firefox", "com.google.chrome", "com.google.chrome.beta",
+        "com.ardia.browser", "app.zen-browser.zen", "org.mozilla.firefox", "com.google.chrome", "com.google.chrome.beta",
         "company.thebrowser.browser", "company.thebrowser.dia", "com.brave.browser",
         "com.microsoft.edgemac", "com.operasoftware.opera", "com.vivaldi.vivaldi"
     ]
+
+    /// Chromium browsers (Ardia, Chrome…) post alert-style notifications from a helper,
+    /// "<browser>.framework.AlertNotificationService": that is the browser itself (spec E-2e).
+    static func owningApp(_ identifier: String) -> String {
+        let suffix = ".framework.alertnotificationservice"
+        guard identifier.lowercased().hasSuffix(suffix) else { return identifier }
+        return String(identifier.dropLast(suffix.count))
+    }
 
     /// True for identifiers shared by many sites (browsers, the generic Web App host).
     static func isShared(_ identifier: String) -> Bool {
@@ -26,11 +34,12 @@ enum WebNotificationSource {
         return lowered.hasPrefix("com.apple.webkit") || lowered.hasPrefix("com.apple.safari.webpush")
     }
 
-    /// An installed web app (Safari "Add to Dock", a Chrome app): its page closes its own
+    /// An installed web app (Safari "Add to Dock", a Chrome or Ardia app): its page closes its own
     /// notifications too, read or not (spec E-13d).
     static func isWebApp(_ identifier: String) -> Bool {
         let lowered = identifier.lowercased()
         return lowered.hasPrefix("com.apple.safari.webapp.") || lowered.hasPrefix("com.google.chrome.app.")
+            || lowered.hasPrefix("com.ardia.browser.app.")
     }
 
     /// Host of the site in the record, looking at everything except the title and body (which

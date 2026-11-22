@@ -175,15 +175,10 @@ final class CalendarService: ObservableObject {
         }
     }
 
-    /// Opens the meeting in the default browser, never directly in the meeting app (spec K-6).
+    /// Opens the meeting in the browser in use, never directly in the meeting app (spec K-6, E-2f).
     func join(_ event: CalendarEvent) {
         guard let url = event.meetingURL else { return }
-        if let probe = URL(string: "https://example.com"),
-           let browser = NSWorkspace.shared.urlForApplication(toOpen: probe) {
-            NSWorkspace.shared.open([url], withApplicationAt: browser, configuration: NSWorkspace.OpenConfiguration())
-        } else {
-            NSWorkspace.shared.open(url)
-        }
+        ActiveBrowser.shared.open(url)
     }
 
     // MARK: - Private
