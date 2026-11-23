@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.95 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.96 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -666,6 +666,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-15h | (v0.73) **SF Symbols:** a szimbólumok hierarchikus (többrétegű) rajzolással; a változó számok (akku %, feladat- és jelvényszám) gördülnek; a lejátszás/szünet ikon a rendszer csere-effektusával vált. |
 | D-15i | (v0.73) **Hover:** a notch minden sima gombja (ikonok, sorok) hoverre halvány kiemelést, nyomásra halványodást kap, mint a rendszer keret nélküli gombjai. |
 | D-16 | (v0.75) A D-15 kapcsoló **megszűnt**: az Apple stílus az egyetlen kinézet, a „Current” stílus és csak hozzá tartozó kód törölve. A D-15a…i szabályok mindig érvényesek (a kisegítő beállításokat továbbra is követi). |
+| D-17 | **Accent az üvegben (próba):** *Settings › Appearance*: „Accent colour in the glass” (alapból be). A Liquid glass és a Black to glass design üvegének sötét színezésébe ~18% rendszer-kiemelőszín (*Accent colour*) keveredik, hogy a panel ne legyen semleges szürke; a tartalom monokróm marad. Black designnál nincs hatása. |
+| D-18 | **Crisp look (próba):** *Settings › Appearance*: „Crisp look” (alapból be), egy kapcsoló négy változáshoz, a tartalom monokróm marad. (a) Az üveg sötétítése +0,15 (legfeljebb 0,75), mélyebb fekete szürke helyett. (b) Halványabb szürke kitöltések a kártyákon, sorokon, vezérlőkön (16/10/5% helyett 12/6/3,5%). (c) Erősebb szöveg: elsődleges 100% (86% helyett), másodlagos 68% (60% helyett). (d) Átlátszóbb, *clear* Liquid Glass, alatta a háttér teljes erővel elmosva, hogy a tartalom ne mosódjon össze a háttérrel. A kitöltés- és szövegszintek a modul következő megnyitásakor frissülnek. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -1082,6 +1084,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-7 | **Notifications oldal:** csak az értesítések ki-be kapcsolása és a hozzájuk tartozó funkciók: hozzáférés, eltűnési idő, Apps és Websites (SD-2), Dynotch-jelzések, kis értesítések helye, pop-up sorok, Focus, natív szalagcímek. A Low battery szakasz a **General › Connected devices** alá kerül. Az **App badges** külön sidebar-elem marad, közvetlenül a Chats után. |
 | SD-8 | **Egységes hozzáférés-sor:** az engedélyt igénylő oldalak első szakasza „Access”: engedélyenként egy sor (ikon, név), jobbra zöld „Allowed” vagy „Grant…” gomb, ugyanúgy, mint a Permissions oldalon (C-8). Oldalak: Notifications (Full Disk Access), Chats (Full Disk Access, Accessibility), App badges (Accessibility), Calendar (Calendars), Screenshots (Screen Recording), Switcher (Accessibility; Screen Recording, ha az előnézet be van kapcsolva), Focus (Accessibility), General (Accessibility; Contacts, ha a hívások be vannak kapcsolva). Az állapot 2 mp-enként frissül. |
 | SD-9 | **Egységes csúszkák:** minden csúszka 160 pt széles, mellette jobbra igazítva, egyforma szélességű szürke érték mértékegységgel („5 s”, „0.15 s”, „8 %”, „250 ms”). A Switcher oldalon a Modules és a modulsor szakaszai a Trackpad szakasz alá kerülnek. |
+| SD-10 | **Egy oszlopban álló kapcsolók:** az app-, forrás- és módsorokban a kapcsoló után álló ikonok és feliratok fix szélességű helyen vannak (akkor is, ha az adott sorban nincsenek), így a kapcsolók soronként nem csúsznak el. App badges: a badge-ikon választója fix szélességű, a rejtés ideje („Hidden until …”) a név mellé kerül, a *Show* gomb helyett szem-ikon. Notifications: a „saját szabályai vannak” ikon helye minden sorban megvan. Screenshots: a sorrendszám („1×”, „Off”) egyforma szélességű. |
 
 ## 5. Nyitott kérdések
 
@@ -1129,6 +1132,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.96.0** | Egy oszlopban álló kapcsolók a beállításokban (SD-10); próbaként accent az üvegben (D-17) és Crisp look: mélyebb, tisztább üveg erős elmosással, halványabb kitöltések, erősebb szöveg (D-18) |
 | **v0.95.0** | Modulváltó saját, átrendezhető modullistával, mindig egy sorban, a legutóbbi modulon indul (QS-10…QS-12); egységes beállítások: lenyíló listák saját keresővel, egyforma appsorok, App badges és Modules űrlapként, új Chats oldal, Access-sorok, egységes csúszkák (SD-1…SD-9) |
 | **v0.94.0** | Okos nyitás: 5 percig a legutóbbi értesítés modulja nyílik hoverre (fül, eszköz, letöltés, meeting; az AI nem), csak a meeting előzi (SO-9, SO-10); modulváltó háromujjas felfelé swipe-ra a gyorsbillentyűs modulokkal, a legutóbbi elöl, oldalra lépked, elengedésre nyit (QS-1…QS-9) |
 | **v0.93.0** | Google Chat: a Kezdőlap „1 értesítés” felirata magában nem olvasatlan (nem ragad be a jelvény), kártya minden olvasatlan beszélgetéshez, a lista fejléce a fül saját értesítéseit számolja (GW-25, GW-26, UM-11) |

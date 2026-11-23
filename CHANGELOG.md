@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.96.0] - 2026-11-23
+
+### Added
+
+- Trial: *Settings › Appearance › Accent colour in the glass* (on by default) mixes a touch of the system accent colour into the glass's dark tint, so Liquid glass and Black to glass look less grey (D-17).
+- Trial: *Settings › Appearance › Crisp look* (on by default): the glass is clearer and tinted deeper over a full background blur, grey fills on cards and rows are lighter and the text is brighter, so the notch looks less grey while staying monochrome (D-18).
+
+### Fixed
+
+- Settings: the switches of *App badges*, *Notifications* sources and *Screenshots* modes stand in one column again; a badge's own icon, the "own rules" mark or the order number no longer pushes them sideways. A hidden badge shows its time beside the name and comes back with the eye button (SD-10).
+
 ## [0.95.0] - 2026-11-23
 
 ### Changed

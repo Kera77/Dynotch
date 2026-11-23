@@ -73,6 +73,17 @@ struct SettingsRowLabel<Icon: View>: View {
     }
 }
 
+/// A fixed-width place after a row's switch, there even when empty, so the switches of a list
+/// stand in one column (spec SD-10).
+struct TrailingSlot<Content: View>: View {
+    var width: CGFloat = 20
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content().frame(width: width, height: 20)
+    }
+}
+
 /// The handle at the start of a row that can be dragged to reorder (spec SD-4).
 struct DragHandle: View {
     var body: some View {

@@ -31,15 +31,25 @@ struct GlassFill<S: Shape>: View {
     let shape: S
     /// How dark the glass is tinted; the refined design follows the wallpaper (spec D-14c).
     var tint = 0.45
+    /// Mixes the accent colour into the dark tint, so the glass is not a neutral grey (spec D-17).
+    var accent = false
+    /// Crisp look: the clearer glass over a full blur, tinted deeper (spec D-18).
+    var crisp = false
+
+    /// The tint's colour: black, or black with ~18 % of the accent colour.
+    private var tintColor: Color {
+        guard accent, let mixed = NSColor.black.blended(withFraction: 0.18, of: .controlAccentColor) else { return .black }
+        return Color(nsColor: mixed)
+    }
 
     var body: some View {
         if AppleStyle.reducesTransparency {
             // *Reduce transparency* in the Apple style: solid, like the system (spec D-15f).
             shape.fill(Color(white: 0.12))
         } else if #available(macOS 26.0, *) {
-            Color.clear.glassEffect(.regular.tint(Color.black.opacity(tint)), in: shape)
+            Color.clear.glassEffect((crisp ? Glass.clear : .regular).tint(tintColor.opacity(tint)), in: shape)
         } else {
-            shape.fill(.ultraThinMaterial).overlay(shape.fill(Color.black.opacity(tint)))
+            shape.fill(.ultraThinMaterial).overlay(shape.fill(tintColor.opacity(tint)))
         }
     }
 }
@@ -102,6 +112,10 @@ struct DesignBackground<S: Shape>: View {
     var topRow: CGFloat = 38
     /// The glass tint in the refined look.
     var glassTint = 0.45
+    /// A touch of the accent colour in the glass (spec D-17).
+    var glassAccent = false
+    /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
+    @AppStorage(AppleStyle.crispKey) private var crisp = true
 
     /// Refined black to glass: black over the top row, then an eased fade over 80 pt (spec D-14d).
     static func refinedBlendStops(height: CGFloat, topRow: CGFloat) -> [Gradient.Stop] {
@@ -125,10 +139,16 @@ struct DesignBackground<S: Shape>: View {
 
     /// How strong the extra blur is: none for a closed or fully black panel; for black a bit
     /// more than its opacity, so 40 % still blurs gently; under the glass most of it.
-    nonisolated static func blurOpacity(glass: Bool, isOpen: Bool, openOpacity: Double) -> Double {
+    /// Crisp: the clear glass blurs little itself, so the full blur keeps the content readable (spec D-18).
+    nonisolated static func blurOpacity(glass: Bool, isOpen: Bool, openOpacity: Double, crisp: Bool = false) -> Double {
         guard isOpen else { return 0 }
-        if glass { return 0.75 * openOpacity }
+        if glass { return (crisp ? 1 : 0.75) * openOpacity }
         return openOpacity < 1 ? min(1, openOpacity + 0.15) : 0
+    }
+
+    /// Crisp: a deeper tint, black rather than grey (spec D-18).
+    nonisolated static func tint(_ base: Double, crisp: Bool) -> Double {
+        crisp ? min(base + 0.15, 0.75) : base
     }
 
     var body: some View {
@@ -142,8 +162,8 @@ struct DesignBackground<S: Shape>: View {
                 // system's glass blur stronger (spec D-13b, D-13c).
                 BehindWindowBlur()
                     .clipShape(shape)
-                    .opacity(Self.blurOpacity(glass: glass, isOpen: isOpen, openOpacity: openOpacity))
-                GlassFill(shape: shape, tint: refined ? glassTint : 0.45)
+                    .opacity(Self.blurOpacity(glass: glass, isOpen: isOpen, openOpacity: openOpacity, crisp: crisp))
+                GlassFill(shape: shape, tint: Self.tint(refined ? glassTint : 0.45, crisp: crisp), accent: glassAccent, crisp: crisp)
                     .opacity(glass ? open : 0)
             }
         case .content:

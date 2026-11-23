@@ -29,6 +29,7 @@ final class AppSettings: ObservableObject {
         static let hiddenFromMenuBar = "hiddenFromMenuBar"
         static let haptics = "haptics"
         static let roundedNotch = "roundedNotch"
+        static let glassAccent = "glassAccent"
         static let hideInFullScreen = "hideInFullScreen"
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let design = "design"
@@ -169,6 +170,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
     }
 
+    /// A touch of the accent colour in the glass's dark tint (spec D-17).
+    @Published var glassAccent: Bool {
+        didSet { defaults.set(glassAccent, forKey: Key.glassAccent) }
+    }
+
     /// The closed notch has round ends like the Dynamic Island (spec N-11).
     @Published var roundedNotch: Bool {
         didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
@@ -304,15 +310,15 @@ final class AppSettings: ObservableObject {
         calendarAlertEnabled = defaults.object(forKey: Key.calendarAlertEnabled) as? Bool ?? true
         calendarLarge = defaults.bool(forKey: Key.calendarLarge)
 
-        let storedDuration = defaults.object(forKey: Key.notificationDuration) as? Double ?? Self.defaultNotificationDuration
-        let durationRange = Self.notificationDurationRange
-        notificationDuration = min(max(storedDuration, durationRange.lowerBound), durationRange.upperBound)
+        let durations = Self.notificationDurationRange
+        notificationDuration = Self.stored(defaults, Key.notificationDuration, default: Self.defaultNotificationDuration, in: durations)
         notificationApps = defaults.dictionary(forKey: Key.notificationApps) as? [String: Bool] ?? [:]
         hideNativeBanners = defaults.object(forKey: Key.hideNativeBanners) as? Bool ?? true
         focusFollowsMouse = defaults.object(forKey: Key.focusFollowsMouse) as? Bool ?? true
         claudeRingVisible = defaults.object(forKey: Key.claudeRing) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Key.haptics) as? Bool ?? true
         roundedNotch = defaults.object(forKey: Key.roundedNotch) as? Bool ?? true
+        glassAccent = defaults.object(forKey: Key.glassAccent) as? Bool ?? true
         hideInFullScreen = defaults.object(forKey: Key.hideInFullScreen) as? Bool ?? true
         roundOnlyWhereShown = defaults.bool(forKey: Key.roundOnlyWhereShown)
         design = defaults.string(forKey: Key.design).flatMap(NotchDesign.init(rawValue:)) ?? .black
@@ -388,10 +394,6 @@ extension AppSettings {
     }
 
     func setShowsInMenuBar(_ feature: FeatureID, _ shows: Bool) {
-        if shows {
-            hiddenFromMenuBar.remove(feature)
-        } else {
-            hiddenFromMenuBar.insert(feature)
-        }
+        if shows { hiddenFromMenuBar.remove(feature) } else { hiddenFromMenuBar.insert(feature) }
     }
 }

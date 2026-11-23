@@ -49,8 +49,9 @@ struct ScreenshotSettingsView: View {
             Toggle(isOn: Binding(get: { settings.isOn(mode) }, set: { settings.setOn(mode, $0) })) {
                 Label(mode.title, systemImage: mode.symbol)
             }
-            Spacer()
+            // One width for "1×" and "Off", so the switches line up (spec SD-10).
             Text(position).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                .frame(width: 28, alignment: .trailing)
         }
         .opacity(dragged == mode ? 0.4 : 1)
         .onDrag {

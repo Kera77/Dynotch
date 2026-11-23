@@ -16,10 +16,15 @@ struct AppleStyleTests {
         #expect(AppleStyle.corner(3) == 3)
         #expect(AppleStyle.level(0.0001) == 0.0001)
         if !AppleStyle.increasesContrast {
-            #expect(AppleStyle.level(0.45) == 0.4)
-            #expect(AppleStyle.level(0.7) == 0.6)
-            #expect(AppleStyle.level(0.9) == 0.86)
-            #expect(AppleStyle.level(0.08) == 0.1)
+            #expect(AppleStyle.level(0.45, crisp: false) == 0.4)
+            #expect(AppleStyle.level(0.7, crisp: false) == 0.6)
+            #expect(AppleStyle.level(0.9, crisp: false) == 0.86)
+            #expect(AppleStyle.level(0.08, crisp: false) == 0.1)
+            // The crisp look (spec D-18): stronger text, lighter fills.
+            #expect(AppleStyle.level(0.9, crisp: true) == 1)
+            #expect(AppleStyle.level(0.7, crisp: true) == 0.68)
+            #expect(AppleStyle.level(0.08, crisp: true) == 0.06)
+            #expect(AppleStyle.level(0.16, crisp: true) == 0.12)
         }
     }
 }

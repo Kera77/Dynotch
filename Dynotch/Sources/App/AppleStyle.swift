@@ -12,6 +12,10 @@ enum AppleStyle {
         NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
     }
 
+    /// The trial crisp look (spec D-18): deeper glass, lighter fills, stronger text. On by default.
+    nonisolated static let crispKey = "crispLook"
+    nonisolated static var crisp: Bool { UserDefaults.standard.object(forKey: crispKey) as? Bool ?? true }
+
     // MARK: - Type (spec D-15a)
 
     /// The macOS text style sizes: nothing below 9 pt, no 14 pt between body and title 3.
@@ -33,17 +37,19 @@ enum AppleStyle {
 
     /// White on the dark notch in four levels, like the system's label colors, instead of a
     /// dozen opacities: primary, secondary, tertiary and the fills below them.
-    nonisolated static func level(_ opacity: Double) -> Double {
+    nonisolated static func level(_ opacity: Double, crisp: Bool = AppleStyle.crisp) -> Double {
         let contrast = increasesContrast
+        // Crisp: stronger text, lighter grey fills (spec D-18).
+        let crisp = !contrast && crisp
         switch opacity {
         // Nearly invisible fills only catch the mouse: they stay as they are.
         case ..<0.03: return opacity
-        case 0.78...: return contrast ? 1 : 0.86
-        case 0.5..<0.78: return contrast ? 0.75 : 0.6
+        case 0.78...: return contrast || crisp ? 1 : 0.86
+        case 0.5..<0.78: return contrast ? 0.75 : crisp ? 0.68 : 0.6
         case 0.3..<0.5: return contrast ? 0.55 : 0.4
-        case 0.12..<0.3: return contrast ? 0.24 : 0.16
-        case 0.07..<0.12: return contrast ? 0.16 : 0.1
-        default: return contrast ? 0.1 : 0.05
+        case 0.12..<0.3: return contrast ? 0.24 : crisp ? 0.12 : 0.16
+        case 0.07..<0.12: return contrast ? 0.16 : crisp ? 0.06 : 0.1
+        default: return contrast ? 0.1 : crisp ? 0.035 : 0.05
         }
     }
 

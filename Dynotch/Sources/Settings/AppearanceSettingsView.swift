@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings › Appearance: everything about how Dynotch looks (spec D-5).
 struct AppearanceSettingsView: View {
     @ObservedObject var settings: AppSettings
+    @AppStorage(AppleStyle.crispKey) private var crispLook = true
     @AppStorage(SmartOpening.noticeMinutesKey) private var noticeMinutes = 5
 
     var body: some View {
@@ -20,6 +21,10 @@ struct AppearanceSettingsView: View {
                 SettingsSlider(
                     title: "Open panel opacity", value: $settings.panelOpacity, range: AppSettings.panelOpacityRange, step: 0.05
                 ) { "\(Int(($0 * 100).rounded())) %" }
+                Toggle("Accent colour in the glass", isOn: $settings.glassAccent)
+                    .disabled(settings.design == .black)
+                // Trial (spec D-18): deeper clear glass over a full blur, lighter fills, stronger text.
+                Toggle("Crisp look", isOn: $crispLook)
                 Toggle("Resize modules from the bottom right corner", isOn: $settings.resizableModules)
                 Picker("Displays without a notch", selection: $settings.externalStyle) {
                     ForEach(ExternalNotchStyle.allCases, id: \.self) { Text($0.title).tag($0) }
@@ -130,6 +135,7 @@ struct AppearanceSettingsView: View {
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
         note += " Refined adds a soft rim light and shadow, a black that deepens towards the bottom, glass tinted to "
             + "the wallpaper, and an even black-to-glass fade."
+        note += " Crisp look (trial): deeper, clearer glass over a stronger blur, lighter grey fills, brighter text."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
     }

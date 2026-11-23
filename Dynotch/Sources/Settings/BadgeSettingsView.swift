@@ -65,20 +65,24 @@ private struct BadgeAppRow: View {
         HStack(spacing: 8) {
             DragHandle()
             Toggle(isOn: Binding(get: { app.isEnabled }, set: { service.setEnabled(app.bundleID, $0) })) {
-                SettingsRowLabel(title: app.name) {
+                // Hidden from the notch for a while: how long, beside the name (spec B-11, SD-10).
+                SettingsRowLabel(title: app.name, detail: service.hidden[app.bundleID]?.description(now: Date())) {
                     BadgeIconView(icon: .app, bundleID: app.bundleID, size: 18, tint: .primary, monochrome: false)
                 }
             }
-            // Hidden from the notch for a while: how long, and Show brings it back (spec B-11).
-            if let hide = service.hidden[app.bundleID] {
-                Text(hide.description(now: Date()))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Button("Show") { service.unhide(app.bundleID) }
-                    .controlSize(.small)
+            // The eye brings a hidden badge back; its place stays when there is none (spec SD-10).
+            TrailingSlot {
+                if service.hidden[app.bundleID] != nil {
+                    Button {
+                        service.unhide(app.bundleID)
+                    } label: {
+                        Image(systemName: "eye")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Show next to the notch again")
+                    .accessibilityLabel("Show next to the notch again")
+                }
             }
-            Spacer()
             Menu {
                 Button("App icon") { service.setIcon(app.bundleID, .app) }
                 Divider()
@@ -95,7 +99,9 @@ private struct BadgeAppRow: View {
                 BadgeIconView(icon: app.icon, bundleID: app.bundleID, size: 16, tint: .primary, monochrome: false)
             }
             .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
             .fixedSize()
+            .frame(width: 24)
             .help("Icon shown next to the notch")
             .accessibilityLabel("Icon shown next to the notch")
             Button {

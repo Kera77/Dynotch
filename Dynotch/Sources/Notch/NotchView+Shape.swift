@@ -125,7 +125,7 @@ extension NotchView {
         DesignBackground(
             design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity,
             refined: settings.refinedDesign, topRow: geometry.menuBarHeight,
-            glassTint: wallpaperTone.tint(for: geometry.screenFrame)
+            glassTint: wallpaperTone.tint(for: geometry.screenFrame), glassAccent: settings.glassAccent
         )
     }
 

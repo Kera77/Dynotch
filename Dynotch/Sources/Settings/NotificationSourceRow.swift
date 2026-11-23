@@ -50,13 +50,15 @@ struct NotificationSourceRow: View {
                         AppIconView(app: app, size: 18, monochrome: false)
                     }
                 }
-                Spacer()
-                if !rule.isDefault {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .help("Has its own rules")
-                        .accessibilityLabel("Has its own rules")
+                // Its place stays in rows without own rules, so the switches line up (spec SD-10).
+                TrailingSlot {
+                    if !rule.isDefault {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .help("Has its own rules")
+                            .accessibilityLabel("Has its own rules")
+                    }
                 }
                 Button {
                     withAnimation(Motion.quick) { isOpen.toggle() }
