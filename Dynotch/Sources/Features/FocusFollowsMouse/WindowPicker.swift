@@ -88,6 +88,12 @@ enum FocusRules {
         return target.bounds.width >= minimumSwitchSize.width && target.bounds.height >= minimumSwitchSize.height
     }
 
+    /// The active app's focused window keeps the focus unless it is a normal window: a standard
+    /// one or a large floating one, so focus can leave Ardia's mini window again (spec F-14c).
+    static func focusedKeepsFocus(subrole: String, size: CGSize) -> Bool {
+        isDialog(subrole: subrole) || !isNormalWindow(subrole: subrole, size: size)
+    }
+
     static func isDialog(subrole: String) -> Bool {
         ["AXDialog", "AXSystemDialog", "AXSheet"].contains(subrole)
     }

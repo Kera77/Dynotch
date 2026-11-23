@@ -39,4 +39,12 @@ struct BrowserTabBadgeTests {
         #expect(!FocusRules.isNormalWindow(subrole: "AXSystemFloatingWindow", size: CGSize(width: 250, height: 150)))
         #expect(!FocusRules.isNormalWindow(subrole: "AXUnknown", size: CGSize(width: 800, height: 800)))
     }
+
+    @Test func focusLeavesLargeFloatingWindow() {
+        #expect(!FocusRules.focusedKeepsFocus(subrole: "AXSystemFloatingWindow", size: CGSize(width: 823, height: 1410)))
+        #expect(!FocusRules.focusedKeepsFocus(subrole: "AXStandardWindow", size: .zero))
+        #expect(FocusRules.focusedKeepsFocus(subrole: "AXSystemFloatingWindow", size: CGSize(width: 250, height: 150)))
+        #expect(FocusRules.focusedKeepsFocus(subrole: "AXDialog", size: CGSize(width: 800, height: 600)))
+        #expect(FocusRules.focusedKeepsFocus(subrole: "AXUnknown", size: CGSize(width: 800, height: 800)))
+    }
 }

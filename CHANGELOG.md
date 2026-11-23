@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.88.0] - 2026-11-23
+
+### Fixed
+- Focus follows the mouse back from Ardia's mini window (a large floating window) to Ardia's normal window (F-14c).
+
 ## [0.87.0] - 2026-11-23
 
 ### Changed

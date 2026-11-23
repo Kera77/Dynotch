@@ -113,13 +113,21 @@ enum SkyLightFocus {
         if AXUIElementCopyAttributeValue(window, kAXModalAttribute as CFString, &modal) == .success, (modal as? Bool) == true {
             return true
         }
-        // Anything but a standard window (a dialog, a pop-up or drop-down with the focus, or one
-        // without a subrole) keeps the focus inside its app (spec F-14).
+        // Anything but a normal window (a dialog, a pop-up or drop-down with the focus, or one
+        // without a subrole) keeps the focus inside its app (spec F-14); a large floating window
+        // such as Ardia's mini window lets it go again (spec F-14c).
         var subrole: CFTypeRef?
         guard AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole) == .success,
               let name = subrole as? String
         else { return true }
-        return FocusRules.isDialog(subrole: name) || name != FocusRules.standardSubrole
+        var sizeValue: CFTypeRef?
+        var size = CGSize.zero
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success,
+           let sizeValue, CFGetTypeID(sizeValue) == AXValueGetTypeID() {
+            // swiftlint:disable:next force_cast
+            AXValueGetValue(sizeValue as! AXValue, .cgSize, &size)
+        }
+        return FocusRules.focusedKeepsFocus(subrole: name, size: size)
     }
 
     /// Makes `windowID` of `pid` the key window and its app the active one, leaving the window
