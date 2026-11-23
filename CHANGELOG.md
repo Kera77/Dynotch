@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.90.0] - 2026-11-23
+
+### Added
+- Terminal module: your login shell in the notch, as in Terminal (xterm-256color, full-screen programs, mouse, ⌘C/⌘V/⌘A/⌘K, ⌘+/⌘−/⌘0 font size). Shells keep running while the notch is closed; tabs (⌘T, ⌘W, ⌘1…⌘9), "Open in Terminal" in the tab's folder, dropped files paste their quoted paths, and typing keeps the notch open for 10 s (TE-1…TE-9).
+
+### Changed
+- A two-finger swipe over the module icons in the open panel switches modules, as many as the swipe's length and momentum reach (M-12).
+- Coming from a badge or counter beside the notch, the notch opens only after the pointer rests on it for 0.6 s (N-24).
+- App icons of badges and notifications are black and white (B-12, E-26).
+- Every network connected in Beeper (e.g. Telegram, Google Chat) can be highlighted, even without a recent chat (BP-17).
+- Linking the keyboard and mouse to an iPad happens in the background without bringing System Settings forward; a linked iPad is ticked and unlinks the same way (TB-7).
+
+### Fixed
+- The switcher's swipe counts only fingers really on the trackpad: lifting fingers no longer cancel the switch, a resting thumb no longer opens it, and sideways drift no longer cancels it (AS-21).
+- The tasks counter's list picker shows whenever open tasks are in several lists, not only when today's are (R-18).
+
 ## [0.89.0] - 2026-11-23
 
 ### Added

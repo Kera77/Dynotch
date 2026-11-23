@@ -3,12 +3,15 @@ import SwiftUI
 struct AppIconView: View {
     let app: NotificationApp
     let size: CGFloat
+    /// In black and white in the notch (spec E-26); the settings keep colour.
+    var monochrome = true
 
     var body: some View {
         if let icon = app.icon {
             Image(nsImage: icon)
                 .resizable()
                 .interpolation(.high)
+                .saturation(monochrome ? 0 : 1)
                 .frame(width: size, height: size)
         } else {
             Image(systemName: "bell.fill")

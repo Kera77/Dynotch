@@ -130,6 +130,9 @@ extension NotchView {
             detail = music.nowPlaying.map { "\($0.title) · \($0.artist)" } ?? "Nothing playing in Spotify"
         case .stats:
             detail = "CPU \(StatsFormat.percent(stats.snapshot.cpu)) · ↓ \(StatsFormat.rate(stats.snapshot.download))"
+        case .terminal:
+            detail = TerminalStore.shared.selected.map { "\($0.title) · \(TerminalWing.tabs(TerminalStore.shared.sessions.count))" }
+                ?? "Click or swipe down to open"
         case .home, .info:
             detail = "Click or swipe down to open"
         }

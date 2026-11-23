@@ -122,6 +122,8 @@ extension NotchController {
     func showDropZoneOverOpenNotch() {
         guard model.isExpanded, !model.isShowingDropZone, !model.isShowingClipboardPicker,
               model.currentFeature != .tray || model.isPreview,
+              // Files dropped on the terminal paste their paths (spec TE-7).
+              model.currentFeature != .terminal || model.isPreview,
               FileDragWatcher.shared.isDraggingFiles, keepOpenZone.contains(NSEvent.mouseLocation)
         else { return }
         DiagnosticsLog.append("tray", "drop zone over the open notch")

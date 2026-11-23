@@ -58,10 +58,16 @@ final class TrackpadSwipe: @unchecked Sendable {
     nonisolated(unsafe) private static var lastY: Float = 0
     nonisolated(unsafe) private static var started = false
 
-    /// Minimum horizontal travel before the switcher opens, so a resting hand does nothing.
-    private static let openDistance: Float = 0.04
-    /// Vertical travel (up or down) that cancels an open switcher at once (spec AS-11c).
-    private static let cancelDistance: Float = 0.2
+    /// Minimum horizontal travel before the switcher opens, so a resting hand does nothing (spec AS-21).
+    private static let openDistance: Float = 0.06
+    /// Vertical travel (up or down) that cancels an open switcher at once (spec AS-11c), only
+    /// when it is clearly more than the horizontal one: a hand swiping sideways drifts too (spec AS-21).
+    private static let cancelDistance: Float = 0.25
+    private static let cancelDominance: Float = 1.5
+    /// Touch states of a finger that is really on the trackpad: "make touch" (3) and "touching" (4);
+    /// 5 is lifting, 1-2 and 6-7 hovering or lingering.
+    /// Hovering, lifting and lingering contacts jump about and must not count (spec AS-21).
+    private static let downStates: Set<Int32> = [3, 4]
     /// Frames (~8 ms each) the fingers must stay exactly the wanted number before it opens.
     private static let steadyNeeded = 6
 
@@ -98,7 +104,9 @@ final class TrackpadSwipe: @unchecked Sendable {
     private static func frame(data: UnsafeMutableRawPointer?, count: Int) {
         let wanted = fingers
         guard wanted > 0, let data else { return }
-        let touches = data.bindMemory(to: Touch.self, capacity: max(count, 1))
+        let all = data.bindMemory(to: Touch.self, capacity: max(count, 1))
+        let touches = (0..<count).map { all[$0] }.filter { downStates.contains($0.state) }
+        let count = touches.count
         mostFingers = max(mostFingers, count)
         if count > wanted || mostFingers > wanted {
             // More fingers than the switcher's: a Space swipe or the like, not ours (spec AS-11d).
@@ -110,9 +118,9 @@ final class TrackpadSwipe: @unchecked Sendable {
             steadyFrames += 1
             var sumX: Float = 0
             var sumY: Float = 0
-            for index in 0..<count {
-                sumX += touches[index].normalizedX
-                sumY += touches[index].normalizedY
+            for touch in touches {
+                sumX += touch.normalizedX
+                sumY += touch.normalizedY
             }
             moved(x: sumX / Float(count), y: sumY / Float(count))
         } else {
@@ -133,7 +141,8 @@ final class TrackpadSwipe: @unchecked Sendable {
             return
         }
         let travel = x - origin
-        if isActive, abs(y - startY) >= cancelDistance {
+        let rise = abs(y - startY)
+        if isActive, rise >= cancelDistance, rise > abs(travel) * cancelDominance {
             // Swiped up or down: cancel now, without switching (spec AS-11c).
             isActive = false
             isSpent = true

@@ -134,7 +134,9 @@ final class NotchViewModel: ObservableObject {
     }
 
     /// Modules that take the keyboard (text fields, Space for Quick Look).
-    private static let typingFeatures: Set<FeatureID> = [.calculator, .notes, .reminders, .notifications, .claudeChat, .clipboard, .tray]
+    private static let typingFeatures: Set<FeatureID> = [
+        .calculator, .notes, .reminders, .notifications, .claudeChat, .clipboard, .tray, .terminal
+    ]
 
     /// The notifications module's tab, kept across launches (spec UM-8).
     @Published var notificationsTab: NotificationsTab = NotchViewModel.storedTab {
@@ -320,16 +322,16 @@ final class NotchViewModel: ObservableObject {
         updateLarge()
     }
 
-    func step(_ direction: NavigationDirection) {
-        let current = settings.hostFeature(of: currentFeature)
-        if let neighbor = FeatureID.neighbor(of: current, in: settings.listedFeatures, direction: direction) {
-            let target = lastTab(of: neighbor)
-            currentFeature = target
-            settings.lastFeature = target
-            updateLarge()
-        } else {
-            bounce(direction)
-        }
+    /// Moves `steps` modules at once, stopping at either end (spec S-1, M-12); the icon stays in view.
+    func step(by steps: Int) {
+        let features = settings.listedFeatures
+        guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
+        let target = min(max(index + steps, 0), features.count - 1)
+        guard target != index else { return bounce(steps > 0 ? .next : .previous) }
+        currentFeature = lastTab(of: features[target])
+        settings.lastFeature = currentFeature
+        updateLarge()
+        revealCurrentFeature()
     }
 
     /// How many feature icons fit left of the notch in the open panel.
@@ -337,13 +339,6 @@ final class NotchViewModel: ObservableObject {
         // The row's left side, less its margins (14 at the edge, 8 before the notch).
         let room = (openSize.width - geometry.notchSize.width) / 2 - 22
         return FeatureSwitcher.visibleCount(for: room)
-    }
-
-    /// Swipes the icons without switching features.
-    func scrollSwitcher(by steps: Int) {
-        let count = settings.listedFeatures.count
-        let next = FeatureSwitcher.clampedFirst(switcherFirst + steps, count: count, visible: switcherVisibleCount)
-        if next != switcherFirst { switcherFirst = next }
     }
 
     /// The current feature's icon is in view.
@@ -377,7 +372,9 @@ final class NotchViewModel: ObservableObject {
 
 extension NotchViewModel {
     /// Anything that keeps the open panel from closing when the pointer leaves.
-    var keepsOpen: Bool { isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil }
+    var keepsOpen: Bool {
+        isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil || holdsForTerminal
+    }
 }
 
 extension NotchViewModel {

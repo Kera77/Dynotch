@@ -29,6 +29,8 @@ struct BadgeIconView: View {
     var size: CGFloat = BadgeItem.iconSize
     /// Colour of the glyphs.
     var tint: Color = .white
+    /// Images in black and white, as beside the notch (spec B-12); the settings keep colour.
+    var monochrome = true
 
     var body: some View {
         switch icon {
@@ -65,6 +67,7 @@ struct BadgeIconView: View {
                 .resizable()
                 .interpolation(.high)
                 .scaledToFit()
+                .saturation(monochrome ? 0 : 1)
                 .frame(width: size, height: size)
         } else {
             Image(systemName: "app.fill")

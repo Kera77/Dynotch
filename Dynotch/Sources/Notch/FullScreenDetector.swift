@@ -83,8 +83,12 @@ extension NotchController {
     func opens(at point: CGPoint) -> Bool {
         guard openingZone.contains(point) else {
             dropDownHoverSince = nil
+            sideArrivalSince = nil
+            if isOnRowBeside(point) { besideRowSeenAt = Date() }
             return false
         }
+        // Come straight from a badge or counter beside the notch: open only after a rest (spec N-24).
+        if arrivesFromSide() { return false }
         // A small notice beside the notch: hovering leaves it, a swipe up puts it away first (spec PV-47).
         if settings.noticesBeside, showsWingsPeek { return false }
         // A small notice under the notch: the Wings wait for the pointer to rest a moment (spec PV-71).
@@ -95,6 +99,36 @@ extension NotchController {
         let notch = model.geometry.notchRect
         let inRowBeside = point.y >= notch.minY && !notch.insetBy(dx: -4, dy: 0).contains(point)
         return !inRowBeside
+    }
+
+    /// How long the pointer may take from the row beside onto the notch to count as come from it,
+    /// and how long it then rests before the notch opens (spec N-24).
+    static let sideArrivalWindow: TimeInterval = 0.4
+    static let sideArrivalRest: TimeInterval = 0.6
+
+    /// The pointer is on a badge, indicator or counter beside the closed notch, or its drop-down.
+    private func isOnRowBeside(_ point: CGPoint) -> Bool {
+        if model.hoveredBadge != nil || model.hoveredIndicator != nil { return true }
+        let notch = model.geometry.notchRect
+        // Far below the notch there is no row: no need to lay it out.
+        guard point.y >= notch.minY - IndicatorLayout.labelHeight else { return false }
+        let row = collapsedRow().layout.rect(notchRect: notch, labelHeight: nil)
+        return row.contains(point) && !notch.contains(point)
+    }
+
+    /// The pointer has just come from the row beside and has not rested on the notch long enough.
+    private func arrivesFromSide(now: Date = Date()) -> Bool {
+        if let since = sideArrivalSince {
+            guard now.timeIntervalSince(since) < Self.sideArrivalRest else {
+                sideArrivalSince = nil
+                besideRowSeenAt = nil
+                return false
+            }
+            return true
+        }
+        guard let seen = besideRowSeenAt, now.timeIntervalSince(seen) < Self.sideArrivalWindow else { return false }
+        sideArrivalSince = now
+        return true
     }
 
     /// The area that opens the closed notch: over a full-screen app only the top edge.

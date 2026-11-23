@@ -6,9 +6,16 @@ options:
   createIntermediateGroups: true
   generateEmptyDirectories: true
 
+packages:
+  # The terminal emulator under the Terminal module (spec TE-1).
+  SwiftTerm:
+    url: https://github.com/migueldeicaza/SwiftTerm
+    # 1.12 and later need the Metal toolchain (and 1.19 a build plug-in xcodebuild must trust).
+    exactVersion: 1.11.2
+
 settings:
   base:
-    MARKETING_VERSION: "0.89.0"
+    MARKETING_VERSION: "0.90.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -20,6 +27,8 @@ targets:
     platform: macOS
     sources:
       - path: Dynotch
+    dependencies:
+      - package: SwiftTerm
     info:
       path: Dynotch/Resources/Info.plist
       properties:

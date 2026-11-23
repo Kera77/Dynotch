@@ -191,6 +191,8 @@ extension NotchController {
     func handleKey(_ event: NSEvent) -> Bool {
         // The screenshot editor handles its own keys (spec SH-7).
         guard model.isExpanded, model.editor == nil else { return false }
+        // The terminal takes every key, Esc and ⌘1–9 too (spec TE-2, TE-4).
+        if panel.firstResponder is NotchTerminalView { return false }
         let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
         let isTyping = panel.firstResponder is NSText
         switch Int(event.keyCode) {

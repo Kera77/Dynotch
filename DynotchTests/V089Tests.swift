@@ -16,15 +16,17 @@ struct V089Tests {
             ReminderList(id: "reminders", title: "Reminders", color: .fallback)
         ]
         let items = [
-            task("a", list: "tasks", due: now.addingTimeInterval(7200)),
-            task("b", list: "reminders", due: now.addingTimeInterval(600)),
+            task("a", list: "tasks", due: now.addingTimeInterval(2 * 86_400 + 7200)),
+            task("b", list: "reminders", due: now.addingTimeInterval(2 * 86_400)),
             task("c", list: "tasks", due: nil)
         ]
-        let groups = TaskIndicatorLogic.groups(items, lists: lists)
+        let groups = TaskIndicatorLogic.groups(items, lists: lists, now: now)
         #expect(groups.map(\.listID) == ["tasks", "reminders"])
         #expect(groups.first?.items.count == 2)
         #expect(TaskIndicatorLogic.defaultGroup(groups)?.listID == "reminders")
-        let undated = TaskIndicatorLogic.groups([task("x", list: "reminders", due: nil), task("y", list: "tasks", due: nil)], lists: lists)
+        let undated = TaskIndicatorLogic.groups(
+            [task("x", list: "reminders", due: nil), task("y", list: "tasks", due: nil)], lists: lists, now: now
+        )
         #expect(TaskIndicatorLogic.defaultGroup(undated)?.listID == "tasks")
     }
 

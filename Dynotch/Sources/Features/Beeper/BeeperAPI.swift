@@ -122,6 +122,12 @@ enum BeeperAPI {
         return try JSONDecoder().decode(Page.self, from: data).items.filter { $0.isArchived != true }
     }
 
+    /// The networks of the accounts connected in Beeper, chats or not (spec BP-17).
+    static func accountNetworks() async throws -> [String] {
+        let data = try await BeeperClient().request(path: "/v1/accounts", token: token())
+        return BeeperAccounts.networks(from: data)
+    }
+
     /// A chat's latest messages, oldest first.
     static func messages(in chatID: String, limit: Int = 40) async throws -> [BeeperFullMessage] {
         struct Page: Decodable { let items: [BeeperFullMessage] }
@@ -268,5 +274,30 @@ enum MIMEType {
         if mime.hasPrefix("video/") { return "video" }
         if mime.hasPrefix("audio/") { return "audio" }
         return "file"
+    }
+}
+
+/// The accounts list of the Beeper Desktop API: a plain array, or one under "items" (spec BP-17).
+enum BeeperAccounts {
+    private struct Account: Decodable { let network: String? }
+    private struct Page: Decodable { let items: [Account] }
+
+    static func networks(from data: Data) -> [String] {
+        let decoder = JSONDecoder()
+        let accounts = (try? decoder.decode([Account].self, from: data)) ?? (try? decoder.decode(Page.self, from: data).items) ?? []
+        var seen = Set<String>()
+        return accounts.compactMap { $0.network?.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && seen.insert($0).inserted }
+    }
+
+    /// One entry per network, sorted: the chats' spelling wins over the accounts' ("Google Chat"
+    /// and "googlechat" are one), as chats are matched by it (spec BP-13, BP-17).
+    static func merged(chats: [String], accounts: [String], highlighted: [String]) -> [String] {
+        func key(_ name: String) -> String { name.lowercased().filter { $0.isLetter || $0.isNumber } }
+        var byKey: [String: String] = [:]
+        for name in highlighted + chats + accounts where !name.isEmpty && byKey[key(name)] == nil {
+            byKey[key(name)] = name
+        }
+        return byKey.values.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 }

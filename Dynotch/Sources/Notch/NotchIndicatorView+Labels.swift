@@ -178,6 +178,7 @@ struct NoticeIcon: View {
         } else if let iconApp = notice.iconApp, let icon = BadgeIconCache.appIcon(bundleID: iconApp) {
             Image(nsImage: icon)
                 .resizable()
+                .saturation(0)
                 .frame(width: 16, height: 16)
         } else {
             BrandGlyphView(glyph: .claude, size: 14)

@@ -41,7 +41,7 @@ struct NotificationSourceRow: View {
             HStack(spacing: 8) {
                 Toggle(isOn: isOn) {
                     HStack(spacing: 8) {
-                        AppIconView(app: app, size: 18)
+                        AppIconView(app: app, size: 18, monochrome: false)
                         Text(app.name)
                         if let site = app.site, WebNotificationSource.displayName(forSite: site) != site {
                             Text(site)

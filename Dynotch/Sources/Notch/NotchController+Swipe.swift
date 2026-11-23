@@ -6,7 +6,7 @@ extension NotchController {
 
     func handleScroll(_ event: NSEvent) -> Bool {
         if !model.isExpanded { return handleCollapsedScroll(event) }
-        // Over the feature icons a swipe only moves the icons; a click switches (spec M-9).
+        // Over the feature icons a swipe switches modules, as far as it reaches (spec M-12).
         if !model.isShowingNotifications, switcherZone.contains(NSEvent.mouseLocation) {
             return scrollSwitcher(event)
         }
@@ -71,8 +71,9 @@ extension NotchController {
             phase: phase, isMomentum: !event.momentumPhase.isEmpty, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
         )
         if steps != 0 {
-            withAnimation(AppleStyle.spring(response: 0.28, dampingFraction: 0.86)) { model.scrollSwitcher(by: steps) }
-            Haptics.perform(.dayStep, settings: settings)
+            let before = model.currentFeature
+            withAnimation(Self.animation) { model.step(by: steps) }
+            if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
         }
         return true
     }

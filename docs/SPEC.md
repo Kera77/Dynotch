@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.89 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.90 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -52,6 +52,7 @@
 | N-21c | (v0.69, hiba) Megbeszélés-megosztásnál a Dynotch ablakai **azonnal** kikerülnek a megosztott képből, nem csak a következő interakció után: a megosztási típus változásakor az ablakok újra a képernyőre kerülnek (ki-be, a sorrendjük megtartásával), mert a macOS a már látható ablakra csak így alkalmazza. A megosztás alatt később megnyílt ablakok is (2 mp-en belül) rejtettek lesznek. |
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
 | N-23 | (v0.59) Ha egy ikon (jobb oldali jelző vagy bal oldali badge) lenyílója nyitva van, a mellette lévő ikonon **áthaladó** egér nem cseréli le: a másik ikon csak akkor veszi át, ha az egér **0,3 mp-ig** rajta marad. |
+| N-24 | (v0.90) **Késleltetett nyitás oldalról érkezve:** ha az egér a becsukott notch melletti sorban egy jelvényen, jelzőn vagy számlálón (vagy annak lenyílóján) állt, és onnan közvetlenül (0,4 mp-en belül) a notchra ér, a notch **nem nyílik ki azonnal**: csak ha az egér 0,6 mp-ig a notchon marad. Így a notchon átvágva el lehet érni a túloldali lenyílót. Máshonnan érkezve a nyitás azonnali marad (N-2). |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -70,6 +71,7 @@
 | M-9 | (v0.28) A felső sorban **csak annyi modulikon látszik, amennyi a notch bal oldalán elfér** (notchos kijelzőn semmi nem kerül a notch mögé). Ha az egér az ikonokon van, a **kétujjas vízszintes swipe csak az ikonokat lépteti** (modult nem vált); **kattintás vált modult**. Ha a modul swipe-pal (a tartalom fölött) vált, az ikonja magától láthatóvá válik. |
 | M-10 | (v0.29) A beállítások **Features** füle **Modules** nevet kapott; a sorok **fogd-és-vidd** módszerrel átrendezhetők (bal oldali fogantyú, a sor húzás közben a helyére csúszik). A „Pin” jelölő csak gyorsbillentyűvel rendelkező modulnál lehet bejelölve; gyorsbillentyű nélkül üresen, letiltva látszik. |
 | M-11 | (v0.44) **A notch melletti gombok** (iPad, egérkövetés, billentyűzetzár, rögzítés, beállítások) sorrendje és láthatósága: *Megjelenés › Buttons beside the notch* húzással és kapcsolókkal, a notchban ⌘-húzással. A beállítások gombja nem rejthető el. |
+| M-12 | (v0.90) **Swipe a felső ikonsoron (M-9 módosítása):** a kinyitott panel felső sorában, a modulikonok fölött a kétujjas vízszintes swipe **modult vált** (nem csak az ikonokat lépteti), a swipe hosszával és lendületével arányosan: rövid húzás egy modul, hosszabb vagy erősebb (lendületes) húzás több modul (kb. egy ikonszélességenként egy). Az ikonsor követi, a kiválasztott ikon mindig látszik. Az utolsó és az első modulnál megáll (S-3). A tartalom fölötti swipe marad egy mozdulat = egy váltás (S-2). |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -293,6 +295,7 @@
 | E-24 | (v0.53) A felugró értesítés **nem takarja el a csukott notch sorát**: a jelvények és a jelzők a helyükön maradnak, az értesítés alattuk nyílik le, legalább olyan szélesen, mint a sor. A sor jelvényei közben kattinthatók (bal klikk: app, jobb klikk: értesítések); a jelzők hover-címkéi addig nem nyílnak le. A notchra vagy az értesítésre vitt egér lenyitja a kártyát. |
 | E-24b | (v0.69, hiba) Felugró értesítés közben a csukott notch sora **pixelre ugyanott marad**, ahol értesítés nélkül van: a bal oldali jelvények nem csúsznak a notch felé, a notch melletti jelvényt nem takarja el a fizikai notch és nem vágja le a keret, aszimmetrikus sornál (pl. meeting-visszaszámláló, K-7) sem. A lenyíló értesítés legalább a teljes sor szélességében, a sorral együtt eltolva nyílik; a fizikai notch helye nem változik. Az értesítés eltűnésekor sem ugrik a sor. |
 | E-25 | (v0.69) **A Dynotch saját értesítései** fajtánként kapcsolhatók: *Settings › Notifications › Dynotch alerts*: **System** (swap-határ, SY-9, és a többi rendszer-figyelmeztetés), **AI usage** (keret közelében, session reset), **Batteries** (feltöltődött), **Dynotch updated** (U-5). Alapból mind be. Kikapcsolva az adott fajta **nem ugrik fel a notchban** és nem kerül az Értesítések listába. A notch melletti piros pötty (SY-8) ettől független, azt továbbra is SY-9 szabályozza. |
+| E-26 | (v0.90) **Monokróm ikonok:** az értesítések (kártya, lista, a notch alatti és a szárnyakon megjelenő értesítés) és a notch melletti jelzések (pl. kész letöltés, AI-kérdés jelzése) app-ikonjai **fekete-fehérek** (szürkeárnyalatosak), mint a jelvények (B-12). |
 
 ## 4c. Számológép (v0.6)
 
@@ -359,6 +362,7 @@
 | R-15 | (v0.57) A modul **két oszlopa** külön választható, az oszlop fejlécében lenyíló menüvel, mint a Reminders appban: okos listák (**Upcoming, Today, Scheduled, All**) vagy bármelyik **lista** (pl. Tasks, Reminders). Alapból balra az Upcoming, jobbra a kiválasztott lista; a választás megmarad. Listát mutató oszlopban „New task” sor (abba a listába ad hozzá); a jobb oldali lista mutatja a 7 napon belül befejezetteket is. Mindkét oszlopban marad a rendezés és az „i” részletek panel. A menüsor panelje ugyanezt a két forrást mutatja egymás alatt. |
 | R-16 | (v0.79) **Feladatszámláló (R-10, R-12 módosítása):** az ikon és a szám **mindig fehér**, mint a bal oldali badge-ek (nem halványul, ha nincs mai feladat). A lenyíló lista legfeljebb **6 sor** magas; ha több feladat van, a lista **görgethető** (a fejléc a helyén marad). |
 | R-17 | (v0.89) **Feladatszámláló lenyílója (R-10, R-12 módosítása):** a fejlécben **nincs Open gomb** (a számlálóra kattintás továbbra is a modult nyitja). Ha a számolt feladatok **több listában** vannak (pl. Tasks és Reminders), a fejlécben egymás melletti **kapszula-választó** (mint az AI fül választója, D-10) a listák nevével és darabszámával; alatta csak a választott lista feladatai. Alapból mindig az a lista, amelyikben a **legközelebbi határidős** feladat van (a lejárt is); ha egyikben sincs határidő, az első. A választás a lenyíló bezárásáig marad. A lenyíló a notch **designját** kapja (Liquid glass, Black to glass, D-1), mint a lenyitott panel. |
+| R-18 | (v0.90) **Lista-választó minden listával (R-17 javítása):** a kapszula-választó akkor jelenik meg, ha a nyitott feladatok **több listában** vannak, akkor is, ha a mai (ma esedékes vagy lejárt) feladatok csak az egyikben vannak. Listánként a lista mai feladatai, ha vannak, különben az összes nyitott; a kapszulán a lista neve és ez a szám. A számláló száma nem változik (R-10). |
 
 ---
 
@@ -435,6 +439,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10d | (v0.62) Webapp jelvényénél (Gmail, Google Chat) a lista a megtartott értesítésekből **legfeljebb annyit** mutat, amennyi a jelvény száma (a legfrissebbeket); amiről a Dynotch nem kapott értesítést (pl. az indítása előtt jött), az nem látszik. |
 | B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. (v0.66.1) Görgetősáv nem látszik. |
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
+| B-12 | (v0.90) **Monokróm jelvények:** a notch melletti jelvények és a jelvénylista ikonjai (az app saját ikonja, a Beeper-hálózatok ikonja, a feltöltött kép) **fekete-fehérek** (szürkeárnyalatosak); a jelek (B-3) eddig is fehérek voltak. A Beállításokban az ikonválasztó színes marad. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -613,6 +618,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-4 | A menü alján **Display Settings…** nyitja a macOS Kijelzők beállításait – ott érhető el az AirPlay-kijelző (pl. TV) és a billentyűzet/egér összekapcsolása (Universal Control), mert ezeket egy nem Apple által aláírt app nem tudja vezérelni. Hiba esetén az oka a menüben látszik. Megvalósítás: a privát `SidecarCore` (`SidecarDisplayManager`) és a CoreGraphics tükrözés. |
 | TB-5 | (v0.37) A tablet ikon mellől elmaradt a kis lefelé nyíl. Ha a notch bezáródik, a nyitva maradt menü (a tablet menü és a notch többi menüje) is bezáródik, nem marad a képernyőn a következő kattintásig. |
 | TB-6 | (v0.89) **Billentyűzet és egér összekapcsolása az iPaddel (Universal Control, TB-4 kiegészítése):** a tablet menüben *Link keyboard and mouse to* szakasz a közeli iPadekkel. Kattintásra a Dynotch megnyitja a Kijelzők beállítást, Kisegítő hozzáféréssel lenyitja a „+” menüt, és a billentyűzet/egér szakaszban kiválasztja az iPadet (újra kiválasztva leválasztja, mint a macOS-ben); utána bezárja a Rendszerbeállításokat, ha előtte nem futott. Ha a menüpont nem található (pl. más macOS-verzió), a Kijelzők beállítás nyitva marad, és a menü hibaüzenetet ír. Napló: `tablet` (lépések, tartalom nélkül). |
+| TB-7 | (v0.90) **Összekapcsolás a háttérben (TB-6 módosítása):** a *Link keyboard and mouse to* menüpont nem hozza elő a Rendszerbeállításokat: a Dynotch aktiválás nélkül nyitja meg a Kijelzők beállítást, az ablakát rögtön a képernyőn kívülre teszi, a korábbi app marad előtérben, és Kisegítő hozzáféréssel választja ki az iPadet a „+” menüben. Utána bezárja a Rendszerbeállításokat (ha előtte nem futott), különben visszateszi az ablakot a helyére. **Leválasztás ugyanígy:** az összekapcsolt iPad a menüben pipát kap; rákattintva ugyanez a háttérbeli lépés leválasztja. Hiba esetén a menü írja az okát (a Kijelzők beállítás ilyenkor sem jön elő). |
 
 ## 4s. Claude kérdez (v0.36)
 
@@ -749,6 +755,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-14 | (v0.89) **Külön jelvény:** a kiemelt hálózat saját jelvényt kap a notch mellett (B-4); a *Settings › App badges* listájában önálló sor (ki-/bekapcsolható, ikonja választható, alapból a hálózat ikonja, BP-3b; sorrendezhető). A száma a hálózat némítatlan csevegéseinek olvasatlan üzenetei (Beeper API), és ennyi levonódik a Beeper jelvényéből. Pulzálás és elrejtés (B-5, B-11) ugyanúgy; hoverre a hálózat olvasatlan csevegései (B-10c). A kiemelés kikapcsolásakor a jelvény is eltűnik. |
 | BP-15 | (v0.89) **Külön fül:** az Értesítések modulban a Beeper fül után minden kiemelt hálózatnak saját füle van a nevével és az olvasatlan számával; benne a hálózat olvasatlan csevegései kártyaként, válaszmezővel (mint BP-1c). A jelvényére kattintva ez a fül nyílik; a swipe ezeken is végiglép. |
 | BP-16 | (v0.89) **Kivétel az összesítettből:** a kiemelt hálózat csevegései nem szerepelnek a Beeper összesített helyein: a Beeper jelvény száma és hover-listája, az All, Chats és Beeper fül olvasatlan-kártyái és a Beeper fül számlálója, a Notifications Wings Beeper-része. A Beeper fül kinyitott csevegőlistája továbbra is minden csevegést mutat. |
+| BP-17 | (v0.90) **Minden fiók hálózata kiemelhető (BP-13 kiegészítése):** a *Highlighted networks* listában a Beeperben **bekötött fiókok** összes hálózata szerepel (pl. Telegram, Google Chat), akkor is, ha nincs köztük a legutóbbi 60 csevegésben. A fiókokat a Beeper API-ból kéri (`/v1/accounts`, induláskor, majd 10 percenként); ugyanaz a hálózat kétféle írással (pl. „Google Chat” / „googlechat”) egyszer szerepel, a csevegések írásával. A napló csak a hálózatok számát írja. |
 
 ## 4y. Vágólapkezelő (v0.42)
 
@@ -899,6 +906,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | AS-18 | (v0.80) **Váltó üveg nélkül mozgásban (AS-17 kiegészítése):** az üveges / blend dizájn üvegrétege (és árnyéka) a váltó lenyílása közben rejtve van, és csak a lenyílás végén úszik be; bezáráskor azonnal eltűnik, mielőtt a panel összehúzódik. Így a két oldalon nem marad le fekete „szellem” a mozgás mögött. |
 | AS-19 | (v0.81) **Üveg azonnal (AS-18 javítása):** a váltó üvegrétege és árnyéka **a lenyílás végén azonnal** megjelenik (≈0,16 mp, rövid 0,08 mp-es beúszással), nem késleltetve szürkül be az átmenetes rész. |
 | AS-20 | (v0.82) **Üveg a lenyílás vége előtt (AS-19 módosítása):** a váltó üvegrétege és árnyéka **0,1 mp-cel a lenyílás vége előtt** már teljesen megjelenik (kb. 0,03 mp után 0,03 mp-es beúszással), így a lenyílás és a szürkülés között nincs érezhető szünet. |
+| AS-21 | (v0.90) **Megbízható swipe (AS-11, AS-11c, AS-11d javítása):** csak a trackpadet **ténylegesen érintő** ujjak számítanak; a közelben lebegő, éppen felemelt vagy a trackpaden pihenő (pl. hüvelykujj) érintések nem. Így felemeléskor a felszálló ujjak ugráló helyzete nem szakítja meg a váltást, és két ujjas görgetés egy mellé tett ujjal nem nyitja meg a váltót. A váltó a trackpad szélességének **6%-a** (eddig 4%) vízszintes mozdulat után indul. A függőleges megszakításhoz a fel/le mozdulat a trackpad magasságának **25%-a** legyen, és legalább **1,5-szer** nagyobb, mint a vízszintes. |
 | AS-13 | Az ablaklista és a váltás Accessibility-vel (már megvan); a váltás a kiválasztott ablakot hozza előre (AXRaise), és az appját aktiválja. |
 
 ---
@@ -1014,6 +1022,20 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | GM-14 | (v0.85) **Visszalépés:** ha a Mail nem válaszol a fiók-lekérdezésre (15 mp), a következő próba 1, 2, 5, majd 15 perc múlva jön (egymás utáni hibáknál egyre később); a Gmail-értesítés sem kérdez közben. Sikeres válasz után újra a GM-5 ütem. |
 | GM-15 | (v0.85) **Kilőtt Mail nem indul újra:** ha a Mail kilép (kézzel vagy kényszerített kilépéssel), a Dynotch nem indítja el újra rejtve (GM-9), amíg a Mail újra nem fut és nem válaszol. |
 
+## 4ő++++. Terminál a notchban (v0.90)
+
+| # | Követelmény |
+|---|-------------|
+| TE-1 | **Terminal modul:** a notchban egy valódi terminál, ugyanúgy működik, mint az Apple Terminál: a felhasználó **login shellje** (`$SHELL -l`, alapból zsh) a saját mappájában, xterm-256color emuláció, 256 és true color, egérkezelés, teljes képernyős programok (vim, less, htop, `claude`), Unicode és emoji. Monospace (SF Mono) 12 pt, a notch fekete hátterén. Ikon: `apple.terminal`. |
+| TE-2 | **Billentyűzet:** a modul megnyitásakor a terminál kapja a billentyűzetet; minden billentyű (Esc, Tab, Ctrl-, nyilak, Option mint Meta) a shellhez megy. ⌘C másol (kijelölés), ⌘V beilleszt, ⌘A kijelöl mindent, ⌘K törli a képernyőt és a visszagörgetést, **⌘+ / ⌘− / ⌘0** betűméret (9–24 pt, megjegyzi). Kijelölés egérrel, visszagörgetés (10 000 sor) két ujjal. |
+| TE-3 | **A munkamenet él:** a notch bezárása, modulváltás vagy másik kijelzőre váltás nem állítja le a shellt; a futó parancs dolgozik tovább, és újranyitáskor ott folytatódik. Ha a shell kilép (`exit`), a fülje bezáródik; az utolsó fül helyett a következő megnyitáskor új munkamenet indul. A Dynotch kilépésekor a shellek is kilépnek (a terminálvonal bezárul, a shell SIGHUP-ot kap). |
+| TE-4 | **Fülek:** több munkamenet egymás mellett, a fejlécben kapszulákban (a futó program vagy a mappa nevével), **+** új fül, a kapszulán **×** bezárja. ⌘T új fül, ⌘W bezárja az aktuálisat, ⌘1…⌘9 vált, ⌘⇧[ / ⌘⇧] az előző/következő. Legfeljebb 8 fül. |
+| TE-5 | **Méretezhető (RS-6):** a terminál kitölti a modult; átméretezéskor a sorok és oszlopok száma követi (a shell `SIGWINCH`-et kap). |
+| TE-6 | **Megnyitás a Terminálban:** a fejlécben egy gomb az aktuális fül **munkakönyvtárában** nyitja meg az Apple Terminált (ha a munkakönyvtár nem olvasható, a saját mappában). |
+| TE-7 | **Fájl a terminálra húzva** a fájl (több fájlnál mindegyik) útvonalát illeszti be, szóközzel elválasztva és shellhez idézőjelezve, mint a Terminál. |
+| TE-8 | **Adatvédelem:** a terminál tartalma, a parancsok és a kimenet nem kerül naplóba vagy lemezre (csak a betűméret). A napló (`terminal`) csak a fülek indulását és kilépését írja (kilépési kóddal). |
+| TE-9 | **Gépelés közben nyitva marad:** ha az utolsó 10 mp-ben gépeltem a terminálba, a notch akkor sem csukódik be, ha az egér kimegy belőle (N-4); utána a szokásos módon. Az Esc a terminálé (pl. vim), nem csukja be a notchot; a ⌘1…⌘9 a füleket váltja (nem a modulokat). Fájlt a terminálra húzva nem jön elő a Tray ejtési zónája (TE-7). |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -1060,6 +1082,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.90.0** | Terminál a notchban fülekkel, swipe a felső ikonsoron több modult is lép, késleltetett nyitás jelvényről érkezve, monokróm jelvény- és értesítésikonok, iPad billentyűzet/egér a háttérben, Beeper-fiókok minden hálózata kiemelhető, megbízhatóbb váltó-swipe, feladatszámláló lista-választó javítása (TE-1…TE-9, M-12, N-24, B-12, E-26, TB-7, BP-17, AS-21, R-18) |
 | **v0.89.0** | Kiemelt Beeper-hálózatok saját jelvénnyel és füllel, iPad billentyűzet/egér összekapcsolás a tablet menüből, feladatszámláló lista-választóval és designnal, HUD az AI-szárny stílusában animált körrel, csak az alapértelmezett böngésző értesítései és fülei, hónapnév fekete háttér nélkül (BP-13…BP-16, TB-6, R-17, H-3c, E-2g, B-2c, K-15b) |
 | **v0.88.0** | Az egérkövető fókusz az Ardia mini ablakáról is visszavált a rendes Ardia ablakra (F-14c) |
 | **v0.87.0** | A Gmail és a Google Chat jelvény száma az Ardia füleinek címéből jön (nem a kilépett webapp régi Dock-számáról); az egérkövető fókusz az Ardia mini ablakára (nagy lebegő ablak) is vált (B-2b, F-14b) |

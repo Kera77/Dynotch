@@ -83,7 +83,7 @@ private struct BadgeAppRow: View {
         HStack(spacing: 8) {
             Toggle(isOn: Binding(get: { app.isEnabled }, set: { service.setEnabled(app.bundleID, $0) })) {
                 HStack(spacing: 6) {
-                    BadgeIconView(icon: .app, bundleID: app.bundleID, size: 18, tint: .primary)
+                    BadgeIconView(icon: .app, bundleID: app.bundleID, size: 18, tint: .primary, monochrome: false)
                     Text(app.name)
                 }
             }
@@ -110,7 +110,7 @@ private struct BadgeAppRow: View {
                 Divider()
                 Button("Choose image…", action: chooseImage)
             } label: {
-                BadgeIconView(icon: app.icon, bundleID: app.bundleID, size: 16, tint: .primary)
+                BadgeIconView(icon: app.icon, bundleID: app.bundleID, size: 16, tint: .primary, monochrome: false)
             }
             .menuStyle(.borderlessButton)
             .fixedSize()

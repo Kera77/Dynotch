@@ -59,8 +59,12 @@ struct TabletMenu: View {
             // Universal Control, through the Displays settings' "+" menu (spec TB-6).
             Section("Link keyboard and mouse to") {
                 ForEach(service.tablets) { tablet in
-                    Button(tablet.name) { service.linkKeyboard(to: tablet) }
-                        .disabled(service.pending != nil)
+                    // Ticked while linked; choosing it again unlinks, in the background too (spec TB-7).
+                    Toggle(tablet.name, isOn: Binding(
+                        get: { service.linkedKeyboards.contains(tablet.id) },
+                        set: { _ in service.linkKeyboard(to: tablet) }
+                    ))
+                    .disabled(service.pending != nil)
                 }
             }
         }

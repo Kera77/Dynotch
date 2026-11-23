@@ -16,6 +16,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case info
     case music
     case stats
+    case terminal
 
     var id: String { rawValue }
 
@@ -35,6 +36,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .info: "Info"
         case .music: "Music"
         case .stats: "System"
+        case .terminal: "Terminal"
         }
     }
 
@@ -54,6 +56,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .info: "info.circle.fill"
         case .music: "music.note"
         case .stats: "chart.bar.xaxis"
+        case .terminal: "apple.terminal"
         }
     }
 }

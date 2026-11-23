@@ -20,6 +20,7 @@ extension NotchView {
         case .stats: statsWingLeftV2
         case .home: TimelineView(.periodic(from: .now, by: 1)) { WingText($0.date.formatted(date: .omitted, time: .shortened), bold: true) }
         case .info: WingText("Dynotch \(AppInfo.version)", bold: true)
+        case .terminal: WingLabel(symbol: "apple.terminal", text: TerminalStore.shared.selected?.title ?? "Terminal")
         }
     }
 
@@ -40,6 +41,7 @@ extension NotchView {
         case .stats: statsWingRightV2
         case .home: WingText(Date().formatted(.dateTime.weekday(.wide).month(.wide).day()), dim: true)
         case .info: WingText(model.screenName, dim: true)
+        case .terminal: WingText(TerminalWing.tabs(TerminalStore.shared.sessions.count), dim: true)
         }
     }
 

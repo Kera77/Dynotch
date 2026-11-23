@@ -65,10 +65,11 @@ final class NotchController {
     private var graceUntil: Date?
     var swipe = SwipeDetector()
     var dayStepper = DayStepper()
-    /// Swipes over the feature icons move them by one icon per step (spec M-9).
+    /// Swipes over the feature icons switch modules, one per step (spec M-12).
     var switcherStepper: DayStepper = {
         var stepper = DayStepper()
-        stepper.stepWidth = FeatureSwitcher.step
+        // About one module per 50 pt of finger movement, momentum included (spec M-12).
+        stepper.stepWidth = 50
         return stepper
     }()
     /// The current trackpad gesture already switched features: it must not step days too.
@@ -88,6 +89,10 @@ final class NotchController {
     /// Since when the pointer rests on the notch while a small notice hangs under it (spec PV-71).
     var dropDownHoverSince: Date?
     var dropDownHoverTask: Task<Void, Never>?
+    /// When the pointer was last on a badge, indicator or counter beside the closed notch (spec N-24).
+    var besideRowSeenAt: Date?
+    /// Since when the pointer, come from the row beside, rests on the notch (spec N-24).
+    var sideArrivalSince: Date?
     /// Another icon the pointer is on while a drop-down is open, and since when (spec N-23).
     var pendingHover: (target: String, since: Date)?
     /// The question notice whose app was already brought forward (spec CQ-3).

@@ -64,15 +64,17 @@ enum TaskIndicatorLogic {
         }
     }
 
-    /// The counted tasks by list, in the lists' order (spec R-17).
-    static func groups(_ listed: [ReminderItem], lists: [ReminderList]) -> [TaskGroup] {
-        let byList = Dictionary(grouping: listed, by: \.listID)
+    /// The open tasks by list, in the lists' order: each list's tasks for today if it has any,
+    /// otherwise all of its open ones (spec R-17, R-18).
+    static func groups(_ items: [ReminderItem], lists: [ReminderList], now: Date, calendar: Calendar = .current) -> [TaskGroup] {
+        let byList = Dictionary(grouping: items, by: \.listID)
         let known = lists.compactMap { list in
-            byList[list.id].map { TaskGroup(listID: list.id, title: list.title, items: $0) }
+            byList[list.id].map { TaskGroup(listID: list.id, title: list.title, items: Self.listed($0, now: now, calendar: calendar)) }
         }
         let knownIDs = Set(lists.map(\.id))
-        let others = listed.filter { !knownIDs.contains($0.listID) }
-        return known + (others.isEmpty ? [] : [TaskGroup(listID: "", title: "Other", items: others)])
+        let others = items.filter { !knownIDs.contains($0.listID) }
+        let other = TaskGroup(listID: "", title: "Other", items: Self.listed(others, now: now, calendar: calendar))
+        return known + (others.isEmpty ? [] : [other])
     }
 
     /// The list shown first: the one with the nearest due date (overdue too), else the first (spec R-17).
@@ -146,7 +148,7 @@ final class TaskIndicator: ObservableObject {
     var listed: [ReminderItem] { TaskIndicatorLogic.listed(openItems, now: Date()) }
 
     /// The counted tasks by list (spec R-17).
-    var groups: [TaskGroup] { TaskIndicatorLogic.groups(listed, lists: store.lists) }
+    var groups: [TaskGroup] { TaskIndicatorLogic.groups(openItems, lists: store.lists, now: Date()) }
 
     /// The list shown under the header: the chosen one, else the one due soonest (spec R-17).
     var selectedGroup: TaskGroup? {

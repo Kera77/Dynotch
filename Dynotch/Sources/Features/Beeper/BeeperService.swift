@@ -15,6 +15,9 @@ final class BeeperService: ObservableObject {
 
     @Published private(set) var state = State.idle
     @Published private(set) var chats: [BeeperChatInfo] = []
+    /// The networks of the accounts in Beeper, so a quiet one can be highlighted too (spec BP-17).
+    @Published private(set) var accountNetworks: [String] = []
+    private var accountsLoadedAt: Date?
     @Published var selectedChatID: String?
     @Published private(set) var messages: [String: [BeeperFullMessage]] = [:]
     /// Messages I just sent that can still be taken back, until the time (spec BP-9).
@@ -82,8 +85,7 @@ final class BeeperService: ObservableObject {
 
     /// The networks of Beeper's chats, and the highlighted ones even without a chat now (spec BP-13).
     var knownNetworks: [String] {
-        Array(Set(chats.compactMap(\.network).filter { !$0.isEmpty }).union(highlightedNetworks))
-            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        BeeperAccounts.merged(chats: chats.compactMap(\.network), accounts: accountNetworks, highlighted: highlightedNetworks)
     }
 
     func setHighlighted(_ network: String, _ isOn: Bool) {
@@ -144,6 +146,7 @@ final class BeeperService: ObservableObject {
                 guard let self else { return }
                 if found != self.chats { self.chats = found }
                 self.state = .ready
+                await self.loadAccountsIfNeeded()
                 if let chat = self.selectedChatID { self.loadMessages(chat) }
             } catch let error as BeeperError {
                 self?.state = error == .unreachable ? .notRunning : (error == .noToken ? .noToken : .failed(error.description))
@@ -151,6 +154,15 @@ final class BeeperService: ObservableObject {
                 self?.state = .failed("\(error)")
             }
         }
+    }
+
+    /// The accounts change rarely: once, then every ten minutes (spec BP-17).
+    private func loadAccountsIfNeeded() async {
+        if let loaded = accountsLoadedAt, Date().timeIntervalSince(loaded) < 600 { return }
+        accountsLoadedAt = Date()
+        guard let networks = try? await BeeperAPI.accountNetworks(), !networks.isEmpty else { return }
+        DiagnosticsLog.append("beeper", "accounts: \(networks.count) networks")
+        if networks != accountNetworks { accountNetworks = networks }
     }
 
     func loadMessages(_ chatID: String) {

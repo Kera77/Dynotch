@@ -17,6 +17,8 @@ final class TabletDisplayService: ObservableObject {
     @Published private(set) var pending: String?
     /// Why the last action failed.
     @Published private(set) var failure: String?
+    /// iPads the keyboard and mouse were linked to from the menu (spec TB-7); ticked there.
+    @Published private(set) var linkedKeyboards: Set<String> = []
 
     private var screenObserver: NSObjectProtocol?
     /// Mirror once the iPad being connected is there.
@@ -69,9 +71,12 @@ final class TabletDisplayService: ObservableObject {
         pending = tablet.id
         failure = nil
         Task { [weak self] in
-            let message = await UniversalControlLink.link(named: tablet.name)
+            let outcome = await UniversalControlLink.link(named: tablet.name)
             self?.pending = nil
-            self?.failure = message
+            self?.failure = outcome.failure
+            if let linked = outcome.linked {
+                if linked { self?.linkedKeyboards.insert(tablet.id) } else { self?.linkedKeyboards.remove(tablet.id) }
+            }
         }
     }
 
