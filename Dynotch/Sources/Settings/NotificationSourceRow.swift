@@ -45,12 +45,12 @@ struct NotificationSourceRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Toggle(isOn: isOn) {
-                    SettingsRowLabel(title: app.name, detail: siteDetail) {
-                        AppIconView(app: app, size: 18, monochrome: false)
-                    }
+                SettingsRowLabel(title: app.name, detail: siteDetail) {
+                    AppIconView(app: app, size: 18, monochrome: false)
                 }
-                // Its place stays in rows without own rules, so the switches line up (spec SD-10).
+                Spacer(minLength: 8)
+                // Before the switch, which stands at the row's edge like the page's other switches
+                // (spec SD-12). Its place stays in rows without own rules, so the switches line up (spec SD-10).
                 TrailingSlot {
                     if !rule.isDefault {
                         Image(systemName: "slider.horizontal.3")
@@ -70,6 +70,9 @@ struct NotificationSourceRow: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Rules for \(app.name)")
+                Toggle(app.name, isOn: isOn)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
             }
             if isOpen { options }
         }

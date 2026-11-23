@@ -31,14 +31,15 @@ struct GlassFill<S: Shape>: View {
     let shape: S
     /// How dark the glass is tinted; the refined design follows the wallpaper (spec D-14c).
     var tint = 0.45
-    /// Mixes the accent colour into the dark tint, so the glass is not a neutral grey (spec D-17).
-    var accent = false
+    /// The system accent colour mixed into the dark tint, so the glass is not a neutral grey;
+    /// nil keeps it black (spec D-17, D-17b).
+    var accent: NSColor?
     /// Crisp look: the clearer glass over a full blur, tinted deeper (spec D-18).
     var crisp = false
 
     /// The tint's colour: black, or black with ~18 % of the accent colour.
     private var tintColor: Color {
-        guard accent, let mixed = NSColor.black.blended(withFraction: 0.18, of: .controlAccentColor) else { return .black }
+        guard let accent, let mixed = NSColor.black.blended(withFraction: 0.18, of: accent) else { return .black }
         return Color(nsColor: mixed)
     }
 
@@ -116,6 +117,8 @@ struct DesignBackground<S: Shape>: View {
     var glassAccent = false
     /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
     @AppStorage(AppleStyle.crispKey) private var crisp = true
+    /// The accent colour set in macOS, followed live (spec D-17b).
+    @ObservedObject private var systemAccent = SystemAccent.shared
 
     /// Refined black to glass: black over the top row, then an eased fade over 80 pt (spec D-14d).
     static func refinedBlendStops(height: CGFloat, topRow: CGFloat) -> [Gradient.Stop] {
@@ -163,7 +166,13 @@ struct DesignBackground<S: Shape>: View {
                 BehindWindowBlur()
                     .clipShape(shape)
                     .opacity(Self.blurOpacity(glass: glass, isOpen: isOpen, openOpacity: openOpacity, crisp: crisp))
-                GlassFill(shape: shape, tint: Self.tint(refined ? glassTint : 0.45, crisp: crisp), accent: glassAccent, crisp: crisp)
+                // Black to glass keeps the regular, lighter glass: deepened, it turned as black as
+                // the top and the fade disappeared (spec D-18b).
+                let deep = crisp && design != .blend
+                GlassFill(
+                    shape: shape, tint: Self.tint(refined ? glassTint : 0.45, crisp: deep),
+                    accent: glassAccent ? systemAccent.color : nil, crisp: deep
+                )
                     .opacity(glass ? open : 0)
             }
         case .content:

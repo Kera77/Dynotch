@@ -165,7 +165,7 @@ struct NotchViewModelTests {
         let model = makeModel()
         model.setExpanded(true)
         model.select(.claudeUsage)
-        #expect(model.openSize == model.geometry.usageSize)
+        #expect(model.openSize.height == model.geometry.usageSize.height)
         #expect(model.openSize.height > model.geometry.expandedSize.height)
         #expect(model.geometry.windowSize.height >= model.openSize.height)
     }

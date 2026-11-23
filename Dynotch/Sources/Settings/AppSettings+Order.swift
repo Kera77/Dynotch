@@ -68,13 +68,9 @@ extension AppSettings {
 
     // MARK: Merged modules (spec MG-1…MG-8)
 
+    /// Batteries and AI Usage are always tabs of their hosts (spec MG-9).
     func isMerged(_ feature: FeatureID) -> Bool {
-        feature.mergeHost != nil && mergedFeatures.contains(feature)
-    }
-
-    func setMerged(_ feature: FeatureID, _ merged: Bool) {
-        guard feature.mergeHost != nil else { return }
-        if merged { mergedFeatures.insert(feature) } else { mergedFeatures.remove(feature) }
+        feature.mergeHost != nil
     }
 
     /// The module whose icon stands for `feature`: its host when merged, else itself.
@@ -91,7 +87,6 @@ extension AppSettings {
 
     func loadModuleOptions() {
         unlistedFeatures = Set((defaults.stringArray(forKey: "unlistedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
-        mergedFeatures = Set((defaults.stringArray(forKey: "mergedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         showsNowPlaying = defaults.object(forKey: "musicShowsNowPlaying") as? Bool ?? true
         refinedDesign = defaults.object(forKey: "refinedDesign") as? Bool ?? true
         moduleStripHover = defaults.bool(forKey: "moduleStripHover")

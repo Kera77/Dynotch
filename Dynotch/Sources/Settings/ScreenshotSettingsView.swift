@@ -43,15 +43,12 @@ struct ScreenshotSettingsView: View {
     }
 
     private func modeRow(_ mode: CaptureMode) -> some View {
-        let position = settings.modes.firstIndex(of: mode).map { "\($0 + 1)×" } ?? "Off"
-        return HStack(spacing: 8) {
+        // No order number: the order of the rows is the order (spec SD-13).
+        HStack(spacing: 8) {
             Image(systemName: "line.3.horizontal").foregroundStyle(.secondary).accessibilityLabel("Drag to reorder")
             Toggle(isOn: Binding(get: { settings.isOn(mode) }, set: { settings.setOn(mode, $0) })) {
                 Label(mode.title, systemImage: mode.symbol)
             }
-            // One width for "1×" and "Off", so the switches line up (spec SD-10).
-            Text(position).font(.caption).monospacedDigit().foregroundStyle(.secondary)
-                .frame(width: 28, alignment: .trailing)
         }
         .opacity(dragged == mode ? 0.4 : 1)
         .onDrag {

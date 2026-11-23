@@ -204,9 +204,10 @@ final class BadgeService: ObservableObject {
 
     // MARK: - Choosing apps (spec B-1, B-3)
 
-    func add(_ app: InstalledApp) {
+    /// Added with the icon chosen in its row, else the suggested one (spec B-13).
+    func add(_ app: InstalledApp, icon chosen: BadgeIcon? = nil) {
         guard !apps.contains(where: { $0.bundleID == app.bundleID }) else { return }
-        let icon = BadgePreset.suggestedIcon(bundleID: app.bundleID, name: app.name)
+        let icon = chosen ?? BadgePreset.suggestedIcon(bundleID: app.bundleID, name: app.name)
         apps.append(BadgeApp(bundleID: app.bundleID, name: app.name, isEnabled: true, icon: icon))
         refresh()
     }

@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Added
+
+- *App badges › Add an app*: each app has an icon picker; *Add* adds it with the chosen icon, *Choose image…* adds it with your image (B-13).
+
+### Changed
+
+- *App badges*: the icon picker is a framed button with a small arrow; it opens a panel with the app icon, the preset icons as a grid (the brand marks too) and *Choose image…* (SD-11).
+- *Notifications* and *Chats* sources: the switch stands at the row's edge, the "own rules" mark and the rules arrow before it (SD-12).
+- Batteries is always a tab of System and AI Usage always a tab of AI; they no longer appear in *Settings › Modules* (MG-9).
+- *Screenshots* modes: no order number; the switch stands at the row's edge (SD-13).
+
+### Fixed
+
+- *Accent colour in the glass* uses the accent colour set in macOS (*System Settings › Appearance*), not always blue, and follows a change at once (D-17b).
+- Black to glass: with *Accent colour in the glass* off, the glass no longer turns as black as the top, so the fade from black to glass shows again (D-18b).
+
 ## [0.96.0] - 2026-11-23
 
 ### Added

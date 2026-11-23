@@ -12,7 +12,8 @@ struct FeatureSettingsView: View {
     var body: some View {
         Form {
             Section {
-                ForEach(settings.featureOrder, id: \.self) { feature in
+                // Batteries and AI Usage are always tabs of System and AI: not listed (spec MG-9).
+                ForEach(settings.featureOrder.filter { $0.mergeHost == nil }, id: \.self) { feature in
                     FeatureRow(feature: feature, settings: settings, shortcuts: shortcuts) { musicOptions }
                         .reorderable(feature, in: settings.featureOrder, dragged: $dragged, id: feature.rawValue) {
                             settings.moveFeatures(from: $0, to: $1)
@@ -22,8 +23,8 @@ struct FeatureSettingsView: View {
                 Text("Modules")
             } footer: {
                 Text("Drag a row to reorder. At least one module must stay on. › shows a module's shortcut and options: "
-                    + "\"Menu bar\" also adds an icon to the menu bar, \"In System\" / \"In AI\" shows it as a tab of "
-                    + "that module. A shortcut opens the module; pressing it again closes it. \"Pin\" keeps it open when opened that way.")
+                    + "\"Menu bar\" also adds an icon to the menu bar. Batteries is a tab of System, AI Usage a tab of AI. "
+                    + "A shortcut opens the module; pressing it again closes it. \"Pin\" keeps it open when opened that way.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -77,8 +78,6 @@ private struct FeatureRow<Music: View>: View {
                         Image(systemName: feature.symbolName).foregroundStyle(.secondary)
                     }
                 }
-                // A merged module is a tab of its host and is on while the host is (spec MG-1, MG-4).
-                .disabled(settings.isMerged(feature))
                 Button {
                     withAnimation(Motion.quick) { isOpen.toggle() }
                 } label: {
@@ -92,7 +91,6 @@ private struct FeatureRow<Music: View>: View {
                 .help("Shortcut and options for \(feature.title)")
                 .accessibilityLabel("Shortcut and options for \(feature.title)")
             }
-            .padding(.leading, settings.isMerged(feature) ? 14 : 0)
             if isOpen { options }
         }
         .revealWhenOpened(isOpen)
@@ -114,11 +112,6 @@ private struct FeatureRow<Music: View>: View {
                     get: { settings.showsInMenuBar(feature) }, set: { settings.setShowsInMenuBar(feature, $0) }
                 ))
                 .disabled(!isOn)
-            }
-            if let host = feature.mergeHost {
-                Toggle("As a tab of \(host.title)", isOn: Binding(
-                    get: { settings.isMerged(feature) }, set: { settings.setMerged(feature, $0) }
-                ))
             }
             if feature == .music { musicOptions() }
         }

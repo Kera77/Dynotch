@@ -12,37 +12,22 @@ struct MergedModulesTests {
         return (AppSettings(defaults: defaults), defaults)
     }
 
-    @Test func nothingIsMergedByDefault() {
+    @Test func batteriesAndUsageAreAlwaysTabs() {
         let (settings, _) = makeSettings()
-        #expect(settings.listedFeatures.contains(.battery))
-        #expect(settings.listedFeatures.contains(.claudeUsage))
-        #expect(settings.mergedTabs(for: .stats) == nil)
-    }
-
-    @Test func aMergedModuleLeavesTheListAndBecomesATab() {
-        let (settings, defaults) = makeSettings()
-        settings.setMerged(.claudeUsage, true)
+        #expect(!settings.listedFeatures.contains(.battery))
         #expect(!settings.listedFeatures.contains(.claudeUsage))
-        #expect(settings.listedFeatures.contains(.battery))
-        #expect(settings.mergedTabs(for: .claudeChat) == [.claudeChat, .claudeUsage])
+        #expect(settings.mergedTabs(for: .stats) == [.stats, .battery])
         #expect(settings.mergedTabs(for: .claudeUsage) == [.claudeChat, .claudeUsage])
         #expect(settings.hostFeature(of: .claudeUsage) == .claudeChat)
-        #expect(AppSettings(defaults: defaults).isMerged(.claudeUsage))
-        settings.setMerged(.calendar, true)
         #expect(!settings.isMerged(.calendar))
     }
 
-    @Test func aMergedModuleRunsWhileItsHostIsOnAndKeepsItsOwnState() {
+    @Test func aTabRunsWhileItsHostIsOn() {
         let (settings, _) = makeSettings()
-        settings.setEnabled(.battery, false)
-        settings.setMerged(.battery, true)
-        #expect(settings.isEnabled(.battery))
         settings.setEnabled(.stats, false)
         #expect(!settings.isEnabled(.battery))
         settings.setEnabled(.stats, true)
-        settings.setMerged(.battery, false)
-        #expect(!settings.isEnabled(.battery))
-        #expect(!settings.listedFeatures.contains(.battery))
+        #expect(settings.isEnabled(.battery))
     }
 
     @Test func aTabTakesItsHostsPlaceAmongThePages() {

@@ -442,6 +442,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. (v0.66.1) Görgetősáv nem látszik. |
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 | B-12 | (v0.90) **Monokróm jelvények:** a notch melletti jelvények és a jelvénylista ikonjai (az app saját ikonja, a Beeper-hálózatok ikonja, a feltöltött kép) **fekete-fehérek** (szürkeárnyalatosak); a jelek (B-3) eddig is fehérek voltak. A Beállításokban az ikonválasztó színes marad. |
+| B-13 | (v0.97) **Hozzáadás beállítással:** az *Add an app* listában minden app sorában ikonválasztó (SD-11) van a javasolt kezdő ikonnal; az *Add* a kiválasztott ikonnal veszi fel az appot. A *Choose image…* azonnal fel is veszi az appot a feltöltött képpel. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -667,7 +668,9 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-15i | (v0.73) **Hover:** a notch minden sima gombja (ikonok, sorok) hoverre halvány kiemelést, nyomásra halványodást kap, mint a rendszer keret nélküli gombjai. |
 | D-16 | (v0.75) A D-15 kapcsoló **megszűnt**: az Apple stílus az egyetlen kinézet, a „Current” stílus és csak hozzá tartozó kód törölve. A D-15a…i szabályok mindig érvényesek (a kisegítő beállításokat továbbra is követi). |
 | D-17 | **Accent az üvegben (próba):** *Settings › Appearance*: „Accent colour in the glass” (alapból be). A Liquid glass és a Black to glass design üvegének sötét színezésébe ~18% rendszer-kiemelőszín (*Accent colour*) keveredik, hogy a panel ne legyen semleges szürke; a tartalom monokróm marad. Black designnál nincs hatása. |
+| D-17b | (v0.97) **A macOS kiemelőszíne (D-17 módosítása):** az üvegbe kevert szín a *System Settings › Appearance › Accent colour*-ban beállított szín (piros, narancs, sárga, zöld, kék, lila, rózsaszín, grafit; Többszínű esetén kék), nem az app saját kékje, és átállításkor a notch azonnal követi. Kikapcsolva a Black, Liquid glass és Black to glass a megszokott (fekete tintájú) módon néz ki. |
 | D-18 | **Crisp look (próba):** *Settings › Appearance*: „Crisp look” (alapból be), egy kapcsoló négy változáshoz, a tartalom monokróm marad. (a) Az üveg sötétítése +0,15 (legfeljebb 0,75), mélyebb fekete szürke helyett. (b) Halványabb szürke kitöltések a kártyákon, sorokon, vezérlőkön (16/10/5% helyett 12/6/3,5%). (c) Erősebb szöveg: elsődleges 100% (86% helyett), másodlagos 68% (60% helyett). (d) Átlátszóbb, *clear* Liquid Glass, alatta a háttér teljes erővel elmosva, hogy a tartalom ne mosódjon össze a háttérrel. A kitöltés- és szövegszintek a modul következő megnyitásakor frissülnek. |
+| D-18b | (v0.97) **Black to glass a Crisp lookban (D-18 módosítása):** a Black to glass designnál az üveg nem sötétedik (+0,15) és a normál (nem a tiszta) üveg marad, mert kikapcsolt accentnél (D-17) a sötétített üveg ugyanolyan fekete lett, mint a felső rész, és a fekete–üveg átmenet eltűnt. A Liquid glass designra a D-18 változatlan. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -1016,6 +1019,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MG-6 | A **környezetfüggő nyitás** (SO-2) 4. szabálya a System modult a Batteries fülön, az 5. az AI modult a Usage fülön nyitja. Az **előnézet** (PV-1) a gazdamodul aktuális fülének sorát mutatja. |
 | MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a helyén marad, behúzva, a be/ki kapcsolója letiltva (a gazdamodulét követi). |
 | MG-8 | Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek. |
+| MG-9 | (v0.97) **Mindig összevonva (MG-1, MG-3, MG-7 módosítása):** a Batteries mindig a System, az AI Usage mindig az AI füle; az *In System / In AI* választó megszűnt, és a két modul nem szerepel a *Settings › Modules* listában (a be/ki kapcsolásuk a gazdamodulét követi, MG-4). Egy korábban beállított gyorsbillentyűjük megmarad, és a gazdamodult a fülükön nyitja. |
 
 ## 4ő+++. Levelek olvasatlanjai az Apple Mailből (v0.74)
 
@@ -1085,6 +1089,9 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-8 | **Egységes hozzáférés-sor:** az engedélyt igénylő oldalak első szakasza „Access”: engedélyenként egy sor (ikon, név), jobbra zöld „Allowed” vagy „Grant…” gomb, ugyanúgy, mint a Permissions oldalon (C-8). Oldalak: Notifications (Full Disk Access), Chats (Full Disk Access, Accessibility), App badges (Accessibility), Calendar (Calendars), Screenshots (Screen Recording), Switcher (Accessibility; Screen Recording, ha az előnézet be van kapcsolva), Focus (Accessibility), General (Accessibility; Contacts, ha a hívások be vannak kapcsolva). Az állapot 2 mp-enként frissül. |
 | SD-9 | **Egységes csúszkák:** minden csúszka 160 pt széles, mellette jobbra igazítva, egyforma szélességű szürke érték mértékegységgel („5 s”, „0.15 s”, „8 %”, „250 ms”). A Switcher oldalon a Modules és a modulsor szakaszai a Trackpad szakasz alá kerülnek. |
 | SD-10 | **Egy oszlopban álló kapcsolók:** az app-, forrás- és módsorokban a kapcsoló után álló ikonok és feliratok fix szélességű helyen vannak (akkor is, ha az adott sorban nincsenek), így a kapcsolók soronként nem csúsznak el. App badges: a badge-ikon választója fix szélességű, a rejtés ideje („Hidden until …”) a név mellé kerül, a *Show* gomb helyett szem-ikon. Notifications: a „saját szabályai vannak” ikon helye minden sorban megvan. Screenshots: a sorrendszám („1×”, „Off”) egyforma szélességű. |
+| SD-11 | (v0.97) **Látható badge-ikonválasztó:** az App badges sorokban az ikonválasztó keretes gomb: az aktuális ikon és egy kis lefelé mutató nyíl jelzi, hogy kattintható. Kattintásra felugró panel nyílik: *App icon*, az előre megadott ikonok rácsban (a saját jelükkel, a Claude/Beeper/Google Chat/Gmail jelet is beleértve, a kiválasztott kiemelve, a nevük súgóban), alatta *Choose image…*. |
+| SD-12 | (v0.97) **Kapcsoló a sor szélén (SD-10 módosítása):** a Notifications/Chats forrássoraiban a kapcsoló a sor jobb szélén áll; a „saját szabályai vannak” ikon és a szabályok nyila elé kerül, így a kapcsolók egy vonalban vannak a lap többi kapcsolójával. |
+| SD-13 | (v0.97) **Screenshots módsorok (SD-10 módosítása):** a sorrendszám („1×”, „Off”) nem látszik; a sorrend a sorok sorrendje, a kapcsoló a sor jobb szélén áll. |
 
 ## 5. Nyitott kérdések
 
