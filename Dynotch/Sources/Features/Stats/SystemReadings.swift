@@ -106,10 +106,15 @@ enum SystemReadings {
     }
 
     static func disk() -> Disk {
-        let keys: Set<URLResourceKey> = [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]
+        let keys: Set<URLResourceKey> = [
+            .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey, .volumeTotalCapacityKey
+        ]
         let values = try? URL(fileURLWithPath: "/").resourceValues(forKeys: keys)
+        // Some volumes (e.g. virtual machines) give 0 for "important usage": the plain free space then.
+        let important = values?.volumeAvailableCapacityForImportantUsage ?? 0
         var disk = Disk(
-            free: values?.volumeAvailableCapacityForImportantUsage ?? 0, total: Int64(values?.volumeTotalCapacity ?? 0),
+            free: important > 0 ? important : Int64(values?.volumeAvailableCapacity ?? 0),
+            total: Int64(values?.volumeTotalCapacity ?? 0),
             read: 0, written: 0
         )
         var iterator = io_iterator_t()
