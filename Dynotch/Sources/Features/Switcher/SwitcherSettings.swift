@@ -63,6 +63,8 @@ final class SwitcherSettings: ObservableObject {
     @Published var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
     /// The module switcher on a swipe up (spec QS-1), on by default.
     @Published var moduleSwitcherOn: Bool { didSet { save(moduleSwitcherOn, Key.modules) } }
+    /// The modules in the swipe-up row, in their order (spec QS-10, QS-11).
+    @Published var moduleRow: [FeatureID] { didSet { save(moduleRow.map(\.rawValue), Key.moduleRow) } }
     /// 3 or 4 fingers for the swipe up (spec QS-1).
     @Published var moduleFingers: Int { didSet { save(moduleFingers, Key.moduleFingers) } }
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
@@ -87,7 +89,7 @@ final class SwitcherSettings: ObservableObject {
         static let display = "switcherCurrentDisplay", hold = "switcherHold", previews = "switcherPreviews"
         static let shortcut = "switcherShortcut", fingers = "switcherFingers", step = "switcherStep"
         static let showDelay = "switcherShowDelay", quickPrevious = "switcherQuickPrevious"
-        static let modules = "moduleSwitcherOn", moduleFingers = "moduleSwitcherFingers"
+        static let modules = "moduleSwitcherOn", moduleFingers = "moduleSwitcherFingers", moduleRow = "moduleSwitcherRow"
         static let excluded = "switcherExcluded", covered = "switcherOnlyCovered", coverThreshold = "switcherCoverThreshold"
     }
 
@@ -109,12 +111,32 @@ final class SwitcherSettings: ObservableObject {
         swipeFingers = defaults.object(forKey: Key.fingers) as? Int ?? 3
         moduleSwitcherOn = defaults.object(forKey: Key.modules) as? Bool ?? true
         moduleFingers = defaults.object(forKey: Key.moduleFingers) as? Int ?? 3
+        moduleRow = (defaults.stringArray(forKey: Key.moduleRow) ?? []).compactMap(FeatureID.init(rawValue:))
         swipeStep = defaults.object(forKey: Key.step) as? Double ?? 0.08
         showDelay = defaults.object(forKey: Key.showDelay) as? Double ?? 0.15
         quickSwipeToPreviousApp = defaults.bool(forKey: Key.quickPrevious)
         excluded = defaults.stringArray(forKey: Key.excluded) ?? []
         onlyCovered = defaults.bool(forKey: Key.covered)
         coverThreshold = defaults.object(forKey: Key.coverThreshold) as? Double ?? 0.5
+    }
+
+    /// The first time: the modules that had a shortcut, so the row stays as it was (spec QS-10).
+    func seedModuleRow(_ modules: @autoclosure () -> [FeatureID]) {
+        guard defaults.object(forKey: Key.moduleRow) == nil else { return }
+        moduleRow = modules()
+    }
+
+    func addToModuleRow(_ feature: FeatureID) {
+        guard !moduleRow.contains(feature) else { return }
+        moduleRow.append(feature)
+    }
+
+    func removeFromModuleRow(_ feature: FeatureID) {
+        moduleRow.removeAll { $0 == feature }
+    }
+
+    func moveInModuleRow(from source: IndexSet, to destination: Int) {
+        moduleRow.move(fromOffsets: source, toOffset: destination)
     }
 
     func exclude(_ bundleID: String) {

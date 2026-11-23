@@ -21,8 +21,8 @@ final class ModuleHistory {
     }
 }
 
-/// The modules with a shortcut, shown by a swipe up (spec QS-1…QS-9): sideways steps the
-/// choice, lifting the fingers opens it, moving back down cancels.
+/// The modules chosen for the swipe up, in their set order (spec QS-1…QS-12): sideways steps
+/// the choice, lifting the fingers opens it, moving back down cancels.
 @MainActor
 final class ModuleSwitcher: ObservableObject {
     @Published private(set) var isShown = false
@@ -30,7 +30,7 @@ final class ModuleSwitcher: ObservableObject {
     @Published private(set) var selection = 0
 
     let settings: SwitcherSettings
-    /// The modules with a shortcut, in the modules' order.
+    /// The chosen modules that are on, in the row's order (spec QS-10).
     var candidates: () -> [FeatureID] = { [] }
     /// The module open in the notch under the pointer, if any.
     var current: () -> FeatureID? = { nil }
@@ -49,22 +49,29 @@ final class ModuleSwitcher: ObservableObject {
 
     var selected: FeatureID? { items.indices.contains(selection) ? items[selection] : nil }
 
-    /// The most recently opened first, then the rest in the modules' order (spec QS-3).
-    nonisolated static func order(_ candidates: [FeatureID], history: [FeatureID]) -> [FeatureID] {
-        history.filter(candidates.contains) + candidates.filter { !history.contains($0) }
+    /// The row's most recently opened module, or the one before it if it is open now; without a
+    /// history the first, or the second if the first is open (spec QS-11).
+    nonisolated static func startIndex(_ items: [FeatureID], history: [FeatureID], current: FeatureID?) -> Int {
+        let recent = history.filter(items.contains)
+        let pick = current != nil && recent.first == current ? recent.dropFirst().first : recent.first
+        if let pick, let index = items.firstIndex(of: pick) { return index }
+        return items.count > 1 && current != nil && items.first == current ? 1 : 0
     }
 
-    /// The first, or the next one if the first is already open (spec QS-5).
-    nonisolated static func startIndex(_ items: [FeatureID], current: FeatureID?) -> Int {
-        items.count > 1 && current != nil && items.first == current ? 1 : 0
+    /// The tiles' scale that keeps every module in one row within `width` (spec QS-12).
+    nonisolated static func rowScale(count: Int, scale: CGFloat, width: CGFloat) -> CGFloat {
+        guard count > 0 else { return scale }
+        let tiles = width - 2 * SwitcherLayout.padding - CGFloat(count - 1) * SwitcherLayout.spacing
+        let tile = SwitcherLayout.tile(.icons, scale: 1).width
+        return max(min(scale, tiles / (CGFloat(count) * tile)), 0.4)
     }
 
     /// The list is ready at once; it drops down only if the fingers stay (spec QS-7, AS-16).
     func swipeBegan() {
         guard settings.moduleSwitcherOn, !isShown, !isPending else { return }
-        items = Self.order(candidates(), history: ModuleHistory.shared.recent)
+        items = candidates()
         guard !items.isEmpty else { return }
-        selection = Self.startIndex(items, current: current())
+        selection = Self.startIndex(items, history: ModuleHistory.shared.recent, current: current())
         swipeStart = selection
         isPending = true
         let delay = settings.showDelay

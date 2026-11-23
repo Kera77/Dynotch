@@ -24,12 +24,8 @@ struct MenuBarTintSection: View {
                 Toggle("Same in Light and Dark", isOn: $tint.style.sameInBoth)
                 colorRow(tint.style.sameInBoth ? "Colors" : "Light", pair: $tint.style.light)
                 if !tint.style.sameInBoth { colorRow("Dark", pair: $tint.style.dark) }
-                LabeledContent("Opacity") {
-                    Slider(value: $tint.style.opacity, in: MenuBarTintStyle.opacityRange)
-                        .frame(width: 180)
-                    Text("\(Int((tint.style.opacity * 100).rounded()))%")
-                        .monospacedDigit()
-                        .frame(width: 40, alignment: .trailing)
+                SettingsSlider(title: "Opacity", value: $tint.style.opacity, range: MenuBarTintStyle.opacityRange) {
+                    "\(Int(($0 * 100).rounded())) %"
                 }
             }
         } header: {

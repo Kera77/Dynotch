@@ -1,24 +1,23 @@
 import SwiftUI
 
-/// The modules with a shortcut in a row under the notch (spec QS-4), like the switcher's App Icons.
+/// The chosen modules in one row under the notch (spec QS-4, QS-12), like the switcher's App Icons.
 struct ModuleSwitcherView: View {
     @ObservedObject var switcher: ModuleSwitcher
     let notchHeight: CGFloat
     let width: CGFloat
 
-    private var scale: CGFloat { switcher.settings.size.scale }
+    /// Smaller tiles rather than a second row (spec QS-12).
+    private var scale: CGFloat {
+        ModuleSwitcher.rowScale(count: switcher.items.count, scale: switcher.settings.size.scale, width: width)
+    }
     /// The highlight slides from one module to the next (spec AS-5b).
     @Namespace private var highlight
 
     var body: some View {
         let tile = SwitcherLayout.tile(.icons, scale: scale)
-        let columns = SwitcherLayout.columns(count: switcher.items.count, style: .icons, scale: scale, maxWidth: width)
         VStack(spacing: 0) {
             Color.clear.frame(height: notchHeight)
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.fixed(tile.width), spacing: SwitcherLayout.spacing), count: columns),
-                spacing: SwitcherLayout.spacing
-            ) {
+            HStack(spacing: SwitcherLayout.spacing) {
                 ForEach(Array(switcher.items.enumerated()), id: \.element) { index, feature in
                     entry(feature, isSelected: index == switcher.selection)
                         .frame(width: tile.width, height: tile.height)

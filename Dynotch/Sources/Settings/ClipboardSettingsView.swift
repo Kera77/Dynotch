@@ -27,16 +27,9 @@ struct ClipboardSettingsView: View {
                     }
                 }
                 // How quickly the items show while the modifier is held (spec CB-3b).
-                LabeledContent("Show the items after") {
-                    HStack(spacing: 8) {
-                        Slider(value: $clipboard.showDelay, in: ClipboardStore.showDelayRange, step: 0.01)
-                            .frame(width: 160)
-                        Text("\(Int((clipboard.showDelay * 1000).rounded())) ms")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                            .frame(width: 52, alignment: .trailing)
-                    }
-                }
+                SettingsSlider(
+                    title: "Show the items after", value: $clipboard.showDelay, range: ClipboardStore.showDelayRange, step: 0.01
+                ) { "\(Int(($0 * 1000).rounded())) ms" }
             } header: {
                 Text("Clipboard")
             } footer: {

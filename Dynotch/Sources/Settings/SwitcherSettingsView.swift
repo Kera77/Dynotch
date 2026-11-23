@@ -3,10 +3,17 @@ import SwiftUI
 /// Settings › Switcher: the window switcher (spec AS-1…AS-12).
 struct SwitcherSettingsView: View {
     @ObservedObject var settings: SwitcherSettings
-    @State private var previewsAllowed = SwitcherPreviews.isAllowed
+    /// The modules and whether they are on (spec QS-10).
+    @ObservedObject var modules: AppSettings
+    /// The module row being dragged to a new place (spec SD-4).
+    @State private var draggedModule: FeatureID?
 
     var body: some View {
         Form {
+            AccessSection(
+                permissions: settings.showsPreviews ? [.accessibility, .screenRecording] : [.accessibility],
+                footer: "Accessibility lists and switches the windows; Screen Recording shows their previews."
+            )
             Section {
                 Toggle("Window switcher", isOn: $settings.isOn)
             } footer: {
@@ -26,13 +33,7 @@ struct SwitcherSettingsView: View {
                 Toggle("Window previews", isOn: $settings.showsPreviews)
                     .onChange(of: settings.showsPreviews) { _, enabled in
                         if enabled, !SwitcherPreviews.isAllowed { SwitcherPreviews.requestAccess() }
-                        previewsAllowed = SwitcherPreviews.isAllowed
                     }
-                if settings.showsPreviews, !previewsAllowed {
-                    Text("Previews need Screen Recording (Settings › Permissions). Until then icons show.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
             }
             Section("Windows") {
                 Picker("Show", selection: $settings.scope) {
@@ -46,12 +47,9 @@ struct SwitcherSettingsView: View {
                 Toggle("Only covered windows", isOn: $settings.onlyCovered)
                     .help("Leaves out the windows you can see; minimized, hidden and other Spaces' windows stay")
                 if settings.onlyCovered {
-                    LabeledContent("Covered at least") {
-                        HStack {
-                            Slider(value: $settings.coverThreshold, in: SwitcherSettings.coverRange, step: 0.05)
-                            Text("\(Int((settings.coverThreshold * 100).rounded()))%").monospacedDigit().frame(width: 40)
-                        }
-                    }
+                    SettingsSlider(
+                        title: "Covered at least", value: $settings.coverThreshold, range: SwitcherSettings.coverRange, step: 0.05
+                    ) { "\(Int(($0 * 100).rounded())) %" }
                 }
             }
             Section {
@@ -71,7 +69,6 @@ struct SwitcherSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            moduleSection
             Section {
                 Picker("Swipe", selection: $settings.swipeFingers) {
                     Text("Off").tag(0)
@@ -80,26 +77,14 @@ struct SwitcherSettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 // How far the fingers move for one window: shorter is faster (spec AS-11b).
-                LabeledContent("Distance per window") {
-                    HStack(spacing: 8) {
-                        Slider(value: $settings.swipeStep, in: SwitcherSettings.swipeStepRange, step: 0.01)
-                            .frame(width: 160)
-                        Text("\(Int((settings.swipeStep * 100).rounded())) % of the trackpad")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                SettingsSlider(
+                    title: "Distance per window", value: $settings.swipeStep, range: SwitcherSettings.swipeStepRange, step: 0.01
+                ) { "\(Int(($0 * 100).rounded())) %" }
                 .disabled(noSwipe)
                 // A swipe shorter than this only switches; longer drops the switcher down (spec AS-16).
-                LabeledContent("Show switcher after") {
-                    HStack(spacing: 8) {
-                        Slider(value: $settings.showDelay, in: SwitcherSettings.showDelayRange, step: 0.05)
-                            .frame(width: 160)
-                        Text(String(format: "%.2f s", settings.showDelay))
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                SettingsSlider(
+                    title: "Show switcher after", value: $settings.showDelay, range: SwitcherSettings.showDelayRange, step: 0.05
+                ) { String(format: "%.2f s", $0) }
                 .disabled(noSwipe)
                 Toggle("Short swipe switches to the previous app", isOn: $settings.quickSwipeToPreviousApp)
                     .disabled(settings.swipeFingers == 0)
@@ -117,12 +102,73 @@ struct SwitcherSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            // The swipe up after the sideways swipe: both are trackpad settings (spec SD-9).
+            moduleSection
+            moduleRowSection
+            CollapsibleListSection(title: "Add a module", count: addableModules.count, prompt: "Search modules") { search in
+                ForEach(addableModules.filter { settingsSearchMatches(search, $0.title) }) { feature in
+                    HStack(spacing: 8) {
+                        moduleLabel(feature)
+                        Spacer()
+                        Button("Add") { settings.addToModuleRow(feature) }
+                            .controlSize(.small)
+                    }
+                }
+            }
+            .disabled(!settings.moduleSwitcherOn)
         }
         .formStyle(.grouped)
     }
 
     /// The distance and the delay serve the swipe up too (spec QS-5, QS-7).
     private var noSwipe: Bool { settings.swipeFingers == 0 && !settings.moduleSwitcherOn }
+
+    /// The modules in the swipe-up row, dragged to reorder (spec QS-10, SD-4).
+    private var moduleRowSection: some View {
+        Section {
+            if settings.moduleRow.isEmpty {
+                Text("No modules yet. Add one from the list below.")
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(settings.moduleRow, id: \.self) { feature in
+                HStack(spacing: 8) {
+                    DragHandle()
+                    moduleLabel(feature)
+                    Spacer()
+                    Button {
+                        settings.removeFromModuleRow(feature)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Remove")
+                    .accessibilityLabel("Remove \(feature.title)")
+                }
+                .reorderable(feature, in: settings.moduleRow, dragged: $draggedModule, id: feature.rawValue) {
+                    settings.moveInModuleRow(from: $0, to: $1)
+                }
+            }
+        } header: {
+            Text("In the swipe row")
+        } footer: {
+            Text("Shown in this order, always in one row. A module that is off stays here but is left out of the row.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .disabled(!settings.moduleSwitcherOn)
+    }
+
+    /// Every module not yet in the row, in the modules' order.
+    private var addableModules: [FeatureID] {
+        modules.featureOrder.filter { !settings.moduleRow.contains($0) }
+    }
+
+    private func moduleLabel(_ feature: FeatureID) -> some View {
+        SettingsRowLabel(title: feature.title, detail: modules.isEnabled(feature) ? nil : "Off") {
+            Image(systemName: feature.symbolName)
+                .foregroundStyle(.secondary)
+        }
+    }
 
     /// The module switcher on a swipe up (spec QS-1, QS-9).
     private var moduleSection: some View {
@@ -137,7 +183,7 @@ struct SwitcherSettingsView: View {
         } header: {
             Text("Modules")
         } footer: {
-            Text("Swipe up to show the modules that have a shortcut, the last opened first; swipe sideways to pick one, "
+            Text("Swipe up to show the modules chosen below, the last opened one picked; swipe sideways to pick another, "
                 + "lift the fingers to open it, swipe back down to cancel. macOS opens Mission Control with a "
                 + "three-finger swipe up: set that to four fingers or off in Trackpad › More Gestures.")
                 .font(.caption)

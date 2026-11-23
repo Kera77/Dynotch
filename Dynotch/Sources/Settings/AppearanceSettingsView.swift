@@ -17,15 +17,9 @@ struct AppearanceSettingsView: View {
                     Text("Original").tag(false)
                 }
                 .pickerStyle(.segmented)
-                LabeledContent("Open panel opacity") {
-                    HStack(spacing: 8) {
-                        Slider(value: $settings.panelOpacity, in: AppSettings.panelOpacityRange, step: 0.05)
-                            .frame(width: 160)
-                        Text("\(Int((settings.panelOpacity * 100).rounded())) %")
-                            .monospacedDigit()
-                            .frame(width: 48, alignment: .trailing)
-                    }
-                }
+                SettingsSlider(
+                    title: "Open panel opacity", value: $settings.panelOpacity, range: AppSettings.panelOpacityRange, step: 0.05
+                ) { "\(Int(($0 * 100).rounded())) %" }
                 Toggle("Resize modules from the bottom right corner", isOn: $settings.resizableModules)
                 Picker("Displays without a notch", selection: $settings.externalStyle) {
                     ForEach(ExternalNotchStyle.allCases, id: \.self) { Text($0.title).tag($0) }
@@ -82,37 +76,19 @@ struct AppearanceSettingsView: View {
     private var stripSection: some View {
         Section {
             Toggle("Show the modules when resting at the notch's bottom edge", isOn: $settings.moduleStrip)
-            LabeledContent("Show after") {
-                HStack {
-                    Slider(value: $settings.moduleStripDelay, in: AppSettings.moduleStripDelayRange, step: 0.05)
-                        .frame(width: 160)
-                    Text("\(settings.moduleStripDelay, specifier: "%.2f") s")
-                        .monospacedDigit()
-                        .frame(width: 48, alignment: .trailing)
-                }
-            }
+            SettingsSlider(
+                title: "Show after", value: $settings.moduleStripDelay, range: AppSettings.moduleStripDelayRange, step: 0.05
+            ) { String(format: "%.2f s", $0) }
             .disabled(!settings.moduleStrip)
-            LabeledContent("Bottom edge") {
-                HStack {
-                    Slider(value: $settings.moduleStripBand, in: AppSettings.moduleStripBandRange)
-                        .frame(width: 160)
-                    Text("1/\(Int((1 / settings.moduleStripBand).rounded()))")
-                        .monospacedDigit()
-                        .frame(width: 48, alignment: .trailing)
-                }
+            SettingsSlider(title: "Bottom edge", value: $settings.moduleStripBand, range: AppSettings.moduleStripBandRange) {
+                "1/\(Int((1 / $0).rounded()))"
             }
             .disabled(!settings.moduleStrip)
             Toggle("Open a module when resting on its icon", isOn: $settings.moduleStripHover)
                 .disabled(!settings.moduleStrip)
-            LabeledContent("Open after") {
-                HStack {
-                    Slider(value: $settings.moduleStripHoverDelay, in: AppSettings.moduleStripHoverDelayRange, step: 0.05)
-                        .frame(width: 160)
-                    Text("\(settings.moduleStripHoverDelay, specifier: "%.2f") s")
-                        .monospacedDigit()
-                        .frame(width: 48, alignment: .trailing)
-                }
-            }
+            SettingsSlider(
+                title: "Open after", value: $settings.moduleStripHoverDelay, range: AppSettings.moduleStripHoverDelayRange, step: 0.05
+            ) { String(format: "%.2f s", $0) }
             // Under the Wings the same wait comes before switching them (spec MS-9).
             .disabled(!settings.moduleStrip || !(settings.moduleStripHover || settings.hoverPreview))
             StripModulesRows(settings: settings)

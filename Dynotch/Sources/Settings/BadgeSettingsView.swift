@@ -7,68 +7,50 @@ struct BadgeSettingsView: View {
     @ObservedObject var service: BadgeService
 
     @State private var installed: [InstalledApp] = []
-    @State private var search = ""
-
-    private func matches(_ name: String) -> Bool {
-        search.isEmpty || name.localizedCaseInsensitiveContains(search)
-    }
+    /// The row being dragged to a new place (spec SD-4).
+    @State private var dragged: BadgeApp.ID?
 
     private var candidates: [InstalledApp] {
         let chosen = Set(service.apps.map(\.bundleID))
-        return installed.filter {
-            !chosen.contains($0.bundleID) && matches($0.name)
-        }
+        return installed.filter { !chosen.contains($0.bundleID) }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !service.isTrusted {
-                Label("Dynotch needs Accessibility access to read the badges of the Dock.", systemImage: "exclamationmark.triangle.fill")
+        Form {
+            AccessSection(permissions: [.accessibility], footer: "Accessibility reads the badges of the Dock.")
+            Section {
+                if service.apps.isEmpty {
+                    Text("No apps yet. Add one from the list below.")
+                        .foregroundStyle(.secondary)
+                }
+                let ids = service.apps.map(\.id)
+                ForEach(service.apps) { app in
+                    BadgeAppRow(app: app, service: service)
+                        .reorderable(app.id, in: ids, dragged: $dragged, id: app.bundleID) { service.move(from: $0, to: $1) }
+                }
+            } header: {
+                Text("Next to the notch")
+            } footer: {
+                Text("An app appears left of the notch while its Dock icon has a badge; the icon pulses for 5 minutes "
+                    + "after a new notification. Click it to open the app. Drag to reorder, here or at the notch.")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.secondary)
             }
-            SettingsSearchField(text: $search, prompt: "Search apps")
-            List {
-                Section("Next to the notch") {
-                    if service.apps.isEmpty {
-                        Text("No apps yet. Add one from the list below.")
-                            .foregroundStyle(.secondary)
-                    }
-                    // Reordering works on the whole list, so it is off while searching.
-                    if search.isEmpty {
-                        ForEach(service.apps) { app in
-                            BadgeAppRow(app: app, service: service)
+            // Closed until opened, with its own search (spec SD-2).
+            CollapsibleListSection(title: "Add an app", count: candidates.count, prompt: "Search apps") { search in
+                ForEach(candidates.filter { settingsSearchMatches(search, $0.name) }) { app in
+                    HStack(spacing: 8) {
+                        SettingsRowLabel(title: app.name) {
+                            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable()
                         }
-                        .onMove { service.move(from: $0, to: $1) }
-                    } else {
-                        ForEach(service.apps.filter { matches($0.name) }) { app in
-                            BadgeAppRow(app: app, service: service)
-                        }
-                    }
-                }
-                Section("Add an app") {
-                    ForEach(candidates) { app in
-                        HStack(spacing: 8) {
-                            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
-                                .resizable()
-                                .frame(width: 18, height: 18)
-                            Text(app.name)
-                            Spacer()
-                            Button("Add") { service.add(app) }
-                                .controlSize(.small)
-                        }
+                        Spacer()
+                        Button("Add") { service.add(app) }
+                            .controlSize(.small)
                     }
                 }
             }
-            .listStyle(.inset(alternatesRowBackgrounds: true))
-
-            Text("An app appears left of the notch while its Dock icon has a badge; the icon pulses for 5 minutes "
-                + "after a new notification. Click it to open the app. Drag to reorder, here or at the notch.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding()
+        .formStyle(.grouped)
         .task {
             installed = await Task.detached { InstalledApps.scan() }.value
         }
@@ -81,10 +63,10 @@ private struct BadgeAppRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
+            DragHandle()
             Toggle(isOn: Binding(get: { app.isEnabled }, set: { service.setEnabled(app.bundleID, $0) })) {
-                HStack(spacing: 6) {
+                SettingsRowLabel(title: app.name) {
                     BadgeIconView(icon: .app, bundleID: app.bundleID, size: 18, tint: .primary, monochrome: false)
-                    Text(app.name)
                 }
             }
             // Hidden from the notch for a while: how long, and Show brings it back (spec B-11).

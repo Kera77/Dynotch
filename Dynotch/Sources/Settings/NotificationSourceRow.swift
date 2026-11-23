@@ -36,18 +36,18 @@ struct NotificationSourceRow: View {
 
     private var rule: NotificationRule { service.rule(for: app) }
 
+    /// The site's address beside its name, unless the name is the address.
+    private var siteDetail: String? {
+        guard let site = app.site, WebNotificationSource.displayName(forSite: site) != site else { return nil }
+        return site
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Toggle(isOn: isOn) {
-                    HStack(spacing: 8) {
+                    SettingsRowLabel(title: app.name, detail: siteDetail) {
                         AppIconView(app: app, size: 18, monochrome: false)
-                        Text(app.name)
-                        if let site = app.site, WebNotificationSource.displayName(forSite: site) != site {
-                            Text(site)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
                     }
                 }
                 Spacer()

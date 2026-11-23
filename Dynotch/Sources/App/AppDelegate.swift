@@ -218,13 +218,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// The module switcher: the modules with a shortcut, opened like their shortcut (spec QS-3, QS-6).
+    /// The module switcher: the chosen modules, opened like their shortcut (spec QS-6, QS-10).
     private func startModuleSwitcher(_ manager: NotchManager) {
         let modules = services.switcher.modules
         let shortcuts = services.shortcuts
         let settings = services.settings
-        modules.candidates = {
-            settings.activeFeatures.filter { shortcuts.shortcuts[$0] != nil }
+        modules.settings.seedModuleRow(settings.activeFeatures.filter { shortcuts.shortcuts[$0] != nil })
+        // The chosen modules that are on, in the row's order (spec QS-10).
+        modules.candidates = { [weak modules] in
+            let active = Set(settings.activeFeatures)
+            return modules?.settings.moduleRow.filter(active.contains) ?? []
         }
         modules.current = { [weak manager] in manager?.openModule() }
         modules.present = { [weak manager] shown in manager?.showModuleSwitcher(shown) }

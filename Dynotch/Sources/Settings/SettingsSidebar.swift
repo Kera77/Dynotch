@@ -6,6 +6,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case features
     case calendar
     case notifications
+    case chats
     case badges
     case clipboard
     case tray
@@ -25,6 +26,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "Modules"
         case .calendar: "Calendar"
         case .notifications: "Notifications"
+        case .chats: "Chats"
         case .badges: "App badges"
         case .clipboard: "Clipboard"
         case .tray: "Tray"
@@ -44,6 +46,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .features: "square.grid.2x2"
         case .calendar: "calendar"
         case .notifications: "bell"
+        case .chats: "bubble.left.and.bubble.right"
         case .badges: "app.badge"
         case .clipboard: "doc.on.clipboard"
         case .tray: "tray"
@@ -65,7 +68,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .appearance: "design glass liquid pill notch rounded full screen preview wings hover strip smart opening"
         case .features: "modules order shortcuts menu bar pin"
         case .calendar: "meetings countdown lead time"
-        case .notifications: "banner beeper token sources websites reply unread"
+        case .notifications: "banner sources websites apps pop-up focus small notices"
+        case .chats: "beeper token google chat gmail mail reply unread networks highlighted"
         case .badges: "dock badge unread apps icons"
         case .clipboard: "clipboard paste saved copy"
         case .tray: "tray files folder airdrop retention drop"

@@ -262,14 +262,19 @@ extension NotchController {
         if !wasShown { holdGlassWhileSwitcherDrops() }
     }
 
-    /// The modules with a shortcut, dropped down like the switcher (spec QS-4).
+    /// The chosen modules, dropped down like the switcher in one row (spec QS-4, QS-12).
     func showModuleSwitcher(_ modules: ModuleSwitcher) {
         guard !callIsShown else { return }
         hideStrip()
         let room = CGSize(width: model.geometry.windowSize.width, height: model.geometry.windowSize.height)
-        let size = SwitcherLayout.size(
-            count: modules.items.count, style: .icons, scale: modules.settings.size.scale,
-            notchHeight: model.geometry.notchSize.height, room: room
+        // One row, as wide as needed; smaller tiles if even the display is too narrow (spec QS-12).
+        let count = modules.items.count
+        let scale = ModuleSwitcher.rowScale(count: count, scale: modules.settings.size.scale, width: room.width)
+        let tile = SwitcherLayout.tile(.icons, scale: scale)
+        let size = CGSize(
+            width: min(max(CGFloat(count) * tile.width + CGFloat(max(count - 1, 0)) * SwitcherLayout.spacing
+                + 2 * SwitcherLayout.padding, 320), room.width),
+            height: model.geometry.notchSize.height + 2 * SwitcherLayout.padding + tile.height
         )
         let wasShown = model.isShowingSwitcher
         if !model.isExpanded { expand(animation: Self.switcherAnimation) }

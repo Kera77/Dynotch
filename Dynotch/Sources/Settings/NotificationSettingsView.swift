@@ -3,123 +3,58 @@ import SwiftUI
 struct NotificationSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var service: NotificationService
-    @ObservedObject var beeper: BeeperService
-    var battery: BatteryService?
-    @State private var accessibilityTrusted = NativeBannerDismisser.isTrusted
-    @State private var beeperToken = ""
-    @State private var appSearch = ""
-    @State private var beeperHasToken = BeeperClient.hasToken
-    @State private var beeperStatus = ""
 
     var body: some View {
-        // The search stands above the form: inside it (as a row or in a section header) the
-        // field did not take clicks in the notch panel.
-        VStack(spacing: 0) {
-            SettingsSearchField(text: $appSearch, prompt: "Search apps and websites")
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-            form
-        }
-        .onAppear {
-            service.refreshApps()
-            accessibilityTrusted = NativeBannerDismisser.isTrusted
-        }
-        .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
-            accessibilityTrusted = NativeBannerDismisser.isTrusted
-        }
+        form
+            .onAppear { service.refreshApps() }
     }
 
     private var form: some View {
         Form {
+            AccessSection(
+                permissions: [.fullDiskAccess, .accessibility],
+                notificationsReadable: service.status == .running,
+                footer: accessFooter
+            )
             Section {
-                LabeledContent("Status") { statusView }
-                LabeledContent("Hide after") {
-                    HStack {
-                        Slider(value: $settings.notificationDuration, in: AppSettings.notificationDurationRange, step: 1)
-                            .frame(width: 160)
-                        Text("\(Int(settings.notificationDuration)) s")
-                            .monospacedDigit()
-                            .frame(width: 44, alignment: .trailing)
-                    }
-                }
-            }
-
-            Section {
-                LabeledContent("Beeper Desktop API") {
-                    HStack {
-                        SecureField(beeperHasToken ? "Token saved" : "Paste token", text: $beeperToken)
-                            .focusOnClick()
-                            .frame(width: 160)
-                        Button("Paste") {
-                            beeperToken = NSPasteboard.general.string(forType: .string)?
-                                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                        }
-                        .help("Paste the token from the clipboard")
-                        .accessibilityLabel("Paste the token from the clipboard")
-                        Button("Save") {
-                            BeeperClient.setToken(beeperToken)
-                            beeperToken = ""
-                            beeperHasToken = BeeperClient.hasToken
-                            checkBeeper()
-                        }
-                        .disabled(beeperToken.isEmpty)
-                    }
-                }
-                BeeperSettingsRows(beeper: beeper)
-                if !beeperStatus.isEmpty {
-                    Text(beeperStatus)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                Text("Replies")
+                SettingsSlider(
+                    title: "Hide after", value: $settings.notificationDuration, range: AppSettings.notificationDurationRange, step: 1
+                ) { "\(Int($0)) s" }
             } footer: {
-                Text("Reply to Beeper messages from the notch. In Beeper: Settings › Integrations › \"+\" next to "
-                    + "Approved connections, then paste the token here. Google Chat cannot be answered this way.")
+                Text("Beeper, Google Chat and Gmail are set in Settings › Chats.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Section {
+            // Closed until opened, each with its own search (spec SD-2).
+            CollapsibleListSection(title: "Apps", count: listedApps.count, prompt: "Search apps") { search in
                 if service.apps.isEmpty {
                     Text("The app list appears once notifications can be read.")
                         .foregroundStyle(.secondary)
-                } else {
-                    // A browser's sites right under it, each switchable (spec E-15b).
-                    ForEach(service.apps.filter { !splitIDs.contains($0.identifier) && matchesSearch($0) }) { app in
-                        NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
-                        ForEach(service.sources(from: app)) { site in
-                            NotificationSourceRow(app: site, service: service, isOn: binding(for: site))
-                                .padding(.leading, 26)
-                        }
-                    }
                 }
-            } header: {
-                Text("Apps")
-            }
-
-            if service.siteApps.contains(where: { !splitIDs.contains($0.identifier) }) {
-                Section {
-                    ForEach(service.siteApps.filter { !splitIDs.contains($0.identifier) && matchesSearch($0) }) { app in
-                        NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
+                // A browser's sites right under it, each switchable (spec E-15b).
+                ForEach(listedApps.filter { matches($0, search) }) { app in
+                    NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
+                    ForEach(service.sources(from: app).filter { ChatSourceKind.of($0) == nil }) { site in
+                        NotificationSourceRow(app: site, service: service, isOn: binding(for: site))
+                            .padding(.leading, 26)
                     }
-                } header: {
-                    Text("Websites")
-                } footer: {
-                    Text("Notifications a browser shows for a website without its own web app, one row per site. "
-                        + "A site appears here with its first notification.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
 
-            GoogleChatWebSettingsSection(chatWeb: service.chatWeb)
-
-            MailSettingsSection(settings: settings, mail: service.mail)
+            if !listedSites.isEmpty {
+                CollapsibleListSection(
+                    title: "Websites", count: listedSites.count, prompt: "Search websites",
+                    footer: "Notifications a browser shows for a website without its own web app, one row per site. "
+                        + "A site appears here with its first notification."
+                ) { search in
+                    ForEach(listedSites.filter { matches($0, search) }) { app in
+                        NotificationSourceRow(app: app, service: service, isOn: binding(for: app))
+                    }
+                }
+            }
 
             DynotchAlertsSection(preferences: service.preferences)
-
-            if let battery { LowBatterySettingsSection(battery: battery) }
 
             Section {
                 // Under the notch or in its line, with or without Wings (spec PV-66).
@@ -129,17 +64,6 @@ struct NotificationSettingsView: View {
                 PeekSettingsRows(preferences: service.preferences)
                 FocusToggle(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
-                LabeledContent("Accessibility") {
-                    if accessibilityTrusted {
-                        Label("Allowed", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                    } else {
-                        Button("Grant Access…") {
-                            NativeBannerDismisser.requestTrust()
-                            NativeBannerDismisser.openAccessibilitySettings()
-                        }
-                    }
-                }
-                .disabled(!settings.hideNativeBanners)
             } header: {
                 Text("Native notifications")
             } footer: {
@@ -156,40 +80,13 @@ struct NotificationSettingsView: View {
         .formStyle(.grouped)
     }
 
-    @ViewBuilder private var statusView: some View {
+    /// Why notifications can't be read when access alone is not the reason; what Accessibility is for.
+    private var accessFooter: String {
         switch service.status {
-        case .running:
-            Label("Working", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-        case .noAccess:
-            VStack(alignment: .trailing, spacing: 2) {
-                Button("Grant Full Disk Access…", action: service.openFullDiskAccessSettings)
-                // Shown as allowed in System Settings yet refused: macOS needs it switched again.
-                Text("Already on? Switch Dynotch off and on there.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        case .unsupported(let message):
-            Label("Can't be read", systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-                .help(message)
-        case .disabled:
-            Text("Off (Features tab)").foregroundStyle(.secondary)
-        }
-    }
-
-    private func checkBeeper() {
-        guard BeeperClient.hasToken else {
-            beeperStatus = ""
-            return
-        }
-        beeperStatus = "Checking…"
-        Task {
-            do {
-                try await BeeperClient().verify()
-                beeperStatus = "Connected to Beeper ✓"
-            } catch {
-                beeperStatus = "\(error)"
-            }
+        case .noAccess: "Already on in System Settings? Switch Dynotch off and on there. Accessibility hides the native banners."
+        case .unsupported(let message): "Can't be read: \(message)"
+        case .disabled: "Notifications are off (Modules page)."
+        case .running: "Full Disk Access reads the notifications; Accessibility hides the native banners."
         }
     }
 
@@ -198,9 +95,17 @@ struct NotificationSettingsView: View {
         Set(service.apps.filter { WebNotificationSource.isShared($0.identifier) }.flatMap { service.sources(from: $0) }.map(\.identifier))
     }
 
-    private func matchesSearch(_ app: NotificationApp) -> Bool {
-        appSearch.isEmpty || app.name.localizedCaseInsensitiveContains(appSearch)
-            || (app.site?.localizedCaseInsensitiveContains(appSearch) ?? false)
+    /// Chats are set in Settings › Chats (spec SD-6).
+    private var listedApps: [NotificationApp] {
+        service.apps.filter { !splitIDs.contains($0.identifier) && ChatSourceKind.of($0) == nil }
+    }
+
+    private var listedSites: [NotificationApp] {
+        service.siteApps.filter { !splitIDs.contains($0.identifier) && ChatSourceKind.of($0) == nil }
+    }
+
+    private func matches(_ app: NotificationApp, _ search: String) -> Bool {
+        settingsSearchMatches(search, app.name, app.site)
     }
 
     private func binding(for app: NotificationApp) -> Binding<Bool> {

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.94 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.95 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -102,7 +102,7 @@
 | C-6 | (v0.37, v0.40-ben módosítva) Ha a beállítások a notchban nyílnak meg, a notch **nyitva marad az első kattintásig a notchon kívül** (akkor is, ha az egér közben elhagyja), és arra a kattintásra bezáródik. Nem rögzíti (a lakat nem kapcsol be). Modul választásakor vagy a fogaskerékre kattintva a szokásos viselkedés tér vissza. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
-| C-5b | (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
+| C-5b | (v0.95: az SD-2 váltja fel) (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
 | C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
 | C-8 | (v0.43) **Permissions fül:** minden engedély (Teljes lemezelérés, Accessibility, Naptár, Emlékeztetők, Kontaktok, Bluetooth) egy helyen, mire kell; megadva pipa, különben gomb a Rendszerbeállítások megfelelő oldalára. |
@@ -1065,6 +1065,23 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | QS-7 | **Rövid swipe:** ha az ujjak a *Show switcher after* idő (AS-16) előtt felemelkednek, a sor meg sem jelenik, és a kijelölt (első) modul azonnal lenyílik. Így egy gyors felfelé swipe mindig a legutóbbi modult nyitja. |
 | QS-8 | **Megszakítás:** az ujjakat lefelé húzva (a felfelé út visszafelé, a trackpad magasságának ~25%-a) vagy Esc-re a sor bezárul, modul nem nyílik. |
 | QS-9 | **Ütközés:** a macOS alapból háromujjas felfelé swipe-pal nyitja a **Mission Controlt**, és ilyenkor a notch elrejtőzik (N-19b). A beállításnál megjegyzés és gomb visz a Trackpad-beállításokhoz (ott a Mission Controlt 4 ujjra vagy ki kell állítani). Amíg a Mission Control is fut, a modulváltó nem nyílik le. |
+| QS-10 | (v0.95) **Saját modullista (a QS-3 módosítása):** a sorba nem a gyorsbillentyűs modulok kerülnek, hanem a *Settings › Switcher › Modules* alatt kiválasztottak. A **„In the swipe row”** lista a kiválasztott modulok: a sor elején ≡ fogóval húzva **átrendezhető**, a sor végén **−** veszi ki. Alatta a **„Add a module”** lenyíló lista (SD-2) a többi modullal, mindegyik mellett **Add**. A kikapcsolt modul a listában marad („Off” jelöléssel), de a sorban nem jelenik meg. Frissítés után első induláskor a lista a gyorsbillentyűs modulokkal, a modulok sorrendjében töltődik fel, így a viselkedés nem változik. Üres listánál a gesztus nem tesz semmit. |
+| QS-11 | (v0.95) **Sorrend és kijelölés (a QS-3 és QS-5 módosítása):** a sor a beállított sorrendben áll, nem a legutóbbi szerint. Induláskor a sorból **legutóbb megnyitott** modul van kijelölve (a QS-3 szerinti előzményből); ha az épp nyitva van, az előtte megnyitott. Előzmény nélkül az első (vagy ha az nyitva van, a második). A rövid swipe (QS-7) ezt nyitja, így továbbra is a legutóbbi modult; oldalra innen lépked, a végeken megáll. |
+| QS-12 | (v0.95) **Mindig egy sor (a QS-4 módosítása):** a modulok négynél több esetén is egy sorban állnak; a lenyíló rész ehhez kiszélesedik (legfeljebb a kijelző szélességéig, ~40 pt margóval). Ha így sem férnek ki, a csempék kisebbek lesznek, de nem törnek új sorba. |
+
+## 4ő++++++. Beállítások egységes designja (v0.95)
+
+| # | Követelmény |
+|---|---|
+| SD-1 | **Egységes oldalak:** a Beállítások oldalai csoportosított űrlapként (*grouped form*) jelennek meg. Az **App badges** oldal is (eddig sima lista volt): felül figyelmeztetés, ha nincs Accessibility-engedély, alatta „Next to the notch” és „Add an app” szakasz. |
+| SD-2 | **Lenyíló listák:** a hosszú listák szakasza **alapból zárva** van; a fejlécsorra (› ikon, cím, darabszám) kattintva nyílik és zárul. Nyitva a szakasz első sora egy **keresőmező**, amely csak azt a listát szűri. Ilyen: *Notifications › Apps* és *Websites*, *App badges › Add an app*, *Switcher › Add a module*. A Notifications oldal tetején álló közös kereső megszűnik (a C-5b helyett). Az oldal újranyitásakor a listák ismét zárva vannak. |
+| SD-3 | **Egységes appsor:** az appokat, oldalakat és modulokat felsoroló sorok egyformák: 18 pt-os színes ikon, név (mellette szürkén a részlet, pl. az oldal címe vagy „Off”), jobbra a kapcsoló, utána a sor saját gombjai (szabályok, ikon, eltávolítás). Az App badges sorai ugyanígy néznek ki, mint a Notifications appjai. |
+| SD-4 | **Átrendezés:** az átrendezhető listák (App badges „Next to the notch”, Switcher „In the swipe row”) sorai elején ≡ fogó; a sort húzva a többi menet közben arrébb csúszik (mint a Modules oldalon, M-3). |
+| SD-5 | **Modules oldal űrlapként:** a modulok listája is csoportosított űrlap (SD-1), a sor: ≡ fogó (húzással átrendez, M-3), ikon, név, mellette szürkén a gyorsbillentyű, jobbra a kapcsoló és egy › gomb. A › lenyitja a sor további beállításait: gyorsbillentyű, Pin, Menu bar, „In <gazda>” (MG), Music-nál Cover és In list. A Pin-billentyű saját szakaszban áll. |
+| SD-6 | **Új Chats oldal** (a sidebarban a Notifications után): itt van **minden**, ami a chatekhez kell, a Notifications oldalra miattuk nem kell átmenni. Felül a hozzáférések (Full Disk Access, Accessibility, SD-8), alatta a **Beeper, Google Chat és Gmail értesítési forrásainak sora** a saját szabályaikkal (E-15: be/ki, szalagcím, pop-up, válaszmező), majd a **Beeper** (Desktop API token, olvasatlanok, csevegőlista, kiemelt hálózatok), a **Google Chat** webapp (GW-14) és a **Gmail** (GM) szakasz. Ezek a források a Notifications listáiból kikerülnek. |
+| SD-7 | **Notifications oldal:** csak az értesítések ki-be kapcsolása és a hozzájuk tartozó funkciók: hozzáférés, eltűnési idő, Apps és Websites (SD-2), Dynotch-jelzések, kis értesítések helye, pop-up sorok, Focus, natív szalagcímek. A Low battery szakasz a **General › Connected devices** alá kerül. Az **App badges** külön sidebar-elem marad, közvetlenül a Chats után. |
+| SD-8 | **Egységes hozzáférés-sor:** az engedélyt igénylő oldalak első szakasza „Access”: engedélyenként egy sor (ikon, név), jobbra zöld „Allowed” vagy „Grant…” gomb, ugyanúgy, mint a Permissions oldalon (C-8). Oldalak: Notifications (Full Disk Access), Chats (Full Disk Access, Accessibility), App badges (Accessibility), Calendar (Calendars), Screenshots (Screen Recording), Switcher (Accessibility; Screen Recording, ha az előnézet be van kapcsolva), Focus (Accessibility), General (Accessibility; Contacts, ha a hívások be vannak kapcsolva). Az állapot 2 mp-enként frissül. |
+| SD-9 | **Egységes csúszkák:** minden csúszka 160 pt széles, mellette jobbra igazítva, egyforma szélességű szürke érték mértékegységgel („5 s”, „0.15 s”, „8 %”, „250 ms”). A Switcher oldalon a Modules és a modulsor szakaszai a Trackpad szakasz alá kerülnek. |
 
 ## 5. Nyitott kérdések
 
@@ -1112,6 +1129,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.95.0** | Modulváltó saját, átrendezhető modullistával, mindig egy sorban, a legutóbbi modulon indul (QS-10…QS-12); egységes beállítások: lenyíló listák saját keresővel, egyforma appsorok, App badges és Modules űrlapként, új Chats oldal, Access-sorok, egységes csúszkák (SD-1…SD-9) |
 | **v0.94.0** | Okos nyitás: 5 percig a legutóbbi értesítés modulja nyílik hoverre (fül, eszköz, letöltés, meeting; az AI nem), csak a meeting előzi (SO-9, SO-10); modulváltó háromujjas felfelé swipe-ra a gyorsbillentyűs modulokkal, a legutóbbi elöl, oldalra lépked, elengedésre nyit (QS-1…QS-9) |
 | **v0.93.0** | Google Chat: a Kezdőlap „1 értesítés” felirata magában nem olvasatlan (nem ragad be a jelvény), kártya minden olvasatlan beszélgetéshez, a lista fejléce a fül saját értesítéseit számolja (GW-25, GW-26, UM-11) |
 | **v0.92.0** | Google Chat a Safari-webapp Kezdőlapjáról: jelvényszám, hover-lista és kártyák a legutolsó üzenettel és a feladóval; Gmail az Apple Mailből csak a Primary címkével (GW-21…GW-24, GM-16) |

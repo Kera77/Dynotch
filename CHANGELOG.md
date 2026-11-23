@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.95.0] - 2026-11-23
+
+### Changed
+
+- Module switcher: the swipe-up row shows the modules you choose in *Settings › Switcher › In the swipe row* (drag to reorder, − to remove, add from *Add a module*), no longer the ones with a shortcut; after updating it starts with those. The row keeps your order and starts on the module opened last; it always stays in one row, the drop-down widens for more modules (QS-10…QS-12).
+- Settings look the same everywhere: *App badges* is a grouped form like the other pages, its apps look like the apps under *Notifications*. Long lists (*Notifications › Apps* and *Websites*, *App badges › Add an app*, *Switcher › Add a module*) are closed until opened and have their own search inside (SD-1…SD-4).
+
 ## [0.94.0] - 2026-11-23
 
 ### Added

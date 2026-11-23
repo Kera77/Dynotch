@@ -58,7 +58,7 @@ struct SettingsView: View {
     @ViewBuilder private var content: some View {
         switch selectedTab {
         case .general:
-            GeneralSettingsView(settings: settings, devices: devices, chat: chat, tasks: tasks)
+            GeneralSettingsView(settings: settings, devices: devices, chat: chat, tasks: tasks, battery: battery)
         case .appearance:
             AppearanceSettingsView(settings: settings)
         case .features:
@@ -66,7 +66,9 @@ struct SettingsView: View {
         case .calendar:
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
-            NotificationSettingsView(settings: settings, service: notifications, beeper: beeper, battery: battery)
+            NotificationSettingsView(settings: settings, service: notifications)
+        case .chats:
+            ChatSettingsView(settings: settings, service: notifications, beeper: beeper)
         case .badges:
             BadgeSettingsView(service: badges)
         case .clipboard:
@@ -76,7 +78,7 @@ struct SettingsView: View {
         case .focus:
             FocusSettingsView(settings: settings)
         case .switcher:
-            if let switcher { SwitcherSettingsView(settings: switcher) }
+            if let switcher { SwitcherSettingsView(settings: switcher, modules: settings) }
         case .screenshots:
             if let screenshots { ScreenshotSettingsView(settings: screenshots) }
         case .menuBar:
@@ -96,6 +98,7 @@ private struct GeneralSettingsView: View {
     @ObservedObject var devices: DeviceWatcher
     let chat: ClaudeChatService
     @ObservedObject var tasks: TaskIndicator
+    var battery: BatteryService?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
@@ -105,6 +108,10 @@ private struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
+            AccessSection(
+                permissions: settings.callsEnabled ? [.accessibility, .contacts] : [.accessibility],
+                footer: "Accessibility: the volume keys and the call banner. Contacts: caller names and texting back."
+            )
             Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
@@ -134,6 +141,8 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             DeviceSettingsSection(devices: devices)
+            // Under the devices, not Notifications (spec SD-7).
+            if let battery { LowBatterySettingsSection(battery: battery) }
             Section {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             } footer: {
@@ -190,20 +199,8 @@ private struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                LabeledContent("Close delay") {
-                    HStack {
-                        Slider(
-                            value: $settings.closeDelay,
-                            in: AppSettings.closeDelayRange,
-                            step: 0.1
-                        )
-                        .frame(width: 180)
-                        Text(settings.closeDelay, format: .number.precision(.fractionLength(1)))
-                            .monospacedDigit()
-                            .frame(width: 28, alignment: .trailing)
-                        Text("s")
-                            .foregroundStyle(.secondary)
-                    }
+                SettingsSlider(title: "Close delay", value: $settings.closeDelay, range: AppSettings.closeDelayRange, step: 0.1) {
+                    String(format: "%.1f s", $0)
                 }
             } footer: {
                 Text("How long the notch stays open after the pointer leaves it.")
@@ -270,17 +267,12 @@ private struct FocusSettingsView: View {
 
     var body: some View {
         Form {
+            AccessSection(permissions: [.accessibility])
             Section {
                 Toggle("Focus follows mouse", isOn: $settings.focusFollowsMouse)
-                LabeledContent("Delay before switching") {
-                    HStack {
-                        Slider(value: $settings.focusDelay, in: AppSettings.focusDelayRange, step: 0.05)
-                            .frame(width: 160)
-                        Text("\(Int(settings.focusDelay * 1000)) ms")
-                            .monospacedDigit()
-                            .frame(width: 52, alignment: .trailing)
-                    }
-                }
+                SettingsSlider(
+                    title: "Delay before switching", value: $settings.focusDelay, range: AppSettings.focusDelayRange, step: 0.05
+                ) { "\(Int($0 * 1000)) ms" }
                 .disabled(!settings.focusFollowsMouse)
             }
             Section("What it does") {
@@ -314,24 +306,12 @@ private struct CalendarSettingsView: View {
 
     var body: some View {
         Form {
-            Section {
-                LabeledContent("Access") {
-                    switch calendar.access {
-                    case .granted:
-                        Label("Allowed", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                    case .notDetermined:
-                        Button("Allow") { calendar.requestAccess() }
-                    case .denied:
-                        Button("Open System Settings") { calendar.openPrivacySettings() }
-                    }
-                }
-            } footer: {
-                Text("Every calendar of the macOS Calendar app is shown. For Google or Outlook calendars, add "
-                    + "the account in System Settings › Internet Accounts.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            AccessSection(
+                permissions: [.calendar],
+                footer: "Every calendar of the macOS Calendar app is shown. For Google or Outlook calendars, add "
+                    + "the account in System Settings › Internet Accounts.",
+                grants: [.calendar: { calendar.access == .notDetermined ? calendar.requestAccess() : calendar.openPrivacySettings() }]
+            )
 
             Section {
                 Toggle("Meeting countdown next to the notch", isOn: $settings.calendarAlertEnabled)

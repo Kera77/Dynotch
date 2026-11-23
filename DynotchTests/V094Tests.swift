@@ -32,15 +32,6 @@ struct V094Tests {
         #expect(SmartOpening.tab(isBeeper: false, isGoogleChat: false) == .all)
     }
 
-    @Test func moduleSwitcherOrderAndStart() {
-        let order = ModuleSwitcher.order([.calendar, .notes, .calculator], history: [.terminal, .calculator, .calendar])
-        #expect(order == [.calculator, .calendar, .notes])
-        #expect(ModuleSwitcher.startIndex(order, current: nil) == 0)
-        #expect(ModuleSwitcher.startIndex(order, current: .calculator) == 1)
-        #expect(ModuleSwitcher.startIndex(order, current: .notes) == 0)
-        #expect(ModuleSwitcher.startIndex([.notes], current: .notes) == 0)
-    }
-
     @MainActor @Test func historyPutsTheLatestFirst() throws {
         let defaults = try #require(UserDefaults(suiteName: "V094Tests.history"))
         defaults.removePersistentDomain(forName: "V094Tests.history")
