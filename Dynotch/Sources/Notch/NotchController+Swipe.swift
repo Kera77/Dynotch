@@ -66,15 +66,18 @@ extension NotchController {
 
     private func scrollSwitcher(_ event: NSEvent) -> Bool {
         let phase = Self.phase(of: event)
+        let isMomentum = !event.momentumPhase.isEmpty
+        if phase == .began { switcherReachedEnd = false }
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let steps = switcherStepper.handle(
-            phase: phase, isMomentum: !event.momentumPhase.isEmpty, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
+            phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
         )
-        if steps != 0 {
-            let before = model.currentFeature
-            withAnimation(Self.animation) { model.step(by: steps) }
-            if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
-        }
+        // At an end the rest of the gesture and its momentum stop there: one bounce, no more (spec M-13).
+        guard steps != 0, !switcherReachedEnd else { return true }
+        let before = model.currentFeature
+        withAnimation(Self.animation) { model.step(by: steps) }
+        if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
+        if model.isAtEnd(steps > 0 ? .next : .previous) { switcherReachedEnd = true }
         return true
     }
 

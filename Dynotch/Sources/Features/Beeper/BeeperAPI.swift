@@ -19,16 +19,34 @@ struct BeeperChatInfo: Decodable, Identifiable, Equatable, Sendable {
     /// The newest message, for the list.
     let preview: BeeperPreview?
 
-    var name: String { title?.isEmpty == false ? title ?? "Chat" : "Chat" }
+    /// The title without the network bots' names: Google Chat puts the organisation in as one,
+    /// so "Agora Software, Anna" is Anna (spec BP-18).
+    var name: String {
+        guard let title, !title.isEmpty else { return "Chat" }
+        let bots = Set(networkBots.compactMap(\.fullName))
+        guard !bots.isEmpty else { return title }
+        let parts = title.components(separatedBy: ", ").filter { !bots.contains($0) }
+        return parts.isEmpty ? title : parts.joined(separator: ", ")
+    }
     var unread: Int { unreadCount ?? 0 }
-    var isGroup: Bool { type == "group" }
+    /// A "group" of one other person and a network bot is a one-to-one chat (spec BP-18).
+    var isGroup: Bool {
+        guard type == "group" else { return false }
+        return networkBots.isEmpty || people.count != 1
+    }
+
+    private var networkBots: [BeeperParticipant] { participants?.items?.filter { $0.isNetworkBot == true } ?? [] }
+    /// The other people in the chat: not me, not a network bot.
+    private var people: [BeeperParticipant] {
+        participants?.items?.filter { $0.isSelf != true && $0.isNetworkBot != true } ?? []
+    }
 
     /// The chat's picture; a one-to-one chat often has none of its own, then it is the other
     /// person's (spec BP-3).
     var pictureURL: String? {
         if let imgURL, !imgURL.isEmpty { return imgURL }
         guard !isGroup else { return nil }
-        return participants?.items?.first { $0.isSelf != true && $0.imgURL?.isEmpty == false }?.imgURL
+        return people.first { $0.imgURL?.isEmpty == false }?.imgURL
     }
 }
 
@@ -41,6 +59,8 @@ struct BeeperParticipant: Decodable, Equatable, Sendable {
     let fullName: String?
     let imgURL: String?
     let isSelf: Bool?
+    /// An automated participant of the network, e.g. a Google Workspace organisation (spec BP-18).
+    let isNetworkBot: Bool?
 }
 
 struct BeeperPreview: Decodable, Equatable, Sendable {

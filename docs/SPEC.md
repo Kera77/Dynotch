@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.90 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.91 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -72,6 +72,7 @@
 | M-10 | (v0.29) A beállítások **Features** füle **Modules** nevet kapott; a sorok **fogd-és-vidd** módszerrel átrendezhetők (bal oldali fogantyú, a sor húzás közben a helyére csúszik). A „Pin” jelölő csak gyorsbillentyűvel rendelkező modulnál lehet bejelölve; gyorsbillentyű nélkül üresen, letiltva látszik. |
 | M-11 | (v0.44) **A notch melletti gombok** (iPad, egérkövetés, billentyűzetzár, rögzítés, beállítások) sorrendje és láthatósága: *Megjelenés › Buttons beside the notch* húzással és kapcsolókkal, a notchban ⌘-húzással. A beállítások gombja nem rejthető el. |
 | M-12 | (v0.90) **Swipe a felső ikonsoron (M-9 módosítása):** a kinyitott panel felső sorában, a modulikonok fölött a kétujjas vízszintes swipe **modult vált** (nem csak az ikonokat lépteti), a swipe hosszával és lendületével arányosan: rövid húzás egy modul, hosszabb vagy erősebb (lendületes) húzás több modul (kb. egy ikonszélességenként egy). Az ikonsor követi, a kiválasztott ikon mindig látszik. Az utolsó és az első modulnál megáll (S-3). A tartalom fölötti swipe marad egy mozdulat = egy váltás (S-2). |
+| M-13 | (v0.91) **Megállás a végén (M-12 javítása):** ha a felső ikonsoron a swipe (a lendülettel együtt) eléri az első vagy az utolsó modult, ott megáll: az ikonsor egyszer jelzi a véget (kis visszarugózás), a gesztus maradék lendülete nem lép és nem rugózik tovább. Új gesztus újra léptet. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -363,6 +364,7 @@
 | R-16 | (v0.79) **Feladatszámláló (R-10, R-12 módosítása):** az ikon és a szám **mindig fehér**, mint a bal oldali badge-ek (nem halványul, ha nincs mai feladat). A lenyíló lista legfeljebb **6 sor** magas; ha több feladat van, a lista **görgethető** (a fejléc a helyén marad). |
 | R-17 | (v0.89) **Feladatszámláló lenyílója (R-10, R-12 módosítása):** a fejlécben **nincs Open gomb** (a számlálóra kattintás továbbra is a modult nyitja). Ha a számolt feladatok **több listában** vannak (pl. Tasks és Reminders), a fejlécben egymás melletti **kapszula-választó** (mint az AI fül választója, D-10) a listák nevével és darabszámával; alatta csak a választott lista feladatai. Alapból mindig az a lista, amelyikben a **legközelebbi határidős** feladat van (a lejárt is); ha egyikben sincs határidő, az első. A választás a lenyíló bezárásáig marad. A lenyíló a notch **designját** kapja (Liquid glass, Black to glass, D-1), mint a lenyitott panel. |
 | R-18 | (v0.90) **Lista-választó minden listával (R-17 javítása):** a kapszula-választó akkor jelenik meg, ha a nyitott feladatok **több listában** vannak, akkor is, ha a mai (ma esedékes vagy lejárt) feladatok csak az egyikben vannak. Listánként a lista mai feladatai, ha vannak, különben az összes nyitott; a kapszulán a lista neve és ez a szám. A számláló száma nem változik (R-10). |
+| R-19 | (v0.91) **Swipe a lista-választón (R-17 kiegészítése):** ha a feladatszámláló lenyílójában látszik a kapszula-választó, és az egér a lenyílón van, a kétujjas vízszintes swipe a listák között vált (balra húzva a következő, jobbra az előző), gesztusonként egyet; az első és az utolsó listánál megáll. |
 
 ---
 
@@ -756,6 +758,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-15 | (v0.89) **Külön fül:** az Értesítések modulban a Beeper fül után minden kiemelt hálózatnak saját füle van a nevével és az olvasatlan számával; benne a hálózat olvasatlan csevegései kártyaként, válaszmezővel (mint BP-1c). A jelvényére kattintva ez a fül nyílik; a swipe ezeken is végiglép. |
 | BP-16 | (v0.89) **Kivétel az összesítettből:** a kiemelt hálózat csevegései nem szerepelnek a Beeper összesített helyein: a Beeper jelvény száma és hover-listája, az All, Chats és Beeper fül olvasatlan-kártyái és a Beeper fül számlálója, a Notifications Wings Beeper-része. A Beeper fül kinyitott csevegőlistája továbbra is minden csevegést mutat. |
 | BP-17 | (v0.90) **Minden fiók hálózata kiemelhető (BP-13 kiegészítése):** a *Highlighted networks* listában a Beeperben **bekötött fiókok** összes hálózata szerepel (pl. Telegram, Google Chat), akkor is, ha nincs köztük a legutóbbi 60 csevegésben. A fiókokat a Beeper API-ból kéri (`/v1/accounts`, induláskor, majd 10 percenként); ugyanaz a hálózat kétféle írással (pl. „Google Chat” / „googlechat”) egyszer szerepel, a csevegések írásával. A napló csak a hálózatok számát írja. |
+| BP-18 | (v0.91) **Hálózati bot nélküli név (BP-2 javítása):** a Beeper API hálózati botként jelölt résztvevője (`isNetworkBot`, pl. a Google Chat munkahelyi fiókjában a szervezet neve, „Agora Software”) nem számít résztvevőnek: a csevegés nevéből kimarad (a „Bot, Név” címből „Név” lesz), és ha rajta kívül egyetlen másik ember van, a csevegés kettes beszélgetés (a másik ember képe, nincs feladónév a buborékok fölött). |
+| BP-19 | (v0.91) **Google Chat jelvény (BP-14 módosítása):** a kiemelt Google Chat hálózat jelvénye az app saját ikonja helyett ugyanaz a fehér **Google Chat jel**, mint a Google Chat web app jelvényéé (B-3, GC-5); a *Settings › App badges* listában más ikonra cserélhető. |
 
 ## 4y. Vágólapkezelő (v0.42)
 
@@ -1082,6 +1086,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.91.0** | A modulváltó swipe megáll az első/utolsó modulnál, swipe a feladatszámláló lista-választóján, Google Chat csevegések neve a szervezet botja nélkül, kiemelt Google Chat hálózat a Google Chat jellel (M-13, R-19, BP-18, BP-19) |
 | **v0.90.0** | Terminál a notchban fülekkel, swipe a felső ikonsoron több modult is lép, késleltetett nyitás jelvényről érkezve, monokróm jelvény- és értesítésikonok, iPad billentyűzet/egér a háttérben, Beeper-fiókok minden hálózata kiemelhető, megbízhatóbb váltó-swipe, feladatszámláló lista-választó javítása (TE-1…TE-9, M-12, N-24, B-12, E-26, TB-7, BP-17, AS-21, R-18) |
 | **v0.89.0** | Kiemelt Beeper-hálózatok saját jelvénnyel és füllel, iPad billentyűzet/egér összekapcsolás a tablet menüből, feladatszámláló lista-választóval és designnal, HUD az AI-szárny stílusában animált körrel, csak az alapértelmezett böngésző értesítései és fülei, hónapnév fekete háttér nélkül (BP-13…BP-16, TB-6, R-17, H-3c, E-2g, B-2c, K-15b) |
 | **v0.88.0** | Az egérkövető fókusz az Ardia mini ablakáról is visszavált a rendes Ardia ablakra (F-14c) |

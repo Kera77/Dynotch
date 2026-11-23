@@ -30,4 +30,23 @@ struct BeeperAvatarTests {
         let chat = try JSONDecoder().decode(BeeperChatInfo.self, from: Data(json.utf8))
         #expect(chat.pictureURL == nil)
     }
+
+    @Test func networkBotLeavesTheNameAndMakesItOneToOne() throws {
+        let json = """
+        {"id":"3","type":"group","title":"Agora Software, Anna","participants":{"items":[
+          {"id":"me","isSelf":true},
+          {"id":"org","fullName":"Agora Software","isNetworkBot":true},
+          {"id":"anna","fullName":"Anna","imgURL":"file:///anna.jpg"}]}}
+        """
+        let chat = try JSONDecoder().decode(BeeperChatInfo.self, from: Data(json.utf8))
+        #expect(chat.name == "Anna")
+        #expect(!chat.isGroup)
+        #expect(chat.pictureURL == "file:///anna.jpg")
+    }
+
+    @Test func googleChatNetworkIsRecognised() {
+        #expect(BeeperNetworkBadge.isGoogleChat("Google Chat"))
+        #expect(BeeperNetworkBadge.isGoogleChat("googlechat"))
+        #expect(!BeeperNetworkBadge.isGoogleChat("WhatsApp"))
+    }
 }

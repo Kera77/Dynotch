@@ -40,6 +40,11 @@ enum BeeperNetworkBadge {
 
     static func badgeID(_ network: String) -> String { prefix + network }
 
+    /// "Google Chat" or "googlechat" (spec BP-19).
+    static func isGoogleChat(_ network: String) -> Bool {
+        network.lowercased().filter { $0.isLetter } == "googlechat"
+    }
+
     static func network(fromBadgeID id: String) -> String? {
         id.hasPrefix(prefix) ? String(id.dropFirst(prefix.count)) : nil
     }

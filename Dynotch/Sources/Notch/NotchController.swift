@@ -72,6 +72,10 @@ final class NotchController {
         stepper.stepWidth = 50
         return stepper
     }()
+    /// The swipe over the feature icons reached an end: the rest of it is ignored (spec M-13).
+    var switcherReachedEnd = false
+    /// A swipe over the tasks counter's list picker (spec R-19).
+    var taskListSwipe = SwipeDetector()
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
     /// After the announcement was swiped away the pointer is still on it: no hover details until

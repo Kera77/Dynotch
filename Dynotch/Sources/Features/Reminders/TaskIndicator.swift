@@ -156,6 +156,19 @@ final class TaskIndicator: ObservableObject {
         return all.first { $0.listID == chosenListID } ?? TaskIndicatorLogic.defaultGroup(all)
     }
 
+    /// Chooses the next or previous list in the drop-down's picker, stopping at either end (spec R-19).
+    /// - Returns: whether the choice changed.
+    @discardableResult
+    func stepList(by offset: Int) -> Bool {
+        let all = groups
+        guard all.count > 1, let selected = selectedGroup,
+              let index = all.firstIndex(where: { $0.listID == selected.listID }) else { return false }
+        let target = min(max(index + offset, 0), all.count - 1)
+        guard target != index else { return false }
+        chosenListID = all[target].listID
+        return true
+    }
+
     /// Checked off from the drop-down.
     func complete(_ item: ReminderItem) {
         store.complete(item)

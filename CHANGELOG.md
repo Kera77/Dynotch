@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.91.0] - 2026-11-23
+
+### Changed
+- A highlighted Google Chat network's badge shows the same white Google Chat mark as the Google Chat web app's badge (BP-19).
+- A two-finger swipe over the tasks counter's drop-down switches between its lists (R-19).
+
+### Fixed
+- A long swipe over the module icons stops at the first or last module instead of bouncing on with the momentum (M-13).
+- Google Chat chats in Beeper no longer show the organisation's network bot (e.g. "Agora Software") in their name; such chats count as one-to-one (BP-18).
+
 ## [0.90.0] - 2026-11-23
 
 ### Added

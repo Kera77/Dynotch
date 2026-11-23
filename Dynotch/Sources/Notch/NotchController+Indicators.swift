@@ -244,12 +244,14 @@ extension NotchController {
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
         if handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
-        if let handled = handleDevicePeekScroll(event) { return handled }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
+        if let handled = handleDevicePeekScroll(event) ?? handleTaskListScroll(event, items: items, layout: layout) {
+            return handled
+        }
         if let handled = handleBesideMeetingScroll(event) { return handled }
         let announced = calendar.announcement.flatMap { announcement in
             items.firstIndex { if case .meeting(let item, _) = $0 { item.id == announcement.id } else { false } }
