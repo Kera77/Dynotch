@@ -10,6 +10,7 @@ extension NotificationService {
         chatWeb.onSnapshot = { [weak self] snapshot in
             self?.dropReadInChat(snapshot)
             self?.addUnreadFromChat(snapshot)
+            self?.refreshChatCards(snapshot)
         }
         chatWeb.start()
     }
@@ -70,7 +71,7 @@ extension NotificationService {
             internalID -= 1
             var card = AppNotification(
                 id: internalID, appIdentifier: identifier, title: conversation.name, subtitle: "",
-                body: Self.unreadText(conversation.unreadCount), date: now, site: "chat.google.com"
+                body: Self.cardText(conversation), date: now, site: "chat.google.com"
             )
             card.sourceIdentifier = Self.chatWebSource
             return card
@@ -81,6 +82,60 @@ extension NotificationService {
         guard primed else { return }
         unseen = Array((unseen + cards).suffix(Self.unseenLimit))
         if let newest = cards.last { showPeekAgain(newest) }
+    }
+
+    /// A card's text: the Home list's last message with its sender ("Gergő: Mindkettő jó",
+    /// "You: …"), or the unread count when the list could not be read (spec GW-21, GW-23).
+    nonisolated static func cardText(_ conversation: ChatWebConversation) -> String {
+        guard let preview = conversation.preview, !preview.text.isEmpty else { return unreadText(conversation.unreadCount) }
+        if preview.isMine { return "You: \(preview.text)" }
+        guard let sender = preview.sender, sender != conversation.name else { return preview.text }
+        return "\(sender): \(preview.text)"
+    }
+
+    /// A card made from the web app follows its conversation's last message (spec GW-23).
+    func refreshChatCards(_ snapshot: ChatWebSnapshot) {
+        var changed = false
+        for (index, card) in recent.enumerated() where card.sourceIdentifier == Self.chatWebSource {
+            guard let conversation = GoogleChatWebService.match(card.title, in: snapshot.conversations),
+                  conversation.isUnread, conversation.preview != nil
+            else { continue }
+            let text = Self.cardText(conversation)
+            guard text != card.body else { continue }
+            var updated = AppNotification(
+                id: card.id, appIdentifier: card.appIdentifier, title: card.title, subtitle: "",
+                body: text, date: card.date, site: card.site
+            )
+            updated.sourceIdentifier = Self.chatWebSource
+            recent[index] = updated
+            changed = true
+        }
+        if changed { DiagnosticsLog.append("notification-records", "Google Chat cards updated from the Home list") }
+    }
+
+    /// The Google Chat badge counts the web app's unread messages while it can be read (spec GW-22).
+    func chatBadgeLabel(for app: BadgeApp) -> String? {
+        guard Self.isGoogleChatApp(app), chatWeb.state == .reading, let snapshot = chatWeb.snapshot else { return nil }
+        let total = snapshot.unreadTotal
+        return total > 0 ? String(total) : ""
+    }
+
+    /// The Google Chat badge's hover list: the unread conversations with their last message (spec GW-22).
+    func chatBadgeRows(for app: BadgeApp, now: Date = Date()) -> [BadgeNotificationRow]? {
+        guard Self.isGoogleChatApp(app), chatWeb.state == .reading, let snapshot = chatWeb.snapshot else { return nil }
+        return snapshot.conversations.filter(\.isUnread).enumerated().map { index, conversation in
+            BadgeNotificationRow(
+                id: -20_000 - Int64(index), sender: conversation.name, detail: Self.cardText(conversation),
+                date: conversation.preview.flatMap { ChatWebTime.date(from: $0.time, now: now) }
+                    ?? chatWeb.lastSeenUnread[conversation.id] ?? now
+            )
+        }.sorted { $0.date > $1.date }
+    }
+
+    /// The Google Chat badge: the web app's, by name (not a highlighted Beeper network).
+    nonisolated static func isGoogleChatApp(_ app: BadgeApp) -> Bool {
+        BeeperNetworkBadge.network(fromBadgeID: app.bundleID) == nil
+            && BrowserTabBadges.site(forBadgeName: app.name) == BrowserTabBadges.chatSite
     }
 
     nonisolated static func unreadText(_ count: Int?) -> String {

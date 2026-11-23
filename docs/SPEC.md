@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.91 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.92 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -846,6 +846,10 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-14 | **Beállítás:** *Settings › Notifications › Google Chat*: „Read from the Google Chat web app” (alapból be), „Check every” (5–30 mp), és az állapot („Reading · N unread”, „The Google Chat web app isn't running”, „Not readable…”, „Needs Accessibility access”). |
 | GW-15 | A „Read from the web app” mód az UM-4-et váltja fel a Google Chatnél; a Google Chat fül és az All/Chats kártyák kinézete marad (GC-6), csak a forrásuk és a válasz módja változik. |
 | GW-16 | (Később, nincs a v0.68-ban) **Teljes beszélgetés olvasása (opcionális, alapból ki):** *„Load missing messages”*: a Dynotch a háttérben megnyitja a beszélgetést, kiolvassa az olvasatlan üzeneteket, majd „Mark as unread”-del visszaállítja. Figyelmeztetés: a küldő olvasottnak láthatja, a telefonon eltűnhet az értesítés. |
+| GW-21 | (v0.92) **Kezdőlap-lista (a GW-4 és GW-5 bővítése):** ha a Google Chat webapp a **Kezdőlapon** áll, a Dynotch a Kisegítő hozzáférésen át a Kezdőlap listáját is olvassa: beszélgetésenként a nevet, az időt („4 perc”, „12:30”, „Tegnap”), az „Olvasatlan” jelzést, a darabszámot („1 értesítés”) és a **legutolsó üzenetet a feladójával** („Gergő Karádi: Mindkettő jó”; privát beszélgetésnél feladó nélkül, a sajátnál „Ön:”). A listasort az azonosítója, különben a pontos neve köti az oldalsáv beszélgetéséhez; amelyik bármelyik listában olvasatlan, az olvasatlan. Csak olvas, semmit nem nyit meg és nem jelöl olvasottnak. |
+| GW-22 | (v0.92) **Google Chat jelvény a webappból (a B-2c helyett a Google Chatnél):** amíg a webapp olvasható, a Google Chat jelvény száma a webapp olvasatlan üzeneteinek összege (beszélgetésenként a darabszám, ennek hiányában 1), nem a böngészőfül címe és nem a Dock-jelvény. A jelvény **hover-listája** az olvasatlan beszélgetések: név, utolsó üzenet a feladójával (ha nincs Kezdőlap-lista: „N unread messages in Google Chat”), idő. Ha a webapp nem olvasható, a B-2c és a Dock-jelvény marad. |
+| GW-23 | (v0.92) **Kártyák szöveggel (a GW-5b/GW-5c módosítása):** az értesítés nélküli olvasatlan beszélgetés kártyáján (All, Chats, Google Chat fül) a Kezdőlap-lista utolsó üzenete áll a feladójával („Anna: Kész”, a sajátnál „You: …”), nem „N unread message(s)”; új üzenetnél a kártya szövege frissül (felugrás nélkül). Kártyanyitáskor a teljes olvasatlan szöveg betöltése (GW-17) változatlan. |
+| GW-24 | (v0.92) **Ha a Kezdőlap nem olvasható:** a Safari a Dockba (kis méretre) tett ablak Kezdőlap-listáját nem adja ki, csak az oldalsávot. Ilyenkor a név és a szám az oldalsávból, a szöveg az értesítésekből jön (GW-5, GW-5b); a Beállítások állapota: „Reading · N unread · with message text”, illetve „· no message text: open the web app's Home and keep its window out of the Dock”. Az ablak lehet másik asztalon vagy más ablakok mögött. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -1025,6 +1029,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | GM-13 | (v0.85) **A levelek a Mail adatbázisából:** a Dynotch AppleScripttel csak a Mail fiókjait kéri le (név, szerver, címek, be van-e kapcsolva; indításkor, majd legfeljebb 10 percenként, ha a Mail fut), leveleket nem. Az Inboxok olvasatlan-száma és a legfrissebb 50 olvasatlan levél feladója, tárgya, ideje és Message-ID-ja a Mail saját indexéből jön (`~/Library/Mail/V*/MailData/Envelope Index`, csak olvasva, a meglévő Full Disk Accessszel). Gmail-fióknál az Inbox címke is számít. Ok: egy több mint 100 000 leveles Inboxnál a levelek AppleScriptes lekérése perceken át lefoglalta a Mailt („nem válaszol”). Ha a Mail nem fut, a már ismert fiókok adatai továbbra is látszanak. |
 | GM-14 | (v0.85) **Visszalépés:** ha a Mail nem válaszol a fiók-lekérdezésre (15 mp), a következő próba 1, 2, 5, majd 15 perc múlva jön (egymás utáni hibáknál egyre később); a Gmail-értesítés sem kérdez közben. Sikeres válasz után újra a GM-5 ütem. |
 | GM-15 | (v0.85) **Kilőtt Mail nem indul újra:** ha a Mail kilép (kézzel vagy kényszerített kilépéssel), a Dynotch nem indítja el újra rejtve (GM-9), amíg a Mail újra nem fut és nem válaszol. |
+| GM-16 | (v0.92) **Csak a Primary (Gmail-fülek):** IMAP-on a Gmail fülei nem látszanak, a Mail az egész Inboxot látja. Ha a Gmail-fióknak van a *Settings › Notifications › Gmail › Gmail Primary label* nevű címkéje (alapból „Primary”; a Gmailben egy `category:primary` szűrő adja), a jelvény száma, a hover-lista és a Mail fül csak az Inbox **és** e címke közös olvasatlan leveleit mutatja, mint a Gmail Primary füle. Címke nélkül (vagy üres mezővel) az egész Inbox, mint eddig. Más fióknál mindig az Inbox. |
 
 ## 4ő++++. Terminál a notchban (v0.90)
 
@@ -1086,6 +1091,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.92.0** | Google Chat a Safari-webapp Kezdőlapjáról: jelvényszám, hover-lista és kártyák a legutolsó üzenettel és a feladóval; Gmail az Apple Mailből csak a Primary címkével (GW-21…GW-24, GM-16) |
 | **v0.91.0** | A modulváltó swipe megáll az első/utolsó modulnál, swipe a feladatszámláló lista-választóján, Google Chat csevegések neve a szervezet botja nélkül, kiemelt Google Chat hálózat a Google Chat jellel (M-13, R-19, BP-18, BP-19) |
 | **v0.90.0** | Terminál a notchban fülekkel, swipe a felső ikonsoron több modult is lép, késleltetett nyitás jelvényről érkezve, monokróm jelvény- és értesítésikonok, iPad billentyűzet/egér a háttérben, Beeper-fiókok minden hálózata kiemelhető, megbízhatóbb váltó-swipe, feladatszámláló lista-választó javítása (TE-1…TE-9, M-12, N-24, B-12, E-26, TB-7, BP-17, AS-21, R-18) |
 | **v0.89.0** | Kiemelt Beeper-hálózatok saját jelvénnyel és füllel, iPad billentyűzet/egér összekapcsolás a tablet menüből, feladatszámláló lista-választóval és designnal, HUD az AI-szárny stílusában animált körrel, csak az alapértelmezett böngésző értesítései és fülei, hónapnév fekete háttér nélkül (BP-13…BP-16, TB-6, R-17, H-3c, E-2g, B-2c, K-15b) |

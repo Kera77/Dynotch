@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var switcherObserver: AnyCancellable?
     private var screenshotObserver: AnyCancellable?
     private var mailBadgeObserver: AnyCancellable?
+    private var chatBadgeObserver: AnyCancellable?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -261,8 +262,13 @@ extension AppDelegate {
     /// Beeper networks' badges of their own (spec BP-14).
     func startBadges() {
         services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
-        services.badges.labelOverride = { [weak notifications = services.notifications] in notifications?.mailBadgeLabel(for: $0) }
+        services.badges.labelOverride = { [weak notifications = services.notifications] app in
+            notifications?.mailBadgeLabel(for: app) ?? notifications?.chatBadgeLabel(for: app)
+        }
         mailBadgeObserver = services.notifications.mail.objectWillChange.sink { [weak badges = services.badges] in
+            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
+        }
+        chatBadgeObserver = services.notifications.chatWeb.objectWillChange.sink { [weak badges = services.badges] in
             DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
         }
         services.badges.beeperNetworks = { [weak beeper = services.beeper] in beeper?.highlightedNetworks ?? [] }

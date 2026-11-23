@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.92.0] - 2026-11-23
+
+### Changed
+- Google Chat reads the Safari web app's Home list: the badge counts its unread messages, and the badge's hover list and the cards show each unread conversation's last message with its sender (GW-21, GW-22, GW-23).
+- Settings › Google Chat says whether message text can be read; it can't while the web app's window is minimized to the Dock (GW-24).
+- Gmail via Apple Mail can count only Gmail's Primary tab: with a Gmail filter that labels category:primary mail "Primary", only the Inbox mail with that label counts (GM-16).
+
 ## [0.91.0] - 2026-11-23
 
 ### Changed

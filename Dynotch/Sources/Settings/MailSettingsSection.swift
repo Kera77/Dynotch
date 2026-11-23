@@ -20,6 +20,7 @@ struct MailSettingsSection: View {
                         Text(account.name + (account.isGmail ? " (Gmail)" : ""))
                     }
                 }
+                TextField("Gmail Primary label", text: $mail.primaryLabel, prompt: Text("Primary"))
                 LabeledContent("Check every") {
                     HStack(spacing: 6) {
                         Text("\(mail.interval) s").monospacedDigit()
@@ -37,7 +38,9 @@ struct MailSettingsSection: View {
             Text(settings.mailSource == .appleMail
                 ? "Reads the unread mail of the accounts set up in Apple Mail, only reading, never marking anything read; "
                     + "each account chosen gets a group in the Mail tab. Mail must run to fetch new mail. To keep it quiet, "
-                    + "turn off its notifications and badge in System Settings. Nothing is kept on disk."
+                    + "turn off its notifications and badge in System Settings. Nothing is kept on disk. "
+                    + "With a Gmail filter that gives category:primary mail this label, only the Inbox mail "
+                    + "that has it counts, as in Gmail's Primary tab; without the label, the whole Inbox."
                 : "Sender and subject come from Gmail's notifications: mail that came without one does not show.")
                 .font(.caption)
                 .foregroundStyle(.secondary)

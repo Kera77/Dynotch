@@ -38,6 +38,11 @@ final class MailService: ObservableObject {
         didSet { defaults.set(keepsMailRunning, forKey: "mailKeepRunning"); if keepsMailRunning { refresh() } }
     }
 
+    /// Gmail's label for its Primary tab: only the Inbox mail with it counts (spec GM-16).
+    @Published var primaryLabel: String {
+        didSet { defaults.set(primaryLabel, forKey: "mailPrimaryLabel"); refresh() }
+    }
+
     private let settings: AppSettings
     private let defaults: UserDefaults
     private var timer: Timer?
@@ -66,6 +71,7 @@ final class MailService: ObservableObject {
         let stored = defaults.object(forKey: "mailInterval") as? Int ?? 60
         interval = min(max(stored, Self.intervalRange.lowerBound), Self.intervalRange.upperBound)
         keepsMailRunning = defaults.object(forKey: "mailKeepRunning") as? Bool ?? true
+        primaryLabel = defaults.string(forKey: "mailPrimaryLabel") ?? "Primary"
     }
 
     /// Mail is the source of Gmail (spec GM-12).
@@ -140,8 +146,9 @@ final class MailService: ObservableObject {
         }
         isReading = true
         let known = infos
+        let label = primaryLabel
         Task.detached(priority: .utility) {
-            let outcome = Self.read(known: known, asksAccounts: asksAccounts, path: path)
+            let outcome = Self.read(known: known, asksAccounts: asksAccounts, path: path, label: label)
             await MainActor.run { [weak self] in self?.finish(outcome) }
         }
     }
@@ -156,7 +163,7 @@ final class MailService: ObservableObject {
     }
 
     /// Blocks: runs off the main thread.
-    nonisolated private static func read(known: [MailAccountInfo]?, asksAccounts: Bool, path: String) -> Outcome {
+    nonisolated private static func read(known: [MailAccountInfo]?, asksAccounts: Bool, path: String, label: String) -> Outcome {
         var outcome = Outcome()
         var current = known
         if asksAccounts {
@@ -171,7 +178,7 @@ final class MailService: ObservableObject {
         }
         guard let current else { return outcome }
         do {
-            outcome.accounts = try MailDatabase.read(accounts: current, path: path)
+            outcome.accounts = try MailDatabase.read(accounts: current, path: path, label: label)
         } catch {
             outcome.databaseError = String(describing: error)
         }

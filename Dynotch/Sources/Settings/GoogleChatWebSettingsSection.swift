@@ -36,7 +36,10 @@ struct GoogleChatWebSettingsSection: View {
         case .notRunning: "The Google Chat web app isn't running"
         case .notRecognized: "Not readable: the page wasn't recognized"
         case .reading:
-            "Reading · \(chatWeb.snapshot?.conversations.filter(\.isUnread).count ?? 0) unread"
+            "Reading · \(chatWeb.snapshot?.unreadTotal ?? 0) unread"
+                + (chatWeb.snapshot?.hasHome == true
+                    ? " · with message text"
+                    : " · no message text: open the web app's Home and keep its window out of the Dock")
         }
     }
 }

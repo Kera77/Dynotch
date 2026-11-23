@@ -37,6 +37,12 @@ struct MailTests {
         #expect(MailParser.inboxAccount(url: "ews://ABC-2/Inbox") == "ABC-2")
         #expect(MailParser.inboxAccount(url: "imap://ABC-1/%5BGmail%5D/All%20Mail") == nil)
         #expect(MailParser.inboxAccount(url: "imap://ABC-1/Archive/INBOX") == nil)
+        // A Gmail label's mailbox, also nested (spec GM-16).
+        #expect(MailParser.labelAccount(url: "imap://ABC-1/Primary", label: "primary") == "ABC-1")
+        #expect(MailParser.labelAccount(url: "imap://ABC-1/Dynotch%2FPrimary", label: "Dynotch/Primary") == "ABC-1")
+        #expect(MailParser.labelAccount(url: "imap://ABC-1/Work/Primary", label: "Work/Primary") == "ABC-1")
+        #expect(MailParser.labelAccount(url: "imap://ABC-1/INBOX", label: "Primary") == nil)
+        #expect(MailParser.labelAccount(url: "imap://ABC-1/Primary", label: " ") == nil)
     }
 
     @Test func recognizesGmail() {

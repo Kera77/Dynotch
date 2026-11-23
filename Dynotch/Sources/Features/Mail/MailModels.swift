@@ -110,6 +110,18 @@ enum MailParser {
         return name.caseInsensitiveCompare("INBOX") == .orderedSame ? String(parts[0]) : nil
     }
 
+    /// The account of a mailbox with this name ("imap://ABC/Primary", label "Primary"; a nested
+    /// label "Work/Primary" too), case-insensitive; nil for any other mailbox (spec GM-16).
+    static func labelAccount(url: String, label: String) -> String? {
+        let wanted = label.trimmingCharacters(in: .whitespaces)
+        guard !wanted.isEmpty, let schemeEnd = url.range(of: "://") else { return nil }
+        let parts = url[schemeEnd.upperBound...].split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count >= 2, !parts[0].isEmpty else { return nil }
+        let path = parts.dropFirst().joined(separator: "/")
+        let name = path.removingPercentEncoding ?? path
+        return name.caseInsensitiveCompare(wanted) == .orderedSame ? String(parts[0]) : nil
+    }
+
     /// Google's IMAP server, or a Gmail address.
     static func isGmail(server: String, addresses: [String]) -> Bool {
         let server = server.lowercased()

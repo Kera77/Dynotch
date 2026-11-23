@@ -88,6 +88,7 @@ extension NotificationService {
         // A highlighted Beeper network: its unread chats (spec BP-14).
         if let network = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) { return beeper.badgeRows(network: network) }
         if let mailRows = mailBadgeRows(for: app) { return mailRows }
+        if let chatRows = chatBadgeRows(for: app) { return chatRows }
         var rows = badgeRows(for: app)
         if WebNotificationSource.isWebApp(app.bundleID), let count = BadgeTracker.count(badge.label) {
             rows = Array(rows.prefix(max(count, 0)))

@@ -9,9 +9,24 @@ struct ChatWebConversation: Equatable, Sendable {
     let isUnread: Bool
     /// The unread count the sidebar shows ("1 értesítés"), if any (spec GW-5b).
     var unreadCount: Int?
+    /// The last message as the Home list shows it, when the list could be read (spec GW-21).
+    var preview: ChatWebPreview?
 
     /// The id without its kind: the part the page's address shows.
     var key: String { id.split(separator: "/").last.map(String.init) ?? id }
+}
+
+/// One row of the web app's Home list: the conversation's last message (spec GW-21).
+struct ChatWebPreview: Equatable, Sendable {
+    let name: String
+    /// "4 perc", "12:30", "Tegnap": as the list shows it.
+    let time: String
+    /// Who wrote it: nil in a direct message, where it is the conversation's name.
+    let sender: String?
+    let text: String
+    var isMine = false
+    var isUnread = false
+    var count: Int?
 }
 
 /// A message of the conversation open in the web app.
@@ -30,6 +45,13 @@ struct ChatWebSnapshot: Equatable, Sendable {
     var messages: [ChatWebMessage] = []
     /// The message box's text, nil when there is none.
     var composer: String?
+    /// The Home list could be read: previews come with the conversations (spec GW-21, GW-24).
+    var hasHome = false
+
+    /// Unread messages in all: an unread conversation without a count counts one (spec GW-22).
+    var unreadTotal: Int {
+        conversations.filter(\.isUnread).reduce(0) { $0 + max($1.unreadCount ?? 1, 1) }
+    }
 }
 
 /// Reads the Google Chat web app (Safari, added to the Dock) through Accessibility only: no
@@ -95,6 +117,88 @@ enum GoogleChatWebReader {
         return ((isDirect ? rest.last : rest.first) ?? "", count)
     }
 
+    /// A Home list row (spec GW-21).
+    private static let homeItemClass = "o7n3Nd"
+    private static let keyboardHints = ["Tab billentyű", "Tab key", "press Tab", "Press Tab"]
+
+    /// Whether a text is the Home list's time: "4 perc", "2 óra", "12:30", "Tegnap", "H", "nov. 20.".
+    nonisolated static func isTime(_ text: String) -> Bool {
+        let patterns = [
+            #"^\d+ (perc|óra|nap|min|mins|hr|hrs|hour|hours|day|days)$"#, #"^\d{1,2}:\d{2}( ?[AaPp][Mm])?$"#,
+            #"^(Most|Tegnap|Now|Just now|Yesterday)$"#, #"^(H|K|Sze|Cs|P|Szo|V|Mon|Tue|Wed|Thu|Fri|Sat|Sun)$"#,
+            #"^[a-zé]{3,5}\. \d{1,2}\.$"#, #"^\d{4}\. "#, #"^[A-Z][a-z]{2} \d{1,2}(, \d{4})?$"#
+        ]
+        return patterns.contains { text.range(of: $0, options: .regularExpression) != nil }
+    }
+
+    /// A Home list row from its texts in page order: name, time, "Olvasatlan", "Sender: text",
+    /// keyboard hint, "1 értesítés". A direct message's status ("Nincs a gépnél") may come before
+    /// its name. Nil when no time or no message is found.
+    nonisolated static func homePreview(_ texts: [String]) -> ChatWebPreview? {
+        let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { text in !text.isEmpty && !keyboardHints.contains { text.contains($0) } }
+        guard let timeIndex = trimmed.firstIndex(where: isTime), timeIndex > 0 else { return nil }
+        let name = trimmed[timeIndex - 1]
+        var isUnread = false
+        var count: Int?
+        var message: String?
+        for text in trimmed[(timeIndex + 1)...] {
+            if unreadMarkers.contains(text.lowercased()) {
+                isUnread = true
+            } else if let number = leadingCount(text) {
+                count = number
+            } else if message == nil {
+                message = text
+            }
+        }
+        guard let message else { return nil }
+        let (sender, body) = splitSender(message)
+        return ChatWebPreview(
+            name: name, time: trimmed[timeIndex], sender: sender, text: body,
+            isMine: sender.map { ownNames.contains($0) } ?? false, isUnread: isUnread || count != nil, count: count
+        )
+    }
+
+    /// "Gergő Karádi: Mindkettő jó" → ("Gergő Karádi", "Mindkettő jó"); a text without a short
+    /// name before its first colon has no sender.
+    nonisolated static func splitSender(_ message: String) -> (String?, String) {
+        guard let colon = message.range(of: ": ") else { return (nil, message) }
+        let sender = String(message[..<colon.lowerBound])
+        guard !sender.isEmpty, sender.count <= 60, !sender.contains("\n"), !sender.contains("http") else { return (nil, message) }
+        return (sender, String(message[colon.upperBound...]))
+    }
+
+    /// "1 értesítés" → 1: a number, a space and a word.
+    private nonisolated static func leadingCount(_ text: String) -> Int? {
+        let digits = text.prefix { $0.isNumber }
+        guard !digits.isEmpty, text.dropFirst(digits.count).first == " ",
+              text.split(separator: " ").count == 2 else { return nil }
+        return Int(digits)
+    }
+
+    /// Previews joined to the sidebar's conversations: by the row's id, or else by an exact name.
+    /// Unread in either list is unread (spec GW-21, GW-22).
+    nonisolated static func merge(
+        _ previews: [(id: String?, preview: ChatWebPreview)], into conversations: [ChatWebConversation]
+    ) -> [ChatWebConversation] {
+        var result = conversations
+        for (id, preview) in previews {
+            let index = id.flatMap { id in result.firstIndex { $0.id == id } }
+                ?? (result.filter { $0.name == preview.name }.count == 1 ? result.firstIndex { $0.name == preview.name } : nil)
+            guard let index else { continue }
+            result[index].preview = preview
+            if preview.isUnread && !result[index].isUnread {
+                result[index] = ChatWebConversation(
+                    id: result[index].id, name: result[index].name, isUnread: true,
+                    unreadCount: preview.count, preview: preview
+                )
+            } else if let count = preview.count, count > (result[index].unreadCount ?? 0), result[index].isUnread {
+                result[index].unreadCount = count
+            }
+        }
+        return result
+    }
+
     /// The message box counts as empty with only spaces, new lines or zero-width characters.
     nonisolated static func isBlank(_ text: String) -> Bool {
         text.unicodeScalars.allSatisfy { CharacterSet.whitespacesAndNewlines.contains($0) || $0.value == 0x200B || $0.value == 0xFEFF }
@@ -110,7 +214,8 @@ enum GoogleChatWebReader {
         for window in windows { walker.walk(window) }
         guard walker.foundPage, !walker.conversations.isEmpty else { return nil }
         var snapshot = ChatWebSnapshot()
-        snapshot.conversations = walker.conversations
+        snapshot.conversations = merge(walker.previews, into: walker.conversations)
+        snapshot.hasHome = !walker.previews.isEmpty
         snapshot.openID = walker.openID
         snapshot.messages = walker.messages
         snapshot.composer = walker.composer.flatMap { AXRead.string($0, kAXValueAttribute) ?? "" }
@@ -151,6 +256,7 @@ enum GoogleChatWebReader {
     /// Walks the page once and collects what the reader needs.
     private struct Walker {
         var conversations: [ChatWebConversation] = []
+        var previews: [(id: String?, preview: ChatWebPreview)] = []
         var links: [String: AXUIElement] = [:]
         var messages: [ChatWebMessage] = []
         var openID: String?
@@ -180,6 +286,13 @@ enum GoogleChatWebReader {
             let role = AXRead.string(element, kAXRoleAttribute) ?? ""
             if role == "AXWebArea" { readPage(element) }
             let domID = AXRead.string(element, "AXDOMIdentifier") ?? ""
+            if role == (kAXGroupRole as String),
+               AXRead.strings(element, "AXDOMClassList").contains(GoogleChatWebReader.homeItemClass) {
+                if let preview = GoogleChatWebReader.homePreview(AXRead.texts(in: element)) {
+                    previews.append((GoogleChatWebReader.conversationID(fromDOM: domID), preview))
+                }
+                return false
+            }
             if let id = GoogleChatWebReader.conversationID(fromDOM: domID) {
                 readItem(element, id: id)
                 return false
@@ -234,58 +347,5 @@ enum GoogleChatWebReader {
             conversations.append(conversation)
             links[id] = link
         }
-    }
-}
-
-/// Small Accessibility accessors.
-enum AXRead {
-    nonisolated static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
-        return value
-    }
-
-    nonisolated static func string(_ element: AXUIElement, _ attribute: String) -> String? {
-        value(element, attribute) as? String
-    }
-
-    nonisolated static func strings(_ element: AXUIElement, _ attribute: String) -> [String] {
-        value(element, attribute) as? [String] ?? []
-    }
-
-    nonisolated static func bool(_ element: AXUIElement, _ attribute: String) -> Bool? {
-        value(element, attribute) as? Bool
-    }
-
-    nonisolated static func url(_ element: AXUIElement) -> URL? {
-        value(element, kAXURLAttribute) as? URL
-    }
-
-    nonisolated static func children(_ element: AXUIElement) -> [AXUIElement] {
-        guard let list = value(element, kAXChildrenAttribute), CFGetTypeID(list) == CFArrayGetTypeID() else { return [] }
-        return (list as? [AXUIElement]) ?? []
-    }
-
-    /// The first element with the role under `root` (page order, without recursion) that passes `test`.
-    nonisolated static func first(
-        in root: AXUIElement, role: String, limit: Int = 8000, where test: (AXUIElement) -> Bool = { _ in true }
-    ) -> AXUIElement? {
-        var stack = [root]
-        var visited = 0
-        while let element = stack.popLast(), visited < limit {
-            visited += 1
-            if string(element, kAXRoleAttribute) == role, test(element) { return element }
-            stack += children(element).reversed()
-        }
-        return nil
-    }
-
-    /// The static texts under an element, in order.
-    nonisolated static func texts(in element: AXUIElement, depth: Int = 0) -> [String] {
-        guard depth < 12 else { return [] }
-        if string(element, kAXRoleAttribute) == (kAXStaticTextRole as String) {
-            return [string(element, kAXValueAttribute) ?? ""].filter { !$0.isEmpty }
-        }
-        return children(element).flatMap { texts(in: $0, depth: depth + 1) }
     }
 }
