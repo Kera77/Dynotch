@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.93.0] - 2026-11-23
+
+### Fixed
+
+- Google Chat: a Home list row with only "1 notification" (old spaces keep it after reading) no longer counts as unread, so the badge no longer stays at 3 with nothing unread (GW-26).
+- Google Chat: an unread conversation gets its card unless a notification belongs to that conversation alone; when one still gets no card, the log says why (GW-25).
+- The notification list's header counts the open tab's notifications, not every tab's (UM-11).
+
 ## [0.92.0] - 2026-11-23
 
 ### Changed

@@ -29,6 +29,17 @@ struct GoogleChatHomeTests {
         #expect(own.text == "rendben, holnap: 10-kor")
     }
 
+    /// An old space keeps "1 értesítés" after it was read: without "Olvasatlan" it is read (spec GW-26).
+    @Test func countAloneIsNotUnread() throws {
+        let preview = try #require(GoogleChatWebReader.homePreview(["StickyPrompts Support", "Cs", "Anna: kész", hint, "1 értesítés"]))
+        #expect(!preview.isUnread)
+        #expect(preview.count == nil)
+        let sidebar = [ChatWebConversation(id: "space/S", name: "StickyPrompts Support", isUnread: false)]
+        let merged = GoogleChatWebReader.merge([(id: "space/S", preview: preview)], into: sidebar)
+        #expect(!merged[0].isUnread)
+        #expect(ChatWebSnapshot(conversations: merged).unreadTotal == 0)
+    }
+
     @Test func rejectsRowsWithoutTimeOrMessage() {
         #expect(GoogleChatWebReader.homePreview(["Krisztián, István", "Beszélgetés", "Kitűzött beszélgetés"]) == nil)
         #expect(GoogleChatWebReader.homePreview(["Anna", "4 perc", hint]) == nil)

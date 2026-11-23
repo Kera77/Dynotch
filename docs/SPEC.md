@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.92 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.93 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -730,6 +730,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | UM-8d | (v0.70, mint FT-4d) Az értesítés-nézet fülei (All, Chats, Beeper, Google Chat) között a swipe **csak akkor vált fület, ha az egér a fülválasztó során van**; máshol a swipe modult vált. |
 | UM-9 | (v0.43) A **Chats** fülön az olvasatlan Beeper-csevegések újra **értesítéskártyák**, mint a Beeper-fül előtt: kattintásra lenyílnak az olvasatlan üzenetek, soronként saját reply gombbal, alattuk a válaszmező (a Beeperen át küld). A Beeper saját értesítései itt nem duplázódnak. Fülváltáskor a tartalom becsúszik, mint a tálcán. |
 | UM-10 | (v0.51) A Beeper-értesítések (All és Chats fül) eltűnnek, amint a Beeper a csevegésüket már nem tartja olvasatlannak (a Beeper API alapján, a csevegés neve szerint). Ismeretlen nevű csevegésé marad. |
+| UM-11 | (v0.93) A lista fejléce („N notification(s)”) az adott fülön **látható** értesítéseket és kártyákat számolja (pl. a Google Chat fülön csak a Google Chatéit), nem az összes fül értesítéseit. |
 
 ## 4x. Beeper a notchban (v0.42)
 
@@ -850,6 +851,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-22 | (v0.92) **Google Chat jelvény a webappból (a B-2c helyett a Google Chatnél):** amíg a webapp olvasható, a Google Chat jelvény száma a webapp olvasatlan üzeneteinek összege (beszélgetésenként a darabszám, ennek hiányában 1), nem a böngészőfül címe és nem a Dock-jelvény. A jelvény **hover-listája** az olvasatlan beszélgetések: név, utolsó üzenet a feladójával (ha nincs Kezdőlap-lista: „N unread messages in Google Chat”), idő. Ha a webapp nem olvasható, a B-2c és a Dock-jelvény marad. |
 | GW-23 | (v0.92) **Kártyák szöveggel (a GW-5b/GW-5c módosítása):** az értesítés nélküli olvasatlan beszélgetés kártyáján (All, Chats, Google Chat fül) a Kezdőlap-lista utolsó üzenete áll a feladójával („Anna: Kész”, a sajátnál „You: …”), nem „N unread message(s)”; új üzenetnél a kártya szövege frissül (felugrás nélkül). Kártyanyitáskor a teljes olvasatlan szöveg betöltése (GW-17) változatlan. |
 | GW-24 | (v0.92) **Ha a Kezdőlap nem olvasható:** a Safari a Dockba (kis méretre) tett ablak Kezdőlap-listáját nem adja ki, csak az oldalsávot. Ilyenkor a név és a szám az oldalsávból, a szöveg az értesítésekből jön (GW-5, GW-5b); a Beállítások állapota: „Reading · N unread · with message text”, illetve „· no message text: open the web app's Home and keep its window out of the Dock”. Az ablak lehet másik asztalon vagy más ablakok mögött. |
+| GW-25 | (v0.93) **Kártya minden olvasatlan beszélgetéshez (a GW-5b javítása):** a webapp olvasatlan beszélgetése csak akkor marad kártya nélkül, ha a listában van olyan Google Chat értesítés, amely **egyértelműen ehhez** a beszélgetéshez tartozik (ugyanaz az egyeztetés, mint a GW-7-nél; egy másik beszélgetés laza névegyezése nem elég). Ha olvasatlan beszélgetéshez mégsem lesz kártya, a `notification-records` log megírja az okát (név nélkül), így a jelvény (GW-22) és a Google Chat fül nem mondhat ellent egymásnak észrevétlenül. |
+| GW-26 | (v0.93) **A Kezdőlap darabszáma magában nem olvasatlan (a GW-21 javítása):** a Kezdőlap-lista sora csak az „Olvasatlan” jelzéssel számít olvasatlannak; az „1 értesítés” felirat régi tereknél olvasás után is megmarad, ezért egyedül nem növeli a jelvényt (GW-22), és nem ad kártyát. A darabszámot csak olvasatlan sornál használja. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -1091,6 +1094,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.93.0** | Google Chat: a Kezdőlap „1 értesítés” felirata magában nem olvasatlan (nem ragad be a jelvény), kártya minden olvasatlan beszélgetéshez, a lista fejléce a fül saját értesítéseit számolja (GW-25, GW-26, UM-11) |
 | **v0.92.0** | Google Chat a Safari-webapp Kezdőlapjáról: jelvényszám, hover-lista és kártyák a legutolsó üzenettel és a feladóval; Gmail az Apple Mailből csak a Primary címkével (GW-21…GW-24, GM-16) |
 | **v0.91.0** | A modulváltó swipe megáll az első/utolsó modulnál, swipe a feladatszámláló lista-választóján, Google Chat csevegések neve a szervezet botja nélkül, kiemelt Google Chat hálózat a Google Chat jellel (M-13, R-19, BP-18, BP-19) |
 | **v0.90.0** | Terminál a notchban fülekkel, swipe a felső ikonsoron több modult is lép, késleltetett nyitás jelvényről érkezve, monokróm jelvény- és értesítésikonok, iPad billentyűzet/egér a háttérben, Beeper-fiókok minden hálózata kiemelhető, megbízhatóbb váltó-swipe, feladatszámláló lista-választó javítása (TE-1…TE-9, M-12, N-24, B-12, E-26, TB-7, BP-17, AS-21, R-18) |

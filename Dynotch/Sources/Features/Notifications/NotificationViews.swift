@@ -188,7 +188,9 @@ struct NotificationsFeatureView: View {
                     .font(.notch(size: 11, weight: .semibold))
                     .foregroundStyle(Color.white.level(0.75))
             } else {
-                Text("\(service.recent.count) notification\(service.recent.count == 1 ? "" : "s")")
+                // The tab's own notifications, not every tab's (spec UM-11).
+                let count = shown.count
+                Text("\(count) notification\(count == 1 ? "" : "s")")
                     .font(.notch(size: 11, weight: .medium))
                     .foregroundStyle(Color.white.level(0.5))
                 Spacer()

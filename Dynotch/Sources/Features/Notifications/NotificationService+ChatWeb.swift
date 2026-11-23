@@ -61,12 +61,16 @@ extension NotificationService {
         chatWebPrimed = true
         let unread = snapshot.conversations.filter(\.isUnread)
         chatUnreadCarded.formIntersection(unread.map(\.id))
-        guard let identifier = GoogleChatWebService.webAppIdentifier(), isEnabled(catalog.app(for: identifier)) else { return }
-        let listed = recent.filter(isGoogleChat)
-        let cards = unread.filter { conversation in
-            !chatUnreadCarded.contains(conversation.id) && !conversation.name.isEmpty
-                && !listed.contains { GoogleChatWebService.match($0.title, in: [conversation]) != nil }
-        }.map { conversation -> AppNotification in
+        guard let identifier = GoogleChatWebService.webAppIdentifier(), isEnabled(catalog.app(for: identifier)) else {
+            if !unread.isEmpty { logChatSkipped("Google Chat unread without a card: \(unread.count) (web app off in Notifications)") }
+            return
+        }
+        // Only a notification that belongs to this conversation alone covers it (spec GW-25).
+        let covered = Set(recent.filter(isGoogleChat).compactMap {
+            GoogleChatWebService.match($0.title, in: snapshot.conversations)?.id
+        })
+        let waiting = unread.filter { !chatUnreadCarded.contains($0.id) }
+        let cards = waiting.filter { !$0.name.isEmpty && !covered.contains($0.id) }.map { conversation -> AppNotification in
             chatUnreadCarded.insert(conversation.id)
             internalID -= 1
             var card = AppNotification(
@@ -76,12 +80,28 @@ extension NotificationService {
             card.sourceIdentifier = Self.chatWebSource
             return card
         }
+        logSkipped(waiting: waiting, carded: cards.count, covered: covered)
         guard !cards.isEmpty else { return }
         DiagnosticsLog.append("notification-records", "unread in Google Chat without a notification: \(cards.count) card(s)")
         recent = Array((cards + recent).prefix(Self.historyLimit))
         guard primed else { return }
         unseen = Array((unseen + cards).suffix(Self.unseenLimit))
         if let newest = cards.last { showPeekAgain(newest) }
+    }
+
+    /// Why an unread conversation got no card, without names (spec GW-25).
+    private func logSkipped(waiting: [ChatWebConversation], carded: Int, covered: Set<String>) {
+        guard waiting.count > carded else { return logChatSkipped("") }
+        let noName = waiting.filter(\.name.isEmpty).count
+        let byNotification = waiting.filter { !$0.name.isEmpty && covered.contains($0.id) }.count
+        let skipped = waiting.count - carded
+        logChatSkipped("Google Chat unread without a new card: \(skipped) (no name \(noName), has a notification \(byNotification))")
+    }
+
+    private func logChatSkipped(_ line: String) {
+        guard line != chatSkippedLogged else { return }
+        chatSkippedLogged = line
+        if !line.isEmpty { DiagnosticsLog.append("notification-records", line) }
     }
 
     /// A card's text: the Home list's last message with its sender ("Gergő: Mindkettő jó",

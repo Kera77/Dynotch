@@ -132,7 +132,8 @@ enum GoogleChatWebReader {
     }
 
     /// A Home list row from its texts in page order: name, time, "Olvasatlan", "Sender: text",
-    /// keyboard hint, "1 értesítés". A direct message's status ("Nincs a gépnél") may come before
+    /// keyboard hint, "1 értesítés". Only "Olvasatlan" makes it unread: an old space keeps its
+    /// "1 értesítés" after it was read (spec GW-26). A direct message's status ("Nincs a gépnél") may come before
     /// its name. Nil when no time or no message is found.
     nonisolated static func homePreview(_ texts: [String]) -> ChatWebPreview? {
         let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -155,7 +156,7 @@ enum GoogleChatWebReader {
         let (sender, body) = splitSender(message)
         return ChatWebPreview(
             name: name, time: trimmed[timeIndex], sender: sender, text: body,
-            isMine: sender.map { ownNames.contains($0) } ?? false, isUnread: isUnread || count != nil, count: count
+            isMine: sender.map { ownNames.contains($0) } ?? false, isUnread: isUnread, count: isUnread ? count : nil
         )
     }
 

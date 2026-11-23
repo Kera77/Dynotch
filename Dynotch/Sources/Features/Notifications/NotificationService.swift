@@ -126,6 +126,8 @@ final class NotificationService: ObservableObject {
     var chatWebHeld: [Int64: Date] = [:]
     /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
     var chatUnreadCarded: Set<String> = []
+    /// The last "unread without a card" log line, written once per change (spec GW-25).
+    var chatSkippedLogged = ""
     /// The web app was read once since launch: unread conversations found later pop up.
     var chatWebPrimed = false
 
