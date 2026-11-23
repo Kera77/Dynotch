@@ -188,17 +188,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switcher.present = { [weak manager] shown in manager?.showSwitcher(shown) }
         switcher.displayFrame = { NotchManager.pointerDisplayFrame() }
         switcher.start()
+        startModuleSwitcher(manager)
         let follow: @MainActor () -> Void = {
             let settings = switcher.settings
             TrackpadSwipe.fingers = settings.isOn ? settings.swipeFingers : 0
-            // The trackpad is only listened to while the switcher is on.
-            guard settings.isOn, settings.swipeFingers > 0 else { return }
+            TrackpadSwipe.upFingers = settings.moduleSwitcherOn ? settings.moduleFingers : 0
+            // The trackpad is only listened to while a switcher uses it (spec AS-12, QS-1).
+            guard TrackpadSwipe.fingers > 0 || TrackpadSwipe.upFingers > 0 else { return }
+            let modules = switcher.modules
             TrackpadSwipe.start { event in
                 MainActor.assumeIsolated {
+                    // Moves and ends go to both: each acts only on its own gesture.
                     switch event {
-                    case .began: switcher.swipeBegan()
-                    case .moved(let travel): switcher.swipeMoved(travel: travel)
-                    case .ended(let cancelled): switcher.swipeEnded(cancelled: cancelled)
+                    case .began(.sideways): switcher.swipeBegan()
+                    case .began(.upward): modules.swipeBegan()
+                    case .moved(let travel):
+                        switcher.swipeMoved(travel: travel)
+                        modules.swipeMoved(travel: travel)
+                    case .ended(let cancelled):
+                        switcher.swipeEnded(cancelled: cancelled)
+                        modules.swipeEnded(cancelled: cancelled)
                     }
                 }
             }
@@ -207,6 +216,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switcherObserver = switcher.settings.objectWillChange.sink { _ in
             DispatchQueue.main.async { MainActor.assumeIsolated { follow() } }
         }
+    }
+
+    /// The module switcher: the modules with a shortcut, opened like their shortcut (spec QS-3, QS-6).
+    private func startModuleSwitcher(_ manager: NotchManager) {
+        let modules = services.switcher.modules
+        let shortcuts = services.shortcuts
+        let settings = services.settings
+        modules.candidates = {
+            settings.activeFeatures.filter { shortcuts.shortcuts[$0] != nil }
+        }
+        modules.current = { [weak manager] in manager?.openModule() }
+        modules.present = { [weak manager] shown in manager?.showModuleSwitcher(shown) }
+        modules.open = { [weak manager] in manager?.openFromModuleSwitcher($0, pinned: shortcuts.pinsWhenOpened($0)) }
     }
 
     /// "New Dynotch Note" in the Services menu (spec J-13).

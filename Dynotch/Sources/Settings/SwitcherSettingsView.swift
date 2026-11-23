@@ -71,6 +71,7 @@ struct SwitcherSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            moduleSection
             Section {
                 Picker("Swipe", selection: $settings.swipeFingers) {
                     Text("Off").tag(0)
@@ -88,7 +89,7 @@ struct SwitcherSettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(settings.swipeFingers == 0)
+                .disabled(noSwipe)
                 // A swipe shorter than this only switches; longer drops the switcher down (spec AS-16).
                 LabeledContent("Show switcher after") {
                     HStack(spacing: 8) {
@@ -99,7 +100,7 @@ struct SwitcherSettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(settings.swipeFingers == 0)
+                .disabled(noSwipe)
                 Toggle("Short swipe switches to the previous app", isOn: $settings.quickSwipeToPreviousApp)
                     .disabled(settings.swipeFingers == 0)
                 Button("Open Trackpad Settings…") {
@@ -118,5 +119,29 @@ struct SwitcherSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// The distance and the delay serve the swipe up too (spec QS-5, QS-7).
+    private var noSwipe: Bool { settings.swipeFingers == 0 && !settings.moduleSwitcherOn }
+
+    /// The module switcher on a swipe up (spec QS-1, QS-9).
+    private var moduleSection: some View {
+        Section {
+            Toggle("Module switcher", isOn: $settings.moduleSwitcherOn)
+            Picker("Swipe up", selection: $settings.moduleFingers) {
+                Text("3 fingers").tag(3)
+                Text("4 fingers").tag(4)
+            }
+            .pickerStyle(.segmented)
+            .disabled(!settings.moduleSwitcherOn)
+        } header: {
+            Text("Modules")
+        } footer: {
+            Text("Swipe up to show the modules that have a shortcut, the last opened first; swipe sideways to pick one, "
+                + "lift the fingers to open it, swipe back down to cancel. macOS opens Mission Control with a "
+                + "three-finger swipe up: set that to four fingers or off in Trackpad › More Gestures.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }

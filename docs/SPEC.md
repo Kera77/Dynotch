@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.93 elfogadva** · Utolsó módosítás: 2026-11-23
+> Állapot: **v0.94 elfogadva** · Utolsó módosítás: 2026-11-23
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -690,6 +690,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | SO-6 | (v0.71) **Kész letöltés → Tray:** ha a **Letöltések** mappába (`~/Downloads`) az elmúlt 2 percben került kész fájl (nem rejtett, nem mappa, nem félkész: `.crdownload`, `.download`, `.part`, `.partial`), a Tray nyílik, és a legújabb ilyen fájl a Tray tetejére kerül, húzásra készen. Fájlonként egyszer. A mappát csak hover-nyitáskor nézi meg (nincs folyamatos figyelés); az első alkalommal a macOS engedélyt kér a Letöltések mappához, elutasítva a szabály nem tesz semmit. |
 | SO-7 | (v0.71) **Reggeli áttekintés:** a nap első hover-nyitása 5:00 és 12:00 között a Naptárat nyitja a mai nappal (amíg nincs napi áttekintő Home modul). Naponta egyszer; a nap többi nyitása a szokásos. |
 | SO-8 | (v0.71) Az új szabályokkal a teljes sorrend: 1. meeting, 2. emlékeztető, 3. kimásolt kód (SO-5), 4. kimásolt számítás, 5. kész letöltés (SO-6), 6. alacsony akku, 7. AI-fogyasztás, 8. reggeli áttekintés (SO-7). Mindegyik külön kapcsolható (SO-4), alapból be. |
+| SO-9 | (v0.94) **Legutóbbi értesítés → a modulja:** ha az elmúlt **5 percben** értesítés jött, minden hover-nyitás (SO-1) **annak a modulnak** a nézetét nyitja, ahonnan a **legutóbbi** értesítés jött: a kiválasztott appok értesítései (E-2) az Értesítések modult a forrás **fülén** (Beeper → Beeper, Google Chat → Google Chat, Gmail és más app → All, UM-8). (v0.94) A kis jelzések is számítanak, az AI-éi (Claude/ChatGPT finished, Claude kérdez) kivételével: eszköz csatlakozott/levált → Batteries, kész letöltés → Tray (a fájl felül, SO-6), meeting-bejelentés → Calendar. Az SO-3-mal szemben nem csak egyszer: az 5 perc alatt minden hover-nyitás ide visz, akkor is, ha közben elváltottál; egy újabb értesítés újraindítja az 5 percet és átveszi a célt. Ha az értesítést a notchban törlöd (X vagy felfelé swipe, PV-55), az ablak véget ér. Ha a cél modul ki van kapcsolva, a szabály nem tesz semmit. |
+| SO-10 | (v0.94) Az SO-9 a sorrendben a **második**: a meeting (SO-8/1.) előtte marad, a többi szabály utána jön, külön kapcsolható a *Smart opening* alatt (alapból be), az időablak **1–15 perc** (alapból 5). Gyorsbillentyűs, ikonsoros és QS-gesztusos nyitásra nem vonatkozik. |
 
 ## 4v. Csatlakozó eszközök (v0.42)
 
@@ -1048,6 +1050,22 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | TE-8 | **Adatvédelem:** a terminál tartalma, a parancsok és a kimenet nem kerül naplóba vagy lemezre (csak a betűméret). A napló (`terminal`) csak a fülek indulását és kilépését írja (kilépési kóddal). |
 | TE-9 | **Gépelés közben nyitva marad:** ha az utolsó 10 mp-ben gépeltem a terminálba, a notch akkor sem csukódik be, ha az egér kimegy belőle (N-4); utána a szokásos módon. Az Esc a terminálé (pl. vim), nem csukja be a notchot; a ⌘1…⌘9 a füleket váltja (nem a modulokat). Fájlt a terminálra húzva nem jön elő a Tray ejtési zónája (TE-7). |
 
+## 4ő+++++. Modulváltó háromujjas felfelé swipe-pal (v0.94)
+
+Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
+
+| # | Követelmény |
+|---|---|
+| QS-1 | **Ki- és bekapcsolható** (*Settings › Switcher › Module switcher*), alapból **bekapcsolva**. Ujjszám: 3 (alapból) vagy 4. Bekapcsolva a trackpadet akkor is figyeli, ha az alkalmazásváltó ki van kapcsolva (AS-12 kiegészítése). |
+| QS-2 | **Indítás:** háromujjas **felfelé** swipe (a trackpad magasságának legalább 6%-a, és nagyobb, mint a vízszintes elmozdulás). A tiszta ujjszám és a csak ténylegesen érintő ujjak szabálya (AS-11d, AS-21) itt is érvényes. |
+| QS-3 | **Tartalom:** csak a **gyorsbillentyűvel rendelkező** modulok (SC-1; összevont vendégmodul a gazdája fülén, MG-7), **a legutóbb megnyitott elöl** (bármilyen módon nyitottad: hover, kattintás, gyorsbillentyű, ikonsor, QS). A sorrend újraindítás után is megmarad. Ha nincs ilyen modul, a gesztus nem tesz semmit. |
+| QS-4 | **Megjelenés:** a notchból a váltóhoz hasonlóan gyorsan nyílik le (AS-15…AS-20), a modulok ikonjai egy sorban (mint az *App Icons* nézet, AS-5), a kijelöltnél a modul neve, kék keret rugós átcsúszással (AS-5b). Az egér alatti kijelzőn. |
+| QS-5 | **Kijelölés:** induláskor az **első** (a legutóbb megnyitott) modul van kijelölve; ha a notch épp nyitva van egy modullal, akkor a következő. Az ujjak **oldalra** mozgatásával lépked, a *Distance per window* (AS-11b) szerint; a végeken megáll, nem fordul körbe. |
+| QS-6 | **Elengedés:** az ujjak felemelésekor a notch a kijelölt modullal **lenyílik**, úgy, mint gyorsbillentyűvel nyitva (SC-1: billentyűs moduloknál a fókusz a panelen, SC-2: a modul Pin-jelölője rögzít, SC-4: nem írja felül a hoverrel nyíló modult). |
+| QS-7 | **Rövid swipe:** ha az ujjak a *Show switcher after* idő (AS-16) előtt felemelkednek, a sor meg sem jelenik, és a kijelölt (első) modul azonnal lenyílik. Így egy gyors felfelé swipe mindig a legutóbbi modult nyitja. |
+| QS-8 | **Megszakítás:** az ujjakat lefelé húzva (a felfelé út visszafelé, a trackpad magasságának ~25%-a) vagy Esc-re a sor bezárul, modul nem nyílik. |
+| QS-9 | **Ütközés:** a macOS alapból háromujjas felfelé swipe-pal nyitja a **Mission Controlt**, és ilyenkor a notch elrejtőzik (N-19b). A beállításnál megjegyzés és gomb visz a Trackpad-beállításokhoz (ott a Mission Controlt 4 ujjra vagy ki kell állítani). Amíg a Mission Control is fut, a modulváltó nem nyílik le. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -1094,6 +1112,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.94.0** | Okos nyitás: 5 percig a legutóbbi értesítés modulja nyílik hoverre (fül, eszköz, letöltés, meeting; az AI nem), csak a meeting előzi (SO-9, SO-10); modulváltó háromujjas felfelé swipe-ra a gyorsbillentyűs modulokkal, a legutóbbi elöl, oldalra lépked, elengedésre nyit (QS-1…QS-9) |
 | **v0.93.0** | Google Chat: a Kezdőlap „1 értesítés” felirata magában nem olvasatlan (nem ragad be a jelvény), kártya minden olvasatlan beszélgetéshez, a lista fejléce a fül saját értesítéseit számolja (GW-25, GW-26, UM-11) |
 | **v0.92.0** | Google Chat a Safari-webapp Kezdőlapjáról: jelvényszám, hover-lista és kártyák a legutolsó üzenettel és a feladóval; Gmail az Apple Mailből csak a Primary címkével (GW-21…GW-24, GM-16) |
 | **v0.91.0** | A modulváltó swipe megáll az első/utolsó modulnál, swipe a feladatszámláló lista-választóján, Google Chat csevegések neve a szervezet botja nélkül, kiemelt Google Chat hálózat a Google Chat jellel (M-13, R-19, BP-18, BP-19) |

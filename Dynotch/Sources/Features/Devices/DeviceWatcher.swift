@@ -263,6 +263,7 @@ final class DeviceWatcher: NSObject, ObservableObject {
         if let last = lastSeen[key], now.timeIntervalSince(last) < Self.flapTime { return }
         DiagnosticsLog.append("devices", "\(event.category.rawValue) \(event.isConnected ? "connected" : "disconnected")")
         current = event
+        RecentNotice.shared.note(.battery, id: "device:" + key)
         keepShowing()
     }
 

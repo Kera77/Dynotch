@@ -92,6 +92,8 @@ extension NotchView {
             ScreenshotEditorView(
                 editor: editor, settings: screenshots.settings, notchHeight: geometry.notchSize.height, close: closeScreenshotEditor
             )
+        } else if model.showsModuleSwitcher, let switcher {
+            ModuleSwitcherView(switcher: switcher.modules, notchHeight: geometry.notchSize.height, width: model.openSize.width)
         } else if model.isShowingSwitcher, let switcher {
             SwitcherView(
                 switcher: switcher, settings: switcher.settings, notchHeight: geometry.notchSize.height,

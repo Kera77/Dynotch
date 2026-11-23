@@ -60,6 +60,7 @@ final class NoticeService: ObservableObject {
         if let notice, notice.download == nil { return }
         let shown = StickyNotice.downloaded(file)
         notice = shown
+        RecentNotice.shared.note(.tray, file: file, id: "download:" + file.path)
         downloadExpiry?.cancel()
         downloadExpiry = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Self.downloadStays))

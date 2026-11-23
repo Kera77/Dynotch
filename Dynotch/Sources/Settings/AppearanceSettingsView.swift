@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings › Appearance: everything about how Dynotch looks (spec D-5).
 struct AppearanceSettingsView: View {
     @ObservedObject var settings: AppSettings
+    @AppStorage(SmartOpening.noticeMinutesKey) private var noticeMinutes = 5
 
     var body: some View {
         Form {
@@ -132,11 +133,17 @@ struct AppearanceSettingsView: View {
             ForEach(SmartRule.allCases, id: \.self) { rule in
                 Toggle(rule.title, isOn: Binding(get: { settings.isSmartRuleOn(rule) }, set: { settings.setSmartRule(rule, enabled: $0) }))
             }
+            // How long the latest notification leads the hover (spec SO-10).
+            Stepper(value: $noticeMinutes, in: SmartOpening.noticeMinutesRange) {
+                Text("Latest notification for \(noticeMinutes) min")
+            }
+            .disabled(!settings.isSmartRuleOn(.notice))
         } header: {
             Text("Smart opening")
         } footer: {
             Text("Opening by hover shows the first module that fits, in this order; otherwise the last one used. "
-                + "Each event does it once. Shortcuts and the module strip always open what you pick.")
+                + "Each event does it once, except the latest notification, which leads every opening for a while. "
+                + "Shortcuts and the module strip always open what you pick.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

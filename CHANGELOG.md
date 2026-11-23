@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.94.0] - 2026-11-23
+
+### Added
+
+- Smart opening: for 5 minutes after a notification (1–15, *Settings › Appearance › Smart opening*), every opening by hover shows its module: Notifications on the Beeper, Google Chat or All tab, Batteries for a device, Tray for a download, Calendar for a meeting announcement (not the AI's notices). Only a meeting in progress comes before it; deleting the notification ends it (SO-9, SO-10).
+- Module switcher: a three-finger swipe up shows the modules that have a shortcut, the last opened first; swipe sideways to pick, lift to open it like its shortcut, swipe back down to cancel; a quick swipe opens the last module at once. On by default, 3 or 4 fingers in *Settings › Switcher › Modules*. macOS's Mission Control swipe must be set to four fingers or off (QS-1…QS-9).
+
 ## [0.93.0] - 2026-11-23
 
 ### Fixed

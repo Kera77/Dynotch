@@ -116,6 +116,40 @@ final class NotchManager {
         }
     }
 
+    /// The module switcher, on the display under the pointer (spec QS-4); not during Mission
+    /// Control, which a swipe up may open too (spec QS-9).
+    func showModuleSwitcher(_ shown: Bool) {
+        if shown {
+            guard let controller = pointerController, !controller.model.isHiddenForMissionControl else { return }
+            controller.showModuleSwitcher(services.switcher.modules)
+        } else {
+            controllers.filter(\.model.showsModuleSwitcher).forEach { $0.hideSwitcher() }
+        }
+    }
+
+    /// The chosen module, opened like its shortcut (spec QS-6).
+    func openFromModuleSwitcher(_ feature: FeatureID, pinned: Bool) {
+        let shown = controllers.first(where: \.model.showsModuleSwitcher)
+        guard let controller = shown ?? pointerController, !controller.model.isHiddenForMissionControl else {
+            shown?.hideSwitcher()
+            return
+        }
+        controller.openFromModuleSwitcher(feature, pinned: pinned)
+    }
+
+    /// The module open on the pointer's display, for where the module switcher starts (spec QS-5).
+    func openModule() -> FeatureID? {
+        guard let model = pointerController?.model, model.isExpanded, !model.isPreview, !model.isShowingOverlayPage,
+              !model.isShowingSettings, !model.isShowingNotifications
+        else { return nil }
+        return model.currentFeature
+    }
+
+    private var pointerController: NotchController? {
+        let pointer = NSEvent.mouseLocation
+        return controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first
+    }
+
     /// The pointer's display in window-list coordinates (top-left origin), for "only this display".
     static func pointerDisplayFrame() -> CGRect? {
         let pointer = NSEvent.mouseLocation

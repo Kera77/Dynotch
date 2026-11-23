@@ -2,7 +2,8 @@ import AppKit
 
 /// The trackpad's raw touches (the private MultitouchSupport framework, looked up at run time):
 /// a horizontal swipe with the chosen number of fingers opens the switcher, moving them steps
-/// the choice, lifting them switches (spec AS-11).
+/// the choice, lifting them switches (spec AS-11). A swipe up with its own number of fingers
+/// opens the module switcher the same way (spec QS-2).
 final class TrackpadSwipe: @unchecked Sendable {
     /// One finger as the framework reports it (layout as used by open-source tools).
     private struct Touch {
@@ -35,8 +36,11 @@ final class TrackpadSwipe: @unchecked Sendable {
     private typealias Register = @convention(c) (UnsafeMutableRawPointer, Callback) -> Void
     private typealias Start = @convention(c) (UnsafeMutableRawPointer, Int32) -> Void
 
+    /// Which gesture started: sideways for the window switcher, up for the module switcher.
+    enum Mode: Sendable { case sideways, upward }
+
     enum Event: Sendable {
-        case began
+        case began(Mode)
         /// Horizontal travel since the start, in trackpad widths (−1…1).
         case moved(Double)
         case ended(cancelled: Bool)
@@ -44,10 +48,16 @@ final class TrackpadSwipe: @unchecked Sendable {
 
     /// Fingers that make the gesture; 0 turns it off. Read on the touch thread.
     nonisolated(unsafe) static var fingers = 3
+    /// Fingers of the swipe up (spec QS-1); 0 turns it off.
+    nonisolated(unsafe) static var upFingers = 0
     nonisolated(unsafe) private static var handler: (@Sendable (Event) -> Void)?
     nonisolated(unsafe) private static var startX: Float?
     nonisolated(unsafe) private static var startY: Float = 0
-    nonisolated(unsafe) private static var isActive = false
+    nonisolated(unsafe) private static var mode: Mode?
+    /// Where a swipe up began, and the highest point since: moving down from it cancels (spec QS-8).
+    nonisolated(unsafe) private static var upOriginX: Float = 0
+    nonisolated(unsafe) private static var peakY: Float = 0
+    nonisolated(unsafe) private static var lastCount = 0
     /// Cancelled by a vertical swipe: nothing more until the fingers lift.
     nonisolated(unsafe) private static var isSpent = false
     /// Most fingers down since the trackpad was last empty: a 4-finger swipe passes through 3.
@@ -102,16 +112,24 @@ final class TrackpadSwipe: @unchecked Sendable {
     }
 
     private static func frame(data: UnsafeMutableRawPointer?, count: Int) {
-        let wanted = fingers
-        guard wanted > 0, let data else { return }
+        let sideways = fingers
+        let upward = upFingers
+        guard sideways > 0 || upward > 0, let data else { return }
         let all = data.bindMemory(to: Touch.self, capacity: max(count, 1))
         let touches = (0..<count).map { all[$0] }.filter { downStates.contains($0.state) }
         let count = touches.count
+        let wanted = wantedFingers(count: count, sideways: sideways, upward: upward)
+        // A finger more or less: the average jumps, so the gesture starts over from here.
+        if count != lastCount, mode == nil {
+            startX = nil
+            steadyFrames = 0
+        }
+        lastCount = count
         mostFingers = max(mostFingers, count)
         if count > wanted || mostFingers > wanted {
             // More fingers than the switcher's: a Space swipe or the like, not ours (spec AS-11d).
-            if isActive { send(.ended(cancelled: true)) }
-            isActive = false
+            if mode != nil { send(.ended(cancelled: true)) }
+            mode = nil
             isSpent = true
             lifted(count: count, wanted: wanted)
         } else if count == wanted {
@@ -122,17 +140,26 @@ final class TrackpadSwipe: @unchecked Sendable {
                 sumX += touch.normalizedX
                 sumY += touch.normalizedY
             }
-            moved(x: sumX / Float(count), y: sumY / Float(count))
+            moved(x: sumX / Float(count), y: sumY / Float(count), count: count)
         } else {
             // Fingers lifted: switch.
-            if isActive { send(.ended(cancelled: false)) }
-            isActive = false
+            if mode != nil { send(.ended(cancelled: false)) }
+            mode = nil
             lifted(count: count, wanted: wanted)
         }
     }
 
+    /// The fingers the gesture under way needs, or the count down if a gesture takes that many.
+    private static func wantedFingers(count: Int, sideways: Int, upward: Int) -> Int {
+        switch mode {
+        case .sideways: return sideways
+        case .upward: return upward
+        case nil: return count > 0 && (count == sideways || count == upward) ? count : max(sideways, upward)
+        }
+    }
+
     /// The fingers' average position, with exactly the wanted number down.
-    private static func moved(x: Float, y: Float) {
+    private static func moved(x: Float, y: Float, count: Int) {
         lastX = x
         lastY = y
         guard let origin = startX else {
@@ -141,19 +168,43 @@ final class TrackpadSwipe: @unchecked Sendable {
             return
         }
         let travel = x - origin
-        let rise = abs(y - startY)
-        if isActive, rise >= cancelDistance, rise > abs(travel) * cancelDominance {
-            // Swiped up or down: cancel now, without switching (spec AS-11c).
-            isActive = false
-            isSpent = true
-            send(.ended(cancelled: true))
-            return
+        let rise = y - startY
+        switch mode {
+        case .sideways:
+            if abs(rise) >= cancelDistance, abs(rise) > abs(travel) * cancelDominance {
+                // Swiped up or down: cancel now, without switching (spec AS-11c).
+                cancel()
+                return
+            }
+            send(.moved(Double(travel)))
+        case .upward:
+            peakY = max(peakY, y)
+            if peakY - y >= cancelDistance {
+                // Back down: cancel, no module opens (spec QS-8).
+                cancel()
+                return
+            }
+            send(.moved(Double(x - upOriginX)))
+        case nil:
+            guard !isSpent, steadyFrames >= steadyNeeded else { return }
+            if count == fingers, abs(travel) >= openDistance, abs(travel) > abs(rise) {
+                mode = .sideways
+                send(.began(.sideways))
+                send(.moved(Double(travel)))
+            } else if count == upFingers, rise >= openDistance, rise > abs(travel) {
+                // A swipe up: the module switcher (spec QS-2); sideways steps count from here.
+                mode = .upward
+                upOriginX = x
+                peakY = y
+                send(.began(.upward))
+            }
         }
-        if !isActive, !isSpent, steadyFrames >= steadyNeeded, abs(travel) >= openDistance, abs(travel) > abs(y - startY) {
-            isActive = true
-            send(.began)
-        }
-        if isActive { send(.moved(Double(travel))) }
+    }
+
+    private static func cancel() {
+        mode = nil
+        isSpent = true
+        send(.ended(cancelled: true))
     }
 
     private static func lifted(count: Int, wanted: Int) {

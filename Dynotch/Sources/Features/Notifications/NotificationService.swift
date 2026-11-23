@@ -282,8 +282,7 @@ final class NotificationService: ObservableObject {
             }
         }
         guard let newest = incoming.last else { return }
-        chatWebNoticed(incoming)
-        mailNoticed(incoming)
+        noticed(incoming, newest: newest)
         // A record updated in place replaces its earlier version (spec E-1d).
         let ids = Set(incoming.map(\.id))
         // A kept website notification posted again replaces the kept copy (spec E-13c).

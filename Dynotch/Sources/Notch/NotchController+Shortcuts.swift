@@ -19,6 +19,12 @@ extension NotchController {
             }
             return
         }
+        open(feature, pinned: pinned)
+    }
+
+    /// Opens the feature as its shortcut does (spec SC-1, SC-2, SC-4), also from the module switcher (spec QS-6).
+    func open(_ feature: FeatureID, pinned: Bool) {
+        guard settings.isEnabled(feature), !callIsShown else { return }
         if model.isExpanded, model.isShowingNotifications { collapse() }
         if !model.isExpanded {
             notifications.clearPeek()

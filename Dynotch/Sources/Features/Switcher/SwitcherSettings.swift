@@ -61,6 +61,10 @@ final class SwitcherSettings: ObservableObject {
     }
     /// 3 or 4 fingers; 0: no swipe (spec AS-11).
     @Published var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
+    /// The module switcher on a swipe up (spec QS-1), on by default.
+    @Published var moduleSwitcherOn: Bool { didSet { save(moduleSwitcherOn, Key.modules) } }
+    /// 3 or 4 fingers for the swipe up (spec QS-1).
+    @Published var moduleFingers: Int { didSet { save(moduleFingers, Key.moduleFingers) } }
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
     @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
     /// Seconds the fingers stay down before the switcher drops down; a quicker swipe only switches (spec AS-16).
@@ -83,6 +87,7 @@ final class SwitcherSettings: ObservableObject {
         static let display = "switcherCurrentDisplay", hold = "switcherHold", previews = "switcherPreviews"
         static let shortcut = "switcherShortcut", fingers = "switcherFingers", step = "switcherStep"
         static let showDelay = "switcherShowDelay", quickPrevious = "switcherQuickPrevious"
+        static let modules = "moduleSwitcherOn", moduleFingers = "moduleSwitcherFingers"
         static let excluded = "switcherExcluded", covered = "switcherOnlyCovered", coverThreshold = "switcherCoverThreshold"
     }
 
@@ -102,6 +107,8 @@ final class SwitcherSettings: ObservableObject {
         showsPreviews = defaults.object(forKey: Key.previews) as? Bool ?? false
         shortcut = defaults.data(forKey: Key.shortcut).flatMap { try? JSONDecoder().decode(KeyShortcut.self, from: $0) }
         swipeFingers = defaults.object(forKey: Key.fingers) as? Int ?? 3
+        moduleSwitcherOn = defaults.object(forKey: Key.modules) as? Bool ?? true
+        moduleFingers = defaults.object(forKey: Key.moduleFingers) as? Int ?? 3
         swipeStep = defaults.object(forKey: Key.step) as? Double ?? 0.08
         showDelay = defaults.object(forKey: Key.showDelay) as? Double ?? 0.15
         quickSwipeToPreviousApp = defaults.bool(forKey: Key.quickPrevious)

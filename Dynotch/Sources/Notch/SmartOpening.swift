@@ -4,6 +4,7 @@ import AppKit
 /// (spec SO-1…SO-4). New notifications and Claude's answers already open their own views.
 enum SmartRule: String, CaseIterable, Sendable {
     case meeting
+    case notice
     case reminder
     case code
     case clipboard
@@ -15,6 +16,7 @@ enum SmartRule: String, CaseIterable, Sendable {
     var title: String {
         switch self {
         case .meeting: "Calendar while a meeting is starting or on"
+        case .notice: "The module of the latest notification"
         case .reminder: "Reminders when one is due within 15 minutes"
         case .code: "Clipboard with a code just copied"
         case .clipboard: "Calculator with a calculation just copied"
@@ -44,12 +46,14 @@ struct SmartContext: Equatable, Sendable {
     var download: URL?
     /// Today, while it is morning (spec SO-7).
     var morning: String?
+    /// The latest notification or notice, while its window lasts (spec SO-9).
+    var notice: RecentNotice.Entry?
 
     static func == (lhs: SmartContext, rhs: SmartContext) -> Bool {
         lhs.meeting == rhs.meeting && lhs.reminder == rhs.reminder && lhs.clipboard?.text == rhs.clipboard?.text
             && lhs.clipboard?.change == rhs.clipboard?.change && lhs.battery == rhs.battery && lhs.usage == rhs.usage
             && lhs.code?.text == rhs.code?.text && lhs.code?.change == rhs.code?.change && lhs.download == rhs.download
-            && lhs.morning == rhs.morning
+            && lhs.morning == rhs.morning && lhs.notice == rhs.notice
     }
 }
 
@@ -65,10 +69,14 @@ enum SmartOpening {
     }
 
     /// The first rule that applies, in this order: meeting, reminder, code copied, calculation
-    /// copied, file downloaded, battery, AI usage, morning (spec SO-2, SO-8).
+    /// copied, file downloaded, battery, AI usage, morning (spec SO-2, SO-8); the latest notification
+    /// right after the meeting, and on every opening while it lasts, not once (spec SO-9, SO-10).
     static func choose(_ context: SmartContext, isOn: (SmartRule) -> Bool, used: Set<String>) -> Choice? {
         var candidates: [(SmartRule, Choice)] = []
         if let meeting = context.meeting { candidates.append((.meeting, Choice(feature: .calendar, key: "meeting:" + meeting))) }
+        if let notice = context.notice {
+            candidates.append((.notice, Choice(feature: notice.feature, key: "notice:" + notice.id)))
+        }
         if let reminder = context.reminder { candidates.append((.reminder, Choice(feature: .reminders, key: "reminder:" + reminder))) }
         if let code = context.code { candidates.append((.code, Choice(feature: .clipboard, key: "code:\(code.change)"))) }
         if let copied = context.clipboard {
@@ -82,7 +90,7 @@ enum SmartOpening {
             candidates.append((.usage, Choice(feature: .claudeUsage, key: "usage:\(Int(usage / 10))")))
         }
         if let morning = context.morning { candidates.append((.morning, Choice(feature: .calendar, key: "morning:" + morning))) }
-        return candidates.first { isOn($0.0) && !used.contains($0.1.key) }?.1
+        return candidates.first { isOn($0.0) && ($0.0 == .notice || !used.contains($0.1.key)) }?.1
     }
 
     /// A reminder that is due soon or overdue.

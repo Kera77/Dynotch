@@ -262,6 +262,33 @@ extension NotchController {
         if !wasShown { holdGlassWhileSwitcherDrops() }
     }
 
+    /// The modules with a shortcut, dropped down like the switcher (spec QS-4).
+    func showModuleSwitcher(_ modules: ModuleSwitcher) {
+        guard !callIsShown else { return }
+        hideStrip()
+        let room = CGSize(width: model.geometry.windowSize.width, height: model.geometry.windowSize.height)
+        let size = SwitcherLayout.size(
+            count: modules.items.count, style: .icons, scale: modules.settings.size.scale,
+            notchHeight: model.geometry.notchSize.height, room: room
+        )
+        let wasShown = model.isShowingSwitcher
+        if !model.isExpanded { expand(animation: Self.switcherAnimation) }
+        isHeldOpen = true
+        withAnimation(Self.switcherAnimation) { model.setSwitcher(true, size: size, modules: true) }
+        if !wasShown { holdGlassWhileSwitcherDrops() }
+    }
+
+    /// The row gives way to the chosen module, which opens like its shortcut (spec QS-6).
+    func openFromModuleSwitcher(_ feature: FeatureID, pinned: Bool) {
+        if model.isShowingSwitcher {
+            withAnimation(Self.animation) {
+                model.setSwitcher(false)
+                model.hidesGlass = false
+            }
+        }
+        open(feature, pinned: pinned)
+    }
+
     func hideSwitcher() {
         // The glass goes at once, before the panel draws in (spec AS-18).
         withAnimation(.easeOut(duration: 0.06)) { model.hidesGlass = true }

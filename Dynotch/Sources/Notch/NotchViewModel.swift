@@ -4,8 +4,8 @@ import SwiftUI
 
 @MainActor
 final class NotchViewModel: ObservableObject {
-    @Published private(set) var isExpanded = false
-    @Published private(set) var currentFeature: FeatureID
+    @Published private(set) var isExpanded = false { didSet { noteOpened() } }
+    @Published private(set) var currentFeature: FeatureID { didSet { noteOpened() } }
     /// True while the panel shows the full calendar and uses the large size.
     @Published private(set) var isLarge = false
     /// True while the panel shows the settings instead of the features (spec C-2).
@@ -13,7 +13,7 @@ final class NotchViewModel: ObservableObject {
     /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
     @Published private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
-    @Published private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() } } }
+    @Published private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() }; noteOpened() } }
     /// What the Wings' content asks of the panel: wider, the hovered app or clip (spec PV-31…PV-35).
     @Published var wings = WingsState()
     /// What outlives one opening of the Wings: each side's need, the reminders ticked (spec PV-24, PV-33).
@@ -186,9 +186,13 @@ final class NotchViewModel: ObservableObject {
     /// The glass (and its shadow) waits while the switcher moves: it would trail behind (spec AS-18).
     @Published var hidesGlass = false
 
-    func setSwitcher(_ shown: Bool, size: CGSize = .zero) {
+    /// The switcher's place shows the modules instead of the windows (spec QS-4).
+    @Published private(set) var showsModuleSwitcher = false
+
+    func setSwitcher(_ shown: Bool, size: CGSize = .zero, modules: Bool = false) {
         if shown { switcherSize = size }
         if shown != isShowingSwitcher { isShowingSwitcher = shown }
+        if (shown && modules) != showsModuleSwitcher { showsModuleSwitcher = shown && modules }
     }
 
     /// The screenshot editor, large in the notch (spec SH-7).
@@ -271,6 +275,7 @@ final class NotchViewModel: ObservableObject {
         }
         if !expanded {
             isShowingSwitcher = false
+            showsModuleSwitcher = false
             editor = nil
             isShowingClipboardPicker = false
             isClipboardInline = false

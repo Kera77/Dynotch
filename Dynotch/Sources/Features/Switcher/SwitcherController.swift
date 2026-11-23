@@ -14,6 +14,8 @@ final class SwitcherController: ObservableObject {
     @Published var previews: [CGWindowID: NSImage] = [:]
 
     let settings: SwitcherSettings
+    /// The module switcher on a swipe up (spec QS-1).
+    private(set) lazy var modules = ModuleSwitcher(settings: settings)
     /// Shows or hides the switcher in the notch.
     var present: (Bool) -> Void = { _ in }
     /// The display under the pointer, for "only this display" (spec AS-3).

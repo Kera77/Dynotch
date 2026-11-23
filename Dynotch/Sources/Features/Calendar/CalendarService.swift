@@ -151,6 +151,7 @@ final class CalendarService: ObservableObject {
         let result = CalendarAgenda.newAnnouncement(in: indicatorEvents, announced: announced, now: now)
         if let event = result.event {
             announcement = event
+            RecentNotice.shared.note(.calendar, id: "meeting:" + event.id)
         }
         if result.announced != announced { announced = result.announced }
     }

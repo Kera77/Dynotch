@@ -93,6 +93,7 @@ extension NotchController {
         // Downloads is only looked at with its rule on: the first look asks for access (spec SO-6).
         if isOn(.download), settings.isEnabled(.tray) { context.download = SmartOpening.recentDownload(now: now) }
         if settings.isEnabled(.calendar) { context.morning = SmartOpening.morningKey(now: now) }
+        context.notice = RecentNotice.shared.live(now: now, listed: notifications.recent)
         guard let choice = SmartOpening.choose(context, isOn: isOn, used: model.smartUsed),
               settings.isEnabled(choice.feature)
         else { return }
@@ -103,6 +104,7 @@ extension NotchController {
 
     /// What the chosen module gets ready with: the calculation, the code, the file or today.
     private func prepare(_ choice: SmartOpening.Choice, context: SmartContext) {
+        if choice.key.hasPrefix("notice:") { return prepare(notice: context.notice) }
         switch choice.feature {
         case .calculator:
             guard let copied = context.clipboard else { return }
@@ -118,5 +120,11 @@ extension NotchController {
         default:
             break
         }
+    }
+
+    /// The notification's own tab, the downloaded file on top (spec SO-9).
+    private func prepare(notice: RecentNotice.Entry?) {
+        if let tab = notice?.tab { model.notificationsTab = tab }
+        if let file = notice?.file { tray.add([file]) }
     }
 }
