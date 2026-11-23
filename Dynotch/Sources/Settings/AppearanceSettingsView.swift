@@ -21,8 +21,11 @@ struct AppearanceSettingsView: View {
                 SettingsSlider(
                     title: "Open panel opacity", value: $settings.panelOpacity, range: AppSettings.panelOpacityRange, step: 0.05
                 ) { "\(Int(($0 * 100).rounded())) %" }
-                Toggle("Accent colour in the glass", isOn: $settings.glassAccent)
-                    .disabled(settings.design == .black)
+                // Black has no glass: shown off and inactive, the choice kept for the glass designs (spec D-17c).
+                Toggle("Accent colour in the glass", isOn: Binding(
+                    get: { settings.glassAccent && settings.design != .black }, set: { settings.glassAccent = $0 }
+                ))
+                .disabled(settings.design == .black)
                 // Trial (spec D-18): deeper clear glass over a full blur, lighter fills, stronger text.
                 Toggle("Crisp look", isOn: $crispLook)
                 Toggle("Resize modules from the bottom right corner", isOn: $settings.resizableModules)

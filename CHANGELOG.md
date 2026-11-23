@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.97.0] - 2026-11-24
+
 ### Added
 
 - *App badges › Add an app*: each app has an icon picker; *Add* adds it with the chosen icon, *Choose image…* adds it with your image (B-13).
@@ -15,7 +17,7 @@
 
 ### Fixed
 
-- *Accent colour in the glass* uses the accent colour set in macOS (*System Settings › Appearance*), not always blue, and follows a change at once (D-17b).
+- *Accent colour in the glass* uses the accent colour set in macOS (*System Settings › Appearance*), not always blue, and follows a change at once (D-17b). With the Black design its switch is inactive and shown off (D-17c).
 - Black to glass: with *Accent colour in the glass* off, the glass no longer turns as black as the top, so the fade from black to glass shows again (D-18b).
 
 ## [0.96.0] - 2026-11-23
