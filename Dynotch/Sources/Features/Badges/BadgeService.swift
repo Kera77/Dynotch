@@ -28,6 +28,10 @@ final class BadgeService: ObservableObject {
     var isSilenced: () -> Bool = { false }
     /// A count from elsewhere than the Dock: Gmail's from Mail (spec GM-7); "" hides the badge.
     var labelOverride: (BadgeApp) -> String? = { _ in nil }
+    /// The highlighted Beeper networks (spec BP-13) and one network's unread count (spec BP-14).
+    var beeperNetworks: () -> [String] = { [] }
+    var beeperNetworkUnread: (String) -> Int = { _ in 0 }
+    var removeBeeperNetwork: (String) -> Void = { _ in }
     /// Reading the Dock needs Accessibility access.
     @Published private(set) var isTrusted = true
 
@@ -38,7 +42,7 @@ final class BadgeService: ObservableObject {
     private var hasBaseline = false
     private var bundleIDs: [String: String] = [:]
     private var loggedSignature = ""
-    /// Unread counts from Ardia's Gmail and Google Chat tabs, by site (spec B-2b).
+    /// Unread counts from the default browser's Gmail and Google Chat tabs, by site (spec B-2b, B-2c).
     private var tabCounts: [String: Int] = [:]
     private var isReadingTabs = false
     private var lastTabRead = Date.distantPast
@@ -67,7 +71,8 @@ final class BadgeService: ObservableObject {
     /// Enabled apps that have a badge now.
     var visible: [BadgeItem] {
         apps.compactMap { app in
-            guard app.isEnabled, hidden[app.bundleID] == nil, let label = labelOverride(app) ?? labels[app.bundleID], !label.isEmpty
+            let override = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) == nil ? labelOverride(app) : nil
+            guard app.isEnabled, hidden[app.bundleID] == nil, let label = override ?? labels[app.bundleID], !label.isEmpty
             else { return nil }
             return BadgeItem(app: app, label: label, pulseStart: pulses[app.bundleID])
         }
@@ -80,6 +85,8 @@ final class BadgeService: ObservableObject {
     }
 
     func refresh() {
+        let synced = BeeperNetworkBadge.synced(apps, networks: beeperNetworks())
+        if synced != apps { apps = synced }
         guard apps.contains(where: \.isEnabled) else {
             apply([:], now: Date())
             return
@@ -98,7 +105,7 @@ final class BadgeService: ObservableObject {
         }
     }
 
-    /// Ardia's tab titles every few seconds, only while Ardia runs (spec B-2b).
+    /// The default browser's tab titles every few seconds, only while it runs (spec B-2b, B-2c).
     private func readTabsIfDue() {
         let now = Date()
         guard !isReadingTabs, now.timeIntervalSince(lastTabRead) >= Self.tabInterval,
@@ -114,7 +121,7 @@ final class BadgeService: ObservableObject {
             let signature = counts.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }.joined(separator: ", ")
             if signature != self.loggedTabs {
                 self.loggedTabs = signature
-                DiagnosticsLog.append("badges", "Ardia tabs: \(signature.isEmpty ? "none" : signature)")
+                DiagnosticsLog.append("badges", "Browser tabs: \(signature.isEmpty ? "none" : signature)")
             }
             self.tabCounts = counts
         }
@@ -128,11 +135,23 @@ final class BadgeService: ObservableObject {
             guard let path = entry.path, let bundleID = bundleID(atPath: path), enabled.contains(bundleID) else { continue }
             result[bundleID] = entry.label
         }
-        // An open Gmail or Google Chat tab in Ardia knows better than a web app's Dock badge,
+        // An open Gmail or Google Chat tab in the default browser knows better than a web app's Dock badge,
         // which stays on the last number once the web app quits (spec B-2b).
-        for app in apps where app.isEnabled {
+        for app in apps where app.isEnabled && BeeperNetworkBadge.network(fromBadgeID: app.bundleID) == nil {
             guard let site = BrowserTabBadges.site(forBadgeName: app.name), let count = tabCounts[site] else { continue }
             result[app.bundleID] = count > 0 ? String(count) : nil
+        }
+        // Highlighted Beeper networks count their own chats, and Beeper's badge the rest (spec BP-14).
+        var highlighted = 0
+        for app in apps where app.isEnabled {
+            guard let network = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) else { continue }
+            let count = beeperNetworkUnread(network)
+            highlighted += count
+            result[app.bundleID] = count > 0 ? String(count) : nil
+        }
+        for app in apps where app.isEnabled && BeeperNetworkBadge.network(fromBadgeID: app.bundleID) == nil
+            && app.bundleID.lowercased().contains("beeper") {
+            result[app.bundleID] = BeeperNetworkBadge.remainder(result[app.bundleID], minus: highlighted)
         }
         return result
     }
@@ -193,6 +212,8 @@ final class BadgeService: ObservableObject {
     }
 
     func remove(_ bundleID: String) {
+        // A highlighted Beeper network's badge goes with its highlight (spec BP-14).
+        if let network = BeeperNetworkBadge.network(fromBadgeID: bundleID) { removeBeeperNetwork(network) }
         apps.removeAll { $0.bundleID == bundleID }
     }
 

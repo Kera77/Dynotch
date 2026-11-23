@@ -55,6 +55,15 @@ struct TabletMenu: View {
                 }
             }
         }
+        if !service.tablets.isEmpty {
+            // Universal Control, through the Displays settings' "+" menu (spec TB-6).
+            Section("Link keyboard and mouse to") {
+                ForEach(service.tablets) { tablet in
+                    Button(tablet.name) { service.linkKeyboard(to: tablet) }
+                        .disabled(service.pending != nil)
+                }
+            }
+        }
         if let failure = service.failure {
             Text(failure)
         }

@@ -69,8 +69,8 @@ struct BadgeNotificationRow: Identifiable, Equatable, Sendable {
 extension BeeperService {
     /// Beeper's unread chats as badge list rows: Beeper takes its notifications out of
     /// Notification Center within seconds, but its chats still say what is unread (spec B-10c).
-    func badgeRows() -> [BadgeNotificationRow] {
-        unreadChats.enumerated().map { index, chat in
+    func badgeRows(network: String? = nil) -> [BadgeNotificationRow] {
+        (network.map(unreadChats(network:)) ?? unreadChats).enumerated().map { index, chat in
             BadgeNotificationRow(
                 id: -1 - Int64(index), sender: chat.name, detail: chat.preview?.text ?? "\(chat.unread) unread",
                 date: chat.preview?.timestamp.flatMap { try? Date($0, strategy: .iso8601) } ?? Date()
@@ -85,6 +85,8 @@ extension NotificationService {
     /// kept after the page closes them, so only as many as the badge counts are unread (spec B-10d).
     func badgeListRows(for badge: BadgeItem, beeper: BeeperService) -> [BadgeNotificationRow] {
         let app = badge.app
+        // A highlighted Beeper network: its unread chats (spec BP-14).
+        if let network = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) { return beeper.badgeRows(network: network) }
         if let mailRows = mailBadgeRows(for: app) { return mailRows }
         var rows = badgeRows(for: app)
         if WebNotificationSource.isWebApp(app.bundleID), let count = BadgeTracker.count(badge.label) {

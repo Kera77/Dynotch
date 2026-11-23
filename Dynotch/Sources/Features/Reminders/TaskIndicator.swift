@@ -6,6 +6,12 @@ struct TaskCount: Equatable, Sendable {
     let count: Int
     /// Due today (or overdue); otherwise every open task.
     let isToday: Bool
+    /// Rows under the drop-down's header: the chosen list's when the tasks are in several lists (spec R-17).
+    var listRows: Int?
+    /// The tasks are in several lists: the header chooses between them (spec R-17).
+    var isSplit = false
+
+    var rows: Int { listRows ?? count }
 
     var text: String {
         isToday ? "\(count) task\(count == 1 ? "" : "s") due today" : "\(count) open task\(count == 1 ? "" : "s")"
@@ -58,10 +64,34 @@ enum TaskIndicatorLogic {
         }
     }
 
+    /// The counted tasks by list, in the lists' order (spec R-17).
+    static func groups(_ listed: [ReminderItem], lists: [ReminderList]) -> [TaskGroup] {
+        let byList = Dictionary(grouping: listed, by: \.listID)
+        let known = lists.compactMap { list in
+            byList[list.id].map { TaskGroup(listID: list.id, title: list.title, items: $0) }
+        }
+        let knownIDs = Set(lists.map(\.id))
+        let others = listed.filter { !knownIDs.contains($0.listID) }
+        return known + (others.isEmpty ? [] : [TaskGroup(listID: "", title: "Other", items: others)])
+    }
+
+    /// The list shown first: the one with the nearest due date (overdue too), else the first (spec R-17).
+    static func defaultGroup(_ groups: [TaskGroup]) -> TaskGroup? {
+        let dated = groups.compactMap { group in group.items.compactMap(\.due).min().map { (group, $0) } }
+        return dated.min { $0.1 < $1.1 }?.0 ?? groups.first
+    }
+
     /// The hidden counter comes back when its time is up or a task arrived meanwhile.
     static func showsAgain(hiddenUntil: Date, hiddenIDs: Set<String>, openIDs: [String], now: Date) -> Bool {
         hiddenUntil <= now || openIDs.contains { !hiddenIDs.contains($0) }
     }
+}
+
+/// One list's counted tasks in the counter's drop-down (spec R-17).
+struct TaskGroup: Equatable, Sendable {
+    let listID: String
+    let title: String
+    let items: [ReminderItem]
 }
 
 /// The tasks counter right of the closed notch: on or off, hidden for a while by its × (spec R-10, R-11).
@@ -74,6 +104,10 @@ final class TaskIndicator: ObservableObject {
         didSet { defaults.set(snooze.rawValue, forKey: Key.snooze) }
     }
     @Published private(set) var shown: TaskCount?
+    /// The list chosen in the drop-down's header until it closes (spec R-17).
+    @Published var chosenListID: String? {
+        didSet { if chosenListID != oldValue { update() } }
+    }
 
     private enum Key {
         static let enabled = "taskIndicator"
@@ -111,6 +145,15 @@ final class TaskIndicator: ObservableObject {
     /// The tasks under the counter's hover drop-down (spec R-12).
     var listed: [ReminderItem] { TaskIndicatorLogic.listed(openItems, now: Date()) }
 
+    /// The counted tasks by list (spec R-17).
+    var groups: [TaskGroup] { TaskIndicatorLogic.groups(listed, lists: store.lists) }
+
+    /// The list shown under the header: the chosen one, else the one due soonest (spec R-17).
+    var selectedGroup: TaskGroup? {
+        let all = groups
+        return all.first { $0.listID == chosenListID } ?? TaskIndicatorLogic.defaultGroup(all)
+    }
+
     /// Checked off from the drop-down.
     func complete(_ item: ReminderItem) {
         store.complete(item)
@@ -133,7 +176,14 @@ final class TaskIndicator: ObservableObject {
             hiddenIDs = []
             save()
         }
-        let next = isEnabled && hiddenUntil == nil ? TaskIndicatorLogic.count(items, now: now) : nil
+        var next = isEnabled && hiddenUntil == nil ? TaskIndicatorLogic.count(items, now: now) : nil
+        if next != nil {
+            let all = groups
+            if all.count > 1 {
+                next?.isSplit = true
+                next?.listRows = (all.first { $0.listID == chosenListID } ?? TaskIndicatorLogic.defaultGroup(all))?.items.count
+            }
+        }
         if next != shown { shown = next }
     }
 

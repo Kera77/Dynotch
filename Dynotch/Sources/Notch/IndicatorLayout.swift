@@ -106,7 +106,8 @@ enum IndicatorItem: Identifiable, Equatable {
         case .music: IndicatorLayout.musicDropdownHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count):
-            IndicatorLayout.labelHeight + CGFloat(min(count.count, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight + 6
+            IndicatorLayout.labelHeight + (count.isSplit ? IndicatorLayout.taskPickerExtra : 0)
+                + CGFloat(min(count.rows, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight + 6
         // Unfolded beside the notch, nothing drops down (spec PV-58).
         case .usage(_, true): 0
         case .usage(let limits, false): 12 + CGFloat(max(limits.count, 1)) * 20
@@ -201,6 +202,8 @@ struct IndicatorLayout: Equatable {
     /// Tasks listed in the counter's drop-down at most; Open shows the rest.
     static let taskRows = 6
     static let taskRowHeight: CGFloat = 22
+    /// The list picker makes the tasks' header taller (spec R-17).
+    static let taskPickerExtra: CGFloat = 6
     /// A badge's hover list holds this many notifications at most; more than fit scroll (spec B-10e).
     static let badgeRows = 50
     /// The list grows to five senders with a message each, then scrolls (spec B-10e).

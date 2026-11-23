@@ -195,12 +195,14 @@ struct BeeperUnreadCard: View {
 /// The unread Beeper chats as cards, one open at a time (spec UM-9).
 struct BeeperUnreadCards: View {
     @ObservedObject var beeper: BeeperService
+    /// One highlighted network's chats (spec BP-15); nil: the ones Beeper stands for together.
+    var network: String?
     let open: (BeeperChatInfo) -> Void
 
     @State private var expanded: String?
 
     var body: some View {
-        let chats = Array(beeper.unreadChats.prefix(12))
+        let chats = Array((network.map(beeper.unreadChats(network:)) ?? beeper.unreadChats).prefix(12))
         ForEach(chats) { chat in
             BeeperUnreadCard(
                 beeper: beeper,
@@ -209,6 +211,29 @@ struct BeeperUnreadCards: View {
                 toggle: { withAnimation(Motion.quick) { expanded = expanded == chat.id ? nil : chat.id } },
                 openInTab: { open(chat) }
             )
+        }
+    }
+}
+
+/// A highlighted Beeper network's tab: its unread chats as cards with their reply field (spec BP-15).
+struct BeeperNetworkTab: View {
+    @ObservedObject var beeper: BeeperService
+    let network: String
+    let open: (BeeperChatInfo) -> Void
+
+    var body: some View {
+        if beeper.state != .ready {
+            EmptyStateView(symbol: "bubble.left.and.bubble.right", text: "Beeper is not connected.")
+        } else if beeper.unreadChats(network: network).isEmpty {
+            EmptyStateView(symbol: "checkmark.bubble", text: "No unread \(network) chats.")
+        } else {
+            ScrollView(.vertical) {
+                VStack(spacing: 6) {
+                    BeeperUnreadCards(beeper: beeper, network: network, open: open)
+                }
+                .padding(.horizontal, 12)
+            }
+            .scrollIndicators(.never)
         }
     }
 }

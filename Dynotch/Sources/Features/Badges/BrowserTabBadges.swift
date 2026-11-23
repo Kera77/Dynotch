@@ -1,10 +1,22 @@
 import AppKit
 
-/// Unread counts from the titles of the Gmail and Google Chat tabs open in Ardia (spec B-2b):
-/// "Inbox (9) - …" → 9. Only those tabs' addresses and titles are read, nothing is logged but
-/// the counts.
+/// Unread counts from the titles of the Gmail and Google Chat tabs open in the default browser
+/// (spec B-2b, B-2c): "Inbox (9) - …" → 9. Only those tabs' addresses and titles are read,
+/// nothing is logged but the counts.
 enum BrowserTabBadges {
-    static let browserID = "com.ardia.browser"
+    /// Browsers whose tabs AppleScript can read, and the name of a tab's title there; Zen and
+    /// Firefox have no such dictionary (spec B-2c).
+    static let scriptable: [String: String] = [
+        "com.ardia.browser": "title", "com.google.chrome": "title", "com.google.chrome.beta": "title",
+        "company.thebrowser.browser": "title", "com.brave.browser": "title", "com.microsoft.edgemac": "title",
+        "com.vivaldi.vivaldi": "title", "com.apple.safari": "name"
+    ]
+
+    /// The default browser if its tabs can be read.
+    static func browser(defaultBrowser: String?) -> (id: String, titleKey: String)? {
+        guard let id = defaultBrowser, let key = scriptable[id.lowercased()] else { return nil }
+        return (id, key)
+    }
     static let gmailSite = "mail.google.com"
     static let chatSite = "chat.google.com"
 
@@ -60,17 +72,20 @@ enum BrowserTabBadges {
 
     private static let queue = DispatchQueue(label: "dynotch.browser-tab-badges")
 
-    /// The Gmail and Google Chat tabs of Ardia; nil if Ardia is not running or refuses.
-    /// Two Apple Events in all, however many tabs are open.
+    /// The Gmail and Google Chat tabs of the default browser; nil if it is not running, cannot
+    /// be read, or refuses. Two Apple Events in all, however many tabs are open.
     static func read() async -> [Tab]? {
-        guard !NSRunningApplication.runningApplications(withBundleIdentifier: browserID).isEmpty else { return nil }
+        guard let browser = browser(defaultBrowser: ActiveBrowser.defaultBundleID()),
+              !NSRunningApplication.runningApplications(withBundleIdentifier: browser.id).isEmpty
+        else { return nil }
+        let source = script(browserID: browser.id, titleKey: browser.titleKey)
         return await withCheckedContinuation { continuation in
             queue.async {
                 var error: NSDictionary?
-                let result = NSAppleScript(source: script)?.executeAndReturnError(&error)
+                let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
                 if let error {
                     let code = error[NSAppleScript.errorNumber] as? Int ?? 0
-                    DiagnosticsLog.append("badges", "Ardia tabs could not be read (\(code))")
+                    DiagnosticsLog.append("badges", "\(browser.id) tabs could not be read (\(code))")
                 }
                 continuation.resume(returning: result.map { parse($0.stringValue ?? "") })
             }
@@ -85,10 +100,11 @@ enum BrowserTabBadges {
         }
     }
 
-    private static let script = """
+    private static func script(browserID: String, titleKey: String) -> String {
+        """
     tell application id "\(browserID)"
         set theURLs to URL of every tab of every window
-        set theTitles to title of every tab of every window
+        set theTitles to \(titleKey) of every tab of every window
     end tell
     set out to ""
     repeat with i from 1 to count of theURLs
@@ -103,4 +119,5 @@ enum BrowserTabBadges {
     end repeat
     return out
     """
+    }
 }

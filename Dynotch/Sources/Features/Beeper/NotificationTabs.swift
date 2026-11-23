@@ -1,13 +1,41 @@
 import SwiftUI
 
-/// The notifications module's tabs (spec UM-8).
-enum NotificationsTab: String, CaseIterable, Sendable {
+/// The notifications module's tabs (spec UM-8), and one per highlighted Beeper network (spec BP-15).
+enum NotificationsTab: Hashable, Sendable, RawRepresentable {
     case all
     case chats
     case beeper
     case googleChat
     /// The unread mail of the accounts read from Apple Mail (spec GM-6).
     case mail
+    /// A highlighted Beeper network's unread chats (spec BP-15).
+    case network(String)
+
+    private static let networkPrefix = "network:"
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "all": self = .all
+        case "chats": self = .chats
+        case "beeper": self = .beeper
+        case "googleChat": self = .googleChat
+        case "mail": self = .mail
+        default:
+            guard rawValue.hasPrefix(Self.networkPrefix) else { return nil }
+            self = .network(String(rawValue.dropFirst(Self.networkPrefix.count)))
+        }
+    }
+
+    var rawValue: String {
+        switch self {
+        case .all: "all"
+        case .chats: "chats"
+        case .beeper: "beeper"
+        case .googleChat: "googleChat"
+        case .mail: "mail"
+        case .network(let name): Self.networkPrefix + name
+        }
+    }
 
     var title: String {
         switch self {
@@ -16,12 +44,14 @@ enum NotificationsTab: String, CaseIterable, Sendable {
         case .beeper: "Beeper"
         case .googleChat: "Google Chat"
         case .mail: "Mail"
+        case .network(let name): name
         }
     }
 
-    /// The tabs in the picker and the swipe order: Mail only with Mail as Gmail's source (spec GM-6).
-    static func shown(mail: Bool) -> [Self] {
-        mail ? allCases : allCases.filter { $0 != .mail }
+    /// The tabs in the picker and the swipe order: the highlighted networks after Beeper
+    /// (spec BP-15), Mail only with Mail as Gmail's source (spec GM-6).
+    static func shown(mail: Bool, networks: [String] = []) -> [Self] {
+        [.all, .chats, .beeper] + networks.map(Self.network) + [.googleChat] + (mail ? [.mail] : [])
     }
 
     /// The Beeper tab needs the larger panel (spec BP-1); Google Chat is a list like All (spec GC-6).
@@ -67,9 +97,13 @@ struct NotificationsTabsView: View {
     var body: some View {
         VStack(spacing: 6) {
             HStack {
-                CapsulePicker(items: NotificationsTab.shown(mail: mail.isActive), selection: $tab, title: \.title) { item in
+                CapsulePicker(
+                    items: NotificationsTab.shown(mail: mail.isActive, networks: beeper.highlightedNetworks),
+                    selection: $tab, title: \.title
+                ) { item in
                     switch item {
                     case .beeper: beeper.unreadTotal
+                    case .network(let name): beeper.unreadTotal(network: name)
                     case .mail: mail.state == .reading ? mail.totalUnread : nil
                     default: nil
                     }
@@ -124,6 +158,8 @@ struct NotificationsTabsView: View {
         case .googleChat:
             // Only the unread messages, like the All tab (spec GC-6).
             NotificationsFeatureView(service: service, isActive: isActive) { ChatSources.isGoogleChat($0, catalog: service.catalog) }
+        case .network(let name):
+            BeeperNetworkTab(beeper: beeper, network: name) { open($0) }
         }
     }
 
@@ -138,9 +174,10 @@ struct NotificationsTabsView: View {
     }
 
     /// A Beeper message whose chat Beeper no longer counts as unread goes from the list (spec UM-10).
+    /// A highlighted network's message belongs to its own tab (spec BP-16).
     private func readInBeeper(_ notification: AppNotification) -> Bool {
         guard ChatSources.isBeeper(notification), beeper.state == .ready else { return false }
-        return ChatSources.isRead(chatNamed: notification.title, in: beeper.chats)
+        return ChatSources.isRead(chatNamed: notification.title, in: beeper.chats) || beeper.isHighlighted(chatNamed: notification.title)
     }
 
     private func open(_ chat: BeeperChatInfo) {

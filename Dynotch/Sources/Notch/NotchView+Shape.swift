@@ -61,7 +61,15 @@ extension NotchView {
     /// black like the hardware (spec D-3).
     var showsDesign: Bool {
         // Only the fully opened notch: notifications, device notices and the preview stay black.
-        model.isExpanded && !model.isPreview
+        // The tasks counter's drop-down is a small panel of its own and takes the design too (spec R-17).
+        (model.isExpanded && !model.isPreview) || showsTasksDropDown
+    }
+
+    /// The tasks counter's drop-down is open under the closed notch (spec R-17).
+    private var showsTasksDropDown: Bool {
+        guard !model.isExpanded, let index = labelIndex, indicatorItems.indices.contains(index) else { return false }
+        if case .tasks = indicatorItems[index] { return true }
+        return false
     }
 
     /// A pill one row high, with or without the rounded-notch setting.

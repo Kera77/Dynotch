@@ -27,6 +27,10 @@ final class BeeperService: ObservableObject {
         didSet { defaults.set(showsChatList, forKey: Self.listKey) }
     }
 
+    /// Networks taken out of Beeper's whole, each with its own badge and tab (spec BP-13).
+    @Published private(set) var highlightedNetworks: [String] {
+        didSet { defaults.set(highlightedNetworks, forKey: Self.highlightKey) }
+    }
     /// Keep unread Beeper chats in the notch (spec UM-7).
     @Published var keepsUnread: Bool {
         didSet {
@@ -39,6 +43,7 @@ final class BeeperService: ObservableObject {
     private static let pollInterval: TimeInterval = 20
     private static let listKey = "beeperShowsChatList"
     private static let unreadKey = "beeperKeepsUnread"
+    private static let highlightKey = "beeperHighlightedNetworks"
 
     private let defaults: UserDefaults
     private var timer: Timer?
@@ -49,13 +54,58 @@ final class BeeperService: ObservableObject {
         self.defaults = defaults
         showsChatList = defaults.object(forKey: Self.listKey) as? Bool ?? true
         keepsUnread = defaults.object(forKey: Self.unreadKey) as? Bool ?? true
+        highlightedNetworks = Self.storedHighlights(defaults)
     }
 
-    var unreadChats: [BeeperChatInfo] {
+    /// Every unread, unmuted chat, highlighted networks too.
+    var allUnreadChats: [BeeperChatInfo] {
         chats.filter { $0.unread > 0 && $0.isMuted != true }
     }
 
+    /// The unread chats Beeper stands for together: the highlighted networks have their own badge
+    /// and tab (spec BP-16).
+    var unreadChats: [BeeperChatInfo] {
+        let highlighted = Set(highlightedNetworks)
+        return allUnreadChats.filter { !highlighted.contains($0.network ?? "") }
+    }
+
     var unreadTotal: Int { unreadChats.reduce(0) { $0 + $1.unread } }
+
+    /// One highlighted network's unread chats (spec BP-15).
+    func unreadChats(network: String) -> [BeeperChatInfo] {
+        allUnreadChats.filter { $0.network == network }
+    }
+
+    func unreadTotal(network: String) -> Int {
+        unreadChats(network: network).reduce(0) { $0 + $1.unread }
+    }
+
+    /// The networks of Beeper's chats, and the highlighted ones even without a chat now (spec BP-13).
+    var knownNetworks: [String] {
+        Array(Set(chats.compactMap(\.network).filter { !$0.isEmpty }).union(highlightedNetworks))
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    func setHighlighted(_ network: String, _ isOn: Bool) {
+        if isOn, !highlightedNetworks.contains(network) {
+            highlightedNetworks.append(network)
+        } else if !isOn {
+            highlightedNetworks.removeAll { $0 == network }
+        }
+    }
+
+    /// The chat of that name is in a highlighted network: its notification belongs there (spec BP-16).
+    func isHighlighted(chatNamed name: String) -> Bool {
+        guard !highlightedNetworks.isEmpty else { return false }
+        let wanted = name.trimmingCharacters(in: .whitespaces).lowercased()
+        let matching = chats.filter { $0.name.lowercased() == wanted }
+        return !matching.isEmpty && matching.allSatisfy { highlightedNetworks.contains($0.network ?? "") }
+    }
+
+    /// The highlighted networks as stored, for those without the service at hand (spec BP-13).
+    static func storedHighlights(_ defaults: UserDefaults = .standard) -> [String] {
+        defaults.stringArray(forKey: highlightKey) ?? []
+    }
 
     /// Unread first, then the most recent (spec BP-1).
     var sortedChats: [BeeperChatInfo] {

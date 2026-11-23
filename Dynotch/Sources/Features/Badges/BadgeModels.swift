@@ -23,11 +23,45 @@ struct BadgeApp: Codable, Identifiable, Equatable, Sendable {
     /// The notch tab a left click on the badge opens instead of the app (spec BP-12, GC-5): Beeper,
     /// or Google Chat (a web app, found by its name).
     static func chatTab(for app: BadgeApp) -> NotificationsTab? {
+        // A highlighted Beeper network opens its own tab (spec BP-15).
+        if let network = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) { return .network(network) }
         let identifier = app.bundleID.lowercased()
         let name = app.name.lowercased()
         if identifier.contains("beeper") { return .beeper }
         if name.contains("google chat") || (name == "chat" && identifier.contains("webapp")) { return .googleChat }
         return nil
+    }
+}
+
+/// A highlighted Beeper network stands beside the notch like an app (spec BP-14): a badge app
+/// with an identifier of its own that no real app has.
+enum BeeperNetworkBadge {
+    static let prefix = "beeper-network:"
+
+    static func badgeID(_ network: String) -> String { prefix + network }
+
+    static func network(fromBadgeID id: String) -> String? {
+        id.hasPrefix(prefix) ? String(id.dropFirst(prefix.count)) : nil
+    }
+
+    static func app(_ network: String) -> BadgeApp {
+        BadgeApp(bundleID: badgeID(network), name: network, isEnabled: true, icon: .app)
+    }
+
+    /// Beeper's own badge less what the highlighted networks show on theirs (spec BP-14).
+    static func remainder(_ label: String?, minus highlighted: Int) -> String? {
+        guard let label, highlighted > 0, let count = BadgeTracker.count(label) else { return label }
+        let left = count - highlighted
+        return left > 0 ? String(left) : nil
+    }
+
+    /// The apps with the highlighted networks' badges in place: new ones at the end, the ones no
+    /// longer highlighted gone, the rest where they stood.
+    static func synced(_ apps: [BadgeApp], networks: [String]) -> [BadgeApp] {
+        let wanted = Set(networks.map(badgeID))
+        let kept = apps.filter { network(fromBadgeID: $0.bundleID) == nil || wanted.contains($0.bundleID) }
+        let present = Set(kept.map(\.bundleID))
+        return kept + networks.filter { !present.contains(badgeID($0)) }.map(app)
     }
 }
 

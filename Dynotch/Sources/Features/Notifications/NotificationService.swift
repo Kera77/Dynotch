@@ -253,6 +253,7 @@ final class NotificationService: ObservableObject {
 
     func handle(_ records: [NotificationRecord]) {
         var incoming: [AppNotification] = []
+        let defaultBrowser = records.isEmpty ? nil : ActiveBrowser.defaultBundleID()
         for record in records {
             lastSeenID = max(lastSeenID, record.id)
             guard let parsed = NotificationParser.parse(
@@ -262,13 +263,15 @@ final class NotificationService: ObservableObject {
                 continue
             }
             let notification = attribute(parsed)
-            let enabled = isEnabled(catalog.app(for: notification.appIdentifier))
+            // Only the default browser's notifications are watched (spec E-2g).
+            let otherBrowser = WebNotificationSource.isFromOtherBrowser(record.appIdentifier, defaultBrowser: defaultBrowser)
+            let enabled = !otherBrowser && isEnabled(catalog.app(for: notification.appIdentifier))
             // Identifiers and site only, never the notification's text.
             DiagnosticsLog.append(
                 "notification-records",
                 "#\(record.id) app=\(record.appIdentifier) site=\(parsed.site ?? "-") "
                     + "link=\(parsed.link.map(WebNotificationSource.maskedShape) ?? "-") "
-                    + "as=\(notification.appIdentifier) shown=\(enabled) "
+                    + "as=\(notification.appIdentifier) shown=\(enabled)\(otherBrowser ? " (not the default browser)" : "") "
                     + "fields=\(NotificationParser.keySummary(of: record.data))"
             )
             if enabled {

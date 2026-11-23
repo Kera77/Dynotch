@@ -63,6 +63,18 @@ final class TabletDisplayService: ObservableObject {
         refresh()
     }
 
+    /// Links (or unlinks) the keyboard and mouse to the iPad through the Displays settings (spec TB-6).
+    func linkKeyboard(to tablet: Tablet) {
+        guard pending == nil else { return }
+        pending = tablet.id
+        failure = nil
+        Task { [weak self] in
+            let message = await UniversalControlLink.link(named: tablet.name)
+            self?.pending = nil
+            self?.failure = message
+        }
+    }
+
     func openDisplaySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension") {
             NSWorkspace.shared.open(url)

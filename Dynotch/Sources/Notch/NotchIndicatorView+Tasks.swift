@@ -26,48 +26,71 @@ struct TasksCounter: View {
 }
 
 extension NotchIndicatorView {
-    /// "3 tasks due today", Open, and the × that hides the counter for a while (spec R-11).
+    /// The counted tasks under their header (spec R-12, R-17).
+    @ViewBuilder
     func tasksLabel(_ count: TaskCount, item: IndicatorItem) -> some View {
+        if let tasks = taskIndicator {
+            TasksDropDown(tasks: tasks, count: count) {
+                dismissButton(for: item, help: "Hide for a while; it comes back sooner when a task is added")
+            }
+        }
+    }
+}
+
+/// The tasks counter's drop-down: the count, or the lists side by side when the tasks are in
+/// several (spec R-17); the chosen list's tasks below, checked off with their circle (spec R-12),
+/// more than six scroll (spec R-16). No Open button: a click on the counter opens the module.
+struct TasksDropDown<Dismiss: View>: View {
+    @ObservedObject var tasks: TaskIndicator
+    let count: TaskCount
+    @ViewBuilder let dismiss: () -> Dismiss
+
+    var body: some View {
+        let groups = tasks.groups
+        let selected = tasks.selectedGroup
+        let items = groups.count > 1 ? selected?.items ?? [] : tasks.listed
         VStack(spacing: 0) {
-            tasksHeader(count, item: item)
-            // The tasks themselves, checked off with their circle (spec R-12); more than six
-            // scroll (spec R-16).
-            let tasks = taskItems()
+            header(groups: groups, selected: selected)
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
-                    ForEach(tasks) { task in
-                        TaskDropDownRow(task: task) { completeTask(task) }
+                    ForEach(items) { task in
+                        TaskDropDownRow(task: task) { tasks.complete(task) }
                     }
                 }
             }
             .scrollIndicators(.never)
-            .scrollDisabled(tasks.count <= IndicatorLayout.taskRows)
-            .frame(height: CGFloat(min(tasks.count, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight)
+            .scrollDisabled(items.count <= IndicatorLayout.taskRows)
+            .frame(height: CGFloat(min(items.count, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight)
             .padding(.bottom, 6)
         }
+        // The choice lasts until the drop-down closes; next time the soonest list comes first.
+        .onDisappear { tasks.chosenListID = nil }
     }
 
-    private func tasksHeader(_ count: TaskCount, item: IndicatorItem) -> some View {
+    private func header(groups: [TaskGroup], selected: TaskGroup?) -> some View {
         HStack(spacing: 7) {
             Image(systemName: "checklist")
                 .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(Theme.blue)
-            Text(count.text)
-                .font(.notch(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+            if groups.count > 1, let selected {
+                let titles = Dictionary(groups.map { ($0.listID, "\($0.title) \($0.items.count)") }) { first, _ in first }
+                CapsulePicker(
+                    items: groups.map(\.listID),
+                    selection: Binding(get: { selected.listID }, set: { tasks.chosenListID = $0 }),
+                    title: { titles[$0] ?? "" }
+                )
+                .fixedSize()
+            } else {
+                Text(count.text)
+                    .font(.notch(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
             Spacer(minLength: 8)
-            Button("Open", action: openTasks)
-                .buttonStyle(.notch)
-                .font(.notch(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 9)
-                .frame(height: 18)
-                .background(Capsule().fill(Color.white.level(0.16)))
-            dismissButton(for: item, help: "Hide for a while; it comes back sooner when a task is added")
+            dismiss()
         }
         .padding(.horizontal, 12)
-        .frame(height: IndicatorLayout.labelHeight - 4)
+        .frame(height: IndicatorLayout.labelHeight - 4 + (groups.count > 1 ? IndicatorLayout.taskPickerExtra : 0))
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

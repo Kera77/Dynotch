@@ -37,7 +37,12 @@ struct BadgeIconView: View {
         case .custom(let name):
             image(BadgeIconCache.customIcon(named: name))
         case .app:
-            image(BadgeIconCache.appIcon(bundleID: bundleID))
+            if let network = BeeperNetworkBadge.network(fromBadgeID: bundleID) {
+                // A highlighted Beeper network: its app's or website's icon, else its symbol (spec BP-14).
+                if let icon = BeeperStyle.appIcon(network) { image(icon) } else { symbol(BeeperStyle.network(network).symbol) }
+            } else {
+                image(BadgeIconCache.appIcon(bundleID: bundleID))
+            }
         }
     }
 

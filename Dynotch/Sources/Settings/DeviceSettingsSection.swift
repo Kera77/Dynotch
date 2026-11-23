@@ -25,13 +25,29 @@ struct DeviceSettingsSection: View {
     }
 }
 
-/// Settings › Notifications › Beeper (spec UM-7, BP-1b).
+/// Settings › Notifications › Beeper (spec UM-7, BP-1b, BP-13).
 struct BeeperSettingsRows: View {
     @ObservedObject var beeper: BeeperService
 
     var body: some View {
         Toggle("Keep unread Beeper chats in the notch", isOn: $beeper.keepsUnread)
         Toggle("Show the chat list in the Beeper tab", isOn: $beeper.showsChatList)
+        // A network taken out of Beeper's whole gets its own badge and tab (spec BP-13).
+        let networks = beeper.knownNetworks
+        if !networks.isEmpty {
+            DisclosureGroup("Highlighted networks") {
+                ForEach(networks, id: \.self) { network in
+                    Toggle(network, isOn: Binding(
+                        get: { beeper.highlightedNetworks.contains(network) },
+                        set: { beeper.setHighlighted(network, $0) }
+                    ))
+                }
+                Text("A highlighted network gets its own badge beside the notch and its own tab under Notifications; "
+                    + "Beeper's badge and tabs show the rest.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 

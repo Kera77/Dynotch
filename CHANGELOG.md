@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.89.0] - 2026-11-23
+
+### Added
+- Beeper networks can be highlighted (Settings › Notifications › Beeper › Highlighted networks): each gets its own badge beside the notch and its own tab under Notifications, and is taken out of Beeper's badge and tabs (BP-13…BP-16).
+- iPad menu: "Link keyboard and mouse to" chooses the iPad in the Displays settings' "+" menu through Accessibility (Universal Control), then closes System Settings (TB-6).
+
+### Changed
+- Tasks counter drop-down: no Open button; with tasks in several lists the header switches between them side by side, starting with the list due soonest; the drop-down takes the Liquid glass / Black to glass design (R-17).
+- Volume and brightness: the level shows as the AI session does in the wings (percentage and a small white ring); the ring fills as the HUD opens and empties as it closes (H-3c).
+- Only the default browser's notifications are watched; the same message open in another browser no longer comes twice. Web apps still pass (E-2g).
+- Gmail and Google Chat badges read the default browser's tabs instead of always Ardia's (Chrome, Arc, Brave, Edge, Vivaldi, Safari; Zen and Firefox keep the Dock badge) (B-2c).
+
+### Fixed
+- The month name under the calendar's day strip no longer has a black background (K-15b).
+
 ## [0.88.0] - 2026-11-23
 
 ### Fixed

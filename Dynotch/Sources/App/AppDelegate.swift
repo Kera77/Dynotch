@@ -69,12 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         focusFollowsMouse.start()
         services.claudeUsage.start()
         services.hud.start()
-        services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
-        services.badges.labelOverride = { [weak notifications = services.notifications] in notifications?.mailBadgeLabel(for: $0) }
-        mailBadgeObserver = services.notifications.mail.objectWillChange.sink { [weak badges = services.badges] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
-        }
-        services.badges.start()
+        startBadges()
         MenuBarSpacerService.shared.start()
         MenuBarTintService.shared.start()
         services.calls.start()
@@ -258,5 +253,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         services.stats.start()
         services.screenshots.start()
+    }
+}
+
+extension AppDelegate {
+    /// The badges beside the notch, with Gmail's count from Mail (spec GM-7) and the highlighted
+    /// Beeper networks' badges of their own (spec BP-14).
+    func startBadges() {
+        services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
+        services.badges.labelOverride = { [weak notifications = services.notifications] in notifications?.mailBadgeLabel(for: $0) }
+        mailBadgeObserver = services.notifications.mail.objectWillChange.sink { [weak badges = services.badges] in
+            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
+        }
+        services.badges.beeperNetworks = { [weak beeper = services.beeper] in beeper?.highlightedNetworks ?? [] }
+        services.badges.beeperNetworkUnread = { [weak beeper = services.beeper] in beeper?.unreadTotal(network: $0) ?? 0 }
+        services.badges.removeBeeperNetwork = { [weak beeper = services.beeper] in beeper?.setHighlighted($0, false) }
+        services.badges.start()
     }
 }

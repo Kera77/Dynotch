@@ -52,9 +52,8 @@ struct DayStripView: View {
                 Text(selectedDay.formatted(.dateTime.month(.wide)))
                     .font(.notch(size: 9, weight: .semibold))
                     .foregroundStyle(Color.white.level(0.55))
-                    .padding(.horizontal, 4)
-                    .background(Color.black)
-                    .padding(.leading, 2)
+                    // No backing of its own: it would stand as a black patch on glass (spec K-15b).
+                    .padding(.leading, 6)
                     .allowsHitTesting(false)
             }
             .onAppear {

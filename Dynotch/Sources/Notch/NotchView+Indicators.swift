@@ -46,8 +46,7 @@ extension NotchView {
             openTasks: { openModule(.reminders) },
             openStats: { openModule(.stats) },
             batterySamples: { battery.history.samples[$0] ?? [] },
-            taskItems: { tasks.listed },
-            completeTask: { tasks.complete($0) },
+            taskIndicator: tasks,
             badgeRows: { notifications.badgeListRows(for: $0, beeper: beeper) },
             openBadgeApp: { badges.open($0.app) },
             hideBadge: { badge, choice in withAnimation(Self.quickAnimation) { badges.hide(badge.app.bundleID, choice) } }

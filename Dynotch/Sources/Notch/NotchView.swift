@@ -140,7 +140,8 @@ struct NotchView: View {
                     // Volume and brightness come first (spec H-1).
                     HUDView(display: display, notchWidth: geometry.notchSize.width)
                         .frame(height: geometry.notchSize.height)
-                        .transition(.opacity)
+                        // The ring fills as the HUD comes and empties as it goes (spec H-3c).
+                        .transition(.hudReveal(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion))
                 } else if !model.isExpanded, let call = calls.call {
                     CallView(service: calls, call: call, notchHeight: geometry.notchSize.height)
                         .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)

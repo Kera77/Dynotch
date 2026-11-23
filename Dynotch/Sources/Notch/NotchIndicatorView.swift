@@ -32,8 +32,8 @@ struct NotchIndicatorView: View {
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
     /// The tasks under the counter's drop-down, and checking one off (spec R-12).
-    var taskItems: () -> [ReminderItem] = { [] }
-    var completeTask: (ReminderItem) -> Void = { _ in }
+    /// The tasks counter's drop-down reads its lists from here (spec R-17).
+    var taskIndicator: TaskIndicator?
     /// A hovered badge's notifications, and opening the app (spec B-10).
     var badgeRows: (BadgeItem) -> [BadgeNotificationRow] = { _ in [] }
     var openBadgeApp: (BadgeItem) -> Void = { _ in }

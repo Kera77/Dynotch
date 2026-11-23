@@ -56,6 +56,12 @@ final class ActiveBrowser {
 
     nonisolated private static let probe = URL(string: "https://example.com")
 
+    /// The default browser's bundle identifier: the one whose notifications and tabs are
+    /// watched (spec E-2g, B-2c).
+    nonisolated static func defaultBundleID() -> String? {
+        probe.flatMap { NSWorkspace.shared.urlForApplication(toOpen: $0) }.flatMap { Bundle(url: $0)?.bundleIdentifier }
+    }
+
     /// A browser: a known one, or any app that can open web pages (installed web apps excluded).
     nonisolated static func isBrowser(_ app: NSRunningApplication) -> Bool {
         guard let bundleID = app.bundleIdentifier else { return false }

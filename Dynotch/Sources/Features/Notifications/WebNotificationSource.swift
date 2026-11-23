@@ -27,6 +27,17 @@ enum WebNotificationSource {
         return String(identifier.dropLast(suffix.count))
     }
 
+    /// A browser's notification while another browser is the default: left out, only the
+    /// default browser's notifications are watched (spec E-2g). Installed web apps and unknown
+    /// senders always pass; Safari's web push counts as Safari.
+    static func isFromOtherBrowser(_ identifier: String, defaultBrowser: String?) -> Bool {
+        guard let defaultBrowser = defaultBrowser?.lowercased() else { return false }
+        var owner = owningApp(identifier).lowercased()
+        if owner.hasPrefix("com.apple.safari.webpush") { owner = "com.apple.safari" }
+        guard owner != "com.apple.safari.webapp", !isWebApp(owner), browserIdentifiers.contains(owner) else { return false }
+        return owner != defaultBrowser
+    }
+
     /// True for identifiers shared by many sites (browsers, the generic Web App host).
     static func isShared(_ identifier: String) -> Bool {
         let lowered = identifier.lowercased()
