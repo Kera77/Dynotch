@@ -26,7 +26,9 @@ struct FeatureSettingsView: View {
                 Text("Modules")
             } footer: {
                 Text("Drag a row to reorder. At least one module must stay on. › shows a module's shortcut and options: "
-                    + "\"Menu bar\" also adds an icon to the menu bar. Batteries is a tab of System, AI Usage a tab of AI. "
+                    + "\"Menu bar\" also adds an icon to the menu bar. "
+                    + "A module hidden from the modules still runs and opens with its shortcut or the swipe-up row. "
+                    + "Batteries is a tab of System, AI Usage a tab of AI. "
                     + "A shortcut opens the module; pressing it again closes it. \"Pin\" keeps it open when opened that way.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -48,17 +50,11 @@ struct FeatureSettingsView: View {
         .formStyle(.grouped)
     }
 
-    /// The cover beside the notch, and Music among the modules (spec MU-8).
+    /// The cover beside the notch (spec MU-8).
     @ViewBuilder private var musicOptions: some View {
         Toggle("Cover beside the notch", isOn: $settings.showsNowPlaying)
             .disabled(!settings.isEnabled(.music))
             .help("Show what Spotify plays beside the closed notch; hovering it opens Music")
-        Toggle("Among the modules", isOn: Binding(
-            get: { !settings.unlistedFeatures.contains(.music) },
-            set: { if $0 { settings.unlistedFeatures.remove(.music) } else { settings.unlistedFeatures.insert(.music) } }
-        ))
-        .disabled(!settings.isEnabled(.music))
-        .help("Show Music among the modules; off: it opens only from its cover or its shortcut")
     }
 
 }
@@ -82,6 +78,13 @@ private struct FeatureRow<Music: View>: View {
                     SettingsRowLabel(title: feature.title, detail: shortcuts.shortcuts[feature]?.display) {
                         Image(systemName: feature.symbolName).foregroundStyle(.secondary)
                     }
+                }
+                if !settings.isListed(feature) {
+                    Image(systemName: "eye.slash")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .help("Not among the modules: opens with its shortcut or the swipe-up row")
+                        .accessibilityLabel("Hidden from the modules")
                 }
                 Button {
                     withAnimation(Motion.quick) { isOpen.toggle() }
@@ -112,6 +115,12 @@ private struct FeatureRow<Music: View>: View {
                 get: { shortcuts.pinsWhenOpened(feature) }, set: { shortcuts.setPins(feature, $0) }
             ))
             .disabled(!isOn || shortcuts.shortcuts[feature] == nil)
+            // Hidden: still runs, opens with its shortcut or the swipe-up row (spec M-18).
+            Toggle("Among the modules", isOn: Binding(
+                get: { settings.isListed(feature) }, set: { settings.setListed(feature, $0) }
+            ))
+            .disabled(!isOn)
+            .help("Show \(feature.title) in the top row, the strip and the swipes; off: it opens with its shortcut or the swipe-up row")
             if AppSettings.menuBarFeatures.contains(feature) {
                 Toggle("Menu bar icon", isOn: Binding(
                     get: { settings.showsInMenuBar(feature) }, set: { settings.setShowsInMenuBar(feature, $0) }

@@ -103,6 +103,22 @@ struct AppSettingsTests {
         #expect(AppSettings(defaults: defaults).settingsPresentation == .window)
     }
 
+    /// Spec M-18: a hidden module runs but is left out of the modules; the last listed one stays.
+    @Test func hiddenModuleRunsButIsNotListed() {
+        let settings = AppSettings(defaults: makeDefaults())
+        settings.lastFeature = .notes
+        #expect(settings.setListed(.notes, false))
+        #expect(settings.isEnabled(.notes))
+        #expect(!settings.listedFeatures.contains(.notes))
+        #expect(settings.initialFeature == settings.listedFeatures.first)
+
+        for feature in settings.listedFeatures.dropLast() { settings.setListed(feature, false) }
+        let last = settings.listedFeatures
+        #expect(last.count == 1)
+        #expect(!settings.setListed(last[0], false))
+        #expect(settings.listedFeatures == last)
+    }
+
     /// Spec M-6: reordering in the menu bar keeps disabled features in place.
     @Test func moveActiveFeatureKeepsDisabledInPlace() {
         let settings = AppSettings(defaults: makeDefaults())

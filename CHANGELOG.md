@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.108.0] - 2026-11-24
+
+### Added
+
+- Any module can be hidden from the modules (Settings › Modules › › › "Among the modules"): it keeps running, its notices and menu bar icon still work, and it opens with its shortcut or from the swipe-up row. When the module opened last is hidden, the notch opens on the first listed one (M-18).
+
 ## [0.107.0] - 2026-11-24
 
 ### Changed

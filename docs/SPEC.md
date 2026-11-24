@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.107 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.108 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -78,6 +78,7 @@
 | M-15 | (v0.100) **A modulok húzása (M-10, SD-4 javítása):** a *Settings › Modules* listában a sorok ismét húzással átrendezhetők; a sor mögötti, a kinyitott sort görgetéssel láthatóvá tevő láthatatlan réteg nem fogja el az egeret. |
 | M-16 | (v0.101) **Nincs zöld plusz húzáskor:** a beállítások sorainak húzásakor (Modules, és minden átrendezhető lista) a mutató mellett nem jelenik meg a másolást jelző zöld „+”, a sorok között és a listán kívül sem (ott is áthelyezésként fogadja). |
 | M-17 | (v0.107) **Egyesével léptető swipe (M-14 módosítása):** a felső ikonsoron a swipe a modulokat **mindig egyesével** lépteti, sosem ugrik egyszerre többet. Egy erősebb pöccintés gyorsabb tempót ad: egy várakozó lépésnél 0,15 mp, sok várakozó lépésnél 0,06 mp telik el két lépés között. Egy gesztus legfeljebb 5 lépést gyűjthet, így egy pöccintés nem visz el a sor végéig. Visszafordított mozdulatnál a még várakozó lépések elvesznek. A végén megáll (M-13). |
+| M-18 | (v0.108) **Bármely modul elrejthető a modulok közül (a MU-8 általánosítása):** a *Settings › Modules* minden moduljának › opcióiban **Among the modules** kapcsoló (alapból be). Kikapcsolva a modul nem látszik a felső ikonsorban, a modulsávban, a húzásos és ⌘-számos váltásban, de **fut**: értesítései, jelzői, menüsor-ikonja (*Menu bar icon*) működnek, és a **gyorsbillentyűjével** vagy a **swipe-up sorból** (QS-10) megnyitható; ilyenkor a felső sorban a többi után jelenik meg. A rejtett modul sorában a név mellett áthúzott szem ikon jelzi. Legalább egy modulnak a listában kell maradnia. Nyitáskor, ha a legutóbb nyitott modul rejtett, a notch az **első listázott** modulon nyílik. A Music korábbi *Among the modules* kapcsolója ebbe olvad; a *Cover beside the notch* marad. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -984,7 +985,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MU-5 | A modulban: nagy borító (kattintásra előjön a Spotify), cím, előadó és album, kattintható/húzható **folyamatjelző** az eltelt és hátralévő idővel, **keverés, előző, lejátszás/szünet, következő, ismétlés**. |
 | MU-6 | A modulban: a Spotify **hangereje** csúszkával, és a Mac **hangkimenetének** választása (pl. AirPlay hangszóró, Bluetooth fejhallgató). |
 | MU-7 | Kedvelés nincs: a Spotify AppleScriptje nem kínálja. |
-| MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. |
+| MU-8 | A Beállítások modullistájában a Music sorában két kapcsoló: **Cover** – megjelenjen-e a borító a csukott notch mellett; **In list** – szerepeljen-e a modul a modulok között (felső sor, modulsáv, váltás húzással és ⌘-számmal). Listán kívül a modul fut, és a borítóról vagy a gyorsbillentyűjével nyílik. (v0.108: az *In list* kapcsoló minden modulnál megvan, lásd M-18.) |
 | MU-9 | Szüneteltetett zenénél a borító elrejthető. A modul szem ikonos menüjében: **Hide Now** (elrejti, amíg újra nem szól), és **Hide After a Pause**: azonnal, 1, 5 (alap) vagy 15 perc szünet után, vagy soha. Lejátszáskor a borító visszajön. |
 | MU-10 | (v0.84) **Nincs számváltás-bejelentés nyitott Music modulnál:** ha a notch (bármelyik kijelzőn) a Music modulon nyitva van (teljesen vagy Wingsben), vagy a csukott notch alatt le van nyílva a lejátszó (MU-2; v0.85), számváltáskor nem jelenik meg a bejelentés (MU-4, PV-68), és a panel bezárása után sem jön elő. |
 
@@ -1193,6 +1194,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.108.0** | Bármely modul elrejthető a modulok közül: fut tovább, gyorsbillentyűvel és a swipe-up sorból nyílik (M-18) |
 | **v0.107.0** | Google Chat válasz gyorsabban és vissza a Kezdőlapra, egyesével léptető swipe az ikonsoron és a napsoron, akadásmentes váltás az AI modulról, a Calculator felső sora a helyén, a modulválasztó a legutóbbin indul, haptikával (GW-30, GW-31, M-17, K-17, AI-18, N-25, SZ-18, QS-16, QS-17) |
 | **v0.106.0** | A meeting Join gombja a notch melletti kinyíló rész elején (PV-74) |
 | **v0.105.0** | Badge-lenyílóból kattintott csevegés kinyitva, azonnal gépelhető (B-10f) |

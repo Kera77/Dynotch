@@ -55,15 +55,35 @@ extension AppSettings {
         featureOrder.filter(isEnabled)
     }
 
-    /// Feature to show when the panel opens: the last one if still enabled, else the first enabled.
+    /// Feature to show when the panel opens: the last one if still among the modules, else the
+    /// first listed one (spec M-18).
     var initialFeature: FeatureID {
-        if let lastFeature, isEnabled(lastFeature) { return lastFeature }
+        if let lastFeature, isEnabled(lastFeature), listedFeatures.contains(hostFeature(of: lastFeature)) {
+            return lastFeature
+        }
         return listedFeatures.first ?? activeFeatures.first ?? .home
     }
 
     /// The enabled modules shown in the top row, the strip and the swipes (spec MU-8).
     var listedFeatures: [FeatureID] {
         activeFeatures.filter { !unlistedFeatures.contains($0) && !isMerged($0) }
+    }
+
+    /// Whether a module shows among the modules (spec M-18).
+    func isListed(_ feature: FeatureID) -> Bool {
+        !unlistedFeatures.contains(feature)
+    }
+
+    /// Shows or hides a module among the modules; the last listed one can't be hidden (spec M-18).
+    @discardableResult
+    func setListed(_ feature: FeatureID, _ listed: Bool) -> Bool {
+        if listed {
+            unlistedFeatures.remove(feature)
+            return true
+        }
+        guard !listedFeatures.allSatisfy({ $0 == feature }) else { return false }
+        unlistedFeatures.insert(feature)
+        return true
     }
 
     // MARK: Merged modules (spec MG-1…MG-8)
