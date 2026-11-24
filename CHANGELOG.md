@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.112.0] - 2026-11-24
+
 ### Added
 
 - Tools module with Timer | Stopwatch | Pomodoro | Toggles tabs, each switchable in the new Settings › Tools (TM-1, TM-2).

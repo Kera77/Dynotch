@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.111 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.112 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1302,6 +1302,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.112.0** | Tools modul: időzítő, stopper, pomodoro, gyorskapcsolók (TM-1…TM-17, QT-1…QT-5); HUD-bejelentések (HA-1…HA-4); Weather fül a Naptárban és reggeli előrejelzés (WX-1…WX-8) |
 | **v0.111.0** | Refaktorálás: haptika a trackpad motorján minden swipe-ra (H-8), célzott újrarajzolás `@Observable`-lel, takarékos háttérfigyelés (csak bekapcsolt funkció, szünet alvás/zárolás alatt, ×3 akkun és energiatakarékos módban, Mission Control figyelő ritkábban), billentyűzár vészkijárat, átmeneti vágólap, idézett Terminál-parancsok, visszaállás az előző verzióra, rögzített CI-actionök (RF-1…RF-21) |
 | **v0.110.0** | Swipe-up modulok listája a Module strip mintájára, haptika a swipe-upra, nincs névfelirat hoverre az ikonokon, System fejléc nélkül, Options a fülek mellett, hatodik Speed csempe (QS-18, M-22, SY-13) |
 | **v0.109.0** | Akadásmentes Tray, a felső sor sosem csúszik ki, swipe pillanatképekkel (az átlépett modulok nem épülnek fel), húzás út szerint és pöccintés a sor végére, rejtett modul szeme a kapcsoló előtt (FT-16, N-26, M-20, M-21, M-19) |
