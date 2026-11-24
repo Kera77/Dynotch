@@ -123,6 +123,12 @@ struct ReorderDropDelegate<Item: Equatable>: DropDelegate {
     }
 }
 
+/// Takes a reorder drag let go between rows as a move, not a copy (spec M-16).
+struct MoveDropDelegate: DropDelegate {
+    func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
+    func performDrop(info: DropInfo) -> Bool { true }
+}
+
 /// Ends a row drag once the mouse button is up, wherever it was let go: dropped between rows or
 /// outside the list no drop delegate hears it, and the row stayed grey (spec SD-14).
 @MainActor
@@ -153,8 +159,9 @@ enum ReorderDragEnd {
 extension View {
     /// Takes a reorder drag let go anywhere in the settings, so the dragged image does not fly
     /// back to where it started (spec SD-14).
+    /// Taken as a move, so no green "+" shows beside the pointer (spec M-16).
     func acceptsReorderDrops() -> some View {
-        onDrop(of: [.text], isTargeted: nil) { _ in true }
+        onDrop(of: [.text], delegate: MoveDropDelegate())
     }
 
     /// A row that can be dragged over the others of `items` to reorder them (spec SD-4).

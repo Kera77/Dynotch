@@ -66,6 +66,13 @@ struct NotificationGroupRow: View {
                         .font(.notch(size: 10))
                         .foregroundStyle(Color.white.level(0.45))
                         .lineLimit(1)
+                    // Read in the Google Chat web app without replying (spec GW-28).
+                    if service.canMarkChatRead(group.latest) {
+                        NotificationHeaderButton(symbol: "checkmark", help: "Mark as read") {
+                            withAnimation(Motion.quick) { service.markChatRead(group.notifications) }
+                        }
+                        .accessibilityLabel("Mark \(content.sender) as read")
+                    }
                     // The X removes; an open group closes with the arrow (spec E-5c, PV-62).
                     NotificationHeaderButton(symbol: "xmark", help: "Remove") {
                         withAnimation(Motion.quick) { group.notifications.forEach { service.remove($0) } }

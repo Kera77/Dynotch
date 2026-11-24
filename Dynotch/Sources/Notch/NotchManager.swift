@@ -213,7 +213,9 @@ final class NotchManager {
     }
 
     private func rebuildIfNeeded() {
-        let screens = NSScreen.screens
+        // No notch on an iPad used as a display (spec TB-10); every display if only that is left.
+        let others = NSScreen.screens.filter { !SidecarDisplay.isTablet($0) }
+        let screens = others.isEmpty ? NSScreen.screens : others
         let newSignature = screens
             .map { "\($0.frame)|\($0.visibleFrame.maxY)|\($0.safeAreaInsets.top)" }
             .joined(separator: ";")

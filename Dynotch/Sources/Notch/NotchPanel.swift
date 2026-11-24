@@ -26,6 +26,11 @@ final class NotchPanel: NSPanel {
     /// The panel only takes keyboard focus while it shows the settings, so its controls look
     /// and behave like in an active window.
     var allowsKey = false
+    /// The pointer (screen point) is over the open notch, where typing must not be cut off;
+    /// outside it focus may follow the mouse away (spec F-4, F-17).
+    var keepsKeyboard: (CGPoint) -> Bool = { _ in true }
+    /// Gives the keyboard back to the app in front for real (spec F-15c, F-17).
+    var letGoOfKeyboard: () -> Void = {}
 
     override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }

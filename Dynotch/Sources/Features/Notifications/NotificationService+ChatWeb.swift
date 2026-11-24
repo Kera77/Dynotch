@@ -236,6 +236,18 @@ extension NotificationService {
         chatWebPending.values.contains(notification.id)
     }
 
+    /// A Google Chat card can be marked read: the web app is read (spec GW-28).
+    func canMarkChatRead(_ notification: AppNotification) -> Bool {
+        chatWeb.state == .reading && (notification.sourceIdentifier == Self.chatWebSource || isGoogleChat(notification))
+    }
+
+    /// Reads the card's conversation in the web app, in the background, and removes the card (spec GW-28).
+    func markChatRead(_ cards: [AppNotification]) {
+        guard let card = cards.first else { return }
+        chatWeb.markRead(title: card.title)
+        cards.forEach { remove($0) }
+    }
+
     /// "Open in Google Chat": the web app in front with the conversation, or the app (spec GW-19).
     func openInGoogleChat(_ notification: AppNotification) {
         if !chatWeb.openInApp(title: notification.title) { catalog.open(notification.appIdentifier) }

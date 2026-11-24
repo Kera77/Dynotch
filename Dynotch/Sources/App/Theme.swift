@@ -25,10 +25,10 @@ enum Theme {
 /// The app's two tempos and the hover (spec D-19): every movement uses one of them.
 enum Motion {
     /// Opening, closing and resizing the notch, and anything that moves as far.
-    static var spring: Animation { AppleStyle.spring(response: 0.32, dampingFraction: 0.82) }
+    static var spring: Animation { AppleStyle.spring(response: 0.27, dampingFraction: 0.82) }
     /// Switching a tab, showing or hiding a small part: the system's snappy one (D-15g).
     static var quick: Animation {
-        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.18)
+        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.15)
     }
     /// Hover highlights.
     static let hover = Animation.easeOut(duration: 0.12)
@@ -91,12 +91,21 @@ struct EmptyStateView: View {
     var actionTitle: String?
     var action: () -> Void = {}
 
+    /// Every module's empty state looks like the AI's "Ask … anything": a 26 pt symbol and
+    /// 13 pt medium text, not the system's large bold title (spec D-20).
     var body: some View {
-        ContentUnavailableView {
-            Label(text, systemImage: symbol)
-        } actions: {
-            if let actionTitle { prominentButton(actionTitle) }
+        VStack(spacing: 8) {
+            Image(systemName: symbol)
+                .font(.notch(size: 26))
+                .foregroundStyle(Color.white.level(0.45))
+            Text(text)
+                .font(.notch(size: 13, weight: .medium))
+                .foregroundStyle(Color.white.level(0.6))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            if let actionTitle { prominentButton(actionTitle).padding(.top, 4) }
         }
+        .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

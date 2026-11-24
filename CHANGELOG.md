@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.101.0] - 2026-11-24
+
+### Added
+
+- Google Chat: *Mark as read* (check button) on the Google Chat cards, read in the web app in the background (GW-28).
+- Notifications: during a macOS Focus the notch shows no new notifications again; *Allow during Focus* per source lets an app through (E-20d).
+
+### Changed
+
+- The iPad menu opens right below its button, centred (TB-9).
+- No notch on an iPad used as a display (TB-10).
+- Every module's empty state uses the same 13 pt text as the AI's *Ask … anything* (D-20).
+- The base animation tempo is faster again: 0.27 s and 0.15 s (D-21).
+
+### Fixed
+
+- Pinned Google Chat conversations show the sender, not "Pinned conversation" (GW-27).
+- No green "+" beside the pointer while dragging rows in the settings (M-16).
+- With the notch open, focus follows the mouse to another app without a click (F-17).
+
 ## [0.100.0] - 2026-11-24
 
 ### Added

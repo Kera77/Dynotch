@@ -11,9 +11,11 @@ struct NotificationRule: Codable, Equatable, Sendable {
     var showsReply: Bool?
     /// The pop-up shows the message text too (spec E-22b); nil: the name only.
     var peekShowsMessage: Bool?
+    /// Pops up while a macOS Focus is on (spec E-20d); nil: no.
+    var popsUpDuringFocus: Bool?
 
     var isDefault: Bool {
-        name == nil && hidesBanner == nil && showsReply == nil && peekShowsMessage == nil
+        name == nil && hidesBanner == nil && showsReply == nil && peekShowsMessage == nil && popsUpDuringFocus == nil
     }
 }
 
@@ -251,5 +253,16 @@ extension NotificationService {
         guard !due.isEmpty else { return }
         preferences.snoozed.removeAll { $0.until <= now }
         due.forEach { bringBack($0.notification) }
+    }
+}
+
+// MARK: - Focus (spec E-20d)
+
+extension NotificationService {
+    /// Whether a notification may pop up now: not while a macOS Focus is on, unless its source
+    /// is allowed during a Focus, like the apps a Focus allows in System Settings.
+    func popsUp(_ notification: AppNotification) -> Bool {
+        guard MacFocus.current() != nil else { return true }
+        return rule(for: catalog.app(for: notification.appIdentifier)).popsUpDuringFocus == true
     }
 }

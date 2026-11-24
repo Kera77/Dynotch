@@ -6,11 +6,13 @@ import SwiftUI
 /// an AppKit menu, so it looks and hovers like the buttons beside it (spec TB-8).
 struct TabletMenu: View {
     @ObservedObject var service: TabletDisplayService
+    /// The button's view, so the menu opens right below it (spec TB-9).
+    @State private var anchor = MenuAnchor()
 
     var body: some View {
         Button {
             service.refresh()
-            TabletMenuBuilder(service: service).popUp()
+            TabletMenuBuilder(service: service).popUp(below: anchor.view)
         } label: {
             Image(systemName: "ipad.landscape")
                 .font(.notch(size: 12, weight: .semibold))
@@ -19,6 +21,7 @@ struct TabletMenu: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.notch)
+        .background(MenuAnchorView(anchor: anchor))
         .help("iPad as a display")
         .accessibilityLabel("iPad as a display")
         .onAppear { service.refresh() }
@@ -36,7 +39,7 @@ private final class TabletMenuBuilder: NSObject {
         self.service = service
     }
 
-    func popUp() {
+    func popUp(below view: NSView?) {
         let menu = NSMenu()
         menu.autoenablesItems = false
         let busy = service.pending != nil
@@ -64,7 +67,7 @@ private final class TabletMenuBuilder: NSObject {
         menu.addItem(.separator())
         item("Display Settings…", isOn: false, enabled: true, in: menu) { [service] in service.openDisplaySettings() }
         // Kept alive while the menu is open: the items point at it.
-        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+        menu.popUp(positioning: nil, at: MenuAnchor.point(below: view, menuWidth: menu.size.width), in: nil)
         withExtendedLifetime(self) {}
     }
 
@@ -91,6 +94,39 @@ private final class TabletMenuBuilder: NSObject {
     @objc private func choose(_ sender: NSMenuItem) {
         guard actions.indices.contains(sender.tag) else { return }
         actions[sender.tag]()
+    }
+}
+
+/// Holds the view a menu opens below (spec TB-9).
+@MainActor
+final class MenuAnchor {
+    weak var view: NSView?
+
+    /// The screen point for the menu's top left corner: centred below the view, a few points
+    /// lower; the pointer when the view is unknown.
+    static func point(below view: NSView?, menuWidth: CGFloat) -> CGPoint {
+        guard let view, let window = view.window else { return NSEvent.mouseLocation }
+        let frame = window.convertToScreen(view.convert(view.bounds, to: nil))
+        return centred(below: frame, menuWidth: menuWidth)
+    }
+
+    nonisolated static func centred(below frame: CGRect, menuWidth: CGFloat) -> CGPoint {
+        CGPoint(x: frame.midX - menuWidth / 2, y: frame.minY - 4)
+    }
+}
+
+/// An invisible view behind a button that tells its `MenuAnchor` where the button is.
+struct MenuAnchorView: NSViewRepresentable {
+    let anchor: MenuAnchor
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        anchor.view = view
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        anchor.view = nsView
     }
 }
 

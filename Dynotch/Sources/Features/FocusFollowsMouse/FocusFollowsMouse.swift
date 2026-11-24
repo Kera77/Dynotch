@@ -50,11 +50,17 @@ final class FocusFollowsMouse {
         }
     }
 
-    private func focusWindowUnderPointer() {
+    private func focusWindowUnderPointer(mayLetGo: Bool = true) {
         // Never while dragging or selecting, and never take the keyboard from a Dynotch panel
         // someone is typing in (spec F-4).
         guard NSEvent.pressedMouseButtons == 0 else { return }
         if let window = NSApp.windows.first(where: FocusRules.takesKeyboard) {
+            // The open notch lets go once the pointer has left it; the switch follows (spec F-17).
+            if mayLetGo, let panel = window as? NotchPanel, !panel.keepsKeyboard(NSEvent.mouseLocation) {
+                panel.letGoOfKeyboard()
+                retryAfterLettingGo()
+                return
+            }
             logSkip("a Dynotch window has the keyboard (\(type(of: window)))")
             return
         }
@@ -92,6 +98,17 @@ final class FocusFollowsMouse {
             lastFocused = target.id
         } else {
             logSkip("the window server refused the switch")
+        }
+    }
+
+    /// Once the notch has handed the keyboard back (it takes a moment), the window under the
+    /// pointer gets it (spec F-17).
+    private func retryAfterLettingGo() {
+        pending?.cancel()
+        pending = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            self?.focusWindowUnderPointer(mayLetGo: false)
         }
     }
 

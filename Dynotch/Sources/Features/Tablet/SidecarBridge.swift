@@ -64,6 +64,15 @@ enum SidecarDisplay {
             .flatMap { $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID }
     }
 
+    /// The screen is an iPad's: Dynotch puts no notch there (spec TB-10).
+    static func isTablet(_ screen: NSScreen) -> Bool {
+        guard let id = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
+            return screen.localizedName.contains("Sidecar")
+        }
+        return (CGDisplayVendorNumber(id) == vendorNumber && CGDisplayModelNumber(id) == modelNumber)
+            || screen.localizedName.contains("Sidecar")
+    }
+
     static func isMirrored(_ display: CGDirectDisplayID) -> Bool {
         CGDisplayMirrorsDisplay(display) != noDisplay
     }

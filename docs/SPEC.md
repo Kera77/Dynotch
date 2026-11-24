@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.100 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.101 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -75,6 +75,7 @@
 | M-13 | (v0.91) **Megállás a végén (M-12 javítása):** ha a felső ikonsoron a swipe (a lendülettel együtt) eléri az első vagy az utolsó modult, ott megáll: az ikonsor egyszer jelzi a véget (kis visszarugózás), a gesztus maradék lendülete nem lép és nem rugózik tovább. Új gesztus újra léptet. |
 | M-14 | (v0.99) **Kevésbé érzékeny, folyamatos modul-swipe (M-12, S-1 módosítása):** a felső ikonsoron ~80 pt ujjmozgás lép egy modult (50 helyett), a lendület fele súllyal számít; a váltás legfeljebb 0,1 mp-enként történik, a közben összegyűlt lépések egyszerre, így nagy swipe-nál sem akad. A panel feletti egyes swipe (S-1) küszöbe 30-ról 45 pt-ra nő. |
 | M-15 | (v0.100) **A modulok húzása (M-10, SD-4 javítása):** a *Settings › Modules* listában a sorok ismét húzással átrendezhetők; a sor mögötti, a kinyitott sort görgetéssel láthatóvá tevő láthatatlan réteg nem fogja el az egeret. |
+| M-16 | (v0.101) **Nincs zöld plusz húzáskor:** a beállítások sorainak húzásakor (Modules, és minden átrendezhető lista) a mutató mellett nem jelenik meg a másolást jelző zöld „+”, a sorok között és a listán kívül sem (ott is áthelyezésként fogadja). |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -292,6 +293,7 @@
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 | E-20b | (v0.54) **Banner nélküli mód:** a *Settings › Notifications › Except during the Focus* mezőben megadott nevű Fókusz (alapból „Dynotch”) alatt a Dynotch nem némul el. Ha ez a Fókusz egyetlen appot sem enged át és mindig be van kapcsolva, macOS-banner nem jelenik meg, az értesítések viszont az Értesítési központba és így a notchba is megérkeznek. |
 | E-20c | (v0.100) **A Fókusz-alapú némítás megszűnt (E-20, E-20b, B-5b törlése):** a Dynotch nem figyeli a macOS Fókuszt; az értesítések Fókusz alatt is felugranak, a jelvények pulzálnak. A *During a Focus…* kapcsoló, az *Except during the Focus* mező és a források *Pop up during Focus* kapcsolója kikerült, a kód törölve. |
+| E-20d | (v0.101) **Fókusz alatt nincs felugrás, appontos kivétellel (E-20c módosítása):** ha egy macOS Fókusz be van kapcsolva, a notch nem mutat új értesítést (kis lenyílás, előnézet), ahogy a macOS sem; az értesítések a listába bekerülnek. A *Settings › Notifications* forrásainál appontként bekapcsolható az *Allow during Focus*: ennek az appnak az értesítései Fókusz alatt is megjelennek (mint a macOS Fókusz-beállításainak engedélyezett appjai). Nincs kivételként megadott Fókusz (E-20b nem tér vissza), a jelvények pulzálása nem változik. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 | E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
 | E-22b | (v0.53, az E-22 globális kapcsolóját felváltja) A „Name only / With message” **csak appokként** állítható (az app szabályai között); alapból minden app „Name only”. Közös marad a *Message lines in pop-ups* (2–8). |
@@ -398,6 +400,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-15c | (v0.67.2) A billentyűzet visszaadása akkor is valódi, ha a notch úgy vette el, hogy az előtérben lévő app aktív maradt: a Dynotch egy pillanatra aktív lesz, és átadja az appnak (eddig a kurzor villogott, a gépelés pittyegett egy kattintásig). A napló: `focus.log`. |
 | F-15d | (v0.67.3) Átadáskor a Dynotch ténylegesen deaktiválódik (akkor is, ha a macOS már a másik appot tartja előtérben), és ha a notch-panel ezután is fogja a billentyűzetet, egy pillanatra leveszi és visszateszi, hogy elengedje. A `focus.log` az átadás utáni állapotot is írja. |
 | F-16 | (v0.83) **Kattintások nem akadnak el a notch ablakán:** a notch ablaka szinte a teljes kijelzőt lefedi (a nagy modulok miatt). Becsukott notchnál minden egérmozgásra ellenőrzi, hogy az egér a látható notch valamelyik aktív részén van-e (jelzők és lenyílók, kis értesítés, eszközértesítés, modulsor); ha nem, az ablak biztosan átengedi a kattintásokat. Eddig egy eltűnt értesítés vagy lenyíló után bent ragadhatott, és a notch alatti appok (pl. a Zen oldalsávja: mappák, kiemelt oldalak) nem kapták meg a kattintást. |
+| F-17 | (v0.101, hiba) **Lenyitott notchról is követ:** ha a lenyitott notch-nál van a billentyűzet (F-15), és az egér a notch-on kívül egy másik ablakra megy, a fókusz kattintás nélkül átmegy oda: a notch elengedi a billentyűzetet, és a váltás megtörténik. Amíg az egér a lenyitott notch felett van, a gépelés nem szakad meg (F-4); visszatérve a notch újra megkapja (F-15). |
 
 ---
 
@@ -626,6 +629,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-6 | (v0.89) **Billentyűzet és egér összekapcsolása az iPaddel (Universal Control, TB-4 kiegészítése):** a tablet menüben *Link keyboard and mouse to* szakasz a közeli iPadekkel. Kattintásra a Dynotch megnyitja a Kijelzők beállítást, Kisegítő hozzáféréssel lenyitja a „+” menüt, és a billentyűzet/egér szakaszban kiválasztja az iPadet (újra kiválasztva leválasztja, mint a macOS-ben); utána bezárja a Rendszerbeállításokat, ha előtte nem futott. Ha a menüpont nem található (pl. más macOS-verzió), a Kijelzők beállítás nyitva marad, és a menü hibaüzenetet ír. Napló: `tablet` (lépések, tartalom nélkül). |
 | TB-7 | (v0.90) **Összekapcsolás a háttérben (TB-6 módosítása):** a *Link keyboard and mouse to* menüpont nem hozza elő a Rendszerbeállításokat: a Dynotch aktiválás nélkül nyitja meg a Kijelzők beállítást, az ablakát rögtön a képernyőn kívülre teszi, a korábbi app marad előtérben, és Kisegítő hozzáféréssel választja ki az iPadet a „+” menüben. Utána bezárja a Rendszerbeállításokat (ha előtte nem futott), különben visszateszi az ablakot a helyére. **Leválasztás ugyanígy:** az összekapcsolt iPad a menüben pipát kap; rákattintva ugyanez a háttérbeli lépés leválasztja. Hiba esetén a menü írja az okát (a Kijelzők beállítás ilyenkor sem jön elő). |
 | TB-8 | (v0.99) **Egyforma gomb, rövidebb menü (TB-2, TB-3 módosítása):** a tablet gomb ugyanúgy néz ki és ugyanúgy reagál hoverre, mint a felső sor többi ikongombja. A menüben csak a *Mirror or extend to* és a *Link keyboard and mouse to* szakasz és a *Display Settings…* marad; a külön *Mirror* szakasz és a csatlakozott iPad *Use as / Disconnect* szakasza megszűnt (lecsatlakozás a pipás iPadre kattintva). |
+| TB-9 | (v0.101) **Menü a gomb alatt:** a tablet gomb menüje pontosan a gomb alatt, vízszintesen középre igazítva nyílik le (eddig a mutató helyén). |
+| TB-10 | (v0.101) **Nincs notch az iPaden:** a kijelzőként csatlakozott iPadre (Sidecar) a Dynotch nem tesz notch-ot; a többi kijelző változatlan. |
 
 ## 4s. Claude kérdez (v0.36)
 
@@ -683,6 +688,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-15j | (v0.99) **Kerekebb hover (D-15i módosítása):** a gombok hover- és nyomás-kiemelése a vezérlő alakját követi: kis ikongombnál kapszula, nagyobb sornál legfeljebb 10 pt-os ív, nem a szögletesebb 6 pt-os téglalap. |
 | D-14f | (v0.100) **Három design (D-1 pontosítása):** *Black*, *Liquid glass* és *Black to glass*. A Liquid glass üvege ugyanaz, mint a Black to glass alsó, üveges része (normál, nem sötétített üveg, ugyanaz az accent-keverés és -réteg); a Crisp look (D-18) itt sem sötétíti és nem teszi *clear*-ré az üveget. |
 | D-19 | (v0.100) **Egységes tempó:** a notch nyitása, zárása és átméretezése (köztük a Naptár nagy nézetre váltása) ~15%-kal gyorsabb (0,38 helyett 0,32 mp); minden más mozgás (fülváltás, kis részek, szárnyak elemei, modulsor, váltók, görgetés a mai napra, törlések) ugyanezt a két tempót használja: a nyitásét vagy a rövidebb ~0,18 mp-eset; a hover marad 0,12 mp. Kivétel: az ablakváltó szándékosan gyorsabb lenyílása (AS-15), a futó feliratok és a pulzálás. A Naptár kis és nagy nézete közti áttűnés rövid, így a panel nyílása nem akad. |
+| D-20 | (v0.101) **Egységes betűméret az üres modulokon:** minden modul üres állapota (pl. Tray *Drop files on the notch…*, Vágólap, Képek) ugyanúgy néz ki, mint az AI *Ask … anything* felirata: 26 pt ikon, alatta 13 pt közepes vastagságú, másodlagos fehér szöveg (a rendszer nagy, félkövér címe helyett). |
+| D-21 | (v0.101) **Még gyorsabb alaptempó (D-19 módosítása):** a nyitás/zárás/átméretezés tempója 0,32 helyett 0,27 mp, a rövid tempó 0,18 helyett 0,15 mp; a hover marad 0,12 mp. A D-19 kivételei változatlanok. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -875,6 +882,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-24 | (v0.92) **Ha a Kezdőlap nem olvasható:** a Safari a Dockba (kis méretre) tett ablak Kezdőlap-listáját nem adja ki, csak az oldalsávot. Ilyenkor a név és a szám az oldalsávból, a szöveg az értesítésekből jön (GW-5, GW-5b); a Beállítások állapota: „Reading · N unread · with message text”, illetve „· no message text: open the web app's Home and keep its window out of the Dock”. Az ablak lehet másik asztalon vagy más ablakok mögött. |
 | GW-25 | (v0.93) **Kártya minden olvasatlan beszélgetéshez (a GW-5b javítása):** a webapp olvasatlan beszélgetése csak akkor marad kártya nélkül, ha a listában van olyan Google Chat értesítés, amely **egyértelműen ehhez** a beszélgetéshez tartozik (ugyanaz az egyeztetés, mint a GW-7-nél; egy másik beszélgetés laza névegyezése nem elég). Ha olvasatlan beszélgetéshez mégsem lesz kártya, a `notification-records` log megírja az okát (név nélkül), így a jelvény (GW-22) és a Google Chat fül nem mondhat ellent egymásnak észrevétlenül. |
 | GW-26 | (v0.93) **A Kezdőlap darabszáma magában nem olvasatlan (a GW-21 javítása):** a Kezdőlap-lista sora csak az „Olvasatlan” jelzéssel számít olvasatlannak; az „1 értesítés” felirat régi tereknél olvasás után is megmarad, ezért egyedül nem növeli a jelvényt (GW-22), és nem ad kártyát. A darabszámot csak olvasatlan sornál használja. |
+| GW-27 | (v0.101, hiba) **Kitűzött beszélgetés neve:** a webapp oldalsávjában és Kezdőlap-listájában a kitűzött beszélgetés sora a „Kitűzött beszélgetés” / „Pinned conversation” (és hasonló „Kitűzve”, „Pinned”) jelzést is hordozza; ez nem név, így kimarad, és a kártyán, a kis értesítésben és a jelvény-listában a küldő (beszélgetés) neve áll. |
+| GW-28 | (v0.101) **Mark as read a Google Chatnél (BP-20 párja):** a Google Chat-kártyák fejlécében (All, Chats, Google Chat fül) pipa gomb, ha a webapp olvasható (GW-14 „Reading”): a Dynotch a háttérben megnyitja a beszélgetést a webappban (GW-8), így ott olvasott lesz, a kártya pedig eltűnik. Csak a felhasználó kattintására. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -1160,6 +1169,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.101.0** | iPad menü a gomb alatt, nincs notch az iPaden, kitűzött Google Chat-beszélgetésnél a küldő neve, Google Chat Mark as read, egységes betűméret az üres modulokon, gyorsabb alaptempó, nincs zöld plusz húzáskor, Fókusz alatt nincs felugrás (appontos kivétellel), lenyitott notchról is követ a fókusz (TB-9, TB-10, GW-27, GW-28, D-20, D-21, M-16, E-20d, F-17) |
 | **v0.100.0** | Liquid glass újra üveges (három design), egységes, gyorsabb animációk és sima Naptár-nyitás, akadásmentes vágólap-átrendezés, Modules lista újra húzható, Module strip és modulváltó a Modules lapon (Swipe-up modules), új hézagstílusok és elrejtés, ha nincs mellette ikon, Beeper Mark as read, beállítások utolsó lapja, Fókusz-némítás törölve (D-14f, D-19, CB-9, M-15, QS-13, QS-14, MB-13, MB-14, BP-20, SD-15, E-20c) |
 | **v0.99.0** | Accent erősség csúszka és biztosan látszó accent a Black to glassban, az Original nézet megszűnt, egyforma iPad gomb rövidebb menüvel, kerekebb hover, beállítás-sorok húzása nem marad szürke, mentett vágólap átrendezhető, nyugodtabb modul-swipe (D-14e, D-15j, D-17e, D-17f, TB-8, SD-14, CB-8, M-14) |
 | **v0.98.0** | Black to glass designnál is látszik az accent az üvegben (D-17d) |

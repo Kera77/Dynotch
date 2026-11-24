@@ -103,6 +103,12 @@ struct NotificationSourceRow: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            // Like the apps a macOS Focus allows (spec E-20d).
+            Toggle("Allow during Focus", isOn: Binding(get: { rule.popsUpDuringFocus == true }, set: { allowed in
+                var updated = rule
+                updated.popsUpDuringFocus = allowed ? true : nil
+                service.setRule(updated, for: app)
+            }))
             // The pop-up shows the name, or the message too (spec E-22b).
             Picker("Pop-up", selection: Binding(get: { rule.peekShowsMessage == true }, set: { shows in
                 var updated = rule

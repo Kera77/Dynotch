@@ -139,6 +139,8 @@ final class NotchController {
         observeBeeperList(services.beeper)
         model.requestCollapse = { [weak self] in self?.collapse() }
         model.recheckPointer = { [weak self] in self?.evaluatePointerWhileExpanded() }
+        panel.keepsKeyboard = { [weak self] point in self?.keepOpenZone.contains(point) ?? true }
+        panel.letGoOfKeyboard = { [weak self] in self?.giveKeyboardBack() }
         var glassView = rootView
         glassView.layer = .glass
         glassPanel.contentView = NSHostingView(rootView: glassView)

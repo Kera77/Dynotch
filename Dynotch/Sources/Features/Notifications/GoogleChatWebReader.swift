@@ -100,12 +100,21 @@ enum GoogleChatWebReader {
     /// Texts the sidebar puts beside a name: the unread marker.
     private static let unreadMarkers: Set<String> = ["olvasatlan", "unread"]
 
+    /// The pin a pinned conversation's row carries ("Kitűzött beszélgetés", "Pinned"): not its
+    /// name (spec GW-27).
+    nonisolated static func isPinMarker(_ text: String) -> Bool {
+        let folded = text.lowercased()
+        return ["kitűzött beszélgetés", "kitűzve", "kitűzött", "pinned conversation", "pinned"].contains(folded)
+            || folded.hasPrefix("kitűzött beszélgetés") || folded.hasPrefix("pinned conversation")
+    }
+
     /// The conversation's name and unread count from a sidebar item's texts. Unread items start
     /// with "Olvasatlan"; direct messages start with the person's status ("Nincs a gépnél"), so
     /// their name is the last text; a space's name is the first one, its kind and topic follow.
     /// The count is the text starting with a number ("1 értesítés").
     nonisolated static func nameAndCount(_ texts: [String], isDirect: Bool) -> (name: String, count: Int?) {
-        let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && !isPinMarker($0) }
         let count = trimmed.lazy.compactMap { text -> Int? in
             let digits = text.prefix { $0.isNumber }
             guard !digits.isEmpty, text.dropFirst(digits.count).first == " " else { return nil }
@@ -137,7 +146,7 @@ enum GoogleChatWebReader {
     /// its name. Nil when no time or no message is found.
     nonisolated static func homePreview(_ texts: [String]) -> ChatWebPreview? {
         let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { text in !text.isEmpty && !keyboardHints.contains { text.contains($0) } }
+            .filter { text in !text.isEmpty && !isPinMarker(text) && !keyboardHints.contains { text.contains($0) } }
         guard let timeIndex = trimmed.firstIndex(where: isTime), timeIndex > 0 else { return nil }
         let name = trimmed[timeIndex - 1]
         var isUnread = false
