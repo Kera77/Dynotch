@@ -24,8 +24,6 @@ final class BadgeService: ObservableObject {
             if let data = try? JSONEncoder().encode(hidden) { defaults.set(data, forKey: Self.hiddenKey) }
         }
     }
-    /// A macOS Focus is on that silences Dynotch: a new badge does not pulse (spec B-5b).
-    var isSilenced: () -> Bool = { false }
     /// A count from elsewhere than the Dock: Gmail's from Mail (spec GM-7); "" hides the badge.
     var labelOverride: (BadgeApp) -> String? = { _ in nil }
     /// The highlighted Beeper networks (spec BP-13) and one network's unread count (spec BP-14).
@@ -173,12 +171,9 @@ final class BadgeService: ObservableObject {
     }
 
     func apply(_ current: [String: String], now: Date) {
-        var updated = hasBaseline
+        let updated = hasBaseline
             ? BadgeTracker.pulses(pulses, previous: labels, current: current, now: now)
             : [:]
-        if updated.keys.contains(where: { pulses[$0] == nil }), isSilenced() {
-            updated = updated.filter { pulses[$0.key] != nil }
-        }
         hasBaseline = true
         if updated != pulses { pulses = updated }
         if current != labels { labels = current }

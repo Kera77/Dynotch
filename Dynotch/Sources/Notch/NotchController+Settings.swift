@@ -145,7 +145,7 @@ extension NotchController {
     /// The fingers lift about 0.1 s into the swipe, the Spaces slide on for about 0.4 s more:
     /// the notch stays drawn in this long, then unfolds and has settled when they stop.
     static let holdAfterLift: TimeInterval = 0.12
-    static var unfoldAnimation: Animation { AppleStyle.spring(response: 0.3, dampingFraction: 0.84) }
+    static var unfoldAnimation: Animation { Motion.spring }
     /// If the end of the swipe is missed, the notch unfolds by itself after this long.
     static let gatherTimeout: TimeInterval = 2.5
 

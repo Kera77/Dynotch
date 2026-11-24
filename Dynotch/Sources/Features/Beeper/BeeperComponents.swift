@@ -213,6 +213,12 @@ struct BeeperChatList: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.notch)
+        .contextMenu {
+            // Read in Beeper without opening it (spec BP-20).
+            if chat.unread > 0 {
+                Button("Mark as Read") { service.markRead(chat.id) }
+            }
+        }
     }
 
     private func lastDate(of chat: BeeperChatInfo) -> Date? {

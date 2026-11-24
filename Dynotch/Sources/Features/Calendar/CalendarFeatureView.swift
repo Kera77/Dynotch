@@ -9,11 +9,12 @@ struct CalendarFeatureView: View {
         switch service.access {
         case .granted:
             if model.isLarge {
+                // A short cross-fade: two full views fading over the whole resize made it stutter (spec D-19).
                 CalendarFullView(service: service) { setLarge(false) }
-                    .transition(.opacity)
+                    .transition(.opacity.animation(Motion.quick))
             } else {
                 CalendarCompactView(service: service) { setLarge(true) }
-                    .transition(.opacity)
+                    .transition(.opacity.animation(Motion.quick))
             }
         case .notDetermined:
             accessPrompt(text: "Dynotch needs access to your calendars.", button: "Allow Access")

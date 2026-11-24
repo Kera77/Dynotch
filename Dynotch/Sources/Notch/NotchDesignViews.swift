@@ -166,11 +166,6 @@ struct DesignBackground<S: Shape>: View {
         return openOpacity < 1 ? min(1, openOpacity + 0.15) : 0
     }
 
-    /// Crisp: a deeper tint, black rather than grey (spec D-18).
-    nonisolated static func tint(_ base: Double, crisp: Bool) -> Double {
-        crisp ? min(base + 0.15, 0.75) : base
-    }
-
     var body: some View {
         let glass = isOpen && design != .black
         let open = isOpen ? openOpacity : 1
@@ -183,13 +178,12 @@ struct DesignBackground<S: Shape>: View {
                 BehindWindowBlur()
                     .clipShape(shape)
                     .opacity(Self.blurOpacity(glass: glass, isOpen: isOpen, openOpacity: openOpacity, crisp: crisp))
-                // Black to glass keeps the regular, lighter glass: deepened, it turned as black as
-                // the top and the fade disappeared (spec D-18b).
-                let deep = crisp && design != .blend
-                let accent = GlassFill<S>.accent(blend: design == .blend, strength: accentStrength)
+                // Both glass designs keep the regular, lighter glass of Black to glass: deepened, it
+                // turned as black as the top (spec D-18b), and Liquid glass lost its glass (spec D-14f).
+                let accent = GlassFill<S>.accent(blend: true, strength: accentStrength)
                 GlassFill(
-                    shape: shape, tint: Self.tint(glassTint, crisp: deep),
-                    accent: glassAccent ? systemAccent.color : nil, crisp: deep,
+                    shape: shape, tint: glassTint,
+                    accent: glassAccent ? systemAccent.color : nil,
                     accentShare: accent.share, accentWash: accent.wash
                 )
                     .opacity(glass ? open : 0)

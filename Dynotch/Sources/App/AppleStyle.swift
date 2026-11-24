@@ -135,7 +135,7 @@ private struct AppleHoverButtonStyle: ButtonStyle {
                 }
                 .opacity(configuration.isPressed ? 0.7 : 1)
                 .onHover { isHovered = isEnabled && $0 }
-                .animation(.easeOut(duration: 0.12), value: isHovered)
+                .animation(Motion.hover, value: isHovered)
         }
     }
 }

@@ -73,6 +73,9 @@ struct BeeperUnreadCard: View {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.notch(size: 9, weight: .bold))
                         .foregroundStyle(Color.white.level(0.45))
+                    // Read in Beeper without replying (spec BP-20).
+                    NotificationHeaderButton(symbol: "checkmark", help: "Mark as read") { beeper.markRead(chat.id) }
+                        .accessibilityLabel("Mark \(chat.name) as read")
                     NotificationHeaderButton(symbol: "arrow.up.forward.square", help: "Open in the Beeper tab", action: openInTab)
                 }
                 if !isExpanded, let preview = chat.preview?.text, !preview.isEmpty {

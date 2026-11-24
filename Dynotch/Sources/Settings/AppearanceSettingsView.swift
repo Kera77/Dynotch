@@ -75,41 +75,9 @@ struct AppearanceSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            stripSection
             smartSection
         }
         .formStyle(.grouped)
-    }
-
-    /// The modules under the notch (spec MS-1…MS-4).
-    private var stripSection: some View {
-        Section {
-            Toggle("Show the modules when resting at the notch's bottom edge", isOn: $settings.moduleStrip)
-            SettingsSlider(
-                title: "Show after", value: $settings.moduleStripDelay, range: AppSettings.moduleStripDelayRange, step: 0.05
-            ) { String(format: "%.2f s", $0) }
-            .disabled(!settings.moduleStrip)
-            SettingsSlider(title: "Bottom edge", value: $settings.moduleStripBand, range: AppSettings.moduleStripBandRange) {
-                "1/\(Int((1 / $0).rounded()))"
-            }
-            .disabled(!settings.moduleStrip)
-            Toggle("Open a module when resting on its icon", isOn: $settings.moduleStripHover)
-                .disabled(!settings.moduleStrip)
-            SettingsSlider(
-                title: "Open after", value: $settings.moduleStripHoverDelay, range: AppSettings.moduleStripHoverDelayRange, step: 0.05
-            ) { String(format: "%.2f s", $0) }
-            // Under the Wings the same wait comes before switching them (spec MS-9).
-            .disabled(!settings.moduleStrip || !(settings.moduleStripHover || settings.hoverPreview))
-            StripModulesRows(settings: settings)
-                .disabled(!settings.moduleStrip)
-        } header: {
-            Text("Module strip")
-        } footer: {
-            Text("Rest the pointer on the bottom part of the notch and the modules appear under it; click one to open it "
-                + "(or rest on it, when turned on). Moving higher opens the notch as before.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
     }
 
     /// Which module opening by hover shows (spec SO-1…SO-4).
@@ -139,70 +107,9 @@ struct AppearanceSettingsView: View {
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
         note += " The open panel has a soft rim light and shadow, a black that deepens towards the bottom, glass tinted "
             + "to the wallpaper, and an even black-to-glass fade."
-        note += " Crisp look (trial): deeper, clearer glass over a stronger blur, lighter grey fills, brighter text."
+        note += " Liquid glass is the glass of Black to glass all over."
+        note += " Crisp look (trial): a stronger blur, lighter grey fills, brighter text."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
-    }
-}
-
-/// Which modules the strip shows (spec MS-5).
-private struct StripModulesRows: View {
-    @ObservedObject var settings: AppSettings
-    @State private var hidden = ModuleStripChoice.hidden
-    @State private var isOpen = false
-    /// The row being dragged to a new place (spec MS-6b).
-    @State private var dragged: FeatureID?
-
-    var body: some View {
-        DisclosureGroup("Modules in the strip", isExpanded: $isOpen) {
-            ForEach(settings.listedFeatures) { feature in
-                HStack {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                        .help("Drag to reorder")
-                        .accessibilityLabel("Drag to reorder")
-                    Toggle(isOn: Binding(get: { !hidden.contains(feature) }, set: { shown in
-                        ModuleStripChoice.setShown(feature, shown)
-                        hidden = ModuleStripChoice.hidden
-                    })) {
-                        Label(feature.title, systemImage: feature.symbolName)
-                    }
-                }
-                .padding(.vertical, 4)
-                .contentShape(Rectangle())
-                .opacity(dragged == feature ? 0.4 : 1)
-                .onDrag {
-                    dragged = feature
-                    let binding = $dragged
-                    ReorderDragEnd.watch { binding.wrappedValue = nil }
-                    return NSItemProvider(object: feature.rawValue as NSString)
-                }
-                .onDrop(of: [.text], delegate: StripDropDelegate(target: feature, settings: settings, dragged: $dragged))
-            }
-        }
-        .revealWhenOpened(isOpen)
-    }
-}
-
-/// Dragging a strip row over another moves it there; the module order follows (spec MS-6b).
-private struct StripDropDelegate: DropDelegate {
-    let target: FeatureID
-    let settings: AppSettings
-    @Binding var dragged: FeatureID?
-
-    func dropEntered(info: DropInfo) {
-        let listed = settings.listedFeatures
-        guard let dragged, dragged != target, let index = listed.firstIndex(of: target) else { return }
-        withAnimation(Motion.quick) { settings.moveFeature(dragged, to: index, among: listed) }
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        ReorderDragEnd.finish { dragged = nil }
-        return true
     }
 }

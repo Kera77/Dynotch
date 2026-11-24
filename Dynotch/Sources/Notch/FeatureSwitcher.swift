@@ -94,7 +94,7 @@ struct FeatureSwitcher: View {
             )
             .scaleEffect(isDragged ? 1.12 : 1)
             .contentShape(Rectangle())
-            .animation(AppleStyle.spring(response: 0.22, dampingFraction: 0.85), value: target)
+            .animation(Motion.quick, value: target)
     }
 
     private func reorderGesture(for feature: FeatureID) -> some Gesture {

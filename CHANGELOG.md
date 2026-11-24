@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.100.0] - 2026-11-24
+
+### Added
+
+- Menu bar spaces: *Dot*, *Dots* and *Double line* styles, and *Hide when alone*: the space shows only while a menu bar icon stands left of it (MB-13, MB-14).
+- Beeper: *Mark as read* on the unread chat cards, in the chat header and by right-clicking a chat in the list (BP-20).
+- Settings open on the page you opened last (SD-15).
+
+### Changed
+
+- *Liquid glass* looks like the glass part of *Black to glass* again; three designs: Black, Liquid glass, Black to glass (D-14f).
+- The module switcher (now *Swipe-up modules*) and the *Module strip* settings moved to *Settings › Modules* (QS-13, QS-14).
+- One tempo for every animation: the notch opens ~15% faster and everything else follows it; the Calendar's large view opens smoothly (D-19).
+
+### Removed
+
+- Focus-based silencing of notifications and badges, with its settings (E-20c).
+
+### Fixed
+
+- *Clipboard › Saved*: reordering no longer stutters or gets stuck (CB-9).
+- *Settings › Modules*: rows can be dragged to reorder again (M-15).
+
 ## [0.99.0] - 2026-11-24
 
 ### Added

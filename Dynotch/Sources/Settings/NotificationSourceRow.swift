@@ -119,11 +119,6 @@ struct NotificationSourceRow: View {
                 updated.showsReply = choice.value
                 service.setRule(updated, for: app)
             }
-            Toggle("Pop up during Focus", isOn: Binding(get: { rule.popsUpDuringFocus == true }, set: { allowed in
-                var updated = rule
-                updated.popsUpDuringFocus = allowed ? true : nil
-                service.setRule(updated, for: app)
-            }))
         }
         .font(.callout)
         .padding(.leading, 26)

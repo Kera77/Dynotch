@@ -14,7 +14,12 @@ struct ClipboardFeatureView: View {
     @State private var dragged: ClipItem.ID?
     @State private var grab: CGFloat = 0
     @State private var pointerY: CGFloat = 0
-    @State private var rowFrames: [ClipItem.ID: CGRect] = [:]
+    /// Each row's height: the places are worked out from the order, never from frames measured a
+    /// moment late, which made the row jump back and forth (spec CB-9).
+    @State private var rowHeights: [ClipItem.ID: CGFloat] = [:]
+    /// False once the drag ends or is cancelled: the row goes back in place (spec CB-9).
+    @GestureState private var isDragging = false
+    private static let rowSpacing: CGFloat = 4
     private static let listSpace = "ClipboardList"
 
     /// The saved items can be reordered, not while searching.
@@ -53,13 +58,15 @@ struct ClipboardFeatureView: View {
                     }
             }
             ScrollView(.vertical) {
-                LazyVStack(spacing: 4) {
+                LazyVStack(spacing: Self.rowSpacing) {
                     ForEach(Array(shown.enumerated()), id: \.element.id) { index, item in
                         row(item, number: index + 1)
-                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.listSpace)) } action: {
-                                rowFrames[item.id] = $0
+                            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                                rowHeights[item.id] = $0
                             }
                             .offset(y: dragged == item.id ? dragOffset(item.id) : 0)
+                            // The dragged row stays on the pointer; only the others slide.
+                            .transaction { if dragged == item.id { $0.animation = nil } }
                             .zIndex(dragged == item.id ? 1 : 0)
                             .simultaneousGesture(reorder(item), isEnabled: canReorder)
                     }
@@ -79,21 +86,39 @@ struct ClipboardFeatureView: View {
         .padding(.horizontal, 16)
         .padding(.top, 6)
         .padding(.bottom, 10)
+        .onChange(of: isDragging) { _, dragging in
+            if !dragging, dragged != nil { withAnimation(Motion.quick) { dragged = nil } }
+        }
+    }
+
+    /// The middle of each saved row in the list, from the order and the heights (spec CB-9).
+    private var savedMiddles: [ClipItem.ID: CGFloat] {
+        var middles: [ClipItem.ID: CGFloat] = [:]
+        var top: CGFloat = 0
+        for item in store.saved {
+            let height = rowHeights[item.id] ?? 0
+            middles[item.id] = top + height / 2
+            top += height + Self.rowSpacing
+        }
+        return middles
     }
 
     /// The dragged row follows the pointer from where it now stands in the list.
     private func dragOffset(_ id: ClipItem.ID) -> CGFloat {
-        guard let frame = rowFrames[id] else { return 0 }
-        return pointerY - grab - frame.midY
+        guard let middle = savedMiddles[id] else { return 0 }
+        return pointerY - grab - middle
     }
 
     /// Dragging a saved row moves it past the rows its middle crosses (spec CB-8).
     private func reorder(_ item: ClipItem) -> some Gesture {
         DragGesture(minimumDistance: 4, coordinateSpace: .named(Self.listSpace))
+            .updating($isDragging) { _, state, _ in state = true }
             .onChanged { value in
+                let middles = savedMiddles
                 if dragged == nil {
-                    grab = value.startLocation.y - (rowFrames[item.id]?.midY ?? value.startLocation.y)
-                    withAnimation(Motion.hover) { dragged = item.id }
+                    grab = value.startLocation.y - (middles[item.id] ?? value.startLocation.y)
+                    pointerY = value.location.y
+                    dragged = item.id
                 }
                 guard dragged == item.id else { return }
                 pointerY = value.location.y
@@ -102,8 +127,8 @@ struct ClipboardFeatureView: View {
                 guard let from = saved.firstIndex(where: { $0.id == item.id }) else { return }
                 // The row whose middle the dragged one has passed, the nearest first.
                 let passed = saved.indices.filter { index in
-                    guard index != from, let frame = rowFrames[saved[index].id] else { return false }
-                    return index > from ? middle > frame.midY : middle < frame.midY
+                    guard index != from, let other = middles[saved[index].id] else { return false }
+                    return index > from ? middle > other : middle < other
                 }
                 if let target = from < (passed.max() ?? from) ? passed.max() : passed.min(), target != from {
                     withAnimation(Motion.quick) { store.moveSaved(item.id, to: target) }

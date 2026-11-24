@@ -22,12 +22,13 @@ enum Theme {
 }
 
 /// Three kinds of motion instead of a dozen timings (spec D-9).
+/// The app's two tempos and the hover (spec D-19): every movement uses one of them.
 enum Motion {
-    /// Opening, closing and resizing the notch.
-    static var spring: Animation { AppleStyle.spring(response: 0.38, dampingFraction: 0.82) }
+    /// Opening, closing and resizing the notch, and anything that moves as far.
+    static var spring: Animation { AppleStyle.spring(response: 0.32, dampingFraction: 0.82) }
     /// Switching a tab, showing or hiding a small part: the system's snappy one (D-15g).
     static var quick: Animation {
-        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.2)
+        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.18)
     }
     /// Hover highlights.
     static let hover = Animation.easeOut(duration: 0.12)

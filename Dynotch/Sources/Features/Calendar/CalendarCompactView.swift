@@ -88,7 +88,7 @@ extension CalendarCompactView {
         guard let target = CalendarAgenda.focusEvent(in: events, now: service.now) else { return }
         DispatchQueue.main.async {
             if animated {
-                withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(target.id, anchor: .top) }
+                withAnimation(Motion.quick) { proxy.scrollTo(target.id, anchor: .top) }
             } else {
                 proxy.scrollTo(target.id, anchor: .top)
             }

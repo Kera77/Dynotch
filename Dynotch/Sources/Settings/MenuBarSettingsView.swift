@@ -27,6 +27,12 @@ struct MenuBarSettingsView: View {
                         }
                         .labelsHidden()
                         .fixedSize()
+                        // Hidden while no icon stands left of it (spec MB-14).
+                        Toggle("Hide when alone", isOn: Binding(
+                            get: { spacer.hidesWhenAlone }, set: { spacers.setHidesWhenAlone($0, of: spacer.id) }
+                        ))
+                        .toggleStyle(.checkbox)
+                        .help("Hide this space while no menu bar icon stands left of it")
                         Button {
                             spacers.remove(spacer.id)
                         } label: {
@@ -42,7 +48,8 @@ struct MenuBarSettingsView: View {
                 Text("Menu bar spaces")
             } footer: {
                 Text("A new space appears at the left end of the menu bar icons. Hold ⌘ and drag it to where you want it; "
-                    + "macOS keeps the place. Click a space for its style, width or to remove it.")
+                    + "macOS keeps the place. Click a space for its style, width or to remove it. "
+                    + "\"Hide when alone\" hides a space while no menu bar icon stands left of it.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

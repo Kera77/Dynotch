@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.99 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.100 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -74,6 +74,7 @@
 | M-12 | (v0.90) **Swipe a felső ikonsoron (M-9 módosítása):** a kinyitott panel felső sorában, a modulikonok fölött a kétujjas vízszintes swipe **modult vált** (nem csak az ikonokat lépteti), a swipe hosszával és lendületével arányosan: rövid húzás egy modul, hosszabb vagy erősebb (lendületes) húzás több modul (kb. egy ikonszélességenként egy). Az ikonsor követi, a kiválasztott ikon mindig látszik. Az utolsó és az első modulnál megáll (S-3). A tartalom fölötti swipe marad egy mozdulat = egy váltás (S-2). |
 | M-13 | (v0.91) **Megállás a végén (M-12 javítása):** ha a felső ikonsoron a swipe (a lendülettel együtt) eléri az első vagy az utolsó modult, ott megáll: az ikonsor egyszer jelzi a véget (kis visszarugózás), a gesztus maradék lendülete nem lép és nem rugózik tovább. Új gesztus újra léptet. |
 | M-14 | (v0.99) **Kevésbé érzékeny, folyamatos modul-swipe (M-12, S-1 módosítása):** a felső ikonsoron ~80 pt ujjmozgás lép egy modult (50 helyett), a lendület fele súllyal számít; a váltás legfeljebb 0,1 mp-enként történik, a közben összegyűlt lépések egyszerre, így nagy swipe-nál sem akad. A panel feletti egyes swipe (S-1) küszöbe 30-ról 45 pt-ra nő. |
+| M-15 | (v0.100) **A modulok húzása (M-10, SD-4 javítása):** a *Settings › Modules* listában a sorok ismét húzással átrendezhetők; a sor mögötti, a kinyitott sort görgetéssel láthatóvá tevő láthatatlan réteg nem fogja el az egeret. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -290,6 +291,7 @@
 | E-19 | (v0.43) **Elhalasztás:** jobb klikk egy értesítésen vagy a lista fejlécén: *1 óra múlva*, *ma este (18:00)*, *holnap reggel (9:00)*. Addig eltűnik, utána újra felugrik. |
 | E-20 | (v0.43) **Fókusz mód:** ha egy macOS Fókusz be van kapcsolva, az értesítések nem ugranak fel (a listában ott vannak). Appontként felülbírálható (*Pop up during Focus*), az egész kikapcsolható. A Fókusz állapotát a Teljes lemezeléréssel olvassa. |
 | E-20b | (v0.54) **Banner nélküli mód:** a *Settings › Notifications › Except during the Focus* mezőben megadott nevű Fókusz (alapból „Dynotch”) alatt a Dynotch nem némul el. Ha ez a Fókusz egyetlen appot sem enged át és mindig be van kapcsolva, macOS-banner nem jelenik meg, az értesítések viszont az Értesítési központba és így a notchba is megérkeznek. |
+| E-20c | (v0.100) **A Fókusz-alapú némítás megszűnt (E-20, E-20b, B-5b törlése):** a Dynotch nem figyeli a macOS Fókuszt; az értesítések Fókusz alatt is felugranak, a jelvények pulzálnak. A *During a Focus…* kapcsoló, az *Except during the Focus* mező és a források *Pop up during Focus* kapcsolója kikerült, a kód törölve. |
 | E-21 | (v0.49) Ha egy értesítés válaszmezőjébe (vagy a notch más szövegmezőjébe) kattintasz, a notch nyitva marad, amikor az egér elmegy róla, de a következő **kattintás máshol bezárja**. A lakat (rögzítés) továbbra is a feloldásig tart. |
 | E-22 | (v0.52) **Mini nézet üzenettel:** a notch alatt felugró értesítés a feladó mellett az üzenet szövegét is mutathatja, legfeljebb N sorig (*Settings › Notifications › Pop-up shows: Name only / With message*, *Message lines* 2–8, alapból 4). Forrásonként felülírható (*Pop-up: Default / With message / Name only*). Az egymás után jövő üzenetek egymás alá kerülnek; a notch a szöveg mért magasságáig nyílik (legfeljebb kb. 220 pt szöveg, a legújabbak látszanak). |
 | E-22b | (v0.53, az E-22 globális kapcsolóját felváltja) A „Name only / With message” **csak appokként** állítható (az app szabályai között); alapból minden app „Name only”. Közös marad a *Message lines in pop-ups* (2–8). |
@@ -679,6 +681,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-17f | (v0.99) **Accent strength:** *Settings › Appearance* az „Accent colour in the glass” alatt csúszka (10–100%, alapból 50%), csak bekapcsolt accentnél és nem Black designnál aktív. 50%-on a D-17/D-17d/D-17e szerinti erősség, a csúszka ezt arányosan gyengíti vagy erősíti. |
 | D-14e | (v0.99) **Az Original nézet megszűnt (D-14 módosítása):** a *Look* választó kikerült, a Refined (D-14a…d) az egyetlen kinézet; a régi kód és beállítás törölve. |
 | D-15j | (v0.99) **Kerekebb hover (D-15i módosítása):** a gombok hover- és nyomás-kiemelése a vezérlő alakját követi: kis ikongombnál kapszula, nagyobb sornál legfeljebb 10 pt-os ív, nem a szögletesebb 6 pt-os téglalap. |
+| D-14f | (v0.100) **Három design (D-1 pontosítása):** *Black*, *Liquid glass* és *Black to glass*. A Liquid glass üvege ugyanaz, mint a Black to glass alsó, üveges része (normál, nem sötétített üveg, ugyanaz az accent-keverés és -réteg); a Crisp look (D-18) itt sem sötétíti és nem teszi *clear*-ré az üveget. |
+| D-19 | (v0.100) **Egységes tempó:** a notch nyitása, zárása és átméretezése (köztük a Naptár nagy nézetre váltása) ~15%-kal gyorsabb (0,38 helyett 0,32 mp); minden más mozgás (fülváltás, kis részek, szárnyak elemei, modulsor, váltók, görgetés a mai napra, törlések) ugyanezt a két tempót használja: a nyitásét vagy a rövidebb ~0,18 mp-eset; a hover marad 0,12 mp. Kivétel: az ablakváltó szándékosan gyorsabb lenyílása (AS-15), a futó feliratok és a pulzálás. A Naptár kis és nagy nézete közti áttűnés rövid, így a panel nyílása nem akad. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -776,6 +780,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | BP-17 | (v0.90) **Minden fiók hálózata kiemelhető (BP-13 kiegészítése):** a *Highlighted networks* listában a Beeperben **bekötött fiókok** összes hálózata szerepel (pl. Telegram, Google Chat), akkor is, ha nincs köztük a legutóbbi 60 csevegésben. A fiókokat a Beeper API-ból kéri (`/v1/accounts`, induláskor, majd 10 percenként); ugyanaz a hálózat kétféle írással (pl. „Google Chat” / „googlechat”) egyszer szerepel, a csevegések írásával. A napló csak a hálózatok számát írja. |
 | BP-18 | (v0.91) **Hálózati bot nélküli név (BP-2 javítása):** a Beeper API hálózati botként jelölt résztvevője (`isNetworkBot`, pl. a Google Chat munkahelyi fiókjában a szervezet neve, „Agora Software”) nem számít résztvevőnek: a csevegés nevéből kimarad (a „Bot, Név” címből „Név” lesz), és ha rajta kívül egyetlen másik ember van, a csevegés kettes beszélgetés (a másik ember képe, nincs feladónév a buborékok fölött). |
 | BP-19 | (v0.91) **Google Chat jelvény (BP-14 módosítása):** a kiemelt Google Chat hálózat jelvénye az app saját ikonja helyett ugyanaz a fehér **Google Chat jel**, mint a Google Chat web app jelvényéé (B-3, GC-5); a *Settings › App badges* listában más ikonra cserélhető. |
+| BP-20 | (v0.100) **Mark as read:** a Beeper olvasatlan csevegéseinek kártyáin (Chats, Beeper, kiemelt hálózat fülek) pipa gomb, a Beeper fül csevegőlistájában jobb klikkre *Mark as Read*, a megnyitott csevegés fejlécében pipa gomb (ha olvasatlan): a csevegés a Beeperben olvasott lesz, a kártya eltűnik, a szám csökken. Csak a felhasználó kattintására. |
 
 ## 4y. Vágólapkezelő (v0.42)
 
@@ -791,6 +796,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CB-6 | A jelszókezelők rejtett/ideiglenes jelölésű másolatai (pl. `org.nspasteboard.ConcealedType`) és a kizárt appok másolatai nem kerülnek be. |
 | CB-7 | Beállítások: a két gyorsbillentyű, a megtartott elemek száma (5–100, alapból 25), kizárt appok. |
 | CB-8 | (v0.99) A **Saved** fülön a sorok húzással **átrendezhetők** (a sor bárhol megfogható, a többi menet közben arrébb csúszik); a sorrend megmarad, és a ⌥⇧V lista is így áll. Keresés közben nincs átrendezés. |
+| CB-9 | (v0.100) **Akadásmentes átrendezés (CB-8 javítása):** a húzott sor egyenletesen követi az egeret, a többi sor sima csúszással ad helyet; a sorok helyét a lista sorrendjéből számolja (nem a késve frissülő mért helyekből), így a sor nem ugrál oda-vissza. Ha a húzás megszakad (pl. a notch bezárul), a sor a helyére áll. |
 
 ## 4z. Fájltálca (v0.42)
 
@@ -1015,6 +1021,8 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MB-10 | (v0.69) Teljes képernyős appnál, Mission Controlban és automatikusan elrejtett menüsornál a sáv nem látszik. Kijelző csatlakoztatásakor, felbontás- vagy elrendezésváltáskor a sáv követi a menüsort. |
 | MB-11 | (v0.69) A menüsor szövegének és ikonjainak színét a macOS választja (a háttérkép alapján), a Dynotch nem írja át; a beállításokban előnézet mutatja a menüsort a választott színnel, és egy megjegyzés kéri, hogy olvasható színt válassz. A beállítás újraindítás után megmarad. |
 | MB-12 | (v0.70, hiba) A *Solid* és a *Gradient* módban is minden színmező **színválasztója lenyílik**, és bármilyen szín választható (kész minták és egyedi szín). |
+| MB-13 | (v0.100) **Több hézagstílus (MB-1, MB-4 kiegészítése):** *Empty*, *Line*, *Dot* (kis pont), *Dots* (három pont egymás alatt) és *Double line* (két vékony vonal). |
+| MB-14 | (v0.100) **Elrejtés, ha nincs mellette ikon:** hézagonként *Hide when nothing is left of it* (hézag menüje és *Settings › Menu bar*, alapból ki). Bekapcsolva a hézag nem látszik (0 szélesség), ha tőle balra nincs más menüsor-ikon (a saját hézagokat nem számítva); amint megjelenik egy, a hézag is megjelenik. ~2 mp-enként ellenőrzi. |
 
 ## 4ő++. Modulok összevonása (v0.66)
 
@@ -1083,6 +1091,8 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | QS-10 | (v0.95) **Saját modullista (a QS-3 módosítása):** a sorba nem a gyorsbillentyűs modulok kerülnek, hanem a *Settings › Switcher › Modules* alatt kiválasztottak. A **„In the swipe row”** lista a kiválasztott modulok: a sor elején ≡ fogóval húzva **átrendezhető**, a sor végén **−** veszi ki. Alatta a **„Add a module”** lenyíló lista (SD-2) a többi modullal, mindegyik mellett **Add**. A kikapcsolt modul a listában marad („Off” jelöléssel), de a sorban nem jelenik meg. Frissítés után első induláskor a lista a gyorsbillentyűs modulokkal, a modulok sorrendjében töltődik fel, így a viselkedés nem változik. Üres listánál a gesztus nem tesz semmit. |
 | QS-11 | (v0.95) **Sorrend és kijelölés (a QS-3 és QS-5 módosítása):** a sor a beállított sorrendben áll, nem a legutóbbi szerint. Induláskor a sorból **legutóbb megnyitott** modul van kijelölve (a QS-3 szerinti előzményből); ha az épp nyitva van, az előtte megnyitott. Előzmény nélkül az első (vagy ha az nyitva van, a második). A rövid swipe (QS-7) ezt nyitja, így továbbra is a legutóbbi modult; oldalra innen lépked, a végeken megáll. |
 | QS-12 | (v0.95) **Mindig egy sor (a QS-4 módosítása):** a modulok négynél több esetén is egy sorban állnak; a lenyíló rész ehhez kiszélesedik (legfeljebb a kijelző szélességéig, ~40 pt margóval). Ha így sem férnek ki, a csempék kisebbek lesznek, de nem törnek új sorba. |
+| QS-13 | (v0.100) **Áthelyezés a Modules lapra:** a modulváltó (*Module switcher*, ujjak száma) és a sor moduljainak listája a *Settings › Switcher* lapról a *Settings › Modules* lapra került, a lista neve *Swipe-up modules* (korábban *In the swipe row*). |
+| QS-14 | (v0.100) **A Module strip is a Modules lapon (MS-2, MS-5 áthelyezése):** a *Module strip* szakasz (ikonsor, késleltetések, *Modules in the strip*) a *Settings › Appearance* lapról a *Settings › Modules* lapra került. |
 
 ## 4ő++++++. Beállítások egységes designja (v0.95)
 
@@ -1102,6 +1112,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-12 | (v0.97) **Kapcsoló a sor szélén (SD-10 módosítása):** a Notifications/Chats forrássoraiban a kapcsoló a sor jobb szélén áll; a „saját szabályai vannak” ikon és a szabályok nyila elé kerül, így a kapcsolók egy vonalban vannak a lap többi kapcsolójával. |
 | SD-13 | (v0.97) **Screenshots módsorok (SD-10 módosítása):** a sorrendszám („1×”, „Off”) nem látszik; a sorrend a sorok sorrendje, a kapcsoló a sor jobb szélén áll. |
 | SD-14 | (v0.99) **Átrendezés vége (SD-4 javítása):** a beállítások átrendezhető listáiban a húzott sor elengedés után mindig visszakapja a teljes színét, akkor is, ha két sor közé vagy a listán kívül engedik el, és a húzott kép nem repül vissza. |
+| SD-15 | (v0.100) **Utolsó lap:** a beállítások az utoljára megnyitott lapon nyílnak meg (újraindítás után is). |
 
 ## 5. Nyitott kérdések
 
@@ -1149,6 +1160,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.100.0** | Liquid glass újra üveges (három design), egységes, gyorsabb animációk és sima Naptár-nyitás, akadásmentes vágólap-átrendezés, Modules lista újra húzható, Module strip és modulváltó a Modules lapon (Swipe-up modules), új hézagstílusok és elrejtés, ha nincs mellette ikon, Beeper Mark as read, beállítások utolsó lapja, Fókusz-némítás törölve (D-14f, D-19, CB-9, M-15, QS-13, QS-14, MB-13, MB-14, BP-20, SD-15, E-20c) |
 | **v0.99.0** | Accent erősség csúszka és biztosan látszó accent a Black to glassban, az Original nézet megszűnt, egyforma iPad gomb rövidebb menüvel, kerekebb hover, beállítás-sorok húzása nem marad szürke, mentett vágólap átrendezhető, nyugodtabb modul-swipe (D-14e, D-15j, D-17e, D-17f, TB-8, SD-14, CB-8, M-14) |
 | **v0.98.0** | Black to glass designnál is látszik az accent az üvegben (D-17d) |
 | **v0.97.0** | Badge-ikonválasztó látható nyíllal és panellel, hozzáadás választott ikonnal; kapcsolók a sor szélén (Notifications, Screenshots); az üvegben a macOS kiemelőszíne, Blacknél inaktív kapcsoló; Black to glass átmenet a Crisp lookban; Batteries és AI Usage mindig fül (B-13, SD-11…SD-13, D-17b, D-17c, D-18b, MG-9) |

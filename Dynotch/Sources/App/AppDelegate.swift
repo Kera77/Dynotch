@@ -286,7 +286,6 @@ extension AppDelegate {
     /// The badges beside the notch, with Gmail's count from Mail (spec GM-7) and the highlighted
     /// Beeper networks' badges of their own (spec BP-14).
     func startBadges() {
-        services.badges.isSilenced = { [weak notifications = services.notifications] in notifications?.isSilencedByFocus ?? false }
         services.badges.labelOverride = { [weak notifications = services.notifications] app in
             notifications?.mailBadgeLabel(for: app) ?? notifications?.chatBadgeLabel(for: app)
         }

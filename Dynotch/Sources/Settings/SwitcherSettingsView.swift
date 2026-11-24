@@ -3,10 +3,6 @@ import SwiftUI
 /// Settings › Switcher: the window switcher (spec AS-1…AS-12).
 struct SwitcherSettingsView: View {
     @ObservedObject var settings: SwitcherSettings
-    /// The modules and whether they are on (spec QS-10).
-    @ObservedObject var modules: AppSettings
-    /// The module row being dragged to a new place (spec SD-4).
-    @State private var draggedModule: FeatureID?
 
     var body: some View {
         Form {
@@ -102,92 +98,10 @@ struct SwitcherSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            // The swipe up after the sideways swipe: both are trackpad settings (spec SD-9).
-            moduleSection
-            moduleRowSection
-            CollapsibleListSection(title: "Add a module", count: addableModules.count, prompt: "Search modules") { search in
-                ForEach(addableModules.filter { settingsSearchMatches(search, $0.title) }) { feature in
-                    HStack(spacing: 8) {
-                        moduleLabel(feature)
-                        Spacer()
-                        Button("Add") { settings.addToModuleRow(feature) }
-                            .controlSize(.small)
-                    }
-                }
-            }
-            .disabled(!settings.moduleSwitcherOn)
         }
         .formStyle(.grouped)
     }
 
     /// The distance and the delay serve the swipe up too (spec QS-5, QS-7).
     private var noSwipe: Bool { settings.swipeFingers == 0 && !settings.moduleSwitcherOn }
-
-    /// The modules in the swipe-up row, dragged to reorder (spec QS-10, SD-4).
-    private var moduleRowSection: some View {
-        Section {
-            if settings.moduleRow.isEmpty {
-                Text("No modules yet. Add one from the list below.")
-                    .foregroundStyle(.secondary)
-            }
-            ForEach(settings.moduleRow, id: \.self) { feature in
-                HStack(spacing: 8) {
-                    DragHandle()
-                    moduleLabel(feature)
-                    Spacer()
-                    Button {
-                        settings.removeFromModuleRow(feature)
-                    } label: {
-                        Image(systemName: "minus.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .help("Remove")
-                    .accessibilityLabel("Remove \(feature.title)")
-                }
-                .reorderable(feature, in: settings.moduleRow, dragged: $draggedModule, id: feature.rawValue) {
-                    settings.moveInModuleRow(from: $0, to: $1)
-                }
-            }
-        } header: {
-            Text("In the swipe row")
-        } footer: {
-            Text("Shown in this order, always in one row. A module that is off stays here but is left out of the row.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .disabled(!settings.moduleSwitcherOn)
-    }
-
-    /// Every module not yet in the row, in the modules' order.
-    private var addableModules: [FeatureID] {
-        modules.featureOrder.filter { !settings.moduleRow.contains($0) }
-    }
-
-    private func moduleLabel(_ feature: FeatureID) -> some View {
-        SettingsRowLabel(title: feature.title, detail: modules.isEnabled(feature) ? nil : "Off") {
-            Image(systemName: feature.symbolName)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    /// The module switcher on a swipe up (spec QS-1, QS-9).
-    private var moduleSection: some View {
-        Section {
-            Toggle("Module switcher", isOn: $settings.moduleSwitcherOn)
-            Picker("Swipe up", selection: $settings.moduleFingers) {
-                Text("3 fingers").tag(3)
-                Text("4 fingers").tag(4)
-            }
-            .pickerStyle(.segmented)
-            .disabled(!settings.moduleSwitcherOn)
-        } header: {
-            Text("Modules")
-        } footer: {
-            Text("Swipe up to show the modules chosen below, the last opened one picked; swipe sideways to pick another, "
-                + "lift the fingers to open it, swipe back down to cancel. macOS opens Mission Control with a "
-                + "three-finger swipe up: set that to four fingers or off in Trackpad › More Gestures.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
 }

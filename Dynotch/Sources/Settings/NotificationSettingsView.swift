@@ -62,7 +62,6 @@ struct NotificationSettingsView: View {
                     ForEach(NoticePlacement.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 PeekSettingsRows(preferences: service.preferences)
-                FocusToggle(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
             } header: {
                 Text("Native notifications")
@@ -113,28 +112,6 @@ struct NotificationSettingsView: View {
             get: { service.isEnabled(app) },
             set: { settings.setNotificationApp(app.identifier, enabled: $0) }
         )
-    }
-}
-
-/// During a Focus only the sources allowed in their rules pop up (spec E-20).
-struct FocusToggle: View {
-    @ObservedObject var preferences: NotificationPreferences
-
-    var body: some View {
-        Toggle("During a Focus, pop up only the sources allowed in their rules", isOn: $preferences.respectsFocus)
-        // A Focus that keeps every macOS banner away, while Dynotch shows them all (spec E-20b).
-        LabeledContent("Except during the Focus") {
-            TextField("Dynotch", text: $preferences.ignoredFocus)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 140)
-        }
-        .disabled(!preferences.respectsFocus)
-        Text("To never see macOS banners: in System Settings › Focus add a Focus with this name that allows no apps, "
-            + "turn off sharing across devices and keep it on. Notifications still reach Notification Center, "
-            + "so Dynotch shows every one of them.")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

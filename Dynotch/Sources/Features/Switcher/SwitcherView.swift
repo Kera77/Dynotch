@@ -71,7 +71,7 @@ struct SwitcherView: View {
                         }
                     }
                     .padding(SwitcherLayout.padding)
-                    .animation(AppleStyle.spring(response: 0.25, dampingFraction: 0.8), value: switcher.selection)
+                    .animation(Motion.quick, value: switcher.selection)
                 }
                 .scrollIndicators(.never)
                 .onChange(of: switcher.selection) { _, _ in

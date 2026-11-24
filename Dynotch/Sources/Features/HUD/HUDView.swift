@@ -36,7 +36,7 @@ struct HUDView: View {
                     .frame(width: LevelRing.size * Self.ringScale, height: LevelRing.size * Self.ringScale)
             }
             .frame(width: Self.sideWidth)
-            .animation(.easeOut(duration: 0.18), value: level)
+            .animation(Motion.quick, value: level)
         }
     }
 

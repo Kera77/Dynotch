@@ -369,5 +369,5 @@ extension NotchView {
 extension NotchView {
     /// Countdowns appearing, disappearing or moving up after one is hidden (spec K-8e).
     static var quickAnimation: Animation { Motion.quick }
-    static let missionControlAnimation = Animation.easeInOut(duration: 0.16)
+    static var missionControlAnimation: Animation { Motion.quick }
 }

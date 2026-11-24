@@ -34,21 +34,6 @@ struct V043Tests {
         #expect(SnoozeChoice.evening.date(from: late, calendar: calendar) == at(hour: 18, dayOffset: 1))
     }
 
-    // MARK: Focus (E-20)
-
-    @Test func activeFocusIsFoundInTheAssertions() throws {
-        let json = """
-        {"data":[{"storeAssertionRecords":[{"assertionDetails":{"assertionDetailsModeIdentifier":"com.apple.focus.work"}}]}]}
-        """
-        let root = try JSONSerialization.jsonObject(with: Data(json.utf8))
-        #expect(MacFocus.activeMode(in: root) == "com.apple.focus.work")
-    }
-
-    @Test func noAssertionMeansNoFocus() throws {
-        let root = try JSONSerialization.jsonObject(with: Data(#"{"data":[{"storeAssertionRecords":[]}]}"#.utf8))
-        #expect(MacFocus.activeMode(in: root) == nil)
-    }
-
     // MARK: Day timeline (K-12)
 
     private func event(_ start: Date, _ end: Date, allDay: Bool = false) -> CalendarEvent {

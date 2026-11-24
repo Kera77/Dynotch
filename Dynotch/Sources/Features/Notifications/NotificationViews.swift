@@ -172,7 +172,7 @@ struct NotificationsFeatureView: View {
         HStack(spacing: 8) {
             if let focus = service.focus {
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) { service.clearFocus() }
+                    withAnimation(Motion.quick) { service.clearFocus() }
                 } label: {
                     Label("All", systemImage: "chevron.left")
                         .font(.notch(size: 11, weight: .semibold))
@@ -195,7 +195,7 @@ struct NotificationsFeatureView: View {
                     .foregroundStyle(Color.white.level(0.5))
                 Spacer()
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) { service.clearAll() }
+                    withAnimation(Motion.quick) { service.clearAll() }
                 } label: {
                     Label("Clear all", systemImage: "xmark")
                         .font(.notch(size: 11, weight: .semibold))

@@ -40,7 +40,7 @@ struct DayStripView: View {
                         )
                         .id(day)
                         .onTapGesture {
-                            withAnimation(.easeOut(duration: 0.2)) { selectedDay = day }
+                            withAnimation(Motion.quick) { selectedDay = day }
                         }
                     }
                 }
@@ -60,7 +60,7 @@ struct DayStripView: View {
                 DispatchQueue.main.async { proxy.scrollTo(selectedDay, anchor: .center) }
             }
             .onChange(of: selectedDay) { _, day in
-                withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(day, anchor: .center) }
+                withAnimation(Motion.quick) { proxy.scrollTo(day, anchor: .center) }
             }
         }
     }

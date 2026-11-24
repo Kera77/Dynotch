@@ -38,7 +38,7 @@ extension AnyTransition {
     static var notchItemsOut: AnyTransition {
         .asymmetric(
             insertion: .modifier(active: NotchItemsOutEffect(progress: 0), identity: NotchItemsOutEffect(progress: 1))
-                .animation(AppleStyle.spring(response: 0.28, dampingFraction: 0.86).delay(0.12)),
+                .animation(Motion.spring.delay(0.12)),
             removal: .opacity.animation(.easeIn(duration: 0.1))
         )
     }

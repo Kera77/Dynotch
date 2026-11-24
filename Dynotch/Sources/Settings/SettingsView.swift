@@ -18,7 +18,8 @@ struct SettingsView: View {
     var screenshots: ScreenshotSettings?
     var battery: BatteryService?
 
-    @State private var selectedTab = SettingsTab.general
+    /// The last page opened, kept across launches (spec SD-15).
+    @AppStorage("settingsLastTab") private var selectedTab = SettingsTab.general
     @State private var search = ""
     /// The last pick was lower in the sidebar than the one before it.
     @State private var movesDown = true
@@ -63,7 +64,7 @@ struct SettingsView: View {
         case .appearance:
             AppearanceSettingsView(settings: settings)
         case .features:
-            FeatureSettingsView(settings: settings, shortcuts: shortcuts)
+            FeatureSettingsView(settings: settings, shortcuts: shortcuts, switcher: switcher)
         case .calendar:
             CalendarSettingsView(settings: settings, calendar: calendar)
         case .notifications:
@@ -79,7 +80,7 @@ struct SettingsView: View {
         case .focus:
             FocusSettingsView(settings: settings)
         case .switcher:
-            if let switcher { SwitcherSettingsView(settings: switcher, modules: settings) }
+            if let switcher { SwitcherSettingsView(settings: switcher) }
         case .screenshots:
             if let screenshots { ScreenshotSettingsView(settings: screenshots) }
         case .menuBar:

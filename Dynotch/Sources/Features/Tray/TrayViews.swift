@@ -251,7 +251,7 @@ struct TrayFileCell: View {
 
     static let gridSpace = "trayGrid"
     private static let nameWidth: CGFloat = 150
-    private static var pop: Animation { AppleStyle.spring(response: 0.28, dampingFraction: 0.78) }
+    private static var pop: Animation { Motion.quick }
 
     var body: some View {
         content

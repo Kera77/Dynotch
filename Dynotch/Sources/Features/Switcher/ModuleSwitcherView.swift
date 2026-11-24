@@ -27,7 +27,7 @@ struct ModuleSwitcherView: View {
                 }
             }
             .padding(SwitcherLayout.padding)
-            .animation(AppleStyle.spring(response: 0.25, dampingFraction: 0.8), value: switcher.selection)
+            .animation(Motion.quick, value: switcher.selection)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

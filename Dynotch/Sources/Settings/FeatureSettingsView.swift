@@ -1,10 +1,13 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Which modules are on, their order, menu bar icons and shortcuts (spec M-3, M-7, SC-1, SC-2).
+/// Which modules are on, their order, menu bar icons and shortcuts, the module strip and the module
+/// switcher (spec M-3, M-7, SC-1, SC-2, QS-13, QS-14).
 struct FeatureSettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var shortcuts: ShortcutStore
+    /// The module switcher's settings (spec QS-13); nil before the switcher is set up.
+    var switcher: SwitcherSettings?
 
     /// The row being dragged to a new place (spec M-3, SD-4).
     @State private var dragged: FeatureID?
@@ -39,6 +42,8 @@ struct FeatureSettingsView: View {
             } header: {
                 Text("Pin")
             }
+            ModuleStripSection(settings: settings)
+            if let switcher { ModuleSwitcherSections(settings: switcher, modules: settings) }
         }
         .formStyle(.grouped)
     }

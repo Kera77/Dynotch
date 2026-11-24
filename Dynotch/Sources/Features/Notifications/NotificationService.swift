@@ -302,8 +302,8 @@ final class NotificationService: ObservableObject {
     }
 
     func showPeek(_ notification: AppNotification) {
-        // During a Focus, or while the screen is shared, it is listed without popping up (spec E-20, N-21).
-        guard popsUp(notification), !isScreenShared else { return }
+        // While the screen is shared it is listed without popping up (spec N-21).
+        guard !isScreenShared else { return }
         // The pointer rests on the one beside the notch: the newer one waits (spec PV-39).
         if !peekHolders.isEmpty, peek != nil {
             heldPeek = notification

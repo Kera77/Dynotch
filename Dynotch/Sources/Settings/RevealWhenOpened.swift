@@ -13,7 +13,7 @@ extension View {
 private struct RevealAnchor: NSViewRepresentable {
     let isOpen: Bool
 
-    func makeNSView(context: Context) -> NSView { NSView() }
+    func makeNSView(context: Context) -> NSView { PassThroughView() }
 
     func updateNSView(_ view: NSView, context: Context) {
         guard isOpen, !context.coordinator.wasOpen else {
@@ -36,4 +36,9 @@ private struct RevealAnchor: NSViewRepresentable {
     final class Coordinator {
         var wasOpen = false
     }
+}
+
+/// Never takes the mouse: under a row it caught the drag that reorders it (spec M-15).
+private final class PassThroughView: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }

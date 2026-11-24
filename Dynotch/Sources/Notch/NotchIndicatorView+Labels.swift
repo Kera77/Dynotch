@@ -160,7 +160,7 @@ struct RecordingSlot: View {
                 .monospacedDigit()
                 .foregroundStyle(.white)
         }
-        .animation(AppleStyle.spring(response: 0.32, dampingFraction: 0.62), value: isHovered)
+        .animation(Motion.quick, value: isHovered)
         .fixedSize()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

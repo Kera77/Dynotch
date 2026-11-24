@@ -71,7 +71,7 @@ extension NotchView {
                     )
                 }
             }
-            .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active)
+            .animation(Motion.quick, value: active)
         }
     }
 
@@ -89,7 +89,7 @@ extension NotchView {
                     .id(active.id)
                         .transition(.push(from: model.wings.stepsLeft ? .trailing : .leading))
                 }
-                .animation(AppleStyle.spring(response: 0.26, dampingFraction: 0.88), value: active.id)
+                .animation(Motion.quick, value: active.id)
                 // At the right edge: removes the shown app's notifications from Dynotch (spec PV-64).
                 if active.id != WingsApp.mailID, active.id != WingsApp.beeperID {
                     Button { removeWingsApp(active) } label: {
@@ -108,7 +108,7 @@ extension NotchView {
 
     private func removeWingsApp(_ entry: WingsApp) {
         let shown = notifications.recent.filter { $0.appIdentifier == entry.id }
-        withAnimation(.easeOut(duration: 0.2)) { shown.forEach { notifications.remove($0) } }
+        withAnimation(Motion.quick) { shown.forEach { notifications.remove($0) } }
     }
 
     /// A click on an app: the panel opens on that app's notifications (spec PV-17, B-6).
@@ -197,7 +197,7 @@ extension NotchView {
         }
     }
 
-    static var wingItemMotion: Animation { AppleStyle.spring(response: 0.3, dampingFraction: 0.86) }
+    static var wingItemMotion: Animation { Motion.spring }
 
     /// The pointer on an item of a clipboard or tray row: it opens, and the wings keep their
     /// width (spec PV-35, PV-40, PV-61).

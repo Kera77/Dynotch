@@ -9,13 +9,11 @@ struct NotificationRule: Codable, Equatable, Sendable {
     var hidesBanner: Bool?
     /// A reply field under the messages; default: none.
     var showsReply: Bool?
-    /// Pops up while a Focus is on (spec E-20); nil: no.
-    var popsUpDuringFocus: Bool?
     /// The pop-up shows the message text too (spec E-22b); nil: the name only.
     var peekShowsMessage: Bool?
 
     var isDefault: Bool {
-        name == nil && hidesBanner == nil && showsReply == nil && popsUpDuringFocus == nil && peekShowsMessage == nil
+        name == nil && hidesBanner == nil && showsReply == nil && peekShowsMessage == nil
     }
 }
 
@@ -66,11 +64,6 @@ final class NotificationPreferences: ObservableObject {
         if isOn { alertsOff.remove(alert.rawValue) } else { alertsOff.insert(alert.rawValue) }
     }
 
-    /// During a Focus only the allowed sources pop up (spec E-20).
-    @Published var respectsFocus: Bool {
-        didSet { defaults.set(respectsFocus, forKey: "notificationsRespectFocus") }
-    }
-
     /// Lines of each message in the pop-up before hovering shows all of it.
     @Published var peekLines: Int {
         didSet { defaults.set(peekLines, forKey: "notificationPeekLines") }
@@ -78,18 +71,10 @@ final class NotificationPreferences: ObservableObject {
 
     static let peekLinesRange = 2...8
 
-    /// A Focus under which Dynotch keeps popping up: one that only silences macOS's banners
-    /// (spec E-20b).
-    @Published var ignoredFocus: String {
-        didSet { defaults.set(ignoredFocus, forKey: "notificationsIgnoredFocus") }
-    }
-
     init(defaults: UserDefaults) {
         self.defaults = defaults
-        respectsFocus = defaults.object(forKey: "notificationsRespectFocus") as? Bool ?? true
         alertsOff = Self.splitSystemAlert(Set(defaults.stringArray(forKey: "dynotchAlertsOff") ?? []), defaults: defaults)
         peekLines = defaults.object(forKey: "notificationPeekLines") as? Int ?? 4
-        ignoredFocus = defaults.string(forKey: "notificationsIgnoredFocus") ?? "Dynotch"
         sites = defaults.dictionary(forKey: Self.sitesKey) as? [String: String] ?? [:]
         webAppSites = defaults.dictionary(forKey: Self.webAppSitesKey) as? [String: String] ?? [:]
         rules = defaults.data(forKey: Self.rulesKey).flatMap { try? JSONDecoder().decode([String: NotificationRule].self, from: $0) } ?? [:]
@@ -249,7 +234,7 @@ extension NotificationService {
     }
 }
 
-// MARK: - Snooze and Focus (spec E-19, E-20)
+// MARK: - Snooze (spec E-19)
 
 extension NotificationService {
     /// Takes the notifications out of the list until the chosen time.
@@ -266,24 +251,5 @@ extension NotificationService {
         guard !due.isEmpty else { return }
         preferences.snoozed.removeAll { $0.until <= now }
         due.forEach { bringBack($0.notification) }
-    }
-
-    /// A macOS Focus silences Dynotch now (spec E-20, B-5b): no pop-ups, no pulsing badges.
-    var isSilencedByFocus: Bool {
-        guard preferences.respectsFocus, let focus = MacFocus.current() else { return false }
-        return !Self.isIgnored(focus, ignored: preferences.ignoredFocus)
-    }
-
-    /// Whether a notification may pop up now: not while a Focus is on, unless its source may.
-    func popsUp(_ notification: AppNotification) -> Bool {
-        guard preferences.respectsFocus, let focus = MacFocus.current() else { return true }
-        // The Focus that only keeps macOS banners away: Dynotch shows everything (spec E-20b).
-        if Self.isIgnored(focus, ignored: preferences.ignoredFocus) { return true }
-        return rule(for: catalog.app(for: notification.appIdentifier)).popsUpDuringFocus == true
-    }
-
-    nonisolated static func isIgnored(_ focus: String, ignored: String) -> Bool {
-        let wanted = ignored.trimmingCharacters(in: .whitespaces)
-        return !wanted.isEmpty && focus.compare(wanted, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
     }
 }

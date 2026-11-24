@@ -138,7 +138,7 @@ struct WingsMarquee: View {
             guard repeats else { return }
             try? await Task.sleep(for: .seconds(duration + 2))
             guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.25)) { offset = 0 }
+            withAnimation(Motion.quick) { offset = 0 }
             try? await Task.sleep(for: .seconds(0.25))
         }
     }

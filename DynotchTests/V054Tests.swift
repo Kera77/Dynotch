@@ -3,15 +3,8 @@ import Foundation
 import SQLite3
 import Testing
 
-/// Records updated in place, the Focus Dynotch ignores.
+/// Records updated in place.
 struct V054Tests {
-    @Test func ignoredFocusMatchesItsNameLoosely() {
-        #expect(NotificationService.isIgnored("Dynotch", ignored: "dynotch "))
-        #expect(NotificationService.isIgnored("Munka", ignored: "munka"))
-        #expect(!NotificationService.isIgnored("Work", ignored: "Dynotch"))
-        #expect(!NotificationService.isIgnored("Dynotch", ignored: ""))
-    }
-
     @Test func recordUpdatedInPlaceIsFoundAgain() throws {
         let path = FileManager.default.temporaryDirectory.appendingPathComponent("V054-\(UUID().uuidString).db").path
         defer { try? FileManager.default.removeItem(atPath: path) }

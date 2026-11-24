@@ -49,8 +49,8 @@ struct ModuleStripView: View {
                 .scaleEffect(isOut ? 1 : fromAbove ? 0.8 : 0.4)
                 .opacity(isOut ? 1 : 0)
                 .animation(
-                    fromAbove ? AppleStyle.spring(response: 0.3, dampingFraction: 0.8)
-                        : AppleStyle.spring(response: 0.22, dampingFraction: 0.82),
+                    fromAbove ? Motion.spring
+                        : Motion.quick,
                     value: isOut
                 )
                 .help(feature.title)
@@ -116,7 +116,7 @@ struct ModuleStripView: View {
             }
             .onEnded { _ in
                 let landing = target(from: index)
-                withAnimation(AppleStyle.spring(response: 0.26, dampingFraction: 0.84)) {
+                withAnimation(Motion.quick) {
                     if landing != index { move(feature, landing) }
                     dragged = nil
                     dragX = 0

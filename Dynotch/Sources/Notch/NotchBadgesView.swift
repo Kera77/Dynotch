@@ -37,7 +37,7 @@ struct NotchBadgesView: View {
                     .contentShape(Rectangle())
                     .offset(x: offset(of: index, badge: badge))
                     .zIndex(badge.id == dragged ? 1 : 0)
-                    .animation(AppleStyle.spring(response: 0.22, dampingFraction: 0.85), value: target)
+                    .animation(Motion.quick, value: target)
                     .onTapGesture { open(badge) }
                     .gesture(reorderGesture(for: badge))
                     .overlay(RightClickCatcher { showNotifications(badge) })

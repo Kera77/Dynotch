@@ -68,7 +68,7 @@ struct NotificationGroupRow: View {
                         .lineLimit(1)
                     // The X removes; an open group closes with the arrow (spec E-5c, PV-62).
                     NotificationHeaderButton(symbol: "xmark", help: "Remove") {
-                        withAnimation(.easeOut(duration: 0.2)) { group.notifications.forEach { service.remove($0) } }
+                        withAnimation(Motion.quick) { group.notifications.forEach { service.remove($0) } }
                     }
                     if isExpanded {
                         NotificationHeaderButton(symbol: "chevron.up", help: "Close", action: toggle)

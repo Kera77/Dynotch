@@ -225,6 +225,17 @@ struct BeeperTabView: View {
                 BeeperAvatar(image: service.avatar(chat.pictureURL), name: chat.name, network: chat.network, size: 24)
                 Text(chat.name).font(.notch(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer()
+                if chat.unread > 0 {
+                    // Read in Beeper without replying (spec BP-20).
+                    Button {
+                        service.markRead(chat.id)
+                    } label: {
+                        Image(systemName: "checkmark.circle")
+                    }
+                    .buttonStyle(.notch)
+                    .help("Mark as read")
+                    .accessibilityLabel("Mark as read")
+                }
                 BeeperReminderMenu(service: service, chat: chat)
                 Button {
                     service.openInBeeper(chat.id)
