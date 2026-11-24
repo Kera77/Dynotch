@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.99.0] - 2026-11-24
+
 ### Added
 
 - *Settings › Appearance › Accent strength*: how strong the accent colour in the glass is (D-17f).

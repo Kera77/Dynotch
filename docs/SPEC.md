@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.98 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.99 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1149,6 +1149,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.99.0** | Accent erősség csúszka és biztosan látszó accent a Black to glassban, az Original nézet megszűnt, egyforma iPad gomb rövidebb menüvel, kerekebb hover, beállítás-sorok húzása nem marad szürke, mentett vágólap átrendezhető, nyugodtabb modul-swipe (D-14e, D-15j, D-17e, D-17f, TB-8, SD-14, CB-8, M-14) |
 | **v0.98.0** | Black to glass designnál is látszik az accent az üvegben (D-17d) |
 | **v0.97.0** | Badge-ikonválasztó látható nyíllal és panellel, hozzáadás választott ikonnal; kapcsolók a sor szélén (Notifications, Screenshots); az üvegben a macOS kiemelőszíne, Blacknél inaktív kapcsoló; Black to glass átmenet a Crisp lookban; Batteries és AI Usage mindig fül (B-13, SD-11…SD-13, D-17b, D-17c, D-18b, MG-9) |
 | **v0.96.0** | Egy oszlopban álló kapcsolók a beállításokban (SD-10); próbaként accent az üvegben (D-17) és Crisp look: mélyebb, tisztább üveg erős elmosással, halványabb kitöltések, erősebb szöveg (D-18) |
