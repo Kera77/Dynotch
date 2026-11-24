@@ -7,6 +7,8 @@ struct TrayItem: Codable, Identifiable, Equatable, Sendable {
     let bookmark: Data
     let name: String
     var added = Date()
+    /// Put in by itself from ~/Downloads, so it leaves on the downloads' own schedule (spec FT-15).
+    var download: Bool?
 }
 
 /// A folder attached to the tray (spec FT-4).
@@ -46,6 +48,19 @@ final class TrayStore: ObservableObject {
         }
     }
 
+    /// Finished downloads go into the tray by themselves (spec FT-15).
+    @Published var keepsDownloads: Bool {
+        didSet { defaults.set(keepsDownloads, forKey: "trayKeepsDownloads") }
+    }
+    /// Days after which a download leaves the tray; 0: never (spec FT-15).
+    @Published var downloadRetentionDays: Int {
+        didSet {
+            defaults.set(downloadRetentionDays, forKey: "trayDownloadRetentionDays")
+            dropExpired()
+        }
+    }
+    private var expiryCheck: Task<Void, Never>?
+
     /// List or tiles, kept per tab (spec FT-11, FT-11b); tabs from before keep the old shared choice.
     @Published private var listByTab: [String: Bool] {
         didSet { defaults.set(listByTab, forKey: "trayListByTab") }
@@ -84,6 +99,8 @@ final class TrayStore: ObservableObject {
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
         self.folder = folder ?? support.appendingPathComponent("Dynotch/Tray")
         retentionDays = defaults.object(forKey: Self.retentionKey) as? Int ?? 0
+        keepsDownloads = defaults.object(forKey: "trayKeepsDownloads") as? Bool ?? true
+        downloadRetentionDays = defaults.object(forKey: "trayDownloadRetentionDays") as? Int ?? 3
         sharedList = defaults.bool(forKey: "trayShowsList")
         listByTab = defaults.dictionary(forKey: "trayListByTab") as? [String: Bool] ?? [:]
         fixedColours = defaults.dictionary(forKey: "trayTabColours") as? [String: Int] ?? [:]
@@ -94,13 +111,20 @@ final class TrayStore: ObservableObject {
             selectedFolder = saved
             watchSelectedFolder()
         }
+        // Files also leave while the app keeps running for days (spec FT-15).
+        expiryCheck = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(3600))
+                self?.dropExpired()
+            }
+        }
     }
 
     // MARK: - The tray
 
     /// Keeps the files. Those without a lasting place (dragged from a browser or a screenshot
     /// tool, in a temporary folder) are copied into Dynotch's tray folder first.
-    func add(_ urls: [URL]) {
+    func add(_ urls: [URL], download: Bool = false) {
         var added: [TrayItem] = []
         var seen: Set<String> = []
         for url in urls where seen.insert(url.standardizedFileURL.path).inserted {
@@ -108,12 +132,18 @@ final class TrayStore: ObservableObject {
             guard let bookmark = try? kept.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil),
                   !items.contains(where: { resolve($0)?.standardizedFileURL == kept.standardizedFileURL })
             else { continue }
-            added.append(TrayItem(bookmark: bookmark, name: kept.lastPathComponent))
+            added.append(TrayItem(bookmark: bookmark, name: kept.lastPathComponent, download: download ? true : nil))
         }
         guard !added.isEmpty else { return }
         items = added + items
         selectedFolder = nil
         persist()
+    }
+
+    /// A finished download, on top of the tray, if wanted (spec FT-15).
+    func addDownload(_ url: URL) {
+        guard keepsDownloads else { return }
+        add([url], download: true)
     }
 
     func remove(_ item: TrayItem) {
@@ -139,10 +169,11 @@ final class TrayStore: ObservableObject {
         items.compactMap { item in resolve(item).map { (item, $0) } }
     }
 
-    private func dropExpired() {
-        guard retentionDays > 0 else { return }
-        let limit = Date().addingTimeInterval(-Double(retentionDays) * 86_400)
-        let kept = items.filter { $0.added >= limit }
+    func dropExpired(now: Date = Date()) {
+        let kept = items.filter { item in
+            let days = item.download == true ? downloadRetentionDays : retentionDays
+            return days <= 0 || item.added >= now.addingTimeInterval(-Double(days) * 86_400)
+        }
         if kept.count != items.count {
             items = kept
             persist()

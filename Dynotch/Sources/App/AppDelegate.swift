@@ -54,8 +54,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         options: [.userInitiatedAllowingIdleSystemSleep], reason: "The notch reacts to the pointer at once"
     )
     private var hotkeys: HotkeyCenter?
-    /// A finished download shows beside the notch (spec PV-57).
-    private lazy var downloadWatcher = DownloadWatcher { [notices = services.notices] in notices.showDownload($0) }
+    /// A finished download shows beside the notch (spec PV-57) and goes into the tray (spec FT-15).
+    private lazy var downloadWatcher = DownloadWatcher { [notices = services.notices, tray = services.tray, settings] file in
+        if settings.isEnabled(.tray) { tray.addDownload(file) }
+        notices.showDownload(file)
+    }
     private var menuBarPanels: [MenuBarPopoverController] = []
     private lazy var focusFollowsMouse = FocusFollowsMouse(settings: settings)
 

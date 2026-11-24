@@ -127,6 +127,14 @@ extension NotchController {
         }
     }
 
+    /// A reply field opened by a click takes typing at once, even when the panel opened by hover
+    /// (spec E-27).
+    func takeKeyboardForReply() {
+        guard model.isExpanded, model.wantsKeyboard else { return }
+        panel.allowsKey = true
+        panel.makeKey()
+    }
+
     /// Focus follows the mouse onto the open notch too, when the pointer comes back (spec F-15).
     func followFocusOntoNotch() {
         guard settings.focusFollowsMouse, model.isExpanded, model.wantsKeyboard, panel.allowsKey, !panel.isKeyWindow,

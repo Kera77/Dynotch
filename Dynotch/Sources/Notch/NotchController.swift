@@ -138,6 +138,7 @@ final class NotchController {
         let rootView = makeRootView(services)
         observeBeeperList(services.beeper)
         model.requestCollapse = { [weak self] in self?.collapse() }
+        model.requestKeyboard = { [weak self] in self?.takeKeyboardForReply() }
         model.recheckPointer = { [weak self] in self?.evaluatePointerWhileExpanded() }
         panel.keepsKeyboard = { [weak self] point in self?.keepOpenZone.contains(point) ?? true }
         panel.letGoOfKeyboard = { [weak self] in self?.giveKeyboardBack(evenIfNotKey: true) }

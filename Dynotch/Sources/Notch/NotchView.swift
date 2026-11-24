@@ -257,6 +257,7 @@ struct NotchView: View {
         .environment(\.notchDesign, settings.design)
         .environment(\.pinNotch) { [model] in model.holdsForTyping = true }
         .environment(\.closeNotch) { [model] in model.requestCollapse() }
+        .environment(\.takeKeyboard) { [model] in model.requestKeyboard() }
         .modifier(AppleStyleRoot())
     }
 

@@ -16,6 +16,9 @@ struct BeeperUnreadCard: View {
     @State private var hovered: String?
     @FocusState private var isFocused: Bool
     @Environment(\.pinNotch) private var pinNotch
+    @Environment(\.takeKeyboard) private var takeKeyboard
+    /// Focused by itself after a click on the card: read only once typing starts (spec E-27, UM-3b).
+    @State private var focusedBySelf = false
 
     /// The unread messages from the others, the newest last.
     private var unread: [BeeperFullMessage] {
@@ -27,7 +30,15 @@ struct BeeperUnreadCard: View {
         VStack(alignment: .leading, spacing: 6) {
             header
                 .contentShape(Rectangle())
-                .onTapGesture(perform: toggle)
+                .onTapGesture {
+                    // Opened by a click: the reply field takes typing at once (spec E-27).
+                    if !isExpanded {
+                        focusedBySelf = true
+                        takeKeyboard()
+                        DispatchQueue.main.async { isFocused = true }
+                    }
+                    toggle()
+                }
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(unread) { line($0) }
@@ -163,10 +174,20 @@ struct BeeperUnreadCard: View {
                     .padding(.horizontal, 10)
                     .frame(height: 28)
                     .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
-                    .onChange(of: isFocused) { _, focused in if focused {
-                        pinNotch()
-                        beeper.markRead(chat.id)
-                    } }
+                    .onChange(of: isFocused) { _, focused in
+                        if focused {
+                            pinNotch()
+                            if !focusedBySelf { beeper.markRead(chat.id) }
+                        } else {
+                            focusedBySelf = false
+                        }
+                    }
+                    .onChange(of: text) { _, typed in
+                        if focusedBySelf, !typed.isEmpty {
+                            focusedBySelf = false
+                            beeper.markRead(chat.id)
+                        }
+                    }
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill").font(.notch(size: 20))
                 }

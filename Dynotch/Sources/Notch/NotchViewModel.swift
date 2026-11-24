@@ -61,6 +61,8 @@ final class NotchViewModel: ObservableObject {
 
     /// Closes the panel; set by the controller (spec AI-7).
     var requestCollapse: () -> Void = {}
+    /// The panel takes the keyboard for a reply field focused by itself (spec E-27).
+    var requestKeyboard: () -> Void = {}
     /// Looks again whether the pointer still keeps the open panel (spec PV-54).
     var recheckPointer: () -> Void = {}
 

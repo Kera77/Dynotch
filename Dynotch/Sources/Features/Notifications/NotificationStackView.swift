@@ -20,6 +20,8 @@ struct NotificationStackView: View {
     @State private var hoveredLine: Int64?
     /// Answers to single lines, shown under them while the card is open.
     @State private var answers: [Answer] = []
+    /// A click on a message puts the typing into the reply field (spec E-27).
+    @State private var focusRequest = 0
 
     struct Answer: Identifiable {
         let id = UUID()
@@ -58,6 +60,7 @@ struct NotificationStackView: View {
                 NotificationReplyField(
                     service: service, target: replyTarget, quote: replyingTo,
                     cancelQuote: { replyingTo = nil },
+                    focusRequest: focusRequest,
                     sent: { text in
                         // A line's answer joins the conversation and the card stays open; an
                         // answer to the whole conversation closes it (spec E-17).
@@ -174,6 +177,8 @@ struct NotificationStackView: View {
             RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous)
                 .fill(Color.white.level(replyingTo?.id == notification.id ? 0.14 : 0.08))
         )
+        .contentShape(Rectangle())
+        .onTapGesture { if canReply { focusRequest += 1 } }
         .onHover { hovering in
             if hovering {
                 hoveredLine = notification.id

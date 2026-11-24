@@ -8,6 +8,8 @@ struct NotificationGroupRow: View {
     let group: NotificationGroup
     let isExpanded: Bool
     let toggle: () -> Void
+    /// Opened by a click: the reply field takes typing at once (spec E-27).
+    @State private var openedByClick = false
 
     private var app: NotificationApp { service.catalog.app(for: group.latest.appIdentifier) }
 
@@ -15,7 +17,10 @@ struct NotificationGroupRow: View {
         VStack(alignment: .leading, spacing: 6) {
             header
                 .contentShape(Rectangle())
-                .onTapGesture(perform: toggle)
+                .onTapGesture {
+                    openedByClick = !isExpanded
+                    toggle()
+                }
                 .contextMenu { SnoozeMenu(service: service, notifications: group.notifications) }
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
@@ -23,7 +28,7 @@ struct NotificationGroupRow: View {
                 }
                 .padding(.leading, 36)
                 if service.canReply(to: group.latest) {
-                    NotificationReplyField(service: service, target: group.latest)
+                    NotificationReplyField(service: service, target: group.latest, focusesOnAppear: openedByClick)
                         .padding(.leading, 36)
                         .padding(.bottom, 8)
                 } else {

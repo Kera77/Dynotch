@@ -10,12 +10,19 @@ struct NotificationReplyField: View {
     /// The line answered; nil: the conversation as a whole.
     var quote: AppNotification?
     var cancelQuote: () -> Void = {}
+    /// Focused as soon as it shows: the card was opened by a click (spec E-27).
+    var focusesOnAppear = false
+    /// Each change focuses the field (a click on the card's text, spec E-27).
+    var focusRequest = 0
     /// After a reply went out, with its text.
     var sent: (String) -> Void = { _ in }
 
     @State private var text = ""
     @FocusState private var isFocused: Bool
     @Environment(\.pinNotch) private var pinNotch
+    @Environment(\.takeKeyboard) private var takeKeyboard
+    /// Focused by itself, not by a click: the chat counts as opened only once typing starts (spec E-27).
+    @State private var focusedBySelf = false
     @State private var status: Status = .idle
 
     enum Status: Equatable {
@@ -48,8 +55,10 @@ struct NotificationReplyField: View {
         }
         .onChange(of: quote?.id) { _, line in
             // Answering a line: straight into the field.
-            if line != nil { isFocused = true }
+            if line != nil { focus() }
         }
+        .onChange(of: focusRequest) { _, _ in focus(bySelf: true) }
+        .onAppear { if focusesOnAppear { focus(bySelf: true) } }
     }
 
     private var field: some View {
@@ -66,13 +75,27 @@ struct NotificationReplyField: View {
             .onChange(of: isFocused) { _, focused in
                 if focused {
                     pinNotch()
-                    service.replyFieldFocused(target)
+                    if !focusedBySelf { service.replyFieldFocused(target) }
+                } else {
+                    focusedBySelf = false
                 }
             }
             .onChange(of: text) { _, typed in
+                if focusedBySelf, !typed.isEmpty {
+                    focusedBySelf = false
+                    service.replyFieldFocused(target)
+                }
                 let replaced = Emoticons.replace(in: typed, includingLast: false)
                 if replaced != typed { text = replaced }
             }
+    }
+
+    /// The panel takes the keyboard first, then the field the focus (spec E-27).
+    private func focus(bySelf: Bool = false) {
+        guard status != .sending else { return }
+        focusedBySelf = bySelf
+        takeKeyboard()
+        DispatchQueue.main.async { isFocused = true }
     }
 
     private var placeholder: String {

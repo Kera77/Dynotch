@@ -68,10 +68,16 @@ struct AppearanceSettingsView: View {
             }
             Section {
                 Toggle("DyNotch Wings", isOn: $settings.hoverPreview)
+                // Under the notch or in its line, with or without Wings (spec PV-66, PV-73).
+                Toggle("Small notices beside the notch", isOn: Binding(
+                    get: { settings.noticesBeside },
+                    set: { settings.noticePlacement = $0 ? .beside : .dropDown }
+                ))
             } footer: {
                 Text("Hovering spreads the notch into wings at both sides with the current module at a glance (and the "
                     + "module strip below, if on). A click on the notch or a two-finger swipe down opens it fully; the wings' "
-                    + "buttons work on their own.")
+                    + "buttons work on their own. Small notices beside the notch: notifications and other pop-ups stand "
+                    + "in the notch's line like in Wings, without turning the rest of Wings on.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

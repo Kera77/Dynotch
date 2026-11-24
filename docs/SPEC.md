@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.103 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.104 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -303,6 +303,7 @@
 | E-24b | (v0.69, hiba) Felugró értesítés közben a csukott notch sora **pixelre ugyanott marad**, ahol értesítés nélkül van: a bal oldali jelvények nem csúsznak a notch felé, a notch melletti jelvényt nem takarja el a fizikai notch és nem vágja le a keret, aszimmetrikus sornál (pl. meeting-visszaszámláló, K-7) sem. A lenyíló értesítés legalább a teljes sor szélességében, a sorral együtt eltolva nyílik; a fizikai notch helye nem változik. Az értesítés eltűnésekor sem ugrik a sor. |
 | E-25 | (v0.69) **A Dynotch saját értesítései** fajtánként kapcsolhatók: *Settings › Notifications › Dynotch alerts*: **System** (swap-határ, SY-9, és a többi rendszer-figyelmeztetés), **AI usage** (keret közelében, session reset), **Batteries** (feltöltődött), **Dynotch updated** (U-5). Alapból mind be. Kikapcsolva az adott fajta **nem ugrik fel a notchban** és nem kerül az Értesítések listába. A notch melletti piros pötty (SY-8) ettől független, azt továbbra is SY-9 szabályozza. |
 | E-26 | (v0.90) **Monokróm ikonok:** az értesítések (kártya, lista, a notch alatti és a szárnyakon megjelenő értesítés) és a notch melletti jelzések (pl. kész letöltés, AI-kérdés jelzése) app-ikonjai **fekete-fehérek** (szürkeárnyalatosak), mint a jelvények (B-12). |
+| E-27 | (v0.104) **Gépelés kattintás nélkül:** ha egy értesítésre kattintva lenyílik a válaszmező (Értesítések modul kártyája, Chats / Beeper olvasatlan kártya), a mező azonnal fókuszt kap, és a notch átveszi a billentyűzetet: egyből lehet gépelni, akkor is, ha a panel hoverre nyílt. A notch alatt nyíló kártyán (E-4) egy üzenetre kattintva ugyanígy a válaszmezőbe kerül a gépelés; a sorra válaszolás nyila (E-17) is. Az így kapott fókusz még nem számít a mezőbe kattintásnak: a csevegés csak az első leütéskor lesz olvasott / nyílik meg a háttérben (UM-3b, GW-8). Hoverre nyitva továbbra sem veszi el a billentyűzetet. |
 
 ## 4c. Számológép (v0.6)
 
@@ -596,6 +597,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-70 | (v0.83) **Notifications Wings ikonjai nem mozdulnak (PV-17/PV-32 módosítása):** a bal oldali appikonok mellett nem nyílik ki a név, így hoverre egyik ikon sem csúszik el az egér alól (rövidebb nevű appra váltva sem ugrik a hover egy harmadik appra). Az aktív app ikonja teljes fényerejű, a többi halványabb; az aktív app **neve a jobb oldalon**, az üzenet előtt áll („Slack · …”), és vele együtt vált. |
 | PV-71 | (v0.84) **Wings késleltetés lenyíló kis értesítésnél:** ha a kis értesítések helye *Drop down* (PV-66), és a notch alatt épp lenyíló kis értesítés áll (pl. zeneszám-bejelentés, meeting, „Dynotch updated”), a notch fölé vitt egér **nem nyitja ki azonnal** a modul Wingsét, csak ha ~0,6 mp-ig a notchon marad; így közben le lehet húzni (swipe) vagy rá lehet kattintani. Ha az egér közben elhagyja a notchot, a várakozás újraindul. |
 | PV-72 | (v0.84) **Notifications Wings – chat ikonok (PV-17 módosítása):** a Beeper ikonjára kattintva a panel a **Beeper** fülön nyílik, a Google Chat ikonjára kattintva a **Google Chat** fülön (mint a jelvényükre kattintva, BP-12, GC-5), nem az All fülön. |
+| PV-73 | (v0.104) **Kis értesítések a notch mellett, Wings nélkül (PV-66 helye):** a választó helyett *Settings › Appearance*, a **DyNotch Wings** alatt kapcsoló: **Small notices beside the notch**. Bekapcsolva minden kis lenyíló (értesítés, eszköz, Claude/ChatGPT kész, kérdés, frissítés, letöltés, meeting- és zeneszám-bejelentés, hover-részletek) a notch vonalában, két oldalt jelenik meg, mint Wings módban; a többi Wings-funkció (hoverre szétnyíló szárnyak) ettől nem kapcsol be. Kikapcsolva lenyílnak. A korábbi választás (vagy ha nem volt, a Wings mód) adja a kezdőállapotot. A bejövő hívás és a képernyőkép-bélyegkép továbbra is lenyílik. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 4p. Akkumulátorok (v0.26)
@@ -838,6 +840,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-12b | (v0.49) Kihúzáskor a Dynotch maga írja a fájlt a célmappába (file promise), a **saját nevén**, előtag nélkül; ha a név foglalt: „név (1).ext”, „név (2).ext”… A tálcából **áthelyezés** (és kikerül a tálcából), csatolt mappából **másolás**. |
 | FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). (v0.48) Sorrend: bal **2/3 Keep in Tray**, jobb **1/3 AirDrop**. |
 | FT-14 | (v0.45) A tálca beállításai **saját *Tray* fülre** kerültek (eddig a Clipboard fülön voltak): lejárat (FT-6) és **Show in Finder** gomb, ami megnyitja a Dynotch tálcamappáját. |
+| FT-15 | (v0.104) **Letöltések a tálcába:** a **Letöltések** mappában elkészült fájl (PV-57 szerint felismerve) automatikusan a Tray tetejére kerül (hivatkozásként, a fájl a Letöltésekben marad). *Settings › Tray*: **Keep downloads in the tray** kapcsoló (alap: be) és külön lejárat a letöltésekre: **Downloads leave the tray** (Never, 1, 3, 7, 14, 30 nap; alap: **3 nap**); a kézzel betett fájlokra továbbra is FT-6 érvényes. Lejáratkor csak a tálcából kerül ki, a fájl nem törlődik. A lejáratot a futó app óránként is ellenőrzi. Ha a Tray modul ki van kapcsolva, nem tesz semmit. |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
 
@@ -1179,6 +1182,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.104.0** | Letöltések automatikusan a tálcába külön lejárattal, kis értesítések a notch mellett kapcsoló a Wings alatt, válaszmező kattintásra azonnal gépelhető (FT-15, PV-73, E-27) |
 | **v0.103.0** | Screenshot-lenyíló a designnal, Google Chat válasz mindig a háttérben, megnyitás gomb a feladat-lenyílóban, a Calculator nem csúszik fel (SH-16, GW-29, R-20, SZ-17) |
 | **v0.102.0** | Nincs görgetőnyíl az iPad menüben, nem gépelős modulból is követ a fókusz, a választott fül marad (System alapból), még gyorsabb tempó, akadásmentes Naptár-nyitás, kikapcsolt modul is a swipe-up sorban (TB-11, F-18, MG-10, D-22, K-16, QS-15) |
 | **v0.101.0** | iPad menü a gomb alatt, nincs notch az iPaden, kitűzött Google Chat-beszélgetésnél a küldő neve, Google Chat Mark as read, egységes betűméret az üres modulokon, gyorsabb alaptempó, nincs zöld plusz húzáskor, Fókusz alatt nincs felugrás (appontos kivétellel), lenyitott notchról is követ a fókusz (TB-9, TB-10, GW-27, GW-28, D-20, D-21, M-16, E-20d, F-17) |

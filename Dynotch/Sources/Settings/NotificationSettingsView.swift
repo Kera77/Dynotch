@@ -57,10 +57,6 @@ struct NotificationSettingsView: View {
             DynotchAlertsSection(preferences: service.preferences)
 
             Section {
-                // Under the notch or in its line, with or without Wings (spec PV-66).
-                Picker("Small notices", selection: $settings.noticePlacement) {
-                    ForEach(NoticePlacement.allCases, id: \.self) { Text($0.title).tag($0) }
-                }
                 PeekSettingsRows(preferences: service.preferences)
                 Toggle("Hide native macOS banners", isOn: $settings.hideNativeBanners)
             } header: {

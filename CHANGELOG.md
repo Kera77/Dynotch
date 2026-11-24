@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.104.0] - 2026-11-24
+
+### Added
+
+- Finished downloads go on top of the tray by themselves and leave it after 3 days; Settings › Tray: "Keep downloads in the tray" and "Downloads leave the tray" (FT-15).
+- Clicking a notification card opens its reply field ready for typing, no click into the field needed; a click on a message of the card under the notch does the same (E-27).
+
+### Changed
+
+- Settings › Appearance, under DyNotch Wings: "Small notices beside the notch" switch, in place of the Small notices picker in Notifications; the pop-ups stand beside the notch without the rest of Wings (PV-73).
+
 ## [0.103.0] - 2026-11-24
 
 ### Added

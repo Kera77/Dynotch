@@ -47,11 +47,4 @@ enum NoticePlacement: String, CaseIterable, Sendable {
     case dropDown
     /// In the notch's line, on both sides of it.
     case beside
-
-    var title: String {
-        switch self {
-        case .dropDown: "Drop down"
-        case .beside: "Beside the notch"
-        }
-    }
 }
