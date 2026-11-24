@@ -42,6 +42,8 @@ struct ModuleStripView: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.notch)
+                // No tooltip with the name on hover (spec M-22).
+                .accessibilityLabel(feature.title)
                 .offset(x: dragOffset(of: feature, at: index))
                 .zIndex(dragged == feature ? 1 : 0)
                 .highPriorityGesture(drag(feature, from: index))
@@ -53,7 +55,6 @@ struct ModuleStripView: View {
                         : Motion.quick,
                     value: isOut
                 )
-                .help(feature.title)
                 .onHover { inside in
                     withAnimation(Motion.hover) {
                         if inside {

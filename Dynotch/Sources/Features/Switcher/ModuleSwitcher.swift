@@ -87,6 +87,8 @@ final class ModuleSwitcher: ObservableObject {
         stopTimer()
         isShown = true
         present(true)
+        // The swipe up itself is felt too, as the row drops down (spec QS-18).
+        onStep()
     }
 
     /// One module per `settings.swipeStep` of sideways travel, stopping at either end (spec QS-5).
@@ -125,6 +127,8 @@ final class ModuleSwitcher: ObservableObject {
         // The row gives way to the module itself, without closing first (spec QS-6).
         if wasShown, chosen == nil { present(false) }
         if let chosen {
+            // A quick swipe that opens straight away is felt too (spec QS-18).
+            if !wasShown { onStep() }
             // Remembered at once, also when it is the module already open (spec QS-16).
             ModuleHistory.shared.opened(chosen)
             open(chosen)

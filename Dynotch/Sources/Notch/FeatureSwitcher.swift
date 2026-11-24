@@ -66,7 +66,8 @@ struct FeatureSwitcher: View {
                     .zIndex(feature == dragged ? 1 : 0)
                     .onTapGesture { select(feature) }
                     .gesture(reorderGesture(for: feature))
-                    .help("\(feature.title) (⌘-drag to reorder)")
+                    // No tooltip with the name on hover (spec M-22).
+                    .accessibilityLabel(feature.title)
             }
         }
         .coordinateSpace(name: Self.coordinateSpace)

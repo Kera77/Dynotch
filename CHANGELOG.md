@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.110.0] - 2026-11-24
+
+### Changed
+
+- Settings › Modules › Swipe-up modules looks like Modules in the strip: one drop-down list with a handle and a switch per module, dragged to reorder; the separate "Add a module" list is gone (QS-18).
+- The swipe up itself gives a haptic tick when the row drops down or a quick swipe opens a module (QS-18).
+- No name tooltip on the module icons of the top row and the module strip (M-22).
+- System: no "System" title; the Options sit beside the System | Batteries tabs, and a sixth Speed tile shows the download and upload speed; the Network tile shows the local IP and the traffic graph (SY-13).
+
 ## [0.109.0] - 2026-11-24
 
 ### Changed

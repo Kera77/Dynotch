@@ -5,17 +5,25 @@ import SwiftUI
 struct StatsFeatureView: View {
     @ObservedObject var service: StatsService
     let isActive: Bool
+    /// Off when the Options sit beside the System | Batteries tabs instead (spec SY-13).
+    var showsOptions = true
     @State private var width: CGFloat = 720
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                header
+                if showsOptions {
+                    HStack {
+                        Spacer()
+                        StatsOptionsMenu(options: service.options)
+                    }
+                }
                 ScrollView(.vertical) {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 8)], spacing: 8) {
                         cpuCard
                         memoryCard
                         networkCard
+                        speedCard
                         diskCard
                         if let battery = service.snapshot.battery { batteryCard(battery) }
                     }
@@ -34,14 +42,6 @@ struct StatsFeatureView: View {
         .onAppear { service.setVisible(isActive) }
         .onChange(of: isActive) { _, active in service.setVisible(active) }
         .onDisappear { service.setVisible(false) }
-    }
-
-    private var header: some View {
-        HStack {
-            Text("System").font(.notch(size: 13, weight: .semibold)).foregroundStyle(.white)
-            Spacer()
-            StatsOptionsMenu(options: service.options)
-        }
     }
 
     private var cpuCard: some View {
@@ -67,15 +67,37 @@ struct StatsFeatureView: View {
         }
     }
 
+    /// The local IP and the traffic graph; the speeds have their own tile (spec SY-13).
     private var networkCard: some View {
-        let snapshot = service.snapshot
-        return StatsCard(title: "Network", symbol: "network", value: "↓ " + StatsFormat.rate(snapshot.download)) {
+        StatsCard(title: "Network", symbol: "network", value: service.snapshot.address ?? "–") {
             ZStack {
                 StatsSparkline(values: service.downloadHistory, color: Theme.blue)
                 StatsSparkline(values: service.uploadHistory, color: Theme.green.opacity(0.8))
             }
-            .frame(height: 22)
-            StatsDetail("↑ \(StatsFormat.rate(snapshot.upload)) · IP \(snapshot.address ?? "–")")
+            .frame(height: 34)
+            StatsDetail("Local IP · Wi-Fi and Ethernet")
+        }
+    }
+
+    /// Download and upload speed in a sixth tile (spec SY-13).
+    private var speedCard: some View {
+        let snapshot = service.snapshot
+        return StatsCard(title: "Speed", symbol: "arrow.up.arrow.down", value: "") {
+            speedRow("arrow.down", "Download", StatsFormat.rate(snapshot.download), Theme.blue)
+            speedRow("arrow.up", "Upload", StatsFormat.rate(snapshot.upload), Theme.green)
+        }
+    }
+
+    private func speedRow(_ symbol: String, _ title: String, _ value: String, _ color: Color) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: symbol).font(.notch(size: 10, weight: .bold)).foregroundStyle(color)
+            Text(title).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.6))
+            Spacer(minLength: 4)
+            Text(value)
+                .font(.notch(size: 13, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .lineLimit(1)
         }
     }
 

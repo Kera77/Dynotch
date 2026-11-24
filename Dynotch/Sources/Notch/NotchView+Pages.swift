@@ -21,11 +21,16 @@ extension NotchView {
                 .environment(\.mergedTabs, MergedTabs(tabs: tabs, selected: feature) { tab in model.pickTab(tab) })
         } else if let tabs = settings.mergedTabs(for: feature) {
             VStack(alignment: .leading, spacing: 6) {
-                CapsulePicker(
-                    items: tabs,
-                    selection: Binding(get: { feature }, set: { tab in model.pickTab(tab) }),
-                    title: \.tabTitle
-                )
+                HStack {
+                    CapsulePicker(
+                        items: tabs,
+                        selection: Binding(get: { feature }, set: { tab in model.pickTab(tab) }),
+                        title: \.tabTitle
+                    )
+                    Spacer(minLength: 8)
+                    // The System's Options beside its tabs, no header row of its own (spec SY-13).
+                    if feature == .stats { StatsOptionsMenu(options: stats.options) }
+                }
                 modulePage(for: feature)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -76,7 +81,10 @@ extension NotchView {
         case .music:
             MusicFeatureView(service: music, isActive: model.isExpanded && model.currentFeature == .music)
         case .stats:
-            StatsFeatureView(service: stats, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats)
+            StatsFeatureView(
+                service: stats, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats,
+                showsOptions: settings.mergedTabs(for: .stats) == nil
+            )
         case .terminal:
             TerminalFeatureView(
                 store: .shared, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .terminal

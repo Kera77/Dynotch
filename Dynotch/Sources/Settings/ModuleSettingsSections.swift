@@ -6,8 +6,6 @@ struct ModuleSwitcherSections: View {
     @ObservedObject var settings: SwitcherSettings
     /// The modules and whether they are on (spec QS-10).
     @ObservedObject var modules: AppSettings
-    /// The module row being dragged to a new place (spec SD-4).
-    @State private var draggedModule: FeatureID?
 
     var body: some View {
         Section {
@@ -27,47 +25,8 @@ struct ModuleSwitcherSections: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        rowSection
-        CollapsibleListSection(title: "Add a module", count: addableModules.count, prompt: "Search modules") { search in
-            ForEach(addableModules.filter { settingsSearchMatches(search, $0.title) }) { feature in
-                HStack(spacing: 8) {
-                    moduleLabel(feature)
-                    Spacer()
-                    Button("Add") { settings.addToModuleRow(feature) }
-                        .controlSize(.small)
-                }
-            }
-        }
-        .disabled(!settings.moduleSwitcherOn)
-    }
-
-    /// The modules in the swipe-up row, dragged to reorder (spec QS-10, QS-13, SD-4).
-    private var rowSection: some View {
         Section {
-            if settings.moduleRow.isEmpty {
-                Text("No modules yet. Add one from the list below.")
-                    .foregroundStyle(.secondary)
-            }
-            ForEach(settings.moduleRow, id: \.self) { feature in
-                HStack(spacing: 8) {
-                    DragHandle()
-                    moduleLabel(feature)
-                    Spacer()
-                    Button {
-                        settings.removeFromModuleRow(feature)
-                    } label: {
-                        Image(systemName: "minus.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .help("Remove")
-                    .accessibilityLabel("Remove \(feature.title)")
-                }
-                .reorderable(feature, in: settings.moduleRow, dragged: $draggedModule, id: feature.rawValue) {
-                    settings.moveInModuleRow(from: $0, to: $1)
-                }
-            }
-        } header: {
-            Text("Swipe-up modules")
+            SwipeModulesRows(settings: settings, modules: modules)
         } footer: {
             Text("Shown in this order, always in one row. A module that is off shows and opens here too.")
                 .font(.caption)
@@ -75,17 +34,46 @@ struct ModuleSwitcherSections: View {
         }
         .disabled(!settings.moduleSwitcherOn)
     }
+}
 
-    /// Every module not yet in the row, in the modules' order.
-    private var addableModules: [FeatureID] {
-        modules.featureOrder.filter { !settings.moduleRow.contains($0) }
+/// Which modules the swipe-up row shows, laid out like the strip's list (spec QS-10, QS-18):
+/// the chosen ones first in their order, then the rest; a toggle adds or removes, dragging reorders.
+private struct SwipeModulesRows: View {
+    @ObservedObject var settings: SwitcherSettings
+    @ObservedObject var modules: AppSettings
+    @State private var isOpen = false
+    /// The row being dragged to a new place (spec SD-4).
+    @State private var dragged: FeatureID?
+
+    /// The chosen modules, then every other one in the modules' order.
+    private var rows: [FeatureID] {
+        settings.moduleRow + modules.featureOrder.filter { !settings.moduleRow.contains($0) }
     }
 
-    private func moduleLabel(_ feature: FeatureID) -> some View {
-        SettingsRowLabel(title: feature.title, detail: modules.isSwitchedOn(feature) ? nil : "Off") {
-            Image(systemName: feature.symbolName)
-                .foregroundStyle(.secondary)
+    var body: some View {
+        DisclosureGroup("Swipe-up modules", isExpanded: $isOpen) {
+            ForEach(rows, id: \.self) { feature in
+                HStack {
+                    DragHandle()
+                    Toggle(isOn: Binding(get: { settings.moduleRow.contains(feature) }, set: { shown in
+                        withAnimation(Motion.quick) {
+                            if shown { settings.addToModuleRow(feature) } else { settings.removeFromModuleRow(feature) }
+                        }
+                    })) {
+                        Label(modules.isSwitchedOn(feature) ? feature.title : "\(feature.title) (Off)", systemImage: feature.symbolName)
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+                .reorderable(feature, in: rows, dragged: $dragged, id: feature.rawValue) { from, destination in
+                    var moved = rows
+                    moved.move(fromOffsets: from, toOffset: destination)
+                    let chosen = Set(settings.moduleRow)
+                    settings.moduleRow = moved.filter(chosen.contains)
+                }
+            }
         }
+        .revealWhenOpened(isOpen)
     }
 }
 

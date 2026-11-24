@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.109 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.110 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -83,6 +83,7 @@
 | M-19 | **Rejtett modul jele a kapcsoló előtt (M-18 módosítása):** a *Settings › Modules* listában a rejtett modul áthúzott szem ikonja a sor kapcsolója **bal oldalán** áll, így a kapcsolók minden sorban egy oszlopban vannak. A › lenyitott opciói között nagyobb a sorköz. |
 | M-20 | **Swipe pillanatképekkel (N-16 módosítása):** a felső ikonsoron swipe-olva a notch nem építi fel azokat a modulokat, amelyeken csak átlép: az elhagyott modulról egy pillanatkép (a legutóbbi kinézete) készül, és átlépéskor ez csúszik át; amelyikről még nincs kép, annál az ikonja és neve. A valódi modul csak ott épül fel, ahol a swipe megáll (~0,2 mp nyugalom után), rövid áttűnéssel. A swipe kezdetén nyitott modul és két szomszédja közben felépítve marad. Kattintásos vagy gyorsbillentyűs váltásnál a modul azonnal épül, mint eddig. |
 | M-21 | **Húzás és pöccintés külön (M-12, M-14, M-17 módosítása):** a felső ikonsoron, amíg az ujjak a trackpaden vannak, a swipe csak a **megtett út** szerint léptet (~80 pt egy modul, egyesével, a végén megáll, M-13); a lendület (az elengedés utáni kifutás) nem léptet. Ha elengedéskor az ujjak gyorsan mozognak (az utolsó 0,1 mp-ben legalább ~800 pt/mp, vízszintesen), a notch a mozdulat irányában a **sor végére** ugrik (első vagy utolsó modul), egy csúszással és egy haptikával. Lassan elengedve ott marad, ahol a húzás tartott. A panel tartalma fölötti swipe (S-1) nem változik. |
+| M-22 | **Nincs névfelirat hoverre:** a felső modul-ikonsoron (menü) és a notch alatti modulsávban (MS-1) az ikonra mutatva nem jelenik meg a modul nevét kiíró súgócímke. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -1011,6 +1012,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SY-11 | (v0.58) A folyamatok memóriája a **memory footprint**, mint az Activity Monitorban (nem a rezidens méret). |
 | SY-12b | (v0.70) A **memória** és a **swap** külön figyelmeztetés: a „kevés a memória” csak a memórianyomásból jön, a swap csak a beállított GB-határ (SY-9) átlépéséből. Így a memória kikapcsolható, miközben a swapra továbbra is jön figyelmeztetés. |
 | SY-12 | (v0.70, hiba) A kikapcsolt figyelmeztetés **soha nem jelenik meg**: ha a memória-figyelmeztetés ki van kapcsolva (SY-9), vagy a *Dynotch alerts › System* (E-25), a „kevés a memória” sem felugróként, sem az Értesítések listában, sem piros pöttyként, sem a lenyíló figyelmeztető sorban (SY-10) nem jön elő, időközönként sem. A *Dynotch alerts* listában a régi *System* helyett három kapcsoló: **Low memory**, **Swap above the limit**, **Disk full, Mac slowing down**; a régi kikapcsolt *System* a memóriát kapcsolja ki, a swap bekapcsolva indul. |
+| SY-13 | **Fejléc nélkül, hatodik csempe (SY-1, SY-2, MG-2 módosítása):** a System modulban nincs „System” felirat. Összevonva az **Options** menü a *System \| Batteries* választó sorában, jobb oldalt áll (a Batteries fülön nincs), így nincs külön fejlécsor; összevonás nélkül az Options egyedül áll a csempék fölött jobbra. A **Network** csempe a helyi IP-címet és a forgalom grafikonját mutatja; egy új, hatodik **Speed** csempe a **le- és feltöltési sebességet** írja ki, két sorban. |
 
 ## 4ő. Képmetsző (v0.57)
 
@@ -1132,6 +1134,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | QS-15 | (v0.102) **Kikapcsolt modul is (QS-10 módosítása):** a *Swipe-up modules* listába kikapcsolt modul is felvehető, és a sorban is megjelenik; kiválasztva lenyílik, és amíg a notch nyitva van, úgy működik, mintha be lenne kapcsolva (a felső ikonsorban is látszik). Csukáskor visszaáll kikapcsoltra; a *Settings › Modules* kapcsolója közben is kikapcsoltat mutat. |
 | QS-16 | (v0.107) **Mindig a legutóbbin indul (QS-11 módosítása):** a swipe-up modulválasztó induláskor mindig a sorból **legutóbb megnyitott** modult jelöli ki, akkor is, ha az épp nyitva van a notchban (eddig ilyenkor az előtte lévőt). A választóból kiválasztott modul azonnal a legutóbbi lesz, akkor is, ha épp az volt nyitva. |
 | QS-17 | (v0.107) **Haptika a választóban:** a swipe-up modulválasztóban az ujjak oldalra mozgatásával minden kijelölés-lépés ugyanolyan haptikus visszajelzést ad, mint a modulváltás (ha a haptika be van kapcsolva). |
+| QS-18 | **Haptika a swipe-upra és a Module strip-szerű lista (QS-10, QS-17 kiegészítése):** a felfelé swipe maga is haptikus visszajelzést ad, amikor a modulsor lenyílik, vagy rövid swipe-nál, amikor a modul azonnal nyílik (ha a haptika be van kapcsolva). A *Settings › Modules › Module switcher* alatt a *Swipe-up modules* a *Modules in the strip* listával azonos kinézetű lenyíló lista: minden modul egy sor fogóval és kapcsolóval, elöl a sorban lévők a sorrendjükben, utánuk a többi; a kapcsoló felveszi (a sor végére) vagy kiveszi, húzással átrendezhető. A külön *Add a module* lista megszűnik. A kikapcsolt modul neve mellett „(Off)”. |
 
 ## 4ő++++++. Beállítások egységes designja (v0.95)
 
@@ -1199,6 +1202,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.110.0** | Swipe-up modulok listája a Module strip mintájára, haptika a swipe-upra, nincs névfelirat hoverre az ikonokon, System fejléc nélkül, Options a fülek mellett, hatodik Speed csempe (QS-18, M-22, SY-13) |
 | **v0.109.0** | Akadásmentes Tray, a felső sor sosem csúszik ki, swipe pillanatképekkel (az átlépett modulok nem épülnek fel), húzás út szerint és pöccintés a sor végére, rejtett modul szeme a kapcsoló előtt (FT-16, N-26, M-20, M-21, M-19) |
 | **v0.108.0** | Bármely modul elrejthető a modulok közül: fut tovább, gyorsbillentyűvel és a swipe-up sorból nyílik (M-18) |
 | **v0.107.0** | Google Chat válasz gyorsabban és vissza a Kezdőlapra, egyesével léptető swipe az ikonsoron és a napsoron, akadásmentes váltás az AI modulról, a Calculator felső sora a helyén, a modulválasztó a legutóbbin indul, haptikával (GW-30, GW-31, M-17, K-17, AI-18, N-25, SZ-18, QS-16, QS-17) |
