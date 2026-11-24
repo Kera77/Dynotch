@@ -1,28 +1,29 @@
 import AppKit
-import Combine
+import Observation
 
 /// An iPad as an external display, from the panel's top row (spec TB-1…TB-4).
 @MainActor
-final class TabletDisplayService: ObservableObject {
+@Observable
+final class TabletDisplayService {
     struct Tablet: Identifiable, Equatable {
         let id: String
         let name: String
         let isConnected: Bool
     }
 
-    @Published private(set) var tablets: [Tablet] = []
+    private(set) var tablets: [Tablet] = []
     /// The connected iPad shows the main display instead of extending the desktop.
-    @Published private(set) var isMirrored = false
+    private(set) var isMirrored = false
     /// The iPad being connected or disconnected.
-    @Published private(set) var pending: String?
+    private(set) var pending: String?
     /// Why the last action failed.
-    @Published private(set) var failure: String?
+    private(set) var failure: String?
     /// iPads the keyboard and mouse were linked to from the menu (spec TB-7); ticked there.
-    @Published private(set) var linkedKeyboards: Set<String> = []
+    private(set) var linkedKeyboards: Set<String> = []
 
-    private var screenObserver: NSObjectProtocol?
+    @ObservationIgnored private var screenObserver: NSObjectProtocol?
     /// Mirror once the iPad being connected is there.
-    private var mirrorsWhenConnected = false
+    @ObservationIgnored private var mirrorsWhenConnected = false
     private static let displayWait: TimeInterval = 6
 
     var connected: Tablet? { tablets.first(where: \.isConnected) }

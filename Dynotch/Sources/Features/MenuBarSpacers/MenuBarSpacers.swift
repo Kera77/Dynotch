@@ -1,5 +1,5 @@
 import AppKit
-import Combine
+import Observation
 
 /// An empty place, a line or dots among the menu bar icons (spec MB-1…MB-6, MB-13).
 struct MenuBarSpacer: Codable, Identifiable, Equatable, Sendable {
@@ -46,11 +46,12 @@ struct MenuBarSpacer: Codable, Identifiable, Equatable, Sendable {
 /// Keeps one status item per spacer. Their places are the system's: ⌘-drag moves them, and the
 /// system remembers where (spec MB-3).
 @MainActor
-final class MenuBarSpacerService: NSObject, ObservableObject {
+@Observable
+final class MenuBarSpacerService: NSObject {
     static let shared = MenuBarSpacerService()
 
     private static let key = "menuBarSpacers"
-    @Published private(set) var spacers: [MenuBarSpacer] {
+    private(set) var spacers: [MenuBarSpacer] {
         didSet {
             if let data = try? JSONEncoder().encode(spacers) { defaults.set(data, forKey: Self.key) }
             if isStarted { sync() }
@@ -58,11 +59,11 @@ final class MenuBarSpacerService: NSObject, ObservableObject {
     }
 
     private let defaults: UserDefaults
-    private var items: [UUID: NSStatusItem] = [:]
-    private var isStarted = false
+    @ObservationIgnored private var items: [UUID: NSStatusItem] = [:]
+    @ObservationIgnored private var isStarted = false
     /// Spaces hidden now because nothing stands left of them (spec MB-14).
-    private var alone: Set<UUID> = []
-    private var aloneTimer: Poller?
+    @ObservationIgnored private var alone: Set<UUID> = []
+    @ObservationIgnored private var aloneTimer: Poller?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

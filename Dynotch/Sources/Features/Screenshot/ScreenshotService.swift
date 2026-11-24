@@ -1,6 +1,5 @@
 import AppKit
 import Carbon.HIToolbox
-import Combine
 import SwiftUI
 
 /// A shot or recording that was just made: shown under the notch for a moment (spec SH-6).
@@ -14,29 +13,30 @@ struct ScreenshotShot: Identifiable, Equatable {
 /// The screenshot tool (spec SH-1…SH-12): the shortcut steps through the modes while its
 /// modifiers are held, letting go takes the picture; it is saved, copied and announced.
 @MainActor
-final class ScreenshotService: ObservableObject {
+@Observable
+final class ScreenshotService {
     /// The mode chosen while the modifiers are held, once the bar shows (spec SH-1, SH-14).
-    @Published private(set) var choosing: CaptureMode?
+    private(set) var choosing: CaptureMode?
     /// The mode chosen, shown or not yet (spec SH-14).
-    private var chosen: CaptureMode?
-    private var chooserTimer: Timer?
-    @Published private(set) var peek: ScreenshotShot?
-    @Published private(set) var recordingSince: Date?
-    private var areaFrame: NSWindow?
+    @ObservationIgnored private var chosen: CaptureMode?
+    @ObservationIgnored private var chooserTimer: Timer?
+    private(set) var peek: ScreenshotShot?
+    private(set) var recordingSince: Date?
+    @ObservationIgnored private var areaFrame: NSWindow?
     /// Tells the notch to open the editor for a file (spec SH-7, SH-11).
-    var openEditor: (URL) -> Void = { _ in }
+    @ObservationIgnored var openEditor: (URL) -> Void = { _ in }
 
     let settings: ScreenshotSettings
     private let recorder = ScreenRecorder()
-    private var scrolling: ScrollCapture?
-    private var isBusy = false
-    private var handler: EventHandlerRef?
-    private var hotKeys: [EventHotKeyRef] = []
-    private var escapeKeys: [EventHotKeyRef] = []
-    private var releaseTimer: Timer?
-    private var peekTask: Task<Void, Never>?
-    private var observer: AnyCancellable?
-    private var registered: KeyShortcut??
+    @ObservationIgnored private var scrolling: ScrollCapture?
+    @ObservationIgnored private var isBusy = false
+    @ObservationIgnored private var handler: EventHandlerRef?
+    @ObservationIgnored private var hotKeys: [EventHotKeyRef] = []
+    @ObservationIgnored private var escapeKeys: [EventHotKeyRef] = []
+    @ObservationIgnored private var releaseTimer: Timer?
+    @ObservationIgnored private var peekTask: Task<Void, Never>?
+    @ObservationIgnored private var observer: ChangeObservation?
+    @ObservationIgnored private var registered: KeyShortcut??
 
     private static let signature: OSType = 0x4459_5353 // "DYSS"
     private static let peekDuration: Duration = .seconds(5)
@@ -47,7 +47,9 @@ final class ScreenshotService: ObservableObject {
 
     func start() {
         installHandler()
-        observer = settings.afterChange { [weak self] in self?.registerShortcut() }
+        observer = observeChanges { [settings] in _ = (settings.isOn, settings.shortcut) } onChange: { [weak self] in
+            self?.registerShortcut()
+        }
         registerShortcut()
     }
 

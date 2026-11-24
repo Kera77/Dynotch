@@ -95,7 +95,7 @@ struct BeeperAvatar: View {
     let network: String?
     var size: CGFloat = 36
     /// Redraws when a network's icon arrives.
-    @ObservedObject private var networkIcons = NetworkIcons.shared
+    private var networkIcons = NetworkIcons.shared
 
     private var initials: String { Self.initials(of: name) }
 
@@ -154,7 +154,7 @@ struct BeeperAvatar: View {
 
 /// The chats, unread first (spec BP-1, BP-2).
 struct BeeperChatList: View {
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
 
     var body: some View {
         ScrollView(.vertical) {

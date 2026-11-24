@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// How the window switcher looks (spec AS-5).
 enum SwitcherStyle: String, CaseIterable, Sendable {
@@ -42,42 +43,43 @@ enum SwitcherScope: String, CaseIterable, Sendable {
 
 /// The window switcher's settings (spec AS-1…AS-12), kept in the defaults.
 @MainActor
-final class SwitcherSettings: ObservableObject {
-    @Published var isOn: Bool { didSet { save(isOn, Key.isOn) } }
-    @Published var style: SwitcherStyle { didSet { save(style.rawValue, Key.style) } }
-    @Published var size: SwitcherSize { didSet { save(size.rawValue, Key.size) } }
-    @Published var scope: SwitcherScope { didSet { save(scope.rawValue, Key.scope) } }
-    @Published var groupsByApp: Bool { didSet { save(groupsByApp, Key.groups) } }
-    @Published var showsMinimized: Bool { didSet { save(showsMinimized, Key.minimized) } }
-    @Published var showsHidden: Bool { didSet { save(showsHidden, Key.hidden) } }
-    @Published var currentDisplayOnly: Bool { didSet { save(currentDisplayOnly, Key.display) } }
+@Observable
+final class SwitcherSettings {
+    var isOn: Bool { didSet { save(isOn, Key.isOn) } }
+    var style: SwitcherStyle { didSet { save(style.rawValue, Key.style) } }
+    var size: SwitcherSize { didSet { save(size.rawValue, Key.size) } }
+    var scope: SwitcherScope { didSet { save(scope.rawValue, Key.scope) } }
+    var groupsByApp: Bool { didSet { save(groupsByApp, Key.groups) } }
+    var showsMinimized: Bool { didSet { save(showsMinimized, Key.minimized) } }
+    var showsHidden: Bool { didSet { save(showsHidden, Key.hidden) } }
+    var currentDisplayOnly: Bool { didSet { save(currentDisplayOnly, Key.display) } }
     /// Hold: stays open after the keys are released, until a click or Return (spec AS-9).
-    @Published var holdsAfterRelease: Bool { didSet { save(holdsAfterRelease, Key.hold) } }
+    var holdsAfterRelease: Bool { didSet { save(holdsAfterRelease, Key.hold) } }
     /// Window previews need Screen Recording; off by default (spec AS-7).
-    @Published var showsPreviews: Bool { didSet { save(showsPreviews, Key.previews) } }
+    var showsPreviews: Bool { didSet { save(showsPreviews, Key.previews) } }
     /// No shortcut by default (spec AS-8).
-    @Published var shortcut: KeyShortcut? {
+    var shortcut: KeyShortcut? {
         didSet { defaults.set(shortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.shortcut) }
     }
     /// 3 or 4 fingers; 0: no swipe (spec AS-11).
-    @Published var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
+    var swipeFingers: Int { didSet { save(swipeFingers, Key.fingers) } }
     /// The module switcher on a swipe up (spec QS-1), on by default.
-    @Published var moduleSwitcherOn: Bool { didSet { save(moduleSwitcherOn, Key.modules) } }
+    var moduleSwitcherOn: Bool { didSet { save(moduleSwitcherOn, Key.modules) } }
     /// The modules in the swipe-up row, in their order (spec QS-10, QS-11).
-    @Published var moduleRow: [FeatureID] { didSet { save(moduleRow.map(\.rawValue), Key.moduleRow) } }
+    var moduleRow: [FeatureID] { didSet { save(moduleRow.map(\.rawValue), Key.moduleRow) } }
     /// 3 or 4 fingers for the swipe up (spec QS-1).
-    @Published var moduleFingers: Int { didSet { save(moduleFingers, Key.moduleFingers) } }
+    var moduleFingers: Int { didSet { save(moduleFingers, Key.moduleFingers) } }
     /// Trackpad width (0…1) the fingers move to step one window (spec AS-11b).
-    @Published var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
+    var swipeStep: Double { didSet { save(swipeStep, Key.step) } }
     /// Seconds the fingers stay down before the switcher drops down; a quicker swipe only switches (spec AS-16).
-    @Published var showDelay: Double { didSet { save(showDelay, Key.showDelay) } }
+    var showDelay: Double { didSet { save(showDelay, Key.showDelay) } }
     /// A quick swipe always goes to the previous app (spec AS-16).
-    @Published var quickSwipeToPreviousApp: Bool { didSet { save(quickSwipeToPreviousApp, Key.quickPrevious) } }
-    @Published private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
+    var quickSwipeToPreviousApp: Bool { didSet { save(quickSwipeToPreviousApp, Key.quickPrevious) } }
+    private(set) var excluded: [String] { didSet { save(excluded, Key.excluded) } }
     /// Only windows mostly covered by others, with either scope (spec AS-14).
-    @Published var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
+    var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
     /// How much of a window must be covered, 0.25…0.9.
-    @Published var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }
+    var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }
 
     static let swipeStepRange: ClosedRange<Double> = 0.05...0.25
     static let showDelayRange: ClosedRange<Double> = 0...1

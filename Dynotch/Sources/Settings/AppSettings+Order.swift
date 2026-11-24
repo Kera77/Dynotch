@@ -119,13 +119,15 @@ extension AppSettings {
 
     /// The tab of a merged module picked by hand last (spec MG-10); nil: the host's own.
     func chosenTab(of host: FeatureID) -> FeatureID? {
-        (defaults.dictionary(forKey: "mergedTabChoice")?[host.rawValue] as? String).flatMap(FeatureID.init(rawValue:))
+        _ = tabChoiceRevision
+        return (defaults.dictionary(forKey: "mergedTabChoice")?[host.rawValue] as? String).flatMap(FeatureID.init(rawValue:))
     }
 
     func chooseTab(_ tab: FeatureID, of host: FeatureID) {
         var choices = defaults.dictionary(forKey: "mergedTabChoice") ?? [:]
         choices[host.rawValue] = tab.rawValue
         defaults.set(choices, forKey: "mergedTabChoice")
+        tabChoiceRevision += 1
     }
 
     func loadModuleOptions() {

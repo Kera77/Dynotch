@@ -1,18 +1,17 @@
 import AppKit
-import Combine
 import SwiftUI
 
 /// A number next to a menu bar icon (open reminders, spec R-7).
+/// What `value` reads is observed: the number is drawn again when it changes.
 struct Badge {
-    let changes: ObservableObjectPublisher
-    let value: @MainActor () -> Int?
+    let value: @MainActor @Sendable () -> Int?
 }
 
 /// An icon that changes with data (Claude usage ring, spec CL-6). Nil image: the feature's symbol.
+/// What `image` and `toolTip` read is observed: the icon is drawn again when it changes.
 struct StatusIcon {
-    let changes: ObservableObjectPublisher
-    let image: @MainActor () -> NSImage?
-    let toolTip: @MainActor () -> String?
+    let image: @MainActor @Sendable () -> NSImage?
+    let toolTip: @MainActor @Sendable () -> String?
 }
 
 /// Menu bar icon of a feature that drops a popover panel down below it
@@ -33,15 +32,15 @@ final class MenuBarPopoverController: NSObject {
     }()
     private let badge: Badge?
     private let icon: StatusIcon?
-    private var iconObserver: AnyCancellable?
+    private var iconObserver: ChangeObservation?
     private let onOpen: (() -> Void)?
     private let onClose: (() -> Void)?
-    private var badgeObserver: AnyCancellable?
+    private var badgeObserver: ChangeObservation?
     private let state = MenuBarPanelState()
     private var statusItem: NSStatusItem?
     private var panel: MenuBarPanel?
     private var outsideClickMonitor: Any?
-    private var settingsObserver: AnyCancellable?
+    private var settingsObserver: ChangeObservation?
 
     init(
         feature: FeatureID,
@@ -64,16 +63,21 @@ final class MenuBarPopoverController: NSObject {
     }
 
     func start() {
-        settingsObserver = settings.afterChange { [weak self] in self?.updateStatusItem() }
-        badgeObserver = badge?.changes.sink { [weak self] in
-            // objectWillChange fires before the change; read the value on the next turn.
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.updateBadge() }
-            }
+        settingsObserver = observeChanges { [settings, feature] in
+            _ = settings.isEnabled(feature)
+            _ = settings.showsInMenuBar(feature)
+        } onChange: { [weak self] in
+            self?.updateStatusItem()
         }
-        iconObserver = icon?.changes.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated { self?.updateIcon() }
+        if let badge {
+            badgeObserver = observeChanges { _ = badge.value() } onChange: { [weak self] in self?.updateBadge() }
+        }
+        if let icon {
+            iconObserver = observeChanges {
+                _ = icon.image()
+                _ = icon.toolTip()
+            } onChange: { [weak self] in
+                self?.updateIcon()
             }
         }
         updateStatusItem()

@@ -23,7 +23,7 @@ enum DynotchAlert: String, CaseIterable, Sendable {
 
 /// Settings › Notifications › Dynotch alerts (spec E-25).
 struct DynotchAlertsSection: View {
-    @ObservedObject var preferences: NotificationPreferences
+    var preferences: NotificationPreferences
 
     var body: some View {
         Section {

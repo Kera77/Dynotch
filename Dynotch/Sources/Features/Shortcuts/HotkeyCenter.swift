@@ -1,6 +1,5 @@
 import AppKit
 import Carbon.HIToolbox
-import Combine
 
 /// Registers the features' shortcuts system-wide (spec SC-1). Carbon hot keys need no permission.
 @MainActor
@@ -13,7 +12,7 @@ final class HotkeyCenter {
     private static let pinNumber = 100
     private var references: [EventHotKeyRef] = []
     private var handler: EventHandlerRef?
-    private var observer: AnyCancellable?
+    private var observer: ChangeObservation?
 
     init(store: ShortcutStore, onFire: @escaping (FeatureID) -> Void, onPin: @escaping () -> Void) {
         self.store = store
@@ -23,8 +22,13 @@ final class HotkeyCenter {
 
     func start() {
         installHandler()
-        // Fires before the change; register from the new state on the next run loop turn.
-        observer = store.afterChange { [weak self] in self?.register() }
+        // Registers from the new state on the next run loop turn.
+        observer = observeChanges { [store] in
+            _ = store.shortcuts
+            _ = store.pinShortcut
+        } onChange: { [weak self] in
+            self?.register()
+        }
         register()
     }
 

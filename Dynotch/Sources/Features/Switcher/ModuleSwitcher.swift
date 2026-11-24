@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 
 /// The modules opened most recently first, kept across restarts (spec QS-3).
 @MainActor
@@ -25,24 +26,25 @@ final class ModuleHistory {
 /// The modules chosen for the swipe up, in their set order (spec QS-1…QS-12): sideways steps
 /// the choice, lifting the fingers opens it, moving back down cancels.
 @MainActor
-final class ModuleSwitcher: ObservableObject {
-    @Published private(set) var isShown = false
-    @Published private(set) var items: [FeatureID] = []
-    @Published private(set) var selection = 0
+@Observable
+final class ModuleSwitcher {
+    private(set) var isShown = false
+    private(set) var items: [FeatureID] = []
+    private(set) var selection = 0
 
     let settings: SwitcherSettings
     /// The chosen modules, in the row's order, those that are off too (spec QS-10, QS-15).
-    var candidates: () -> [FeatureID] = { [] }
+    @ObservationIgnored var candidates: () -> [FeatureID] = { [] }
     /// Shows or hides the row in the notch.
-    var present: (Bool) -> Void = { _ in }
+    @ObservationIgnored var present: (Bool) -> Void = { _ in }
     /// Opens the chosen module like its shortcut (spec QS-6).
-    var open: (FeatureID) -> Void = { _ in }
+    @ObservationIgnored var open: (FeatureID) -> Void = { _ in }
     /// The choice moved by a swipe: a tick like a module switch (spec QS-17).
-    var onStep: () -> Void = {}
+    @ObservationIgnored var onStep: () -> Void = {}
 
-    private var isPending = false
-    private var showTimer: Timer?
-    private var swipeStart = 0
+    @ObservationIgnored private var isPending = false
+    @ObservationIgnored private var showTimer: Timer?
+    @ObservationIgnored private var swipeStart = 0
 
     init(settings: SwitcherSettings) {
         self.settings = settings

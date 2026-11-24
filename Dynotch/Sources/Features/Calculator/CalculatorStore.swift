@@ -1,14 +1,15 @@
-import Combine
 import Foundation
+import Observation
 
 /// The calculator notepad's text, shared by the notch and the menu bar panel and kept
 /// across restarts (spec SZ-5).
 @MainActor
-final class CalculatorStore: ObservableObject {
+@Observable
+final class CalculatorStore {
     private static let key = "calculatorText"
     private let defaults: UserDefaults
 
-    @Published var text: String {
+    var text: String {
         didSet { defaults.set(text, forKey: Self.key) }
     }
 

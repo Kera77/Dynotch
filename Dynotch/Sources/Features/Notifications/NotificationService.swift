@@ -1,9 +1,10 @@
 import AppKit
-import Combine
+import Observation
 
 /// Mirrors new macOS notifications of the selected apps into the notch (spec E-1…E-9).
 @MainActor
-final class NotificationService: ObservableObject {
+@Observable
+final class NotificationService {
     enum Status: Equatable {
         case disabled
         /// The database can't be read: Full Disk Access is missing.
@@ -13,55 +14,56 @@ final class NotificationService: ObservableObject {
         case running
     }
 
-    @Published var status: Status = .disabled
+    var status: Status = .disabled
     /// Notifications received since launch, newest first.
-    @Published var recent: [AppNotification] = []
+    var recent: [AppNotification] = []
     /// Notification currently peeking out of the closed notch.
-    @Published private(set) var peek: AppNotification?
+    private(set) var peek: AppNotification?
     /// Arrived since the user last looked (hover card or Notifications feature), oldest first
     /// (spec E-4).
-    @Published var unseen: [AppNotification] = []
+    var unseen: [AppNotification] = []
     /// The Notifications feature shows only these: one app's unopened notifications, after a
     /// click on its badge (spec B-6).
-    @Published var focus: NotificationFocus?
+    var focus: NotificationFocus?
     /// A chat picked in a badge's drop-down, to open ready to answer (spec B-10f).
-    @Published var cardRequest: CardOpenRequest?
+    var cardRequest: CardOpenRequest?
     /// Installed apps found in the database, for the settings list.
-    @Published private(set) var apps: [NotificationApp] = []
+    private(set) var apps: [NotificationApp] = []
     /// The screen is shared or recorded: nothing pops up (spec N-21).
-    var isScreenShared = false
+    @ObservationIgnored var isScreenShared = false
 
-    let catalog = NotificationAppCatalog()
+    /// Read through `catalog`, so views follow its updates.
+    @ObservationIgnored let appCatalog = NotificationAppCatalog()
     /// Google Chat read from its web app (spec GW-1).
     let chatWeb: GoogleChatWebService
     /// Gmail and other accounts read from Apple Mail (spec GM-1).
     let mail: MailService
     /// The websites seen and every source's rules (spec E-15).
     let preferences: NotificationPreferences
-    private var preferencesObserver: AnyCancellable?
+    @ObservationIgnored private var preferencesObserver: ChangeObservation?
     let bannerDismisser = NativeBannerDismisser()
 
     let settings: AppSettings
-    var database: NotificationDatabase?
-    private(set) var lastSeenID: Int64 = 0
+    @ObservationIgnored var database: NotificationDatabase?
+    @ObservationIgnored private(set) var lastSeenID: Int64 = 0
     /// The latest delivery seen, to catch records updated in place (spec E-1d).
-    var lastDelivered: Double = 0
-    private var pollTimer: Poller?
-    private var lastOpenAttempt = Date.distantPast
-    private var pollCount = 0
-    var isPolling = false
-    var pollAgain = false
-    private var peekTask: Task<Void, Never>?
+    @ObservationIgnored var lastDelivered: Double = 0
+    @ObservationIgnored private var pollTimer: Poller?
+    @ObservationIgnored private var lastOpenAttempt = Date.distantPast
+    @ObservationIgnored private var pollCount = 0
+    @ObservationIgnored var isPolling = false
+    @ObservationIgnored var pollAgain = false
+    @ObservationIgnored private var peekTask: Task<Void, Never>?
     /// The notch panels whose pointer rests on the peek beside the notch (spec PV-39).
-    var peekHolders: Set<ObjectIdentifier> = []
+    @ObservationIgnored var peekHolders: Set<ObjectIdentifier> = []
     /// A newer notification that waits until the pointer leaves the shown one (spec PV-39).
-    var heldPeek: AppNotification?
-    private var settingsObserver: AnyCancellable?
+    @ObservationIgnored var heldPeek: AppNotification?
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
 
     /// The database is watched for writes; this is only the fallback (spec E-1b, RF-12).
     private static let pollInterval: TimeInterval = 30
     private let walWatcher = FolderWatcher()
-    private var walWatchRenewed = Date.distantPast
+    @ObservationIgnored private var walWatchRenewed = Date.distantPast
     private static let openRetryInterval: TimeInterval = 5
     static let historyLimit = 50
 
@@ -70,21 +72,17 @@ final class NotificationService: ObservableObject {
         preferences = NotificationPreferences(defaults: settings.defaults)
         chatWeb = GoogleChatWebService(defaults: settings.defaults)
         mail = MailService(settings: settings)
-        catalog.update(sites: preferences.sites, names: preferences.names)
-        preferencesObserver = preferences.objectWillChange.sink { [weak self] in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    guard let self else { return }
-                    self.catalog.update(sites: self.preferences.sites, names: self.preferences.names)
-                    // The settings list the websites; a new one shows up there at once.
-                    self.objectWillChange.send()
-                }
-            }
-        }
+        appCatalog.update(sites: preferences.sites, names: preferences.names)
+        // The settings list the websites; a new one shows up there at once.
+        preferencesObserver = observeChanges { [preferences] in
+            _ = (preferences.sites, preferences.names)
+        } onChange: { [weak self] in self?.updateCatalog() }
     }
 
     func start() {
-        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
+        settingsObserver = observeChanges { [settings] in
+            _ = (settings.isEnabled(.notifications), settings.hideNativeBanners)
+        } onChange: { [weak self] in self?.applyEnabled() }
         applyEnabled()
         mail.start()
         // Web pages and replies go to the browser in use (spec E-2f).
@@ -115,23 +113,23 @@ final class NotificationService: ObservableObject {
     static let unseenLimit = 12
 
     /// Negative ids never clash with the database's record ids.
-    var internalID: Int64 = 0
+    @ObservationIgnored var internalID: Int64 = 0
     /// Messages read from the web app for a card made without a notification, by card id (spec GW-5c).
-    @Published var chatWebTexts: [Int64: [ChatWebMessage]] = [:]
+    var chatWebTexts: [Int64: [ChatWebMessage]] = [:]
     /// Cards opened whose conversation is being opened in the web app, by conversation id.
     var chatWebPending: [String: Int64] = [:]
     /// Cards whose conversation Dynotch read in the web app to show them: card id → conversation
     /// id. Opened there, it stays read (spec GW-17c).
-    var chatWebOpened: [Int64: String] = [:]
+    @ObservationIgnored var chatWebOpened: [Int64: String] = [:]
     /// Cards kept although the web app shows their conversation read: open, or just marked
     /// unread again (spec GW-17); card id → until when.
-    var chatWebHeld: [Int64: Date] = [:]
+    @ObservationIgnored var chatWebHeld: [Int64: Date] = [:]
     /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
-    var chatUnreadCarded: Set<String> = []
+    @ObservationIgnored var chatUnreadCarded: Set<String> = []
     /// The last "unread without a card" log line, written once per change (spec GW-25).
-    var chatSkippedLogged = ""
+    @ObservationIgnored var chatSkippedLogged = ""
     /// The web app was read once since launch: unread conversations found later pop up.
-    var chatWebPrimed = false
+    @ObservationIgnored var chatWebPrimed = false
 
     func clearPeek() {
         peekTask?.cancel()

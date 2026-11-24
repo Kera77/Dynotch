@@ -3,7 +3,7 @@ import SwiftUI
 /// The System Stats module (spec SY-1…SY-7): tiles for CPU, memory, network, disk and battery,
 /// and the busiest processes with a Quit button.
 struct StatsFeatureView: View {
-    @ObservedObject var service: StatsService
+    @Bindable var service: StatsService
     let isActive: Bool
     /// Off when the Options sit beside the System | Batteries tabs instead (spec SY-13).
     var showsOptions = true
@@ -129,7 +129,7 @@ struct StatsFeatureView: View {
 
 /// The busiest processes, by CPU or memory; Quit asks once more (spec SY-6).
 struct StatsProcessList: View {
-    @ObservedObject var service: StatsService
+    @Bindable var service: StatsService
     @State private var confirming: String?
 
     var body: some View {
@@ -198,7 +198,7 @@ struct StatsProcessList: View {
 
 /// What shows beside the notch, which alerts are on, and the swap limit (spec SY-7…SY-9).
 struct StatsOptionsMenu: View {
-    @ObservedObject var options: StatsOptions
+    @Bindable var options: StatsOptions
 
     var body: some View {
         Menu {

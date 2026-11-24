@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › Menu bar: the spaces among the menu bar icons (spec MB-5).
 struct MenuBarSettingsView: View {
-    @ObservedObject var spacers: MenuBarSpacerService
+    var spacers: MenuBarSpacerService
 
     var body: some View {
         Form {

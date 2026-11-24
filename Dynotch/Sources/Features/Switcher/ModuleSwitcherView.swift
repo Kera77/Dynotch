@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The chosen modules in one row under the notch (spec QS-4, QS-12), like the switcher's App Icons.
 struct ModuleSwitcherView: View {
-    @ObservedObject var switcher: ModuleSwitcher
+    var switcher: ModuleSwitcher
     let notchHeight: CGFloat
     let width: CGFloat
 

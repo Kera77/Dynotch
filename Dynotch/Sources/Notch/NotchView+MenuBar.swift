@@ -58,7 +58,7 @@ enum TrailingControlsMetrics {
 }
 
 struct TrailingControls: View {
-    @ObservedObject var tablets: TabletDisplayService
+    var tablets: TabletDisplayService
     let followsMouse: Bool
     let toggleFollowsMouse: () -> Void
     let isKeyboardLocked: Bool
@@ -68,7 +68,7 @@ struct TrailingControls: View {
     let togglePin: () -> Void
     let toggleSettings: () -> Void
 
-    @ObservedObject private var layout = TopRowLayout.shared
+    private var layout = TopRowLayout.shared
     @State private var dragged: TopRowControl?
     @State private var dragOffset: CGFloat = 0
     private static let space = "TrailingControls"

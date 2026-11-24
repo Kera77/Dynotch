@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › General › Connected devices (spec DV-7).
 struct DeviceSettingsSection: View {
-    @ObservedObject var devices: DeviceWatcher
+    @Bindable var devices: DeviceWatcher
 
     var body: some View {
         Section {
@@ -27,7 +27,7 @@ struct DeviceSettingsSection: View {
 
 /// Settings › Notifications › Beeper (spec UM-7, BP-1b, BP-13).
 struct BeeperSettingsRows: View {
-    @ObservedObject var beeper: BeeperService
+    @Bindable var beeper: BeeperService
 
     var body: some View {
         Toggle("Keep unread Beeper chats in the notch", isOn: $beeper.keepsUnread)
@@ -53,7 +53,7 @@ struct BeeperSettingsRows: View {
 
 /// Settings › Notifications › Low battery: each device's warning level (spec BT-7).
 struct LowBatterySettingsSection: View {
-    @ObservedObject var battery: BatteryService
+    var battery: BatteryService
 
     /// Connected devices first, then the ones seen before, by name.
     private var rows: [BatteryDevice] {

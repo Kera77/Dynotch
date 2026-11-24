@@ -16,7 +16,7 @@ extension EnvironmentValues {
 /// The AI module's header (spec AI-1, AI-2, AI-8, AI-12): service, model, more thinking,
 /// templates, continuing in Terminal.
 struct AIChatHeader: View {
-    @ObservedObject var service: ClaudeChatService
+    var service: ClaudeChatService
 
     var body: some View {
         HStack(spacing: 6) {
@@ -267,7 +267,7 @@ struct AIAnswerActions: View {
 /// Context for the next question (spec AI-5): clipboard, selected text, files; the files
 /// attached so far.
 struct AIContextBar: View {
-    @ObservedObject var service: ClaudeChatService
+    var service: ClaudeChatService
 
     var body: some View {
         HStack(spacing: 8) {

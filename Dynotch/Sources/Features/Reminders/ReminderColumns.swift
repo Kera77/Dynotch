@@ -113,7 +113,7 @@ extension RemindersStore {
 /// One column: its picker and sort in the header, then the reminders; a list also gets "New
 /// task" and, on the right, its recently completed tasks (spec R-15, R-6b).
 struct ReminderColumn: View {
-    @ObservedObject var store: RemindersStore
+    @Bindable var store: RemindersStore
     let side: RemindersStore.Side
 
     var body: some View {

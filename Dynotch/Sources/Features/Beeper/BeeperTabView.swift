@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 /// The reply field of a Beeper chat (spec BP-7, BP-9, BP-10): a quoted message, one file, emoji,
 /// emoticons; Enter sends, only then.
 struct BeeperComposer: View {
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
     let chat: BeeperChatInfo
     @Binding var replyTo: BeeperFullMessage?
     @Binding var editing: BeeperFullMessage?
@@ -120,7 +120,7 @@ struct BeeperComposer: View {
 struct BeeperTabView: View {
     /// The chat list grows with a resized module (spec RS-5).
     @State private var width: CGFloat = 0
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
 
     var body: some View {
         Group {
@@ -268,7 +268,7 @@ struct BeeperTabView: View {
 
 /// The chat's reminder (spec BP-6).
 struct BeeperReminderMenu: View {
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
     let chat: BeeperChatInfo
     @State private var cancelOnReply = true
 

@@ -1,9 +1,10 @@
 import AppKit
-import Combine
+import Observation
 
 /// Polls the Claude subscription usage with Claude Code's login (spec CL-1…CL-7).
 @MainActor
-final class ClaudeUsageService: ObservableObject {
+@Observable
+final class ClaudeUsageService {
     enum State: Equatable {
         case idle
         case loading
@@ -15,24 +16,24 @@ final class ClaudeUsageService: ObservableObject {
         case failed(String)
     }
 
-    @Published private(set) var state: State = .idle
-    @Published private(set) var limits: [UsageLimit] = []
+    private(set) var state: State = .idle
+    private(set) var limits: [UsageLimit] = []
     /// ChatGPT's limits, from Codex's logs (spec AI-6).
-    @Published private(set) var gptLimits: [UsageLimit] = []
-    @Published private(set) var gptUpdated: Date?
-    @Published private(set) var lastUpdated: Date?
+    private(set) var gptLimits: [UsageLimit] = []
+    private(set) var gptUpdated: Date?
+    private(set) var lastUpdated: Date?
     /// "limit key|10 % step" of the fullest limit when its notch indicator was hidden (spec CL-6).
-    @Published private var dismissedIndicator: String? {
+    private var dismissedIndicator: String? {
         didSet { UserDefaults.standard.set(dismissedIndicator, forKey: Self.dismissedKey) }
     }
 
     private let settings: AppSettings
     private let notify: (String, String) -> Void
-    private var timer: Poller?
-    private var settingsObserver: AnyCancellable?
-    private var isRefreshing = false
+    @ObservationIgnored private var timer: Poller?
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
+    @ObservationIgnored private var isRefreshing = false
     /// Token read from Claude Code's keychain item, with its expiry.
-    private var cachedToken: (token: String, expires: Date?)?
+    @ObservationIgnored private var cachedToken: (token: String, expires: Date?)?
 
     private static let refreshInterval: TimeInterval = 5 * 60
     private static let minimumInterval: TimeInterval = 60
@@ -95,7 +96,9 @@ final class ClaudeUsageService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
+        settingsObserver = observeChanges { [settings] in _ = settings.isEnabled(.claudeUsage) } onChange: { [weak self] in
+            self?.applyEnabled()
+        }
         applyEnabled()
     }
 

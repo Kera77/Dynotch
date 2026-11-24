@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import SwiftUI
 
 /// Owns the notch panel of one display and turns pointer/trackpad input into panel state.
@@ -24,7 +23,7 @@ final class NotchController {
     let devices: DeviceWatcher
     let badges: BadgeService
     let calls: CallService
-    private var callObserver: AnyCancellable?
+    private var callObserver: ChangeObservation?
     var callIsShown = false
     let notices: NoticeService
     let chat: ClaudeChatService
@@ -33,7 +32,7 @@ final class NotchController {
     let music: MusicService
     let stats: StatsService
     let screenshots: ScreenshotService
-    private var chatObserver: AnyCancellable?
+    private var chatObserver: ChangeObservation?
     private var spaceObserver: NSObjectProtocol?
     var gatherTask: Task<Void, Never>?
     var gatherStarted: Date?
@@ -56,9 +55,8 @@ final class NotchController {
     private var keyClickMonitor: Any?
     var announcementSwipe = VerticalSwipe()
     private var localMonitor: Any?
-    private var sizeObserver: AnyCancellable?
-    private var settingsObserver: AnyCancellable?
-    var beeperListObserver: AnyCancellable?
+    var settingsObserver: ChangeObservation?
+    var beeperListObserver: ChangeObservation?
     private var hoverTimer: Timer?
     var fullScreenWatch: WindowListMonitor.Token?
     private var closeTask: Task<Void, Never>?
@@ -86,7 +84,7 @@ final class NotchController {
     /// The pointer is on a small notice beside the closed notch in Wings mode (spec PV-38).
     var isOverWingsPeek = false
     /// A notice beside the notch was put away: the notch unfolds again after it (spec PV-48).
-    var peekFoldTask: Task<Void, Never>?
+    var peekFold: UUID?
     /// Since when the pointer rests on the notch while a small notice hangs under it (spec PV-71).
     var dropDownHoverSince: Date?
     var dropDownHoverTask: Task<Void, Never>?
@@ -338,10 +336,8 @@ extension NotchController {
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }
             return consumed ? nil : event
         }
-        sizeObserver = model.$isLarge.dropFirst().removeDuplicates().sink { [weak self] large in
-            MainActor.assumeIsolated { self?.sizeChanged(large: large) }
-        }
-        chatObserver = chat.afterChange { [weak self] in self?.chatChanged() }
+        model.onLargeChange = { [weak self] large in self?.sizeChanged(large: large) }
+        chatObserver = observeChanges { [chat] in _ = chat.isTall } onChange: { [weak self] in self?.chatChanged() }
         chatChanged()
         startFullScreenChecks()
         OpenMenus.start()
@@ -356,22 +352,13 @@ extension NotchController {
                 self?.checkFullScreenNow()
             }
         }
-        callObserver = calls.afterChange { [weak self] in self?.callChanged() }
-        observeModel()
-    }
-
-    /// Fires before the change; the new state is looked at on the next run loop turn.
-    private func observeModel() {
-        followQuickLook()
-        settingsObserver = model.objectWillChange.sink { [weak self] in
-            let before = MainActor.assumeIsolated { self?.model.isExpanded == true ? self?.keepOpenZone : nil }
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    self?.updateKeyboardFocus()
-                    self?.keepShrunkArea(before)
-                }
-            }
+        callObserver = observeChanges { [calls] in
+            _ = calls.call
+            _ = calls.isComposing
+        } onChange: { [weak self] in
+            self?.callChanged()
         }
+        observeModel()
     }
 
     func stop() {
@@ -382,7 +369,7 @@ extension NotchController {
         scrollMonitor = nil
         globalMonitor = nil
         localMonitor = nil
-        sizeObserver = nil
+        model.onLargeChange = { _ in }
         callObserver = nil
         chatObserver = nil
         if let spaceObserver { NSWorkspace.shared.notificationCenter.removeObserver(spaceObserver) }

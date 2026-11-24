@@ -1,14 +1,15 @@
 import AppKit
-import Combine
+import Observation
 
 /// Icons of networks whose app is not installed (e.g. Instagram), fetched once from the network's
 /// own website and kept in Application Support (spec BP-3c). No logos live in the repository.
 @MainActor
-final class NetworkIcons: ObservableObject {
+@Observable
+final class NetworkIcons {
     static let shared = NetworkIcons()
 
-    @Published private(set) var icons: [String: NSImage] = [:]
-    private var asked: Set<String> = []
+    private(set) var icons: [String: NSImage] = [:]
+    @ObservationIgnored private var asked: Set<String> = []
     private let folder: URL
 
     /// Word in the network's name → its website.

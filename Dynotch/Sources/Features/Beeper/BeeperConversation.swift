@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 /// One chat's messages and the reply field (spec BP-1…BP-10).
 struct BeeperConversation: View {
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
     let chat: BeeperChatInfo
 
     @State private var replyTo: BeeperFullMessage?
@@ -178,7 +178,7 @@ struct BeeperConversation: View {
 /// Images and GIFs small in the bubble, video and voice with their length, files with name and
 /// size (spec BP-8). A click opens it.
 struct BeeperAttachmentView: View {
-    @ObservedObject var service: BeeperService
+    var service: BeeperService
     let attachment: BeeperAttachment
 
     var body: some View {

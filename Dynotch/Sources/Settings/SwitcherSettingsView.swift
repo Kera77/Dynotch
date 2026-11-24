@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › Switcher: the window switcher (spec AS-1…AS-12).
 struct SwitcherSettingsView: View {
-    @ObservedObject var settings: SwitcherSettings
+    @Bindable var settings: SwitcherSettings
 
     var body: some View {
         Form {

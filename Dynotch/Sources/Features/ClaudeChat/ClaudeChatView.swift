@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Claude in the notch (spec CC-1…CC-3): the chats on the left, the conversation on the right.
 struct ClaudeChatFeatureView: View {
-    @ObservedObject var service: ClaudeChatService
+    @Bindable var service: ClaudeChatService
     let isActive: Bool
 
     var body: some View {
@@ -20,8 +20,8 @@ struct ClaudeChatFeatureView: View {
 
 /// Content of the Claude menu bar panel (spec CC-8).
 struct ClaudeChatMenuBarView: View {
-    @ObservedObject var service: ClaudeChatService
-    @ObservedObject var state: MenuBarPanelState
+    @Bindable var service: ClaudeChatService
+    var state: MenuBarPanelState
 
     var body: some View {
         ClaudeChatView(service: service)
@@ -34,7 +34,7 @@ struct ClaudeChatMenuBarView: View {
 
 /// The chat itself, shared by the notch and the menu bar panel.
 struct ClaudeChatView: View {
-    @ObservedObject var service: ClaudeChatService
+    @Bindable var service: ClaudeChatService
 
     @State private var search = ""
     @FocusState private var isTyping: Bool

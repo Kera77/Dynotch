@@ -2,8 +2,8 @@ import SwiftUI
 
 /// The editor in the large notch (spec SH-7…SH-10): the tools on top, the shot below.
 struct ScreenshotEditorView: View {
-    @ObservedObject var editor: ScreenshotEditor
-    @ObservedObject var settings: ScreenshotSettings
+    @Bindable var editor: ScreenshotEditor
+    var settings: ScreenshotSettings
     let notchHeight: CGFloat
     /// Closes the editor; true when it was saved.
     let close: () -> Void
@@ -34,7 +34,7 @@ struct ScreenshotEditorView: View {
 }
 
 private struct EditorToolbar: View {
-    @ObservedObject var editor: ScreenshotEditor
+    @Bindable var editor: ScreenshotEditor
     let tools: [EditorTool]
     let close: () -> Void
 
@@ -129,7 +129,7 @@ private struct EditorToolbar: View {
 
 /// The shot, fitted into the room, with the annotations on it; drags draw with the tool.
 private struct EditorCanvas: View {
-    @ObservedObject var editor: ScreenshotEditor
+    @Bindable var editor: ScreenshotEditor
     @State private var dragStart: CGPoint?
     @FocusState private var typing: Bool
     @Environment(\.displayScale) private var displayScale

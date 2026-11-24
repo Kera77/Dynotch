@@ -1,16 +1,17 @@
 import AppKit
-import Combine
+import Observation
 
 /// The accent colour chosen in *System Settings › Appearance*, followed live (spec D-17b).
 /// `controlAccentColor` alone gives the app's own blue accent and is read only once per drawing,
 /// so a change in the settings did not reach the notch.
 @MainActor
-final class SystemAccent: ObservableObject {
+@Observable
+final class SystemAccent {
     static let shared = SystemAccent()
 
-    @Published private(set) var color: NSColor
+    private(set) var color: NSColor
 
-    private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private var observers: [NSObjectProtocol] = []
 
     private init() {
         color = Self.read()

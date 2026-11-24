@@ -7,7 +7,7 @@ extension ArtworkColor.RGB {
 /// The cover beside the closed notch with a ring that runs clockwise as the track plays, in the
 /// cover's colour (spec MU-2, MU-3).
 struct MusicCoverRing: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
     let glance: MusicIndicator.Glance
 
     static let size: CGFloat = 22
@@ -53,7 +53,7 @@ struct MusicArtwork: View {
 
 /// The music player module (spec MU-5, MU-6): cover, title, position, controls, volume, output.
 struct MusicFeatureView: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
     let isActive: Bool
 
     var body: some View {
@@ -125,7 +125,7 @@ struct MusicFeatureView: View {
 
 /// The position, with a click or drag to jump (spec MU-5).
 struct MusicProgressBar: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
     let duration: Double
     @State private var dragged: Double?
 
@@ -174,7 +174,7 @@ struct MusicProgressBar: View {
 }
 
 struct MusicControls: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
     let playing: NowPlaying
     /// Smaller, for the drop-down under the row.
     var compact = false
@@ -221,7 +221,7 @@ struct MusicControls: View {
 
 /// Spotify's volume and the Mac's sound output (spec MU-6).
 struct MusicVolumeRow: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
     let volume: Int
     @State private var level: Double = 0
     @State private var isEditing = false
@@ -246,7 +246,7 @@ struct MusicVolumeRow: View {
 
 /// Hiding the cover beside the notch while the music is paused (spec MU-9).
 struct MusicHideMenu: View {
-    @ObservedObject var hiding: MusicHiding
+    @Bindable var hiding: MusicHiding
     /// Not watched: the menu must not be rebuilt as the music plays (spec N-22).
     let service: MusicService
 
@@ -284,7 +284,7 @@ struct MusicHideMenu: View {
 /// The player under the closed notch's row, when the cover is hovered (spec MU-2): the row with
 /// the badges and counters stays above it.
 struct MusicDropdown: View {
-    @ObservedObject var service: MusicService
+    var service: MusicService
 
     var body: some View {
         if let playing = service.nowPlaying {
@@ -313,7 +313,7 @@ struct MusicDropdown: View {
 
 /// Where the sound goes (spec MU-6).
 struct MusicOutputMenu: View {
-    @ObservedObject var outputs: MusicOutputs
+    var outputs: MusicOutputs
 
     var body: some View {
         Menu {

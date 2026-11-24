@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › Appearance: everything about how Dynotch looks (spec D-5).
 struct AppearanceSettingsView: View {
-    @ObservedObject var settings: AppSettings
+    @Bindable var settings: AppSettings
     @AppStorage(AppleStyle.crispKey) private var crispLook = true
     @AppStorage(SmartOpening.noticeMinutesKey) private var noticeMinutes = 5
 

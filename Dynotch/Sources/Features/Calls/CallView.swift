@@ -3,7 +3,7 @@ import SwiftUI
 /// An incoming call in the notch (spec P-1…P-3): who calls, and buttons to text, decline and
 /// answer.
 struct CallView: View {
-    @ObservedObject var service: CallService
+    @Bindable var service: CallService
     let call: IncomingCall
     let notchHeight: CGFloat
 

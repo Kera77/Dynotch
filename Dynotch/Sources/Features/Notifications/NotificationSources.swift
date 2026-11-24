@@ -1,5 +1,5 @@
 import AppKit
-import Combine
+import Observation
 
 /// How one source's notifications behave (spec E-15). nil: the default.
 struct NotificationRule: Codable, Equatable, Sendable {
@@ -21,33 +21,34 @@ struct NotificationRule: Codable, Equatable, Sendable {
 
 /// The websites a browser shows notifications for, and the rules of every source (spec E-15).
 @MainActor
-final class NotificationPreferences: ObservableObject {
+@Observable
+final class NotificationPreferences {
     private static let sitesKey = "notificationSites"
     private static let rulesKey = "notificationRules"
     private static let webAppSitesKey = "notificationWebAppSites"
 
     /// Site (host) → the browser that showed its notifications.
-    @Published private(set) var sites: [String: String] {
+    private(set) var sites: [String: String] {
         didSet { defaults.set(sites, forKey: Self.sitesKey) }
     }
 
     /// Sites a browser showed that have a web app of their own (Gmail, Google Chat): listed
     /// under the browser in the settings too (spec E-15b).
-    @Published private(set) var webAppSites: [String: String] {
+    private(set) var webAppSites: [String: String] {
         didSet { defaults.set(webAppSites, forKey: Self.webAppSitesKey) }
     }
 
-    @Published private(set) var rules: [String: NotificationRule] {
+    private(set) var rules: [String: NotificationRule] {
         didSet { if let data = try? JSONEncoder().encode(rules) { defaults.set(data, forKey: Self.rulesKey) } }
     }
 
     private let defaults: UserDefaults
 
     /// Notifications put off until later (spec E-19); kept while Dynotch runs.
-    @Published var snoozed: [SnoozedNotification] = []
+    var snoozed: [SnoozedNotification] = []
 
     /// Kinds of Dynotch's own notifications turned off (spec E-25).
-    @Published private(set) var alertsOff: Set<String> {
+    private(set) var alertsOff: Set<String> {
         didSet { defaults.set(Array(alertsOff).sorted(), forKey: "dynotchAlertsOff") }
     }
 
@@ -67,7 +68,7 @@ final class NotificationPreferences: ObservableObject {
     }
 
     /// Lines of each message in the pop-up before hovering shows all of it.
-    @Published var peekLines: Int {
+    var peekLines: Int {
         didSet { defaults.set(peekLines, forKey: "notificationPeekLines") }
     }
 
@@ -225,14 +226,23 @@ extension NotificationService {
         catalog.app(for: identifier).isSystem ? NotificationApp.systemGroupID : identifier
     }
 
+    var catalog: NotificationAppCatalog {
+        access(keyPath: \.catalog)
+        return appCatalog
+    }
+
+    /// The app catalog follows the websites and the custom names; views reading it update.
+    func updateCatalog() {
+        withMutation(keyPath: \.catalog) { appCatalog.update(sites: preferences.sites, names: preferences.names) }
+    }
+
     func rule(for app: NotificationApp) -> NotificationRule {
         preferences.rule(for: catalogKey(app.identifier))
     }
 
     func setRule(_ rule: NotificationRule, for app: NotificationApp) {
         preferences.setRule(rule, for: catalogKey(app.identifier))
-        catalog.update(sites: preferences.sites, names: preferences.names)
-        objectWillChange.send()
+        updateCatalog()
     }
 }
 

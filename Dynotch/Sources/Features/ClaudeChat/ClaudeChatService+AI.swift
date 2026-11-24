@@ -27,10 +27,12 @@ enum ChatGPTMode: String, CaseIterable, Sendable {
 
 extension ClaudeChatService {
     var chatGPTMode: ChatGPTMode {
-        get { defaults.string(forKey: "aiChatGPTMode").flatMap(ChatGPTMode.init(rawValue:)) ?? .codex }
+        get {
+            access(keyPath: \.chatGPTMode)
+            return defaults.string(forKey: "aiChatGPTMode").flatMap(ChatGPTMode.init(rawValue:)) ?? .codex
+        }
         set {
-            defaults.set(newValue.rawValue, forKey: "aiChatGPTMode")
-            objectWillChange.send()
+            withMutation(keyPath: \.chatGPTMode) { defaults.set(newValue.rawValue, forKey: "aiChatGPTMode") }
         }
     }
 
@@ -73,12 +75,12 @@ extension ClaudeChatService {
 
     /// The default model of a service; nil: the service's own default.
     func model(for provider: AIProvider) -> String? {
-        AIModel.current(defaults.string(forKey: Self.modelKey(provider)))
+        access(keyPath: \.shownModel)
+        return AIModel.current(defaults.string(forKey: Self.modelKey(provider)))
     }
 
     func setDefaultModel(_ model: String?, for provider: AIProvider) {
-        defaults.set(model, forKey: Self.modelKey(provider))
-        objectWillChange.send()
+        withMutation(keyPath: \.shownModel) { defaults.set(model, forKey: Self.modelKey(provider)) }
     }
 
     /// The model shown in the header: the chat's, or the default for a new chat.
@@ -166,7 +168,10 @@ extension ClaudeChatService {
     ]
     private static let templatesKey = "aiTemplates"
 
-    var customTemplates: [String] { defaults.stringArray(forKey: Self.templatesKey) ?? [] }
+    var customTemplates: [String] {
+        access(keyPath: \.customTemplates)
+        return defaults.stringArray(forKey: Self.templatesKey) ?? []
+    }
 
     func useTemplate(_ template: String) {
         draft = template + "\n" + draft
@@ -176,13 +181,13 @@ extension ClaudeChatService {
     func saveTemplate() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !customTemplates.contains(text) else { return }
-        defaults.set(customTemplates + [text], forKey: Self.templatesKey)
-        objectWillChange.send()
+        let templates = customTemplates + [text]
+        withMutation(keyPath: \.customTemplates) { defaults.set(templates, forKey: Self.templatesKey) }
     }
 
     func removeTemplate(_ template: String) {
-        defaults.set(customTemplates.filter { $0 != template }, forKey: Self.templatesKey)
-        objectWillChange.send()
+        let templates = customTemplates.filter { $0 != template }
+        withMutation(keyPath: \.customTemplates) { defaults.set(templates, forKey: Self.templatesKey) }
     }
 
     // MARK: Using the answer (spec AI-7, AI-12)

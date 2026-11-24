@@ -3,7 +3,7 @@ import SwiftUI
 /// The clipboard module in the notch (spec CB-4): the copies or the saved items, searchable;
 /// a click pastes into the app in front, the star saves, the bin removes.
 struct ClipboardFeatureView: View {
-    @ObservedObject var store: ClipboardStore
+    var store: ClipboardStore
     /// Closes the notch before pasting, so the app in front gets the keys.
     let close: () -> Void
 
@@ -220,8 +220,8 @@ struct ClipContent: View {
 /// Shown while the clipboard shortcut is held (spec CB-3): the items side by side with their
 /// numbers below; the chosen one is highlighted.
 struct ClipboardPickerView: View {
-    @ObservedObject var picker: ClipboardPicker
-    @ObservedObject var store: ClipboardStore
+    var picker: ClipboardPicker
+    var store: ClipboardStore
     let notchHeight: CGFloat
 
     var body: some View {

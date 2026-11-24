@@ -1,12 +1,13 @@
 import AppKit
-import Combine
+import Observation
 
 /// The closed notch's part: whether a value or a warning shows. Its own object, so the notch is
 /// not redrawn with every reading (spec SY-7, SY-8).
 @MainActor
-final class StatsIndicator: ObservableObject {
-    @Published fileprivate(set) var values: [StatsValue] = []
-    @Published fileprivate(set) var warnings: [String] = []
+@Observable
+final class StatsIndicator {
+    fileprivate(set) var values: [StatsValue] = []
+    fileprivate(set) var warnings: [String] = []
 
     var isShown: Bool { !values.isEmpty || !warnings.isEmpty }
     /// For the row: how many values the slot holds, nil when it is not shown.
@@ -16,39 +17,40 @@ final class StatsIndicator: ObservableObject {
 /// Reads the system's numbers (spec SY-1…SY-8): every second while the module is open, every two
 /// for the value beside the notch, otherwise only now and then for the warnings.
 @MainActor
-final class StatsService: ObservableObject {
-    @Published private(set) var snapshot = StatsSnapshot()
-    @Published private(set) var cpuHistory: [Double] = []
-    @Published private(set) var downloadHistory: [Double] = []
-    @Published private(set) var uploadHistory: [Double] = []
-    @Published private(set) var processes: [ProcessUsage] = []
-    @Published var sortsByMemory = false { didSet { if oldValue != sortsByMemory { rankProcesses() } } }
+@Observable
+final class StatsService {
+    private(set) var snapshot = StatsSnapshot()
+    private(set) var cpuHistory: [Double] = []
+    private(set) var downloadHistory: [Double] = []
+    private(set) var uploadHistory: [Double] = []
+    private(set) var processes: [ProcessUsage] = []
+    var sortsByMemory = false { didSet { if oldValue != sortsByMemory { rankProcesses() } } }
     /// What shows beside the notch and the alerts: its own object, so its menu is not rebuilt
     /// with every reading (spec SY-7, SY-9).
     let options: StatsOptions
     /// Sends Dynotch's own notification (spec SY-9).
-    var notify: (String, String) -> Void = { _, _ in }
+    @ObservationIgnored var notify: (String, String) -> Void = { _, _ in }
     /// Whether Settings › Notifications › Dynotch alerts turned a warning's kind off (spec SY-12).
-    var isAlertOff: (StatsAlert) -> Bool = { _ in false }
-    private var swapNotified = false
+    @ObservationIgnored var isAlertOff: (StatsAlert) -> Bool = { _ in false }
+    @ObservationIgnored private var swapNotified = false
     /// Warnings hidden with the X, until they clear (spec SY-10).
-    private var dismissed: Set<String> = []
-    private var active: [String] = []
+    @ObservationIgnored private var dismissed: Set<String> = []
+    @ObservationIgnored private var active: [String] = []
     let indicator = StatsIndicator()
 
     static let historyLength = 90
     private let settings: AppSettings
     private let defaults: UserDefaults
-    private var timer: Poller?
-    private var interval: TimeInterval = 0
-    private var isVisible = false
-    private var settingsObserver: AnyCancellable?
-    private var ticks: SystemReadings.CPUTicks?
-    private var network: (SystemReadings.Network, Date)?
-    private var diskCounters: (SystemReadings.Disk, Date)?
-    private var processSample: ProcessReadings.Sample?
-    private var processCPU: [pid_t: Double] = [:]
-    private var readings = 0
+    @ObservationIgnored private var timer: Poller?
+    @ObservationIgnored private var interval: TimeInterval = 0
+    @ObservationIgnored private var isVisible = false
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
+    @ObservationIgnored private var ticks: SystemReadings.CPUTicks?
+    @ObservationIgnored private var network: (SystemReadings.Network, Date)?
+    @ObservationIgnored private var diskCounters: (SystemReadings.Disk, Date)?
+    @ObservationIgnored private var processSample: ProcessReadings.Sample?
+    @ObservationIgnored private var processCPU: [pid_t: Double] = [:]
+    @ObservationIgnored private var readings = 0
 
     init(settings: AppSettings, defaults: UserDefaults = .standard) {
         self.settings = settings
@@ -57,8 +59,11 @@ final class StatsService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.objectWillChange.merge(with: options.objectWillChange).sink { [weak self] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.applyEnabled() } }
+        settingsObserver = observeChanges { [settings, options] in
+            _ = settings.isEnabled(.stats)
+            _ = options.shownValues
+        } onChange: { [weak self] in
+            self?.applyEnabled()
         }
         applyEnabled()
     }

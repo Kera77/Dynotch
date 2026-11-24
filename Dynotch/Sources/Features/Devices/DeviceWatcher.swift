@@ -1,8 +1,8 @@
 import AppKit
-import Combine
 import CoreAudio
 import DiskArbitration
 import IOBluetooth
+import Observation
 
 /// A device that came or went (spec DV-1…DV-4).
 struct DeviceEvent: Identifiable, Equatable {
@@ -51,12 +51,13 @@ struct DeviceEvent: Identifiable, Equatable {
 /// Watches Bluetooth, USB, displays, drives and the sound output; shows each change under the
 /// notch for a few seconds (spec DV-1…DV-7).
 @MainActor
-final class DeviceWatcher: NSObject, ObservableObject {
-    @Published private(set) var current: DeviceEvent?
+@Observable
+final class DeviceWatcher: NSObject {
+    private(set) var current: DeviceEvent?
 
-    @Published var isOn: Bool { didSet { defaults.set(isOn, forKey: Keys.isOn) } }
-    @Published var showsDisconnects: Bool { didSet { defaults.set(showsDisconnects, forKey: Keys.disconnects) } }
-    @Published private(set) var categoriesOff: Set<DeviceEvent.Category> {
+    var isOn: Bool { didSet { defaults.set(isOn, forKey: Keys.isOn) } }
+    var showsDisconnects: Bool { didSet { defaults.set(showsDisconnects, forKey: Keys.disconnects) } }
+    private(set) var categoriesOff: Set<DeviceEvent.Category> {
         didSet { defaults.set(categoriesOff.map(\.rawValue), forKey: Keys.off) }
     }
 
@@ -72,15 +73,15 @@ final class DeviceWatcher: NSObject, ObservableObject {
 
     private let settings: AppSettings
     private let defaults: UserDefaults
-    private var quietUntil = Date().addingTimeInterval(quietTime)
-    private var lastSeen: [String: Date] = [:]
+    @ObservationIgnored private var quietUntil = Date().addingTimeInterval(quietTime)
+    @ObservationIgnored private var lastSeen: [String: Date] = [:]
     /// Bluetooth devices connected without a disconnect since, and when (spec DV-12).
-    private var bluetoothConnectedAt: [String: Date] = [:]
-    private var hideTask: Task<Void, Never>?
-    private var observers: [NSObjectProtocol] = []
-    private var screens: Set<String> = []
-    private var audioOutput: String?
-    private var bluetoothNotification: IOBluetoothUserNotification?
+    @ObservationIgnored private var bluetoothConnectedAt: [String: Date] = [:]
+    @ObservationIgnored private var hideTask: Task<Void, Never>?
+    @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private var screens: Set<String> = []
+    @ObservationIgnored private var audioOutput: String?
+    @ObservationIgnored private var bluetoothNotification: IOBluetoothUserNotification?
     private let usb = USBWatcher()
     private let banners = BluetoothBannerWatcher()
 

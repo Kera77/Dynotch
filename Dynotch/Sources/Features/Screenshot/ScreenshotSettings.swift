@@ -1,5 +1,6 @@
 import Carbon.HIToolbox
 import Foundation
+import Observation
 
 /// The kinds of capture the shortcut steps through (spec SH-2).
 enum CaptureMode: String, CaseIterable, Identifiable, Sendable {
@@ -81,23 +82,24 @@ enum EditorTool: String, CaseIterable, Identifiable, Sendable {
 
 /// Settings › Screenshots (spec SH-1…SH-12), kept in the defaults.
 @MainActor
-final class ScreenshotSettings: ObservableObject {
-    @Published var isOn: Bool { didSet { defaults.set(isOn, forKey: Key.isOn) } }
+@Observable
+final class ScreenshotSettings {
+    var isOn: Bool { didSet { defaults.set(isOn, forKey: Key.isOn) } }
     /// The order the shortcut steps through, disabled ones included (spec SH-2).
-    @Published private(set) var order: [CaptureMode] { didSet { defaults.set(order.map(\.rawValue), forKey: Key.order) } }
-    @Published private(set) var modesOff: Set<CaptureMode> {
+    private(set) var order: [CaptureMode] { didSet { defaults.set(order.map(\.rawValue), forKey: Key.order) } }
+    private(set) var modesOff: Set<CaptureMode> {
         didSet { defaults.set(modesOff.map(\.rawValue).sorted(), forKey: Key.modesOff) }
     }
-    @Published private(set) var toolsOff: Set<EditorTool> {
+    private(set) var toolsOff: Set<EditorTool> {
         didSet { defaults.set(toolsOff.map(\.rawValue).sorted(), forKey: Key.toolsOff) }
     }
-    @Published var shortcut: KeyShortcut? {
+    var shortcut: KeyShortcut? {
         didSet { defaults.set(shortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.shortcut) }
     }
-    @Published var recordsSystemAudio: Bool { didSet { defaults.set(recordsSystemAudio, forKey: Key.audio) } }
-    @Published var recordsMicrophone: Bool { didSet { defaults.set(recordsMicrophone, forKey: Key.microphone) } }
+    var recordsSystemAudio: Bool { didSet { defaults.set(recordsSystemAudio, forKey: Key.audio) } }
+    var recordsMicrophone: Bool { didSet { defaults.set(recordsMicrophone, forKey: Key.microphone) } }
     /// How long the modifiers stay down before the modes show (spec SH-14).
-    @Published var chooserDelay: Double { didSet { defaults.set(chooserDelay, forKey: Key.chooserDelay) } }
+    var chooserDelay: Double { didSet { defaults.set(chooserDelay, forKey: Key.chooserDelay) } }
     static let chooserDelayRange: ClosedRange<Double> = 0...1
 
     /// ⌃⇧S (spec SH-1).

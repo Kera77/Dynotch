@@ -4,7 +4,7 @@ import SwiftUI
 /// pointer in the corner shows an arc along it; dragging the arc resizes the module (the notch
 /// stays centred, so it grows to both sides), and the button beside it restores the normal size.
 struct ResizeCorner: View {
-    @ObservedObject var model: NotchViewModel
+    var model: NotchViewModel
     /// The panel's bottom corner radius, which the arc follows.
     let radius: CGFloat
 

@@ -1,40 +1,41 @@
 import AppKit
 import Carbon.HIToolbox
-import Combine
+import Observation
 
 /// The window switcher's state (spec AS-1…AS-11): opened by its shortcut or a swipe, it lists
 /// the windows in the notch; the key again, the arrows or the fingers move the choice; letting
 /// go switches (or, with Hold, a click or Return does); Escape cancels.
 @MainActor
-final class SwitcherController: ObservableObject {
-    @Published private(set) var isShown = false
-    @Published private(set) var items: [SwitcherItem] = []
-    @Published private(set) var selection = 0
+@Observable
+final class SwitcherController {
+    private(set) var isShown = false
+    private(set) var items: [SwitcherItem] = []
+    private(set) var selection = 0
     /// Window previews by window id, filled in after opening (spec AS-7).
-    @Published var previews: [CGWindowID: NSImage] = [:]
+    var previews: [CGWindowID: NSImage] = [:]
 
     let settings: SwitcherSettings
     /// The module switcher on a swipe up (spec QS-1).
-    private(set) lazy var modules = ModuleSwitcher(settings: settings)
+    @ObservationIgnored private(set) lazy var modules = ModuleSwitcher(settings: settings)
     /// Shows or hides the switcher in the notch.
-    var present: (Bool) -> Void = { _ in }
+    @ObservationIgnored var present: (Bool) -> Void = { _ in }
     /// The display under the pointer, for "only this display" (spec AS-3).
-    var displayFrame: () -> CGRect? = { nil }
+    @ObservationIgnored var displayFrame: () -> CGRect? = { nil }
 
     private static let signature: OSType = 0x4459_5357 // "DYSW"
-    private var handler: EventHandlerRef?
-    private var permanent: [EventHotKeyRef] = []
-    private var temporary: [EventHotKeyRef] = []
-    private var releaseTimer: Timer?
-    private var heldModifiers: UInt32 = 0
-    private var isHolding = false
-    private var swipeStart = 0
-    private var lastTravel = 0.0
-    private var observer: AnyCancellable?
-    private var registered: KeyShortcut?
+    @ObservationIgnored private var handler: EventHandlerRef?
+    @ObservationIgnored private var permanent: [EventHotKeyRef] = []
+    @ObservationIgnored private var temporary: [EventHotKeyRef] = []
+    @ObservationIgnored private var releaseTimer: Timer?
+    @ObservationIgnored private var heldModifiers: UInt32 = 0
+    @ObservationIgnored private var isHolding = false
+    @ObservationIgnored private var swipeStart = 0
+    @ObservationIgnored private var lastTravel = 0.0
+    @ObservationIgnored private var observer: ChangeObservation?
+    @ObservationIgnored private var registered: KeyShortcut?
     /// A swipe's list, not shown yet: it drops down after `settings.showDelay` (spec AS-16).
-    private var isPending = false
-    private var showTimer: Timer?
+    @ObservationIgnored private var isPending = false
+    @ObservationIgnored private var showTimer: Timer?
 
     private enum Action: UInt32 {
         case open = 1, back, left, right, cancel, cancelPlain, close, minimize, quit, hide, confirm
@@ -48,7 +49,9 @@ final class SwitcherController: ObservableObject {
 
     func start() {
         installHandler()
-        observer = settings.afterChange { [weak self] in self?.registerShortcut() }
+        observer = observeChanges { [settings] in _ = (settings.isOn, settings.shortcut) } onChange: { [weak self] in
+            self?.registerShortcut()
+        }
         registerShortcut()
     }
 

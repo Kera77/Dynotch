@@ -1,10 +1,11 @@
 import AppKit
-import Combine
+import Observation
 
 /// The Beeper tab and the unread chats (spec UM-2, UM-3, BP-1…BP-11): chats and messages from
 /// the Beeper Desktop API, kept in memory only.
 @MainActor
-final class BeeperService: ObservableObject {
+@Observable
+final class BeeperService {
     enum State: Equatable {
         case idle
         case ready
@@ -13,31 +14,31 @@ final class BeeperService: ObservableObject {
         case failed(String)
     }
 
-    @Published private(set) var state = State.idle
-    @Published private(set) var chats: [BeeperChatInfo] = []
+    private(set) var state = State.idle
+    private(set) var chats: [BeeperChatInfo] = []
     /// An unread chat picked in a badge's drop-down, to open ready to answer (spec B-10f).
-    @Published var cardRequest: CardOpenRequest?
+    var cardRequest: CardOpenRequest?
     /// The networks of the accounts in Beeper, so a quiet one can be highlighted too (spec BP-17).
-    @Published private(set) var accountNetworks: [String] = []
-    private var accountsLoadedAt: Date?
-    @Published var selectedChatID: String?
-    @Published private(set) var messages: [String: [BeeperFullMessage]] = [:]
+    private(set) var accountNetworks: [String] = []
+    @ObservationIgnored private var accountsLoadedAt: Date?
+    var selectedChatID: String?
+    private(set) var messages: [String: [BeeperFullMessage]] = [:]
     /// Messages I just sent that can still be taken back, until the time (spec BP-9).
-    @Published private(set) var undoable: [String: Date] = [:]
-    @Published private(set) var avatars: [String: NSImage] = [:]
-    @Published private(set) var actionError: String?
+    private(set) var undoable: [String: Date] = [:]
+    private(set) var avatars: [String: NSImage] = [:]
+    private(set) var actionError: String?
 
     /// The chat list beside the conversation (spec BP-1b).
-    @Published var showsChatList: Bool {
+    var showsChatList: Bool {
         didSet { defaults.set(showsChatList, forKey: Self.listKey) }
     }
 
     /// Networks taken out of Beeper's whole, each with its own badge and tab (spec BP-13).
-    @Published private(set) var highlightedNetworks: [String] {
+    private(set) var highlightedNetworks: [String] {
         didSet { defaults.set(highlightedNetworks, forKey: Self.highlightKey) }
     }
     /// Keep unread Beeper chats in the notch (spec UM-7).
-    @Published var keepsUnread: Bool {
+    var keepsUnread: Bool {
         didSet {
             defaults.set(keepsUnread, forKey: Self.unreadKey)
             if keepsUnread { start() }
@@ -51,9 +52,9 @@ final class BeeperService: ObservableObject {
     private static let highlightKey = "beeperHighlightedNetworks"
 
     private let defaults: UserDefaults
-    private var timer: Poller?
-    private var loadingAvatars: Set<String> = []
-    private var readTask: Task<Void, Never>?
+    @ObservationIgnored private var timer: Poller?
+    @ObservationIgnored private var loadingAvatars: Set<String> = []
+    @ObservationIgnored private var readTask: Task<Void, Never>?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

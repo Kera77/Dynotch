@@ -1,10 +1,11 @@
 import AppKit
-import Combine
+import Observation
 
 /// The unread messages of the accounts set up in Apple Mail, read through Apple Events, only
 /// read, never marked (spec GM-1…GM-12).
 @MainActor
-final class MailService: ObservableObject {
+@Observable
+final class MailService {
     enum State: Equatable {
         case off
         case notRunning
@@ -18,47 +19,47 @@ final class MailService: ObservableObject {
     nonisolated static let mailBundleID = "com.apple.mail"
     static let intervalRange = 30...300
 
-    @Published private(set) var state: State = .off
+    private(set) var state: State = .off
     /// Every account Mail has, the chosen ones with their unread messages.
-    @Published private(set) var accounts: [MailAccount] = []
-    @Published private(set) var lastRead: Date?
+    private(set) var accounts: [MailAccount] = []
+    private(set) var lastRead: Date?
 
     /// The accounts shown in the notch, by name; nil: the Gmail ones (spec GM-3).
-    @Published var chosen: Set<String>? {
+    var chosen: Set<String>? {
         didSet { defaults.set(chosen.map { Array($0).sorted() }, forKey: "mailAccounts") }
     }
 
     /// Seconds between two reads (spec GM-5).
-    @Published var interval: Int {
+    var interval: Int {
         didSet { defaults.set(interval, forKey: "mailInterval"); restart() }
     }
 
     /// Mail is started hidden when it is not running (spec GM-9).
-    @Published var keepsMailRunning: Bool {
+    var keepsMailRunning: Bool {
         didSet { defaults.set(keepsMailRunning, forKey: "mailKeepRunning"); if keepsMailRunning { refresh() } }
     }
 
     /// Gmail's label for its Primary tab: only the Inbox mail with it counts (spec GM-16).
-    @Published var primaryLabel: String {
+    var primaryLabel: String {
         didSet { defaults.set(primaryLabel, forKey: "mailPrimaryLabel"); refresh() }
     }
 
     private let settings: AppSettings
     private let defaults: UserDefaults
-    private var timer: Poller?
-    private var isReading = false
-    private var settingsObserver: AnyCancellable?
-    private var lastLogged: State?
-    private var quitObserver: NSObjectProtocol?
+    @ObservationIgnored private var timer: Poller?
+    @ObservationIgnored private var isReading = false
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
+    @ObservationIgnored private var lastLogged: State?
+    @ObservationIgnored private var quitObserver: NSObjectProtocol?
     /// Reads that ran out of time in a row; each one waits longer before the next (spec GM-14).
-    private var timeouts = 0
-    private var pausedUntil: Date?
+    @ObservationIgnored private var timeouts = 0
+    @ObservationIgnored private var pausedUntil: Date?
     /// Mail was quit (or force quit): Dynotch does not start it again until it runs and answers
     /// (spec GM-15).
-    private var mailWasQuit = false
+    @ObservationIgnored private var mailWasQuit = false
     /// Mail's accounts, asked again after `accountsAge` (spec GM-13).
-    private var infos: [MailAccountInfo]?
-    private var infosRead: Date?
+    @ObservationIgnored private var infos: [MailAccountInfo]?
+    @ObservationIgnored private var infosRead: Date?
     static let accountsAge: TimeInterval = 600
 
     /// The waits after the 1st, 2nd, 3rd and later timeouts in a row (spec GM-14).
@@ -85,7 +86,7 @@ final class MailService: ObservableObject {
             guard app?.bundleIdentifier == MailService.mailBundleID else { return }
             MainActor.assumeIsolated { self?.mailQuit() }
         }
-        settingsObserver = settings.afterChange { [weak self] in
+        settingsObserver = observeChanges { [weak self] in _ = self?.isActive } onChange: { [weak self] in
             guard let self, self.isActive != (self.timer != nil) else { return }
             self.restart()
         }

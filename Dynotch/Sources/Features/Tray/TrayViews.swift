@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 /// The file tray module (spec FT-1…FT-5): the tray and the attached folders as chips, their
 /// files below. Files can be dragged out into any app and dropped in.
 struct TrayFeatureView: View {
-    @ObservedObject var store: TrayStore
+    @Bindable var store: TrayStore
     /// Opens a screenshot in the editor (spec SH-11).
     var edit: (URL) -> Void = { _ in }
 

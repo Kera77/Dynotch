@@ -1,56 +1,56 @@
 import AppKit
-import Combine
 import SwiftUI
 
 @MainActor
-final class NotchViewModel: ObservableObject {
-    @Published private(set) var isExpanded = false { didSet { noteOpened() } }
-    @Published private(set) var currentFeature: FeatureID { didSet { noteOpened() } }
+@Observable
+final class NotchViewModel {
+    private(set) var isExpanded = false { didSet { noteOpened() } }
+    private(set) var currentFeature: FeatureID { didSet { noteOpened() } }
     /// True while the panel shows the full calendar and uses the large size.
-    @Published private(set) var isLarge = false
+    private(set) var isLarge = false { didSet { onLargeChange(isLarge) } }
     /// True while the panel shows the settings instead of the features (spec C-2).
-    @Published private(set) var isShowingSettings = false
+    private(set) var isShowingSettings = false
     /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
-    @Published private(set) var isChatTall = false
+    private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
-    @Published private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() }; noteOpened() } }
+    private(set) var isPreview = false { didSet { if !isPreview, wings != WingsState() { wings = WingsState() }; noteOpened() } }
     /// What the Wings' content asks of the panel: wider, the hovered app or clip (spec PV-31…PV-35).
-    @Published var wings = WingsState()
+    var wings = WingsState()
     /// What outlives one opening of the Wings: each side's need, the reminders ticked (spec PV-24, PV-33).
-    @Published var wingsLasting = WingsLasting()
+    var wingsLasting = WingsLasting()
     /// The new notifications the panel lists instead of the features (spec E-4); empty otherwise.
-    @Published private(set) var notifications: [AppNotification] = []
+    private(set) var notifications: [AppNotification] = []
     /// The listed notifications can be answered from the panel (spec E-11).
-    @Published private(set) var notificationsCanReply = false
+    private(set) var notificationsCanReply = false
     /// The hovered card's measured height; nil: by the number of messages.
-    private(set) var notificationsHeight: CGFloat?
+    @ObservationIgnored private(set) var notificationsHeight: CGFloat?
 
     var isShowingNotifications: Bool { !notifications.isEmpty }
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
-    @Published var isPinned = false
+    var isPinned = false
     /// The settings keep the panel open until the next click outside it (spec C-6).
-    var holdsForSettings = false
+    @ObservationIgnored var holdsForSettings = false
     /// A click into a reply or text field keeps the panel open when the pointer leaves, until
     /// the next click outside it (spec E-21); the lock (isPinned) stays until it is released.
-    var holdsForTyping = false
+    @ObservationIgnored var holdsForTyping = false
     /// Held open until a click outside: by the settings or by typing.
     var isHeldByClick: Bool { holdsForSettings || holdsForTyping }
     /// A tray file's Quick Look is open: the notch stays whatever the pointer does (spec FT-8b).
-    var holdsForPreview = false
+    @ObservationIgnored var holdsForPreview = false
     /// Countdown beside the closed notch under the pointer (spec K-8d).
-    @Published var hoveredIndicator: Int?
+    var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
-    @Published var hoveredBadge: String?
+    var hoveredBadge: String?
     /// Right after a Space switch everything beside the closed notch is drawn in, then unfolds
     /// again (spec N-10).
-    @Published private(set) var isGathered = false
+    private(set) var isGathered = false
 
     func setGathered(_ gathered: Bool) {
         if gathered != isGathered { isGathered = gathered }
     }
 
     /// The modules show under the closed notch (spec MS-1).
-    @Published private(set) var isShowingStrip = false
+    private(set) var isShowingStrip = false
 
     /// Where the pointer was when the strip came (spec MS-1b).
     var stripOrigin: CGFloat = 0
@@ -59,27 +59,29 @@ final class NotchViewModel: ObservableObject {
         if shown != isShowingStrip { isShowingStrip = shown }
     }
 
+    /// Told when the large size comes or goes (the panel keeps the pointer inside for a moment).
+    @ObservationIgnored var onLargeChange: (Bool) -> Void = { _ in }
     /// Closes the panel; set by the controller (spec AI-7).
-    var requestCollapse: () -> Void = {}
+    @ObservationIgnored var requestCollapse: () -> Void = {}
     /// The panel takes the keyboard for a reply field focused by itself (spec E-27).
-    var requestKeyboard: () -> Void = {}
+    @ObservationIgnored var requestKeyboard: () -> Void = {}
     /// Looks again whether the pointer still keeps the open panel (spec PV-54).
-    var recheckPointer: () -> Void = {}
+    @ObservationIgnored var recheckPointer: () -> Void = {}
 
     /// Events that already opened their module by the smart opening (spec SO-3).
-    var smartUsed: Set<String> = []
+    @ObservationIgnored var smartUsed: Set<String> = []
 
     /// A full-screen app is in front on this display: the closed notch is hidden (spec N-12).
-    @Published private(set) var isHiddenForFullScreen = false
+    private(set) var isHiddenForFullScreen = false
 
     func setHiddenForFullScreen(_ hidden: Bool) {
         if hidden != isHiddenForFullScreen { isHiddenForFullScreen = hidden }
     }
 
     /// Room left of the notch before the menu bar's own items; nil: no limit (spec B-8).
-    @Published private(set) var badgeRoom: CGFloat?
+    private(set) var badgeRoom: CGFloat?
     /// The badges behind the "+" are shown, while the pointer is on them.
-    @Published private(set) var badgesUnfolded = false
+    private(set) var badgesUnfolded = false
 
     func setBadgeRoom(_ room: CGFloat?) {
         // Small changes (a clock ticking in the menu bar) do not move the badges.
@@ -92,7 +94,7 @@ final class NotchViewModel: ObservableObject {
     }
 
     /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
-    @Published private(set) var switcherFirst = 0
+    private(set) var switcherFirst = 0
 
     /// Merged, the AI tabs sit in the header beside the chat list, which needs the medium width (spec MG-2).
     private func mergedAIWidth(_ size: CGSize) -> CGSize {
@@ -109,18 +111,18 @@ final class NotchViewModel: ObservableObject {
 
     /// A swipe over the icons is passing through the modules: the pages around this one stay
     /// built, the others show their snapshots until it settles (spec M-20). nil: pages follow the current module.
-    @Published var liveCenter: FeatureID?
+    var liveCenter: FeatureID?
     let passing = PagePassing()
 
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
-    @Published private(set) var bounceOffset: CGFloat = 0
+    private(set) var bounceOffset: CGFloat = 0
 
     let settings: AppSettings
     let geometry: NotchGeometry
     let screenName: String
     let moduleSizes: ModuleSizes
     /// The size while the resize handle is dragged; saved when the drag ends (spec RS-1).
-    @Published var resizingSize: CGSize?
+    var resizingSize: CGSize?
 
     init(settings: AppSettings, geometry: NotchGeometry, screenName: String, moduleSizes: ModuleSizes = ModuleSizes()) {
         self.settings = settings
@@ -146,13 +148,13 @@ final class NotchViewModel: ObservableObject {
     ]
 
     /// The notifications module's tab, kept across launches (spec UM-8).
-    @Published var notificationsTab: NotificationsTab = NotchViewModel.storedTab {
+    var notificationsTab: NotificationsTab = NotchViewModel.storedTab {
         didSet { UserDefaults.standard.set(notificationsTab.rawValue, forKey: Self.tabKey) }
     }
 
     private static let tabKey = "notificationsTab"
     /// The pointer is over the notifications' tab picker (spec UM-8d); not published, read by the swipe.
-    var isOverNotificationsTabs = false
+    @ObservationIgnored var isOverNotificationsTabs = false
     private static var storedTab: NotificationsTab {
         UserDefaults.standard.string(forKey: tabKey).flatMap(NotificationsTab.init(rawValue:)) ?? .all
     }
@@ -167,34 +169,34 @@ final class NotchViewModel: ObservableObject {
     }
 
     /// The clipboard's items while its shortcut is held (spec CB-3).
-    @Published private(set) var isShowingClipboardPicker = false
+    private(set) var isShowingClipboardPicker = false
     /// Files are being dragged over the notch (spec FT-1).
     /// Mission Control is showing: no hover opening (spec N-19).
-    @Published var isHiddenForMissionControl = false
+    var isHiddenForMissionControl = false
     /// The Beeper tab's chat list is open: only then does it need the wide panel (spec BP-1d).
-    @Published var beeperListOpen = true
+    var beeperListOpen = true
 
     var showsWideTab: Bool {
         notificationsTab.isWide && (notificationsTab != .beeper || beeperListOpen)
     }
 
     /// The screen is shared or recorded: nothing appears by itself (spec N-21).
-    @Published var isScreenShared = false
-    @Published private(set) var isShowingDropZone = false
+    var isScreenShared = false
+    private(set) var isShowingDropZone = false
 
     /// A page that replaces the modules for a moment.
     /// The clipboard's items under the open module, not instead of it (spec CB-3c).
-    @Published private(set) var isClipboardInline = false
+    private(set) var isClipboardInline = false
     static let inlinePickerHeight: CGFloat = 150
 
     /// The window switcher in the notch (spec AS-6), and its measured size.
-    @Published private(set) var isShowingSwitcher = false
-    private(set) var switcherSize = CGSize.zero
+    private(set) var isShowingSwitcher = false
+    @ObservationIgnored private(set) var switcherSize = CGSize.zero
     /// The glass (and its shadow) waits while the switcher moves: it would trail behind (spec AS-18).
-    @Published var hidesGlass = false
+    var hidesGlass = false
 
     /// The switcher's place shows the modules instead of the windows (spec QS-4).
-    @Published private(set) var showsModuleSwitcher = false
+    private(set) var showsModuleSwitcher = false
 
     func setSwitcher(_ shown: Bool, size: CGSize = .zero, modules: Bool = false) {
         if shown { switcherSize = size }
@@ -203,11 +205,11 @@ final class NotchViewModel: ObservableObject {
     }
 
     /// The screenshot editor, large in the notch (spec SH-7).
-    @Published private(set) var editor: ScreenshotEditor?
+    private(set) var editor: ScreenshotEditor?
     /// Opened from the pop-up: closing it closes the notch too.
-    private(set) var editorClosesNotch = false
+    @ObservationIgnored private(set) var editorClosesNotch = false
     /// The app that had the keyboard before the editor took it; it gets it back on closing (spec SH-7b).
-    var appBeforeEditor: NSRunningApplication?
+    @ObservationIgnored var appBeforeEditor: NSRunningApplication?
 
     func setEditor(_ editor: ScreenshotEditor?, closesNotch: Bool = false) {
         self.editor = editor
@@ -372,9 +374,8 @@ final class NotchViewModel: ObservableObject {
 
     private func bounce(_ direction: NavigationDirection) {
         let distance: CGFloat = direction == .next ? -14 : 14
-        withAnimation(.easeOut(duration: 0.1)) { bounceOffset = distance }
-        Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(110))
+        // Springs back once the push has ended (spec RF-14).
+        animate(.easeOut(duration: 0.1), atMost: 0.15) { bounceOffset = distance } completion: { [weak self] in
             withAnimation(AppleStyle.spring(response: 0.3, dampingFraction: 0.5)) { self?.bounceOffset = 0 }
         }
     }

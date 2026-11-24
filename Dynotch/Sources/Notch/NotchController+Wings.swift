@@ -151,15 +151,15 @@ extension NotchController {
             withAnimation(NotchView.quickAnimation, dismiss)
             return
         }
-        withAnimation(.easeIn(duration: Self.peekFoldDuration)) {
+        let fold = UUID()
+        peekFold = fold
+        // Unfolds once the fold has ended (spec RF-14); a later fold takes over.
+        animate(.easeIn(duration: Self.peekFoldDuration), atMost: Self.peekFoldDuration + 0.1) {
             model.setGathered(true)
             dismiss()
-        }
-        peekFoldTask?.cancel()
-        peekFoldTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(Self.peekFoldDuration + 0.03))
-            guard let self, !Task.isCancelled else { return }
-            self.peekFoldTask = nil
+        } completion: { [weak self] in
+            guard let self, self.peekFold == fold else { return }
+            self.peekFold = nil
             self.unfoldAfterPeek()
         }
     }

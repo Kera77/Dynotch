@@ -3,7 +3,7 @@ import SwiftUI
 /// Settings › Screenshots (spec SH-1…SH-12): the shortcut, the modes and their order, sound for
 /// recordings, and the editor's tools.
 struct ScreenshotSettingsView: View {
-    @ObservedObject var settings: ScreenshotSettings
+    @Bindable var settings: ScreenshotSettings
     @State private var dragged: CaptureMode?
 
     var body: some View {
@@ -63,7 +63,7 @@ struct ScreenshotSettingsView: View {
 
 private struct ModeDropDelegate: DropDelegate {
     let target: CaptureMode
-    let settings: ScreenshotSettings
+    @Bindable var settings: ScreenshotSettings
     @Binding var dragged: CaptureMode?
 
     func dropEntered(info: DropInfo) {

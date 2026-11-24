@@ -1,9 +1,10 @@
 import AppKit
-import Combine
+import Observation
 
 /// State of the notes feature, shared by the notch panels and the menu bar panel (spec J-1…J-9).
 @MainActor
-final class NotesStore: ObservableObject {
+@Observable
+final class NotesStore {
     enum Access: Equatable {
         case unknown
         case loading
@@ -30,27 +31,27 @@ final class NotesStore: ObservableObject {
         case failed(String)
     }
 
-    @Published private(set) var access: Access = .unknown
-    @Published private(set) var folders: [NotesFolder] = []
-    @Published private(set) var notes: [NoteSummary] = []
-    @Published private(set) var selectedFolderID: String?
-    @Published private(set) var selection: Selection
+    private(set) var access: Access = .unknown
+    private(set) var folders: [NotesFolder] = []
+    private(set) var notes: [NoteSummary] = []
+    private(set) var selectedFolderID: String?
+    private(set) var selection: Selection
     /// The editor's formatted text (spec J-10).
-    @Published private(set) var content: NSAttributedString
+    private(set) var content: NSAttributedString
 
     /// Plain text of the editor.
     var text: String { content.string }
-    @Published private(set) var isLoadingNote = false
+    private(set) var isLoadingNote = false
     /// Why the selected note can't be edited here, if it can't.
-    @Published private(set) var readOnlyReason: String?
+    private(set) var readOnlyReason: String?
     /// The body of a note that is read-only only because of its lists (spec J-12b).
-    @Published private(set) var convertibleHTML: String?
-    @Published private(set) var saveState: SaveState = .idle
+    private(set) var convertibleHTML: String?
+    private(set) var saveState: SaveState = .idle
     /// The note changed last, for the Wings (spec PV-19).
     /// Set only by `NotesStore+Latest.swift`.
-    @Published var latest: LatestNote?
-    var latestLoaded: Date?
-    var isFetchingLatest = false
+    var latest: LatestNote?
+    @ObservationIgnored var latestLoaded: Date?
+    @ObservationIgnored var isFetchingLatest = false
 
     static let autosaveDelay: Duration = .milliseconds(1500)
     private static let refreshInterval: TimeInterval = 60
@@ -65,13 +66,13 @@ final class NotesStore: ObservableObject {
     let bridge = NotesBridge()
     private let defaults: UserDefaults
     /// The local draft as HTML (formatting included).
-    private var draftHTML: String {
+    @ObservationIgnored private var draftHTML: String {
         didSet { defaults.set(draftHTML, forKey: Key.draftHTML) }
     }
     /// Modification time of the selected note as loaded, for conflict detection.
-    private var loadedModified: Double?
-    var saveTask: Task<Void, Never>?
-    var lastRefresh = Date.distantPast
+    @ObservationIgnored private var loadedModified: Double?
+    @ObservationIgnored var saveTask: Task<Void, Never>?
+    @ObservationIgnored var lastRefresh = Date.distantPast
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

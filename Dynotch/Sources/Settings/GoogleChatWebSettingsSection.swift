@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › Notifications › Google Chat: read the web app, how often, and what it sees (spec GW-14).
 struct GoogleChatWebSettingsSection: View {
-    @ObservedObject var chatWeb: GoogleChatWebService
+    @Bindable var chatWeb: GoogleChatWebService
 
     var body: some View {
         Section {

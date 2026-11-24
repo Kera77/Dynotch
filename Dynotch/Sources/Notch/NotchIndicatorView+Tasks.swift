@@ -44,7 +44,7 @@ extension NotchIndicatorView {
 /// several (spec R-17); the chosen list's tasks below, checked off with their circle (spec R-12),
 /// more than six scroll (spec R-16). No text Open button, only the small icon (spec R-20).
 struct TasksDropDown<Dismiss: View>: View {
-    @ObservedObject var tasks: TaskIndicator
+    var tasks: TaskIndicator
     let count: TaskCount
     @ViewBuilder let dismiss: () -> Dismiss
 

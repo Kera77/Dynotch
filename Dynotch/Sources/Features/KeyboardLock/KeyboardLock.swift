@@ -1,18 +1,19 @@
 import AppKit
 import ApplicationServices
-import Combine
+import Observation
 
 /// Blocks every key press while on, so the keyboard can be cleaned without typing (spec KL-1…KL-3).
 /// The mouse turns it off again; it also ends by itself after a few minutes, or when Esc is held
 /// for a few seconds (spec RF-4).
 @MainActor
-final class KeyboardLock: ObservableObject {
-    @Published private(set) var isLocked = false
+@Observable
+final class KeyboardLock {
+    private(set) var isLocked = false
 
-    private var tap: CFMachPort?
-    private var tapSource: CFRunLoopSource?
-    private var autoUnlock: Task<Void, Never>?
-    private var escapeDown: Date?
+    @ObservationIgnored private var tap: CFMachPort?
+    @ObservationIgnored private var tapSource: CFRunLoopSource?
+    @ObservationIgnored private var autoUnlock: Task<Void, Never>?
+    @ObservationIgnored private var escapeDown: Date?
 
     /// The lock ends by itself after this long (spec RF-4).
     static let maximumDuration: Duration = .seconds(180)

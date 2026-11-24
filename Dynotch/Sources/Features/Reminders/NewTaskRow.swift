@@ -3,7 +3,7 @@ import SwiftUI
 /// "New task" at the end of the selected list's tasks: Enter adds it to that list and leaves the
 /// field ready for the next one (spec R-6b). Dates and "@List" are recognised as in quick add.
 struct NewTaskRow: View {
-    @ObservedObject var store: RemindersStore
+    var store: RemindersStore
     /// The list new tasks go to (spec R-15).
     var listID: String?
 

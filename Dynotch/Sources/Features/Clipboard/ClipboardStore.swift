@@ -1,5 +1,5 @@
 import AppKit
-import Combine
+import Observation
 
 /// One copied (or saved) thing: text or an image (spec CB-1).
 struct ClipItem: Codable, Identifiable, Equatable, Sendable {
@@ -51,15 +51,16 @@ enum ClipboardRules {
 
 /// The clipboard history and the saved items, kept on disk (spec CB-1…CB-7).
 @MainActor
-final class ClipboardStore: ObservableObject {
-    @Published private(set) var history: [ClipItem] = []
-    @Published private(set) var saved: [ClipItem] = []
+@Observable
+final class ClipboardStore {
+    private(set) var history: [ClipItem] = []
+    private(set) var saved: [ClipItem] = []
     /// A copied code the smart opening points at, for 2 minutes (spec SO-5).
-    @Published private(set) var highlighted: UUID?
-    private var highlightTask: Task<Void, Never>?
+    private(set) var highlighted: UUID?
+    @ObservationIgnored private var highlightTask: Task<Void, Never>?
 
     /// How many copies are kept.
-    @Published var limit: Int {
+    var limit: Int {
         didSet {
             // Typed numbers outside the range are brought back into it.
             guard Self.limitRange.contains(limit) else {
@@ -74,22 +75,22 @@ final class ClipboardStore: ObservableObject {
 
     /// How long the modifier is held before the items show (spec CB-3b); a shorter press pastes
     /// the newest one.
-    @Published var showDelay: Double {
+    var showDelay: Double {
         didSet { defaults.set(showDelay, forKey: Keys.showDelay) }
     }
 
     static let showDelayRange: ClosedRange<Double> = 0.05...0.5
 
-    @Published var historyShortcut: KeyShortcut? {
+    var historyShortcut: KeyShortcut? {
         didSet { defaults.set(historyShortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Keys.historyShortcut) }
     }
 
-    @Published var savedShortcut: KeyShortcut? {
+    var savedShortcut: KeyShortcut? {
         didSet { defaults.set(savedShortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Keys.savedShortcut) }
     }
 
     /// Apps whose copies are not kept (bundle identifiers).
-    @Published private(set) var excludedApps: [String] {
+    private(set) var excludedApps: [String] {
         didSet { defaults.set(excludedApps, forKey: Keys.excluded) }
     }
 
@@ -105,8 +106,8 @@ final class ClipboardStore: ObservableObject {
 
     private let defaults: UserDefaults
     private let folder: URL
-    private var lastCount = NSPasteboard.general.changeCount
-    private var timer: Poller?
+    @ObservationIgnored private var lastCount = NSPasteboard.general.changeCount
+    @ObservationIgnored private var timer: Poller?
 
     init(defaults: UserDefaults = .standard, folder: URL? = nil) {
         self.defaults = defaults

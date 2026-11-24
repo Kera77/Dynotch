@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Full calendar in the large panel: month grid on the left, agenda on the right (spec K-10…K-12).
 struct CalendarFullView: View {
-    @ObservedObject var service: CalendarService
+    var service: CalendarService
     let collapse: () -> Void
 
     @State private var displayedMonth = Date()

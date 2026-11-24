@@ -1,5 +1,5 @@
-import Combine
 import Foundation
+import Observation
 
 /// What the tasks counter beside the notch shows (spec R-10).
 struct TaskCount: Equatable, Sendable {
@@ -98,16 +98,17 @@ struct TaskGroup: Equatable, Sendable {
 
 /// The tasks counter right of the closed notch: on or off, hidden for a while by its × (spec R-10, R-11).
 @MainActor
-final class TaskIndicator: ObservableObject {
-    @Published var isEnabled: Bool {
+@Observable
+final class TaskIndicator {
+    var isEnabled: Bool {
         didSet { defaults.set(isEnabled, forKey: Key.enabled); update() }
     }
-    @Published var snooze: TaskSnooze {
+    var snooze: TaskSnooze {
         didSet { defaults.set(snooze.rawValue, forKey: Key.snooze) }
     }
-    @Published private(set) var shown: TaskCount?
+    private(set) var shown: TaskCount?
     /// The list chosen in the drop-down's header until it closes (spec R-17).
-    @Published var chosenListID: String? {
+    var chosenListID: String? {
         didSet { if chosenListID != oldValue { update() } }
     }
 
@@ -120,10 +121,10 @@ final class TaskIndicator: ObservableObject {
 
     private let store: RemindersStore
     private let defaults: UserDefaults
-    private var hiddenUntil: Date?
-    private var hiddenIDs: Set<String>
-    private var changes: AnyCancellable?
-    private var wake: Task<Void, Never>?
+    @ObservationIgnored private var hiddenUntil: Date?
+    @ObservationIgnored private var hiddenIDs: Set<String>
+    @ObservationIgnored private var changes: ChangeObservation?
+    @ObservationIgnored private var wake: Task<Void, Never>?
 
     init(store: RemindersStore, defaults: UserDefaults = .standard) {
         self.store = store
@@ -132,9 +133,14 @@ final class TaskIndicator: ObservableObject {
         snooze = (defaults.object(forKey: Key.snooze) as? Int).flatMap(TaskSnooze.init(rawValue:)) ?? .hour
         hiddenUntil = defaults.object(forKey: Key.hiddenUntil) as? Date
         hiddenIDs = Set(defaults.stringArray(forKey: Key.hiddenIDs) ?? [])
-        // objectWillChange fires before the change: look once it has happened.
-        changes = store.objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in
-            MainActor.assumeIsolated { self?.update() }
+        // Looks once the reminders have changed.
+        changes = observeChanges { [store] in
+            _ = store.access
+            _ = store.open
+            _ = store.completing
+            _ = store.lists
+        } onChange: { [weak self] in
+            self?.update()
         }
         update()
         scheduleWake()

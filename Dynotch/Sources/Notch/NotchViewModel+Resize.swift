@@ -19,7 +19,8 @@ extension NotchViewModel {
 
     /// The size this module was resized to on this display, within today's bounds.
     var savedModuleSize: CGSize? {
-        moduleSizes.size(of: currentFeature, variant: moduleVariant, on: screenName).map(clampedModuleSize)
+        access(keyPath: \.savedModuleSize)
+        return moduleSizes.size(of: currentFeature, variant: moduleVariant, on: screenName).map(clampedModuleSize)
     }
 
     var hasResizedModule: Bool {
@@ -40,14 +41,18 @@ extension NotchViewModel {
     /// Keeps the size the drag ended at (spec RS-3).
     func endResize() {
         guard let size = resizingSize else { return }
-        moduleSizes.set(size == normalOpenSize ? nil : size, of: currentFeature, variant: moduleVariant, on: screenName)
+        let saved = size == normalOpenSize ? nil : size
+        withMutation(keyPath: \.savedModuleSize) {
+            moduleSizes.set(saved, of: currentFeature, variant: moduleVariant, on: screenName)
+        }
         resizingSize = nil
     }
 
     /// Back to the module's normal size (spec RS-1).
     func resetModuleSize() {
         resizingSize = nil
-        moduleSizes.set(nil, of: currentFeature, variant: moduleVariant, on: screenName)
-        objectWillChange.send()
+        withMutation(keyPath: \.savedModuleSize) {
+            moduleSizes.set(nil, of: currentFeature, variant: moduleVariant, on: screenName)
+        }
     }
 }

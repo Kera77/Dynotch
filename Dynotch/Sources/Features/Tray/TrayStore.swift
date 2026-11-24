@@ -1,5 +1,5 @@
 import AppKit
-import Combine
+import Observation
 
 /// A file kept in the tray: a reference to it, which follows the file when it moves (spec FT-2).
 struct TrayItem: Codable, Identifiable, Equatable, Sendable {
@@ -22,20 +22,21 @@ struct TrayFolder: Codable, Identifiable, Equatable, Sendable {
 
 /// The file tray: dropped files and attached folders (spec FT-1…FT-7).
 @MainActor
-final class TrayStore: ObservableObject {
-    @Published private(set) var items: [TrayItem] = [] {
+@Observable
+final class TrayStore {
+    private(set) var items: [TrayItem] = [] {
         didSet { refreshShownFiles() }
     }
     /// The picked tab's files, read off the main thread and only when something changed (spec FT-16).
-    @Published private(set) var shownFiles: [URL] = []
+    private(set) var shownFiles: [URL] = []
     /// The tray item behind each shown file of the tray tab.
     private(set) var trayItemByURL: [URL: TrayItem] = [:]
     /// Each item's place, resolved from its bookmark once (spec FT-16).
-    private var resolvedURLs: [UUID: URL] = [:]
-    private var listing: Task<Void, Never>?
-    @Published private(set) var folders: [TrayFolder] = []
+    @ObservationIgnored private var resolvedURLs: [UUID: URL] = [:]
+    @ObservationIgnored private var listing: Task<Void, Never>?
+    private(set) var folders: [TrayFolder] = []
     /// nil: the tray itself; otherwise an attached folder, whose changes are followed (spec FT-9).
-    @Published var selectedFolder: UUID? {
+    var selectedFolder: UUID? {
         didSet {
             watchSelectedFolder()
             refreshShownFiles()
@@ -47,13 +48,13 @@ final class TrayStore: ObservableObject {
     /// The built-in Screenshots tab: the newest shots of ~/Pictures/Screenshots (spec SH-11).
     static let screenshotsID = UUID(uuidString: "5C2E5C2E-0000-4000-8000-000000000001") ?? UUID()
     /// Whether the screenshot tool is on, so its tab shows.
-    @Published var showsScreenshots = true {
+    var showsScreenshots = true {
         didSet { if showsScreenshots != oldValue { refreshShownFiles() } }
     }
     /// The pointer is over the tabs: a swipe there steps between them (spec FT-4d).
-    var isOverTabs = false
+    @ObservationIgnored var isOverTabs = false
     /// Days after which a file leaves the tray; 0: never (spec FT-6).
-    @Published var retentionDays: Int {
+    var retentionDays: Int {
         didSet {
             defaults.set(retentionDays, forKey: Self.retentionKey)
             dropExpired()
@@ -61,26 +62,26 @@ final class TrayStore: ObservableObject {
     }
 
     /// Finished downloads go into the tray by themselves (spec FT-15).
-    @Published var keepsDownloads: Bool {
+    var keepsDownloads: Bool {
         didSet { defaults.set(keepsDownloads, forKey: "trayKeepsDownloads") }
     }
     /// Days after which a download leaves the tray; 0: never (spec FT-15).
-    @Published var downloadRetentionDays: Int {
+    var downloadRetentionDays: Int {
         didSet {
             defaults.set(downloadRetentionDays, forKey: "trayDownloadRetentionDays")
             dropExpired()
         }
     }
-    private var expiryCheck: Task<Void, Never>?
+    @ObservationIgnored private var expiryCheck: Task<Void, Never>?
 
     /// List or tiles, kept per tab (spec FT-11, FT-11b); tabs from before keep the old shared choice.
-    @Published private var listByTab: [String: Bool] {
+    private var listByTab: [String: Bool] {
         didSet { defaults.set(listByTab, forKey: "trayListByTab") }
     }
     private let sharedList: Bool
 
     /// The dot colours of the Tray and Screenshots tabs, by "tray" / "screenshots" (spec FT-4c).
-    @Published private var fixedColours: [String: Int] {
+    private var fixedColours: [String: Int] {
         didSet { defaults.set(fixedColours, forKey: "trayTabColours") }
     }
 

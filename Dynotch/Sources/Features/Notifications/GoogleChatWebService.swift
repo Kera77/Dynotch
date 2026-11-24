@@ -1,10 +1,11 @@
 import AppKit
-import Combine
+import Observation
 
 /// Follows the Google Chat web app (Safari, added to the Dock) through Accessibility: which
 /// conversations are unread, and replies typed straight into its message box (spec GW-1…GW-15).
 @MainActor
-final class GoogleChatWebService: ObservableObject {
+@Observable
+final class GoogleChatWebService {
     enum State: Equatable {
         case off
         case noAccess
@@ -20,34 +21,34 @@ final class GoogleChatWebService: ObservableObject {
         let description: String
     }
 
-    @Published private(set) var state: State = .off
-    @Published private(set) var snapshot: ChatWebSnapshot?
+    private(set) var state: State = .off
+    private(set) var snapshot: ChatWebSnapshot?
     /// When each conversation was last seen unread (spec GW-7).
-    private(set) var lastSeenUnread: [String: Date] = [:]
+    @ObservationIgnored private(set) var lastSeenUnread: [String: Date] = [:]
 
-    @Published var isEnabled: Bool {
+    var isEnabled: Bool {
         didSet { defaults.set(isEnabled, forKey: "googleChatWebEnabled"); restart() }
     }
 
     /// Seconds between two reads (spec GW-6).
-    @Published var interval: Int {
+    var interval: Int {
         didSet { defaults.set(interval, forKey: "googleChatWebInterval"); restart() }
     }
 
     static let intervalRange = 5...30
 
     /// Called with every new snapshot.
-    var onSnapshot: ((ChatWebSnapshot) -> Void)?
+    @ObservationIgnored var onSnapshot: ((ChatWebSnapshot) -> Void)?
     /// A reply sent in the background did not show up in Google Chat (spec GW-31).
-    var onReplyProblem: ((String) -> Void)?
+    @ObservationIgnored var onReplyProblem: ((String) -> Void)?
     /// Checks the last reply arrived, then goes back to Home (spec GW-30, GW-31).
-    var replyConfirmation: Task<Void, Never>?
+    @ObservationIgnored var replyConfirmation: Task<Void, Never>?
 
     private let defaults: UserDefaults
-    private var timer: Poller?
-    private var isReading = false
-    private(set) var windowTokenHint: UInt64?
-    private var lastLoggedState: State?
+    @ObservationIgnored private var timer: Poller?
+    @ObservationIgnored private var isReading = false
+    @ObservationIgnored private(set) var windowTokenHint: UInt64?
+    @ObservationIgnored private var lastLoggedState: State?
 
     init(defaults: UserDefaults) {
         self.defaults = defaults

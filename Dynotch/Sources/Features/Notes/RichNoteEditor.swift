@@ -3,8 +3,9 @@ import SwiftUI
 
 /// Gives the formatting toolbar access to the editor's text view.
 @MainActor
-final class RichNoteController: ObservableObject {
-    weak var textView: NSTextView?
+@Observable
+final class RichNoteController {
+    @ObservationIgnored weak var textView: NSTextView?
 
     func toggle(_ style: RichNoteFormat.InlineStyle) {
         guard let textView else { return }

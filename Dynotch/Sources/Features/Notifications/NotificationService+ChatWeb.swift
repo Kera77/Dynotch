@@ -200,7 +200,6 @@ extension NotificationService {
         let texts = (messages ?? []).suffix(min(max(wanted, 1), 8)).filter { !$0.text.isEmpty }
         guard !texts.isEmpty else {
             DiagnosticsLog.append("google-chat-web", "card messages not read in time")
-            objectWillChange.send()
             return
         }
         chatWebTexts[cardID] = Array(texts)

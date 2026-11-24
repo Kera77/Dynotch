@@ -9,12 +9,12 @@ struct PinControl {
 
 /// Sidebar with folders and notes, editor, and a bottom bar (spec J-2…J-8).
 struct NotesWorkspaceView: View {
-    @ObservedObject var store: NotesStore
+    var store: NotesStore
     /// Only the visible view talks to Notes, so hidden pages don't trigger the permission prompt.
     let isActive: Bool
     var pin: PinControl?
 
-    @StateObject private var editorController = RichNoteController()
+    @State private var editorController = RichNoteController()
 
     static var accent: Color { Color.yellow }
     /// The notes list grows with a resized module (spec RS-5).
@@ -204,7 +204,7 @@ struct NotesWorkspaceView: View {
 
 /// Folder picker, the draft, and the notes of the selected folder.
 private struct NotesSidebar: View {
-    @ObservedObject var store: NotesStore
+    var store: NotesStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -327,7 +327,7 @@ private struct NotesSidebar: View {
 
 /// Notes feature in the notch.
 struct NotesFeatureView: View {
-    @ObservedObject var store: NotesStore
+    var store: NotesStore
     let isActive: Bool
 
     var body: some View {
@@ -338,8 +338,8 @@ struct NotesFeatureView: View {
 
 /// Content of the notes menu bar panel.
 struct NotesMenuBarView: View {
-    @ObservedObject var store: NotesStore
-    @ObservedObject var state: MenuBarPanelState
+    var store: NotesStore
+    var state: MenuBarPanelState
 
     var body: some View {
         NotesWorkspaceView(

@@ -1,5 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
+import Observation
 
 /// A global keyboard shortcut (spec SC-1).
 struct KeyShortcut: Codable, Equatable, Sendable {
@@ -42,19 +43,20 @@ struct KeyShortcut: Codable, Equatable, Sendable {
 
 /// The features' shortcuts (spec SC-1, SC-2), persisted in UserDefaults.
 @MainActor
-final class ShortcutStore: ObservableObject {
+@Observable
+final class ShortcutStore {
     private static let shortcutsKey = "featureShortcuts"
     private static let pinKey = "shortcutPins"
     private static let pinShortcutKey = "pinShortcut"
     private static let pinnedKey = "shortcutPinnedFeatures"
     private static let quickAskKey = "aiQuickAskShortcutSet"
 
-    @Published private(set) var shortcuts: [FeatureID: KeyShortcut] {
+    private(set) var shortcuts: [FeatureID: KeyShortcut] {
         didSet { save() }
     }
 
     /// The features whose shortcut also pins the panel, so it stays open (spec SC-2).
-    @Published private(set) var pinnedFeatures: Set<FeatureID> {
+    private(set) var pinnedFeatures: Set<FeatureID> {
         didSet { defaults.set(pinnedFeatures.map(\.rawValue).sorted(), forKey: Self.pinnedKey) }
     }
 
@@ -76,7 +78,7 @@ final class ShortcutStore: ObservableObject {
     }
 
     /// Pins the notch open, or releases it (spec SC-3).
-    @Published private(set) var pinShortcut: KeyShortcut? {
+    private(set) var pinShortcut: KeyShortcut? {
         didSet { defaults.set(pinShortcut.flatMap { try? JSONEncoder().encode($0) }, forKey: Self.pinShortcutKey) }
     }
 

@@ -1,16 +1,18 @@
 import AppKit
 import ImageIO
+import Observation
 
 /// How bright each display's wallpaper is, so the refined liquid glass is darkened more over a
 /// light background and less over a dark one (spec D-14c).
 @MainActor
-final class WallpaperTone: ObservableObject {
+@Observable
+final class WallpaperTone {
     static let shared = WallpaperTone()
 
     /// Average brightness (0…1) by screen frame.
-    @Published private(set) var brightness: [String: Double] = [:]
-    private var cache: [URL: Double] = [:]
-    private var observers: [NSObjectProtocol] = []
+    private(set) var brightness: [String: Double] = [:]
+    @ObservationIgnored private var cache: [URL: Double] = [:]
+    @ObservationIgnored private var observers: [NSObjectProtocol] = []
 
     private init() {
         let center = NSWorkspace.shared.notificationCenter
