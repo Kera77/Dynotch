@@ -54,6 +54,7 @@ final class WeatherService {
         observer = observeChanges { [settings] in
             _ = settings.city
             _ = settings.usesLocation
+            _ = settings.places
             _ = settings.isOn
         } onChange: { [weak self] in
             guard let self, self.isActive else { return }
@@ -95,7 +96,11 @@ final class WeatherService {
     private func load() async -> Bool {
         guard isActive else { return false }
         status = .loading
-        guard let place = await currentPlace() else { return false }
+        guard let place = await currentPlace() else {
+            // Never left spinning: the empty state says what is missing (spec WX-10).
+            if status == .loading { status = .needsPlace }
+            return false
+        }
         placeName = place.name
         let imperial = Locale.current.measurementSystem == .us
         guard let url = OpenMeteo.forecastURL(latitude: place.latitude, longitude: place.longitude, imperial: imperial),
@@ -122,7 +127,9 @@ final class WeatherService {
         }
         switch locator.access {
         case .denied:
-            status = settings.city == nil ? .denied : .idle
+            // The chosen saved place stands in (spec WX-9).
+            DiagnosticsLog.append("weather", "location access denied")
+            if settings.city == nil { status = .denied }
             return settings.city
         case .notDetermined:
             locator.requestAccess()
@@ -130,7 +137,7 @@ final class WeatherService {
             break
         }
         guard let found = await locator.place() else {
-            status = settings.city == nil ? .needsPlace : .idle
+            if settings.city == nil { status = locator.access == .denied ? .denied : .needsPlace }
             return settings.city
         }
         return found

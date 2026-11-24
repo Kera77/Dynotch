@@ -121,4 +121,35 @@ struct ToolsTests {
         let later = IndicatorItem.items(meetings: [], usage: [], tasks: nil, tools: glance, now: now)
         #expect(later.last?.id == "tools")
     }
+
+    @Test func hoverControlsFollowTheShownTool() {
+        let now = Date()
+        var glance = ToolsGlance()
+        glance.clock = ToolsGlance.Clock(tab: .timer, symbol: "hourglass", endDate: now.addingTimeInterval(60), total: 60)
+        #expect(glance.controls == [.pause, .addMinute, .cancel])
+        glance.clock = ToolsGlance.Clock(tab: .stopwatch, symbol: "stopwatch", startedAt: now)
+        #expect(glance.controls == [.pause, .lap, .reset])
+        glance.clock = ToolsGlance.Clock(tab: .stopwatch, symbol: "stopwatch", fixed: 12)
+        #expect(glance.controls == [.start, .reset])
+        glance.clock = ToolsGlance.Clock(tab: .pomodoro, symbol: "circle.circle", fixed: 300, total: 1500)
+        #expect(glance.controls == [.start, .next, .reset])
+        glance.clock = nil
+        glance.micMuted = true
+        #expect(glance.controls == [.unmute])
+    }
+
+    @Test func toolsDropTheirControlsOrWidenBesideTheNotch() {
+        var glance = ToolsGlance()
+        glance.clock = ToolsGlance.Clock(tab: .stopwatch, symbol: "stopwatch", startedAt: Date())
+        let items = [IndicatorItem.tools(glance)]
+        // Hover shows controls instead of opening the module (spec TM-19).
+        #expect(items[0].opensModule == nil)
+        #expect(items[0].labelHeight == IndicatorLayout.labelHeight)
+        let beside = IndicatorItem.unfoldingUsage(items, hovered: 0, wings: true)
+        #expect(beside[0].labelHeight == 0)
+        #expect(beside[0].slotWidth > items[0].slotWidth)
+        #expect(IndicatorItem.unfoldingUsage(items, hovered: 0, wings: false) == items)
+        // Wings mode with notices dropping down: the Tools still widen sideways.
+        #expect(IndicatorItem.unfoldingUsage(items, hovered: 0, wings: false, toolsBeside: true)[0].labelHeight == 0)
+    }
 }

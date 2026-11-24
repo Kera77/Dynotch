@@ -112,6 +112,30 @@ final class ToolsService {
         pomodoro.reset()
     }
 
+    // MARK: - Hover controls (spec TM-19, TM-20)
+
+    func perform(_ control: ToolsControl, on clock: ToolsGlance.Clock?) {
+        switch control {
+        case .pause, .resume, .start: startOrPause(clock)
+        case .addMinute: clock?.timerID.map(addMinute)
+        case .cancel: clock?.timerID.map(cancel)
+        case .lap: lap()
+        case .reset: if clock?.tab == .stopwatch { resetStopwatch() } else { resetPomodoro() }
+        case .next: skipPhase()
+        case .unmute: _ = QuickToggleService.shared.toggle(.muteMicrophone)
+        case .endAwake: QuickToggleService.shared.stopKeepingAwake()
+        }
+    }
+
+    private func startOrPause(_ clock: ToolsGlance.Clock?) {
+        switch clock?.tab {
+        case .timer: clock?.timerID.map(pauseOrResume)
+        case .stopwatch: startOrPauseStopwatch()
+        case .pomodoro: startOrPausePomodoro()
+        case .toggles, nil: break
+        }
+    }
+
     // MARK: - Beside the notch (spec TM-3, TM-4, QT-5)
 
     var glance: ToolsGlance? {
@@ -133,7 +157,7 @@ final class ToolsService {
             clocks += timers.map { timer in
                 ToolsGlance.Clock(
                     tab: .timer, symbol: "hourglass", endDate: timer.endDate, fixed: timer.remainingWhenPaused ?? 0,
-                    total: timer.duration
+                    total: timer.duration, timerID: timer.id, title: timer.title
                 )
             }
         }
@@ -142,15 +166,18 @@ final class ToolsService {
             clocks.append(ToolsGlance.Clock(
                 tab: .pomodoro, symbol: pomodoro.phase.isBreak ? "cup.and.saucer.fill" : "circle.circle",
                 endDate: pomodoro.endDate, fixed: pomodoro.remainingWhenPaused ?? 0, total: plan.length(of: pomodoro.phase),
-                tint: pomodoro.phase.isBreak ? .green : .red
+                tint: pomodoro.phase.isBreak ? .green : .red, title: pomodoro.phase.title
             ))
         }
         return clocks
     }
 
     private var stopwatchClock: ToolsGlance.Clock? {
-        guard settings.stopwatchOn, settings.stopwatchBesideNotch, stopwatch.isRunning else { return nil }
-        return ToolsGlance.Clock(tab: .stopwatch, symbol: "stopwatch", startedAt: stopwatch.startedAt, fixed: stopwatch.accumulated)
+        // Running, or stopped and not yet reset, so its hover can reset it (spec TM-21).
+        guard settings.stopwatchOn, settings.stopwatchBesideNotch, !stopwatch.isReset else { return nil }
+        return ToolsGlance.Clock(
+            tab: .stopwatch, symbol: "stopwatch", startedAt: stopwatch.startedAt, fixed: stopwatch.accumulated, title: "Stopwatch"
+        )
     }
 
     // MARK: - Ends (spec TM-5, TM-6)

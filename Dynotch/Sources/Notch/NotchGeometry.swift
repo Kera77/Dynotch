@@ -75,6 +75,11 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: expandedSize.width, height: Self.expandedHeight + 110)
     }
 
+    /// The Tools: taller, so every tab fits under its picker (spec TM-18).
+    var toolsSize: CGSize {
+        CGSize(width: expandedSize.width, height: Self.expandedHeight + 70)
+    }
+
     /// Size of the opened panel in the full calendar view.
     var largeSize: CGSize {
         let width = min(max(Self.largeWidth, expandedSize.width), max(screenFrame.width - 40, expandedSize.width))

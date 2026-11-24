@@ -70,12 +70,10 @@ enum IndicatorItem: Identifiable, Equatable {
     }
 
     /// Hovering these opens their module instead of writing details (spec SY-7). The cover drops
-    /// its player down under the row instead (spec MU-2).
+    /// its player down under the row instead (spec MU-2); the Tools show their controls (spec TM-19).
     var opensModule: FeatureID? {
         switch self {
         case .stats: .stats
-        // Hovering the Tools opens them on the tab it shows (spec TM-3).
-        case .tools: .tools
         default: nil
         }
     }
@@ -100,7 +98,8 @@ enum IndicatorItem: Identifiable, Equatable {
         case .stats(let values): IndicatorLayout.statsWidth(values: values)
         // Left of the notch, as wide as its time (spec SH-5c).
         case .recording: 0
-        case .tools(let glance): IndicatorLayout.toolsWidth(glance)
+        case .tools(let glance):
+            IndicatorLayout.toolsWidth(glance) + (glance.unfolded ? IndicatorLayout.toolsUnfoldWidth(glance) : 0)
         }
     }
 
@@ -109,8 +108,8 @@ enum IndicatorItem: Identifiable, Equatable {
         switch self {
         // Unfolded beside the notch, nothing drops down (spec PV-69).
         case .meeting(_, true), .battery(_, true): 0
-        // The Tools open their module instead (spec TM-3).
-        case .tools: 0
+        // The Tools' controls drop down, or widen beside the notch (spec TM-19).
+        case .tools(let glance): glance.unfolded ? 0 : IndicatorLayout.labelHeight
         case .meeting, .working, .battery, .stats: IndicatorLayout.labelHeight
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
         case .recording: 0

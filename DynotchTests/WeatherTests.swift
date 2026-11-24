@@ -77,4 +77,23 @@ struct WeatherTests {
         #expect(settings.mergedTabs(for: .calendar) == nil)
         #expect(!settings.isEnabled(.weather))
     }
+
+    @Test @MainActor func savedPlacesKeepTheChosenOne() {
+        let name = "DynotchTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        let old = WeatherPlace(name: "Szeged", latitude: 46.25, longitude: 20.15)
+        defaults.set(try? JSONEncoder().encode(old), forKey: "weatherCity")
+        // The city chosen before the list existed is its first entry (spec WX-9).
+        let settings = WeatherSettings(defaults: defaults)
+        #expect(settings.places == [old])
+        let budapest = WeatherPlace(name: "Budapest", latitude: 47.5, longitude: 19.04)
+        settings.add(budapest)
+        #expect(settings.city == budapest)
+        #expect(WeatherSettings(defaults: defaults).places == [old, budapest])
+        settings.remove(budapest)
+        #expect(settings.city == old)
+        for index in 0..<7 { settings.add(WeatherPlace(name: "P\(index)", latitude: 0, longitude: Double(index))) }
+        #expect(settings.places.count == WeatherSettings.maxPlaces)
+    }
 }

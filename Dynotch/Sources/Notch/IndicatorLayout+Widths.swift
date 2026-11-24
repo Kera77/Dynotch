@@ -63,13 +63,18 @@ extension IndicatorLayout {
 extension IndicatorItem {
     /// Beside the notch the hovered AI ring, countdown or low battery unfolds to the right
     /// instead of dropping down (spec PV-58, PV-69).
-    static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool) -> [IndicatorItem] {
-        guard wings, let hovered, items.indices.contains(hovered) else { return items }
+    /// The Tools' controls widen sideways in Wings mode as well (spec TM-19): `toolsBeside`.
+    static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool, toolsBeside: Bool? = nil) -> [IndicatorItem] {
+        guard let hovered, items.indices.contains(hovered) else { return items }
         var unfolded = items
         switch items[hovered] {
-        case .usage(let limits, false): unfolded[hovered] = .usage(limits, unfolded: true)
-        case .meeting(let event, false): unfolded[hovered] = .meeting(event, unfolded: true)
-        case .battery(let device, false): unfolded[hovered] = .battery(device, unfolded: true)
+        case .usage(let limits, false) where wings: unfolded[hovered] = .usage(limits, unfolded: true)
+        case .meeting(let event, false) where wings: unfolded[hovered] = .meeting(event, unfolded: true)
+        case .battery(let device, false) where wings: unfolded[hovered] = .battery(device, unfolded: true)
+        // The Tools' controls (spec TM-19).
+        case .tools(var glance) where (toolsBeside ?? wings) && !glance.unfolded && !glance.controls.isEmpty:
+            glance.unfolded = true
+            unfolded[hovered] = .tools(glance)
         default: return items
         }
         return unfolded
@@ -92,4 +97,12 @@ extension IndicatorLayout {
         if glance.awake { width += 16 }
         return width + 2
     }
+
+    /// The hover controls right of the time, and the arrow that opens the module (spec TM-19).
+    static func toolsUnfoldWidth(_ glance: ToolsGlance) -> CGFloat {
+        CGFloat(glance.controls.count + 1) * (toolsControlSize + toolsControlSpacing) + 4
+    }
+
+    static let toolsControlSize: CGFloat = 20
+    static let toolsControlSpacing: CGFloat = 4
 }

@@ -20,6 +20,10 @@ struct ToolsGlance: Equatable, Sendable {
         /// The countdown's length; 0 for the stopwatch.
         var total: TimeInterval = 0
         var tint: Tint = .white
+        /// The timer its hover controls act on (spec TM-20).
+        var timerID: UUID?
+        /// "Tea", "Focus", "Stopwatch": written in the hover controls (spec TM-19).
+        var title = ""
 
         var isCountdown: Bool { total > 0 }
         var isPaused: Bool { endDate == nil && startedAt == nil }
@@ -48,8 +52,23 @@ struct ToolsGlance: Equatable, Sendable {
     var more = 0
     var micMuted = false
     var awake = false
+    /// Beside the notch (or in Wings) the hovered glance widens with its controls (spec TM-19).
+    var unfolded = false
 
     var isEmpty: Bool { clock == nil && !micMuted && !awake }
+
+    /// The buttons its hover shows (spec TM-20).
+    var controls: [ToolsControl] {
+        guard let clock else {
+            return (micMuted ? [ToolsControl.unmute] : []) + (awake ? [ToolsControl.endAwake] : [])
+        }
+        switch clock.tab {
+        case .timer: return [clock.isPaused ? .resume : .pause, .addMinute, .cancel]
+        case .stopwatch: return clock.isPaused ? [.start, .reset] : [.pause, .lap, .reset]
+        case .pomodoro: return [clock.isPaused ? .start : .pause, .next, .reset]
+        case .toggles: return []
+        }
+    }
 
     /// The tab its hover opens (spec TM-3, QT-5).
     var tab: ToolsTab { clock?.tab ?? .toggles }
@@ -60,5 +79,41 @@ struct ToolsGlance: Equatable, Sendable {
         if let first = running.first { return (first, running.count - 1) }
         if let paused = countdowns.first { return (paused, countdowns.count - 1) }
         return (stopwatch, 0)
+    }
+}
+
+/// A button of the hover controls on the Tools indicator (spec TM-20).
+enum ToolsControl: String, Identifiable, Sendable {
+    case pause, resume, start, addMinute, cancel, lap, reset, next, unmute, endAwake
+
+    var id: String { rawValue }
+
+    var symbol: String {
+        switch self {
+        case .pause: "pause.fill"
+        case .resume, .start: "play.fill"
+        case .addMinute: "goforward.60"
+        case .cancel: "xmark"
+        case .lap: "flag.fill"
+        case .reset: "arrow.counterclockwise"
+        case .next: "forward.end.fill"
+        case .unmute: "mic.fill"
+        case .endAwake: "cup.and.saucer.fill"
+        }
+    }
+
+    var help: String {
+        switch self {
+        case .pause: "Pause"
+        case .resume: "Resume"
+        case .start: "Start"
+        case .addMinute: "+1 min"
+        case .cancel: "Cancel"
+        case .lap: "Lap"
+        case .reset: "Reset"
+        case .next: "Next phase"
+        case .unmute: "Unmute the microphone"
+        case .endAwake: "Stop keeping awake"
+        }
     }
 }

@@ -945,6 +945,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | RS-4 | *Settings › Appearance*: **Resize modules from the bottom right corner** kapcsoló (alapból be). Kikapcsolva minden modul a normál méretén nyílik. |
 | RS-5 | (v0.45: csak az AI; **v0.46: minden modul**) A modulok kitöltik a kapott méretet; az oldalsó listák arányosan nőnek: AI csevegéslista (24%, 160–260 pt), Notes jegyzetlista (26%, 210–320 pt), Beeper/Google Chat lista (30%, 240–360 pt), teljes naptár havi rácsa (30%, 256–380 pt). A naptár napsávján a swipe a megnövelt szélességben is működik. A beállítások, az értesítéslista, az előnézet és az ejtési zóna nem méretezhető. |
 | RS-6 | (v0.46) **Minden modul méretezhető, az újak is** (az új modul automatikusan méretezhető, a nézetének ezt követnie kell; fejlesztői szabály a `CLAUDE.md`-ben). A nagy nézetek (teljes naptár, nagy Notes / Reminders) és a széles csevegőfülek **külön méretet** jegyeznek meg, hogy a kis nézet ne nőjön meg velük. |
+| RS-7 | (v0.113) **Egy méret a teljes modulra, füleitől függetlenül:** ha egy modulnak több füle van (összevont modulok: *System \| Batteries*, *Chat \| Usage*, *Calendar \| Weather*; belső fülek: Notifications, Tools), a fülek közti váltáskor a modul mérete **nem változik**. Az alapméret a fülek közül annak a mérete, amelyiknek a legnagyobb hely kell (szélességben és magasságban külön a legnagyobb), így minden fül adatai kiférnek; a Notificationsben a Beeper széles nézete (BP-1) miatt minden fül ebben a méretben nyílik. Az átméretezett méretet (RS-3) a modul egyszer jegyzi meg, nem fülenként; a korábban fülenként mentett méretek közül a nagyobbik marad meg. Minden modulra érvényes. |
 
 ## 4ö. Alkalmazásváltó (v0.54)
 
@@ -1073,7 +1074,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MG-5 | **Notch melletti jelző összevonva:** a CL-6 session-körre, illetve a BT-3 akkujelzőre mutatva **ugyanaz a fogyasztás-, illetve akkucímke** jelenik meg, mint önálló módban; ahol a jelző a modult nyitja, a gazdamodul a **Usage**, illetve a **Batteries** fülén nyílik. |
 | MG-6 | A **környezetfüggő nyitás** (SO-2) 4. szabálya a System modult a Batteries fülön, az 5. az AI modult a Usage fülön nyitja. Az **előnézet** (PV-1) a gazdamodul aktuális fülének sorát mutatja. |
 | MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a helyén marad, behúzva, a be/ki kapcsolója letiltva (a gazdamodulét követi). |
-| MG-8 | Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek. |
+| MG-8 | ~~Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek.~~ v0.113-tól: a két fül **közös méretet** használ, lásd RS-7. A nagy és kis nézetek (pl. teljes naptár) továbbra is külön méretet jegyeznek meg. |
 | MG-9 | (v0.97) **Mindig összevonva (MG-1, MG-3, MG-7 módosítása):** a Batteries mindig a System, az AI Usage mindig az AI füle; az *In System / In AI* választó megszűnt, és a két modul nem szerepel a *Settings › Modules* listában (a be/ki kapcsolásuk a gazdamodulét követi, MG-4). Egy korábban beállított gyorsbillentyűjük megmarad, és a gazdamodult a fülükön nyitja. |
 | MG-10 | (v0.102) **A választott fül marad (MG-2, MG-6, SO-9 módosítása):** az összevont modul (System \| Batteries, AI Chat \| Usage) alapból a **saját** fülén nyílik (System, Chat). A kézzel választott fül minden nyitásnál (hover, ikon, ikonsor, gyorsbillentyű, swipe) marad a következő kézi váltásig, újraindítás után is. A célzott nyitások (alacsony akku SO-2/4, akkujelző MG-5, a vendég gyorsbillentyűje MG-7, eszközértesítésre pihenés DV-14) az adott alkalomra a vendég fülét mutatják, de a választást nem írják felül; a legutóbbi eszközértesítés (SO-9) a System modult a választott fülén nyitja. Ugyanígy megmarad a Vágólap (*Clipboard \| Saved*) és a Tray mappafüle is; az Értesítések füle és az AI szolgáltatása eddig is megmaradt. |
 
@@ -1224,6 +1225,15 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 | TM-16 | **Fókusz mód:** opcionálisan egy-egy kiválasztott **Shortcuts-parancs** fut a Focus fázis elején és végén (pl. a macOS Fókusz be- és kikapcsolása; a Fókuszt nyilvános API-val nem lehet állítani). Választó a *Settings › Tools › Pomodoro*-ban, „None” alapból. |
 | TM-17 | **Számláló:** a fülön a mai elkészült Focus-ok száma és egy kis 7 napos oszlopdiagram; az előzmény a lemezen marad (csak darabszám és dátum). |
 
+### Vezérlés a becsukott notchról (v0.113)
+
+| # | Követelmény |
+|---|---|
+| TM-18 | **Nagyobb Tools modul:** a Tools modul alapból magasabb (a normál panel + 70 pt), így minden fülön (Timer, Stopwatch, Pomodoro, Toggles) elfér a tartalom a fejléc kapszulaválasztója alatt. A pomodoro köre a kapott magassághoz igazodik (legfeljebb 120 pt), így kis méretben sem tolja fel a választót. Átméretezve (RS) a kisebbik méret ez az új alapméret. |
+| TM-19 | **Hover-vezérlő a jelzőn (TM-3 módosítása):** a notch melletti Tools-jelzőre vitt egér **nem nyitja ki** a Tools modult, hanem a jelzett eszköz vezérlőit mutatja, a kis értesítésekhez hasonlóan: *Drop down* módban a notch alatt lenyíló sor (ikon, név, idő, gombok), *Beside the notch* módban és Wingsben (PV-66, PV-69) a jelzőből jobbra a notch magasságában kiszélesedő gombsor. Az egeret levéve visszahúzódik. A sorban egy kis nyíl a Tools modult a jelzett fülön nyitja. |
+| TM-20 | **Gombok:** időzítő – **Pause/Resume**, **+1 min**, **X** (törlés); stopper – **Start/Pause**, **Lap**, **Reset**; pomodoro – **Start/Pause**, **Next** (következő fázis), **Reset**. Ha csak a némított mikrofon vagy a Keep Awake látszik (QT-5): **Unmute**, illetve **Keep Awake** kikapcsolása. |
+| TM-21 | **Stopper a notch mellett (TM-13 módosítása):** a *Show beside the notch* alapból **be**; a stopper futás közben és megállítva is látszik (amíg nincs nullázva), így hoverről nullázható. |
+
 ### Gyorskapcsolók
 
 | # | Követelmény |
@@ -1247,7 +1257,7 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 
 | # | Követelmény |
 |---|---|
-| WX-1 | **Weather fül a Naptár modulban:** a Calendar fejlécében kapszulaválasztó *Calendar \| Weather* (mint az összevont moduloknál, MG-2; a választott fül megmarad, MG-10; a két fül külön méretet jegyez meg, MG-8). *Settings › Calendar › Weather* kapcsoló, alapból **be**; kikapcsolva a választó eltűnik, és nincs időjárás-lekérdezés. A Naptár modul nélkül az időjárás sem fut (MG-4). |
+| WX-1 | **Weather fül a Naptár modulban:** a Calendar fejlécében kapszulaválasztó *Calendar \| Weather* (mint az összevont moduloknál, MG-2; a választott fül megmarad, MG-10; a két fül közös méretet használ, RS-7). *Settings › Calendar › Weather* kapcsoló, alapból **be**; kikapcsolva a választó eltűnik, és nincs időjárás-lekérdezés. A Naptár modul nélkül az időjárás sem fut (MG-4). |
 | WX-2 | **Helyszín:** *Automatic* (Helymeghatározás, CoreLocation; első bekapcsoláskor a macOS engedélyt kér, a `project.yml`-ben `NSLocationUsageDescription` kell) vagy *City* (név szerinti keresés, a találatok közül választva). Ha az automatikus engedélyt elutasították, a fül erre figyelmeztet, és felajánlja a város választását. |
 | WX-3 | **Adatforrás:** az **Open-Meteo** ingyenes, kulcs nélküli API-ja (előrejelzés és városkeresés). A kérésben **csak a két tizedesre kerekített koordináta** (kb. 1 km) és a mértékegységek mennek, semmi más személyes adat. |
 | WX-4 | **Frissítés:** 30 percenként, és a fül megnyitásakor, ha az adat 15 percnél régebbi; az RF-8…RF-10 szerint (alvás/zárolás alatt szünetel, akkun ritkábban). Hálózat nélkül az utolsó adat látszik „Updated 10:12” felirattal. |
@@ -1255,6 +1265,8 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 | WX-6 | **Tartalom:** fejléc: helység neve. **Most:** nagy többszínű időjárás-ikon (SF Symbols), hőmérséklet, állapot („Partly cloudy”), hőérzet, napi max/min. **Részletek sora:** szél, páratartalom, csapadék esélye, UV-index, napkelte/napnyugta. **Óránként:** vízszintesen görgethető sáv a következő 24 órára (idő, ikon, hőmérséklet, csapadék %, ha legalább 20%). **7 nap:** lista (nap, ikon, min–max sáv a hét tartományához viszonyítva, csapadék %). Kis méretben csak a Most és az Óránként sáv látszik, nagyban minden (RS, `maxWidth/maxHeight: .infinity`). |
 | WX-7 | **Reggeli előrejelzés:** minden nap az **első feloldáskor** (bejelentkezés, a képernyőzár feloldása vagy ébredés aktív munkamenettel) egy *Not before* időpont után (alap **05:00**, állítható) egyszer a notch alatt lenyíló értesítés (mint DV-1; *Beside the notch* módban két oldalt, PV-66): ikon, helység és hőmérséklet („Budapest · 7°”), állapot, max/min, és ha nappal (8–20 óra) a csapadék esélye eléri az 50%-ot, egy sor: „Rain likely 14:00–17:00”. Megjelenési idő mint az értesítéseké (E-3); kattintásra a Naptár a Weather fülön nyílik, felfelé pöccintve eltűnik. |
 | WX-8 | A reggeli értesítés előtt friss adatot kér (legfeljebb 60 mp-ig vár a hálózatra); ha nem sikerül, aznap nincs reggeli értesítés. Fókusz alatt (E-20) is megjelenik. *Settings › Calendar › Weather › Morning forecast* kapcsoló, alapból **be**. |
+| WX-9 | **Helyszín-választó (WX-2 módosítása, v0.113):** *Settings › Calendar › Weather › Location*: **Current location** (Helymeghatározás) vagy **Saved place**. Mentett helyek listája (legfeljebb 5, városkereséssel felvéve, egyenként törölhető), közülük egy a kiválasztott. *Current location* módban, ha a hely nem érhető el (nincs engedély vagy nincs pozíció), a kiválasztott mentett hely látszik. |
+| WX-10 | **Hiba javítása:** a Hardened Runtime miatt a helymeghatározáshoz a `com.apple.security.personal-information.location` entitlement kell; nélküle a macOS nem kérdez és nem ad helyet, így az időjárás nem töltött be. Ha nincs hely, a fül a beállításra mutat, és nem marad végtelen töltésben. |
 
 ## 5. Nyitott kérdések
 

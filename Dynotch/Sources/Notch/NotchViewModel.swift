@@ -96,11 +96,6 @@ final class NotchViewModel {
     /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
     private(set) var switcherFirst = 0
 
-    /// Merged, the AI tabs sit in the header beside the chat list, which needs the medium width (spec MG-2).
-    private func mergedAIWidth(_ size: CGSize) -> CGSize {
-        settings.isMerged(.claudeUsage) ? CGSize(width: max(size.width, geometry.mediumSize.width), height: size.height) : size
-    }
-
     /// The page a merged module opens on: the tab last picked by hand, else the host's own
     /// (System, Chat), kept across restarts (spec MG-10).
     func lastTab(of feature: FeatureID) -> FeatureID {
@@ -176,10 +171,6 @@ final class NotchViewModel {
     /// The Beeper tab's chat list is open: only then does it need the wide panel (spec BP-1d).
     var beeperListOpen = true
 
-    var showsWideTab: Bool {
-        notificationsTab.isWide && (notificationsTab != .beeper || beeperListOpen)
-    }
-
     /// The screen is shared or recorded: nothing appears by itself (spec N-21).
     var isScreenShared = false
     private(set) var isShowingDropZone = false
@@ -229,35 +220,6 @@ final class NotchViewModel {
     var openSize: CGSize {
         let size = canResize ? (resizingSize ?? savedModuleSize ?? normalOpenSize) : normalOpenSize
         return isClipboardInline ? CGSize(width: size.width, height: size.height + Self.inlinePickerHeight) : size
-    }
-
-    /// Size of the panel while it is open, without a resized module (spec RS-1).
-    var normalOpenSize: CGSize {
-        // Room at the bottom for the reply field, or the "open to reply" button.
-        if isShowingNotifications {
-            let size = geometry.notificationSize(count: notifications.count, hasReply: true)
-            return CGSize(width: size.width, height: notificationsHeight ?? size.height)
-        }
-        if isShowingSwitcher { return switcherSize }
-        if editor != nil { return geometry.maxModuleSize }
-        // Files over the wings: they stay at the notch's height (spec PV-14).
-        if isShowingDropZone, isPreview { return geometry.previewSize(side: WingsDropView.side) }
-        if isShowingOverlayPage {
-            return CGSize(width: geometry.expandedSize.width, height: geometry.notchSize.height + (isShowingDropZone ? 150 : 170))
-        }
-        if isPreview { return geometry.wingsSize(wingsSides) }
-        // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
-        // out of sight (spec C-11).
-        if isShowingSettings { return geometry.settingsSize }
-        if currentFeature == .notifications, showsWideTab { return geometry.chatPanelSize }
-        // Room for the tab picker above a card (spec UM-8c).
-        if currentFeature == .notifications, !isLarge { return geometry.notificationsModuleSize }
-        if currentFeature == .claudeUsage { return mergedAIWidth(geometry.usageSize) }
-        if currentFeature == .claudeChat { return isChatTall ? geometry.chatSize : mergedAIWidth(geometry.expandedSize) }
-        if isLarge, [.notes, .reminders].contains(currentFeature) { return geometry.mediumSize }
-        // The stats' tiles and process list need the room (spec SY-1).
-        if currentFeature == .stats { return geometry.mediumSize }
-        return isLarge ? geometry.largeSize : geometry.expandedSize
     }
 
     /// - Parameters:

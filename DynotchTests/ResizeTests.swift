@@ -60,6 +60,28 @@ struct ResizeTests {
         #expect(ModuleSizes(defaults: defaults).size(of: .calendar, variant: "large", on: "A") == CGSize(width: 1100, height: 500))
     }
 
+    @Test func tabsShareTheModulesSize() throws {
+        let (model, sizes) = try model()
+        model.select(.calendar)
+        let tabs = try #require(model.settings.mergedTabs(for: .calendar))
+        #expect(tabs == [.calendar, .weather])
+        // The same size on every tab (spec RS-7).
+        let normal = model.openSize
+        model.select(.weather)
+        #expect(model.openSize == normal)
+        // Resized on one tab: kept for the whole module.
+        model.resize(to: CGSize(width: normal.width + 120, height: normal.height + 60))
+        model.endResize()
+        #expect(sizes.size(of: .calendar, on: "Built-in") == CGSize(width: normal.width + 120, height: normal.height + 60))
+        #expect(sizes.size(of: .weather, on: "Built-in") == nil)
+        model.select(.calendar)
+        #expect(model.openSize == CGSize(width: normal.width + 120, height: normal.height + 60))
+        // A tab's size from before RS-7 stands in for the module.
+        model.resetModuleSize()
+        sizes.set(CGSize(width: normal.width + 40, height: normal.height + 30), of: .weather, on: "Built-in")
+        #expect(model.openSize == CGSize(width: normal.width + 40, height: normal.height + 30))
+    }
+
     @Test func sidebarsGrowWithTheModule() {
         #expect(Responsive.share(0.3, of: 500, in: 240...360) == 240)
         #expect(Responsive.share(0.3, of: 1000, in: 240...360) == 300)

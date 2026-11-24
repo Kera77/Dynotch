@@ -101,7 +101,7 @@ final class ToolsSettings {
         let storedPresets = (defaults.array(forKey: "toolsTimerPresets") as? [Int])?.filter { (1...1440).contains($0) }
         presets = Array((storedPresets ?? Self.defaultPresets).prefix(8))
         sound = text("toolsSound", "Glass")
-        stopwatchBesideNotch = bool("toolsStopwatchBeside", false)
+        stopwatchBesideNotch = bool("toolsStopwatchBeside", true)
         focusMinutes = int("pomodoroFocus", 25, 1...180)
         shortBreakMinutes = int("pomodoroShort", 5, 1...60)
         longBreakMinutes = int("pomodoroLong", 15, 1...120)

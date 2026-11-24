@@ -41,7 +41,9 @@ struct ToolsSlot: View {
         .frame(width: IndicatorLayout.toolsWidth(glance), height: IndicatorLayout.capsuleHeight, alignment: .leading)
     }
 
-    private func color(_ tint: ToolsGlance.Tint) -> Color {
+    func color(_ tint: ToolsGlance.Tint) -> Color { Self.color(tint) }
+
+    static func color(_ tint: ToolsGlance.Tint) -> Color {
         switch tint {
         case .white: .white
         case .red: Theme.red

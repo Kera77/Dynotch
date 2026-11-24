@@ -10,7 +10,7 @@ struct ToolsSettingsView: View {
         Form {
             timerSection
             Section {
-                Toggle("Show beside the notch while it runs", isOn: $settings.stopwatchBesideNotch)
+                Toggle("Show beside the notch until reset", isOn: $settings.stopwatchBesideNotch)
                     .disabled(!settings.stopwatchOn)
             } header: {
                 sectionHeader("Stopwatch", isOn: $settings.stopwatchOn)

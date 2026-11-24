@@ -164,4 +164,6 @@ extension AppSettings {
 
     /// The small notices stand in the notch's line, beside it (spec PV-66).
     var noticesBeside: Bool { noticePlacement == .beside }
+    /// The Tools' hover controls widen sideways in Wings mode too (spec TM-19).
+    var toolsControlsBeside: Bool { noticesBeside || hoverPreview }
 }

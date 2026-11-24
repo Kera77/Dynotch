@@ -22,11 +22,17 @@ final class WeatherSettings {
 
     /// The Weather tab and every look for the weather (spec WX-1).
     var isOn: Bool { didSet { defaults.set(isOn, forKey: "weatherOn") } }
-    /// Where you are (Location Services), or a city (spec WX-2).
+    /// Where you are (Location Services), or a saved place (spec WX-2, WX-9).
     var usesLocation: Bool { didSet { defaults.set(usesLocation, forKey: "weatherUsesLocation") } }
+    /// The chosen saved place; also the one shown when the current location is not known (spec WX-9).
     var city: WeatherPlace? {
         didSet { defaults.set(city.flatMap { try? JSONEncoder().encode($0) }, forKey: "weatherCity") }
     }
+    /// Saved places, at most `maxPlaces` (spec WX-9).
+    var places: [WeatherPlace] {
+        didSet { defaults.set(try? JSONEncoder().encode(places), forKey: "weatherPlaces") }
+    }
+    nonisolated static let maxPlaces = 5
     /// The morning forecast and its earliest time, in minutes after midnight (spec WX-7, WX-8).
     var morningOn: Bool { didSet { defaults.set(morningOn, forKey: "weatherMorningOn") } }
     var morningNotBefore: Int { didSet { defaults.set(morningNotBefore, forKey: "weatherMorningNotBefore") } }
@@ -35,9 +41,25 @@ final class WeatherSettings {
         self.defaults = defaults
         isOn = defaults.object(forKey: "weatherOn") as? Bool ?? true
         usesLocation = defaults.object(forKey: "weatherUsesLocation") as? Bool ?? true
-        city = defaults.data(forKey: "weatherCity").flatMap { try? JSONDecoder().decode(WeatherPlace.self, from: $0) }
+        let chosen = defaults.data(forKey: "weatherCity").flatMap { try? JSONDecoder().decode(WeatherPlace.self, from: $0) }
+        city = chosen
+        let saved = defaults.data(forKey: "weatherPlaces").flatMap { try? JSONDecoder().decode([WeatherPlace].self, from: $0) }
+        // The city chosen before the list existed becomes its first entry.
+        places = saved ?? (chosen.map { [$0] } ?? [])
         morningOn = defaults.object(forKey: "weatherMorningOn") as? Bool ?? true
         morningNotBefore = min(max(defaults.object(forKey: "weatherMorningNotBefore") as? Int ?? 5 * 60, 0), 23 * 60 + 59)
+    }
+
+    /// Saves a place and chooses it; the oldest goes when the list is full (spec WX-9).
+    func add(_ place: WeatherPlace) {
+        if !places.contains(place) { places = Array((places + [place]).suffix(Self.maxPlaces)) }
+        city = place
+    }
+
+    /// Removes a saved place; the chosen one passes to the first left.
+    func remove(_ place: WeatherPlace) {
+        places.removeAll { $0 == place }
+        if city == place { city = places.first }
     }
 
     /// The morning time as a date today, for the time picker.

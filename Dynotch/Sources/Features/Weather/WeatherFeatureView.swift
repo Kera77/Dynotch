@@ -33,9 +33,14 @@ struct WeatherFeatureView: View {
         case .loading:
             ProgressView().controlSize(.small)
         case .denied:
-            EmptyStateView(symbol: "location.slash", text: "Location Services are off for Dynotch. Choose a city in Settings › Calendar.")
+            EmptyStateView(
+                symbol: "location.slash", text: "Location Services are off for Dynotch. Save a place in Settings › Calendar › Weather."
+            )
         case .needsPlace:
-            EmptyStateView(symbol: "location", text: "Where should the weather be from?", actionTitle: "Use My Location") {
+            EmptyStateView(
+                symbol: "location", text: "Where should the weather be from? Use your location, or save a place in Settings › Calendar.",
+                actionTitle: "Use My Location"
+            ) {
                 service.useMyLocation()
             }
         case .failed, .idle:

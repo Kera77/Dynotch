@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- Weather: Current location or a saved place; save up to 5 places and tick the one to show, which also stands in when the current location is not known (WX-9).
+- Hovering the Tools beside the closed notch shows the tool's controls instead of opening the module: timer Pause/Resume, +1 min, X; stopwatch Start/Pause, Lap, Reset; pomodoro Start/Pause, Next, Reset; Unmute and Keep Awake off; an arrow opens the module. They drop down under the notch, or widen sideways in Wings and with small notices beside the notch (TM-19, TM-20).
+
+### Changed
+
+- A module with tabs keeps one size on every tab: the size of the tab that needs the most room (System | Batteries, Chat | Usage, Calendar | Weather, Notifications with its wide Beeper tab, Tools). A resized size is kept for the whole module, not per tab (RS-7, MG-8).
+- The Tools module opens taller, and the pomodoro ring fits the height it gets, so the tab picker no longer slides up (TM-18).
+- The stopwatch shows beside the notch by default, also stopped until it is reset (TM-21).
+
+### Fixed
+
+- The weather never loaded: Location Services need their entitlement under the hardened runtime; without a place the tab no longer keeps spinning (WX-10).
+
 ## [0.112.0] - 2026-11-24
 
 ### Added

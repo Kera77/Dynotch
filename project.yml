@@ -67,6 +67,7 @@ targets:
         com.apple.security.personal-information.calendars: true
         com.apple.security.automation.apple-events: true
         com.apple.security.personal-information.addressbook: true
+        com.apple.security.personal-information.location: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch

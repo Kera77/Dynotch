@@ -31,6 +31,8 @@ struct NotchIndicatorView: View {
     var openNotice: () -> Void = {}
     /// Opens the System module from its warning (spec SY-10).
     var openStats: () -> Void = {}
+    /// Opens the Tools module on a tab from the hover controls (spec TM-19).
+    var openTools: (ToolsTab) -> Void = { _ in }
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
     /// The tasks under the counter's drop-down, and checking one off (spec R-12).
@@ -196,7 +198,7 @@ struct NotchIndicatorView: View {
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
         case .tools(let glance):
-            ToolsSlot(glance: glance, now: now)
+            toolsCapsule(glance, now: now)
         case .music, .recording:
             // Left of the notch (spec MU-2, SH-5c).
             EmptyView()
@@ -245,9 +247,11 @@ extension NotchIndicatorView {
             tasksLabel(count, item: item)
         case .music(let glance):
             musicLabel(glance)
-        case .recording, .tools:
-            // Nothing drops down: the dot itself becomes Stop, the Tools open (spec SH-5b, TM-3).
+        case .recording:
+            // Nothing drops down: the dot itself becomes Stop (spec SH-5b).
             EmptyView()
+        case .tools(let glance):
+            toolsLabel(glance, now: now)
         case .stats:
             statsLabel(item)
         case .working:

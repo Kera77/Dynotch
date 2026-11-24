@@ -57,6 +57,7 @@ extension NotchView {
         row.recordingHovered = isRecordingHovered
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
         row.openNotice = { openNotice() }
+        row.openTools = openTools
         row.music = music
         row.showsMusicPlayer = model.hoveredIndicator != nil
         row.stats = stats
@@ -81,7 +82,9 @@ extension NotchView {
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
             tools: ToolsService.shared.glance
         )
-        return IndicatorItem.unfoldingUsage(items, hovered: model.hoveredIndicator, wings: settings.noticesBeside)
+        return IndicatorItem.unfoldingUsage(
+            items, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
+        )
     }
 
     /// The module strip under the Wings: resting on an icon switches the Wings to it (spec MS-8).
@@ -95,5 +98,11 @@ extension NotchView {
     /// Resting on an icon of the strip under the closed notch opens it (spec MS-7), not under the Wings.
     var stripHoverOpenDelay: Double? {
         settings.moduleStripHover && !model.isPreview ? settings.moduleStripHoverDelay : nil
+    }
+
+    /// From the Tools' hover controls: the module on the shown tab (spec TM-19).
+    func openTools(_ tab: ToolsTab) {
+        ToolsSettings.shared.tab = tab
+        openModule(.tools)
     }
 }

@@ -80,34 +80,38 @@ struct PomodoroTabView: View {
         let state = service.pomodoro
         let plan = settings.plan
         let color = state.phase.isBreak ? Theme.green : Theme.red
-        HStack(alignment: .top, spacing: 16) {
-            VStack(spacing: 10) {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    ZStack {
-                        Circle().stroke(Color.white.level(0.12), lineWidth: 6)
-                        Circle()
-                            .trim(from: 0, to: state.fractionLeft(at: context.date, plan: plan))
-                            .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                        VStack(spacing: 2) {
-                            Text(ClockText.text(state.remaining(at: context.date, plan: plan)))
-                                .font(.notch(size: 26, weight: .semibold, design: .rounded))
-                                .monospacedDigit()
-                                .foregroundStyle(.white)
-                            Text(state.phase.title)
-                                .font(.notch(size: 11, weight: .semibold))
-                                .foregroundStyle(color)
+        // The ring takes what is left above the dots and buttons, at most 120 pt (spec TM-18).
+        GeometryReader { proxy in
+            let ring = min(max(proxy.size.height - 61, 60), 120)
+            HStack(alignment: .top, spacing: 16) {
+                VStack(spacing: 10) {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        ZStack {
+                            Circle().stroke(Color.white.level(0.12), lineWidth: 6)
+                            Circle()
+                                .trim(from: 0, to: state.fractionLeft(at: context.date, plan: plan))
+                                .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                            VStack(spacing: 2) {
+                                Text(ClockText.text(state.remaining(at: context.date, plan: plan)))
+                                    .font(.notch(size: ring > 90 ? 26 : 18, weight: .semibold, design: .rounded))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.white)
+                                Text(state.phase.title)
+                                    .font(.notch(size: 11, weight: .semibold))
+                                    .foregroundStyle(color)
+                            }
                         }
+                        .frame(width: ring, height: ring)
                     }
-                    .frame(width: 120, height: 120)
+                    cycleDots(state: state)
+                    buttons(state: state)
                 }
-                cycleDots(state: state)
-                buttons(state: state)
+                Spacer(minLength: 0)
+                WeekBars(history: service.history)
             }
-            Spacer(minLength: 0)
-            WeekBars(history: service.history)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func cycleDots(state: PomodoroState) -> some View {
