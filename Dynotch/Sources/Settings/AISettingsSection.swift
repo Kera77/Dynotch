@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › General › AI: the default service and model (spec AI-9).
 struct AISettingsSection: View {
-    @ObservedObject var chat: ClaudeChatService
+    @Bindable var chat: ClaudeChatService
 
     var body: some View {
         Section {

@@ -1,30 +1,31 @@
 import AppKit
-import Combine
 import EventKit
+import Observation
 
 /// Apple Reminders through EventKit, shared by the notch and the menu bar panel (spec R-1…R-8).
 @MainActor
-final class RemindersStore: ObservableObject {
+@Observable
+final class RemindersStore {
     enum Access: Equatable {
         case notDetermined
         case granted
         case denied
     }
 
-    @Published private(set) var access: Access
-    @Published private(set) var lists: [ReminderList] = []
+    private(set) var access: Access
+    private(set) var lists: [ReminderList] = []
     /// Incomplete reminders of every list.
-    @Published private(set) var open: [ReminderItem] = []
+    private(set) var open: [ReminderItem] = []
     /// Reminders of the selected list completed in the last 7 days.
-    @Published private(set) var recentlyCompleted: [ReminderItem] = []
+    private(set) var recentlyCompleted: [ReminderItem] = []
     /// Checked in the UI, saved a moment later (so the tick can be seen).
-    @Published private(set) var completing: Set<String> = []
-    @Published var errorMessage: String?
+    private(set) var completing: Set<String> = []
+    var errorMessage: String?
     /// What the left column shows (spec R-15); the right one shows `rightSource`.
-    @Published var leftSource: ReminderSource {
+    var leftSource: ReminderSource {
         didSet { defaults.set(leftSource.rawValue, forKey: "remindersLeftSource") }
     }
-    @Published var rightSource: ReminderSource {
+    var rightSource: ReminderSource {
         didSet {
             defaults.set(rightSource.rawValue, forKey: "remindersRightSource")
             // A list on the right is the one new tasks go to and whose done tasks show.
@@ -32,30 +33,30 @@ final class RemindersStore: ObservableObject {
         }
     }
     /// The reminder whose details are open (spec R-14).
-    @Published var editingID: String?
-    @Published private(set) var now = Date()
+    var editingID: String?
+    private(set) var now = Date()
 
-    @Published var selectedListID: String? {
+    var selectedListID: String? {
         didSet {
             defaults.set(selectedListID, forKey: Key.list)
             fetchCompleted()
         }
     }
-    @Published var sort: ReminderSort {
+    var sort: ReminderSort {
         didSet { defaults.set(sort.rawValue, forKey: Key.sort) }
     }
-    @Published var showCompleted: Bool {
+    var showCompleted: Bool {
         didSet {
             defaults.set(showCompleted, forKey: Key.showCompleted)
             fetchCompleted()
         }
     }
     /// Quick add: due today when the text names no date.
-    @Published var autoToday: Bool {
+    var autoToday: Bool {
         didSet { defaults.set(autoToday, forKey: Key.autoToday) }
     }
     /// Quick add: remove the recognised date from the title.
-    @Published var removeParsedDate: Bool {
+    var removeParsedDate: Bool {
         didSet { defaults.set(removeParsedDate, forKey: Key.removeDate) }
     }
 
@@ -70,8 +71,8 @@ final class RemindersStore: ObservableObject {
 
     let store = EKEventStore()
     private let defaults: UserDefaults
-    private var storeObserver: NSObjectProtocol?
-    private var started = false
+    @ObservationIgnored private var storeObserver: NSObjectProtocol?
+    @ObservationIgnored private var started = false
     private static let completionDelay: Duration = .milliseconds(700)
 
     init(defaults: UserDefaults = .standard) {
@@ -151,7 +152,7 @@ final class RemindersStore: ObservableObject {
         }
     }
 
-    private var hasRequested = false
+    @ObservationIgnored private var hasRequested = false
 
     func requestAccess() {
         if Self.currentAccess() == .granted {

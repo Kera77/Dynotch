@@ -1,11 +1,12 @@
 import AppKit
-import Combine
 import CoreAudio
+import Observation
 
 /// Shows volume and brightness changes beside the notch instead of the macOS overlay
 /// (spec H-1…H-6, A-1…A-6).
 @MainActor
-final class HUDService: ObservableObject {
+@Observable
+final class HUDService {
     enum Kind: Equatable, Sendable {
         case volume
         case brightness
@@ -17,19 +18,19 @@ final class HUDService: ObservableObject {
         let muted: Bool
     }
 
-    @Published private(set) var display: Display?
+    private(set) var display: Display?
 
     private let settings: AppSettings
-    private var tap: CFMachPort?
-    private var tapSource: CFRunLoopSource?
-    private var hideTask: Task<Void, Never>?
-    private var listenedDevice: AudioDeviceID?
-    private var settingsObserver: AnyCancellable?
+    @ObservationIgnored private var tap: CFMachPort?
+    @ObservationIgnored private var tapSource: CFRunLoopSource?
+    @ObservationIgnored private var hideTask: Task<Void, Never>?
+    @ObservationIgnored private var listenedDevice: AudioDeviceID?
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
     /// Our own volume changes also arrive through the listener; they are shown once.
-    private var ownChangeUntil = Date.distantPast
+    @ObservationIgnored private var ownChangeUntil = Date.distantPast
     /// The level set last: Bluetooth headphones report a new level only after a moment, so the
     /// next key press goes on from this one (spec H-2b).
-    private var lastSet: (device: AudioDeviceID, set: (level: Double, date: Date))?
+    @ObservationIgnored private var lastSet: (device: AudioDeviceID, set: (level: Double, date: Date))?
 
     private static let visibleFor: Duration = .milliseconds(1500)
 
@@ -38,7 +39,7 @@ final class HUDService: ObservableObject {
     }
 
     func start() {
-        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
+        settingsObserver = observeChanges { [settings] in _ = settings.hudEnabled } onChange: { [weak self] in self?.applyEnabled() }
         applyEnabled()
         listenToVolume()
     }

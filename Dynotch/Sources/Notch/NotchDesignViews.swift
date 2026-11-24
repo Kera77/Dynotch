@@ -17,7 +17,7 @@ extension EnvironmentValues {
 
 /// Passes the chosen design down and keeps it current.
 struct DesignEnvironment<Content: View>: View {
-    @ObservedObject var settings: AppSettings
+    var settings: AppSettings
     let content: Content
 
     var body: some View {
@@ -143,7 +143,7 @@ struct DesignBackground<S: Shape>: View {
     /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
     @AppStorage(AppleStyle.crispKey) private var crisp = true
     /// The accent colour set in macOS, followed live (spec D-17b).
-    @ObservedObject private var systemAccent = SystemAccent.shared
+    private var systemAccent = SystemAccent.shared
 
     /// Refined black to glass: black over the top row, then an eased fade over 80 pt (spec D-14d).
     static func refinedBlendStops(height: CGFloat, topRow: CGFloat) -> [Gradient.Stop] {
@@ -254,7 +254,7 @@ struct RimLight<S: Shape>: View {
 
 /// The glass behind a menu bar panel, in the window under it (spec D-4, D-6).
 struct PopoverGlassLayer: View {
-    @ObservedObject var state: MenuBarPanelState
+    var state: MenuBarPanelState
     @Environment(\.notchDesign) private var design
 
     var body: some View {

@@ -24,7 +24,7 @@ struct BatteryDeviceIcon: View {
 
 /// Battery levels in the notch (spec BT-1): one row per device, as in macOS's own list.
 struct BatteryFeatureView: View {
-    @ObservedObject var service: BatteryService
+    var service: BatteryService
     let isActive: Bool
 
     static var green: Color { Color.green }

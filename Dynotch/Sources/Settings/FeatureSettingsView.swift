@@ -4,8 +4,8 @@ import UniformTypeIdentifiers
 /// Which modules are on, their order, menu bar icons and shortcuts, the module strip and the module
 /// switcher (spec M-3, M-7, SC-1, SC-2, QS-13, QS-14).
 struct FeatureSettingsView: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var shortcuts: ShortcutStore
+    @Bindable var settings: AppSettings
+    var shortcuts: ShortcutStore
     /// The module switcher's settings (spec QS-13); nil before the switcher is set up.
     var switcher: SwitcherSettings?
 
@@ -62,8 +62,8 @@ struct FeatureSettingsView: View {
 /// One module: on or off, its shortcut beside the name; › opens its options (spec SD-5).
 private struct FeatureRow<Music: View>: View {
     let feature: FeatureID
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var shortcuts: ShortcutStore
+    @Bindable var settings: AppSettings
+    var shortcuts: ShortcutStore
     @ViewBuilder let musicOptions: () -> Music
 
     @State private var isOpen = false

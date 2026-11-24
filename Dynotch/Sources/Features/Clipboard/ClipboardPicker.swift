@@ -1,28 +1,29 @@
 import AppKit
 import Carbon.HIToolbox
-import Combine
+import Observation
 
 /// The clipboard shortcuts (spec CB-2, CB-3). A quick press pastes the newest item; holding the
 /// modifier shows the items in the notch, the arrows (or the key again) choose, letting go
 /// pastes, Escape cancels. While choosing, the arrows, digits and Escape belong to Dynotch.
 @MainActor
-final class ClipboardPicker: ObservableObject {
-    @Published private(set) var isShown = false
-    @Published private(set) var tab = ClipboardTab.history
-    @Published private(set) var selection = 0
+@Observable
+final class ClipboardPicker {
+    private(set) var isShown = false
+    private(set) var tab = ClipboardTab.history
+    private(set) var selection = 0
 
     let store: ClipboardStore
     /// Shows or hides the items in the notch.
-    var present: (Bool) -> Void = { _ in }
+    @ObservationIgnored var present: (Bool) -> Void = { _ in }
 
     private static let signature: OSType = 0x4459_4350 // "DYCP"
-    private var handler: EventHandlerRef?
-    private var permanent: [EventHotKeyRef] = []
-    private var temporary: [EventHotKeyRef] = []
-    private var isActive = false
-    private var startedAt = Date.distantPast
-    private var releaseTimer: Timer?
-    private var observer: AnyCancellable?
+    @ObservationIgnored private var handler: EventHandlerRef?
+    @ObservationIgnored private var permanent: [EventHotKeyRef] = []
+    @ObservationIgnored private var temporary: [EventHotKeyRef] = []
+    @ObservationIgnored private var isActive = false
+    @ObservationIgnored private var startedAt = Date.distantPast
+    @ObservationIgnored private var releaseTimer: Timer?
+    @ObservationIgnored private var observer: ChangeObservation?
 
     private enum Action: UInt32 {
         case history = 1, saved, left, right, tabUp, tabDown, cancel, cancelPlain
@@ -37,13 +38,18 @@ final class ClipboardPicker: ObservableObject {
 
     func start() {
         installHandler()
-        observer = store.afterChange { [weak self] in self?.registerPermanent() }
+        observer = observeChanges { [store] in
+            _ = store.historyShortcut
+            _ = store.savedShortcut
+        } onChange: { [weak self] in
+            self?.registerPermanent()
+        }
         registerPermanent()
     }
 
     // MARK: - Keys
 
-    private var registeredShortcuts: [KeyShortcut?] = []
+    @ObservationIgnored private var registeredShortcuts: [KeyShortcut?] = []
 
     private func registerPermanent() {
         let wanted = [store.historyShortcut, store.savedShortcut]

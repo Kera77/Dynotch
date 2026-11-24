@@ -1,31 +1,33 @@
 import AppKit
 import ImageIO
+import Observation
 
 /// The open shot in the editor (spec SH-7…SH-10): its annotations and crop, undo and redo, and
 /// writing the result back to the file.
 @MainActor
-final class ScreenshotEditor: ObservableObject {
+@Observable
+final class ScreenshotEditor {
     let url: URL
     let image: CGImage
-    @Published private(set) var annotations: [Annotation] = []
-    @Published private(set) var crop: CGRect?
-    @Published var tool: EditorTool
-    @Published var color = EditorColor.red
+    private(set) var annotations: [Annotation] = []
+    private(set) var crop: CGRect?
+    var tool: EditorTool
+    var color = EditorColor.red
     /// 0, 1, 2: thin, medium, thick.
-    @Published var widthLevel = 1
+    var widthLevel = 1
     /// Being drawn right now.
-    @Published var draft: Annotation?
-    @Published var cropDraft: CGRect?
+    var draft: Annotation?
+    var cropDraft: CGRect?
     /// Where a text is being typed, in image pixels.
-    @Published var textAnchor: CGPoint?
-    @Published var typedText = ""
-    @Published private(set) var message: String?
+    var textAnchor: CGPoint?
+    var typedText = ""
+    private(set) var message: String?
     /// Where copies go; tests use their own so they never touch the owner's clipboard.
-    var pasteboard = NSPasteboard.general
+    @ObservationIgnored var pasteboard = NSPasteboard.general
 
-    private var undoStack: [(annotations: [Annotation], crop: CGRect?)] = []
-    private var redoStack: [(annotations: [Annotation], crop: CGRect?)] = []
-    private lazy var pixelatedImage: CGImage? = AnnotationRenderer.pixelated(image)
+    @ObservationIgnored private var undoStack: [(annotations: [Annotation], crop: CGRect?)] = []
+    @ObservationIgnored private var redoStack: [(annotations: [Annotation], crop: CGRect?)] = []
+    @ObservationIgnored private lazy var pixelatedImage: CGImage? = AnnotationRenderer.pixelated(image)
 
     init?(url: URL, tools: [EditorTool]) {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),

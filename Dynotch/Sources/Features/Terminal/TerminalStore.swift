@@ -1,11 +1,12 @@
 import AppKit
-import Combine
+import Observation
 import SwiftTerm
 
 /// The Terminal module's shells. They live on while the notch is closed, switches modules or
 /// moves to another display (spec TE-1…TE-4). Nothing typed or shown is logged (spec TE-8).
 @MainActor
-final class TerminalStore: ObservableObject {
+@Observable
+final class TerminalStore {
     static let shared = TerminalStore()
 
     static let maxTabs = 8
@@ -14,15 +15,15 @@ final class TerminalStore: ObservableObject {
     /// How long after the last key the notch stays open with the pointer outside (spec TE-9).
     static let typingHold: TimeInterval = 10
 
-    @Published private(set) var sessions: [TerminalSession] = []
-    @Published var selectedID: UUID?
-    @Published private(set) var fontSize: CGFloat {
+    private(set) var sessions: [TerminalSession] = []
+    var selectedID: UUID?
+    private(set) var fontSize: CGFloat {
         didSet { defaults.set(Double(fontSize), forKey: Self.fontKey) }
     }
 
     private static let fontKey = "terminalFontSize"
     private let defaults: UserDefaults
-    private var lastInputAt: Date?
+    @ObservationIgnored private var lastInputAt: Date?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

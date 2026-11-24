@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Version, updates (spec U-1…U-4) and quitting.
 struct AboutSettingsView: View {
-    @ObservedObject var updates: UpdateService
+    @Bindable var updates: UpdateService
     let settings: AppSettings
     let notifications: NotificationService
     @State private var copied = false

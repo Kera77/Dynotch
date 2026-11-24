@@ -1,52 +1,53 @@
 import AppKit
-import Combine
 import EventKit
+import Observation
 
 /// Reads events from macOS Calendar (iCloud, Google, Exchange… whatever is configured in
 /// System Settings › Internet Accounts) and tracks the upcoming event.
 @MainActor
-final class CalendarService: ObservableObject {
+@Observable
+final class CalendarService {
     enum Access: Equatable {
         case notDetermined
         case granted
         case denied
     }
 
-    @Published private(set) var access: Access
-    @Published private(set) var events: [CalendarEvent] = []
+    private(set) var access: Access
+    private(set) var events: [CalendarEvent] = []
     /// Events per day (keyed by start of day), for the dots under the dates.
-    @Published private(set) var dayCounts: [Date: Int] = [:]
+    private(set) var dayCounts: [Date: Int] = [:]
     /// Events shown beside the closed notch: in progress, or starting soon.
-    @Published private(set) var indicatorEvents: [CalendarEvent] = [] {
+    private(set) var indicatorEvents: [CalendarEvent] = [] {
         didSet { if indicator.events != indicatorEvents { indicator.events = indicatorEvents } }
     }
     /// What the closed notch shows, so it is not redrawn for every tick of the day view (spec N-16).
     let indicator = CalendarIndicator()
     /// A meeting that just entered the lead time: its name stays open below the notch until
     /// swiped away (spec K-8f).
-    @Published private(set) var announcement: CalendarEvent? {
+    private(set) var announcement: CalendarEvent? {
         didSet { if indicator.announcement != announcement { indicator.announcement = announcement } }
     }
     /// Meetings already announced, so each is announced once (also across restarts).
-    private var announced: Set<String> {
+    @ObservationIgnored private var announced: Set<String> {
         didSet { UserDefaults.standard.set(Array(announced), forKey: Self.announcedKey) }
     }
     private static let announcedKey = "announcedMeetings"
-    @Published private(set) var now = Date()
+    private(set) var now = Date()
     /// Day whose events are shown (start of day).
-    @Published var selectedDay = Calendar.current.startOfDay(for: Date())
+    var selectedDay = Calendar.current.startOfDay(for: Date())
 
     private let store = EKEventStore()
     private let settings: AppSettings
-    private var extraRange: DateInterval?
-    private var storeObserver: NSObjectProtocol?
-    private var tickTimer: Timer?
-    private var lastFetch: Date?
-    private var settingsObserver: AnyCancellable?
+    @ObservationIgnored private var extraRange: DateInterval?
+    @ObservationIgnored private var storeObserver: NSObjectProtocol?
+    @ObservationIgnored private var tickTimer: Timer?
+    @ObservationIgnored private var lastFetch: Date?
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
 
     private static let dismissedKey = "dismissedCountdowns"
     /// Countdowns hidden with the X (event ids); kept across restarts (spec K-8e).
-    private var dismissed: Set<String> {
+    @ObservationIgnored private var dismissed: Set<String> {
         didSet { UserDefaults.standard.set(Array(dismissed), forKey: Self.dismissedKey) }
     }
 
@@ -82,7 +83,13 @@ final class CalendarService: ObservableObject {
 
         tickTimer = RepeatingTimer.start(every: Self.tickInterval) { [weak self] in self?.tick() }
 
-        settingsObserver = settings.afterChange { [weak self] in self?.recompute() }
+        settingsObserver = observeChanges { [settings] in
+            _ = settings.calendarAlertEnabled
+            _ = settings.isEnabled(.calendar)
+            _ = settings.calendarLeadMinutes
+        } onChange: { [weak self] in
+            self?.recompute()
+        }
 
         if access == .notDetermined, settings.isEnabled(.calendar) {
             requestAccess()
@@ -267,7 +274,8 @@ final class CalendarService: ObservableObject {
 
 /// The meetings beside the closed notch and the announced one: all the notch watches of the calendar.
 @MainActor
-final class CalendarIndicator: ObservableObject {
-    @Published fileprivate(set) var events: [CalendarEvent] = []
-    @Published fileprivate(set) var announcement: CalendarEvent?
+@Observable
+final class CalendarIndicator {
+    fileprivate(set) var events: [CalendarEvent] = []
+    fileprivate(set) var announcement: CalendarEvent?
 }

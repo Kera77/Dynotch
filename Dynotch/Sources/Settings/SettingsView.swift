@@ -2,7 +2,7 @@ import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var settings: AppSettings
+    @Bindable var settings: AppSettings
     let calendar: CalendarService
     let notifications: NotificationService
     let badges: BadgeService
@@ -13,7 +13,7 @@ struct SettingsView: View {
     let beeper: BeeperService
     let devices: DeviceWatcher
     let chat: ClaudeChatService
-    let tasks: TaskIndicator
+    @Bindable var tasks: TaskIndicator
     var switcher: SwitcherSettings?
     var screenshots: ScreenshotSettings?
     var battery: BatteryService?
@@ -96,10 +96,10 @@ struct SettingsView: View {
 // MARK: - General
 
 private struct GeneralSettingsView: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var devices: DeviceWatcher
+    @Bindable var settings: AppSettings
+    var devices: DeviceWatcher
     let chat: ClaudeChatService
-    @ObservedObject var tasks: TaskIndicator
+    @Bindable var tasks: TaskIndicator
     var battery: BatteryService?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
@@ -265,7 +265,7 @@ private struct GeneralSettingsView: View {
 
 /// AutoRaise-style focus, without raising (spec F-1…F-6).
 private struct FocusSettingsView: View {
-    @ObservedObject var settings: AppSettings
+    @Bindable var settings: AppSettings
 
     var body: some View {
         Form {
@@ -303,8 +303,8 @@ private struct FocusSettingsView: View {
 // MARK: - Calendar
 
 private struct CalendarSettingsView: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var calendar: CalendarService
+    @Bindable var settings: AppSettings
+    var calendar: CalendarService
 
     var body: some View {
         Form {

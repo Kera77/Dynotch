@@ -1,9 +1,10 @@
-import Combine
 import Foundation
+import Observation
 
 /// User preferences, persisted in UserDefaults (spec G-5).
 @MainActor
-final class AppSettings: ObservableObject {
+@Observable
+final class AppSettings {
     static let closeDelayRange: ClosedRange<Double> = 0...3
     static let defaultCloseDelay = 0.3
     static let calendarLeadRange: ClosedRange<Int> = 1...30
@@ -58,7 +59,7 @@ final class AppSettings: ObservableObject {
     let defaults: UserDefaults
 
     /// Seconds the panel stays open after the pointer leaves it (spec N-4, N-5).
-    @Published var closeDelay: Double {
+    var closeDelay: Double {
         didSet {
             let clamped = Self.normalizedDelay(closeDelay)
             if clamped != closeDelay { closeDelay = clamped; return }
@@ -67,39 +68,39 @@ final class AppSettings: ObservableObject {
     }
 
     /// Order of features in the menu bar, including disabled ones (spec M-3).
-    @Published var featureOrder: [FeatureID] {
+    var featureOrder: [FeatureID] {
         didSet { defaults.set(featureOrder.map(\.rawValue), forKey: Key.featureOrder) }
     }
 
-    @Published private(set) var enabledFeatures: Set<FeatureID> {
+    private(set) var enabledFeatures: Set<FeatureID> {
         didSet { defaults.set(enabledFeatures.map(\.rawValue).sorted(), forKey: Key.enabledFeatures) }
     }
     /// A module that is off, opened from the swipe-up row: it runs and shows while the notch is
     /// open, then goes back to off (spec QS-15). Never saved.
-    @Published var visitingFeature: FeatureID?
+    var visitingFeature: FeatureID?
 
     /// On, but not among the modules: opened from elsewhere, e.g. Music from its cover (spec MU-8).
-    @Published var unlistedFeatures: Set<FeatureID> = [] {
+    var unlistedFeatures: Set<FeatureID> = [] {
         didSet { defaults.set(unlistedFeatures.map(\.rawValue).sorted(), forKey: Key.unlistedFeatures) }
     }
 
     /// What Spotify plays shows beside the closed notch (spec MU-8).
-    @Published var showsNowPlaying = true {
+    var showsNowPlaying = true {
         didSet { defaults.set(showsNowPlaying, forKey: Key.showsNowPlaying) }
     }
 
     /// Last active feature, restored when the panel opens (spec L-1, L-2).
-    @Published var lastFeature: FeatureID? {
+    var lastFeature: FeatureID? {
         didSet { defaults.set(lastFeature?.rawValue, forKey: Key.lastFeature) }
     }
 
     /// Show the upcoming-event indicator beside the closed notch (spec K-7).
-    @Published var calendarAlertEnabled: Bool {
+    var calendarAlertEnabled: Bool {
         didSet { defaults.set(calendarAlertEnabled, forKey: Key.calendarAlertEnabled) }
     }
 
     /// Minutes before an event the indicator appears (spec K-8).
-    @Published var calendarLeadMinutes: Int {
+    var calendarLeadMinutes: Int {
         didSet {
             let clamped = min(max(calendarLeadMinutes, Self.calendarLeadRange.lowerBound), Self.calendarLeadRange.upperBound)
             if clamped != calendarLeadMinutes { calendarLeadMinutes = clamped; return }
@@ -108,12 +109,12 @@ final class AppSettings: ObservableObject {
     }
 
     /// Whether the calendar was last shown as the full month view (spec K-10).
-    @Published var calendarLarge: Bool {
+    var calendarLarge: Bool {
         didSet { defaults.set(calendarLarge, forKey: Key.calendarLarge) }
     }
 
     /// Seconds a notification peeks out of the closed notch (spec E-6).
-    @Published var notificationDuration: Double {
+    var notificationDuration: Double {
         didSet {
             let range = Self.notificationDurationRange
             let clamped = min(max(notificationDuration.rounded(), range.lowerBound), range.upperBound)
@@ -123,99 +124,99 @@ final class AppSettings: ObservableObject {
     }
 
     /// Per-app choices that differ from the default (bundle identifier → enabled).
-    @Published private(set) var notificationApps: [String: Bool] {
+    private(set) var notificationApps: [String: Bool] {
         didSet { defaults.set(notificationApps, forKey: Key.notificationApps) }
     }
 
     static let focusDelayRange: ClosedRange<Double> = 0...0.5
 
     /// Volume and brightness beside the notch instead of the macOS overlay (spec A-1).
-    @Published var hudEnabled: Bool {
+    var hudEnabled: Bool {
         didSet { defaults.set(hudEnabled, forKey: Key.hud) }
     }
 
     /// Hovering the notch shows a small preview first (spec PV-1).
-    @Published var hoverPreview: Bool {
+    var hoverPreview: Bool {
         didSet { defaults.set(hoverPreview, forKey: Key.hoverPreview) }
     }
 
     /// Where the small notices stand; nil follows the Wings mode (spec PV-66).
-    @Published var noticePlacementChoice: NoticePlacement? {
+    var noticePlacementChoice: NoticePlacement? {
         didSet { defaults.set(noticePlacementChoice?.rawValue, forKey: Key.noticePlacement) }
     }
 
     /// Where Gmail's unread messages come from (spec GM-12).
-    @Published var mailSource: MailSource {
+    var mailSource: MailSource {
         didSet { defaults.set(mailSource.rawValue, forKey: Key.mailSource) }
     }
 
     /// Incoming calls in the notch (spec P-1).
-    @Published var callsEnabled: Bool {
+    var callsEnabled: Bool {
         didSet { defaults.set(callsEnabled, forKey: Key.calls) }
     }
 
     /// Keep the session usage beside the notch even below 70 % (spec CL-6b).
-    @Published var claudeSessionPinned: Bool {
+    var claudeSessionPinned: Bool {
         didSet { defaults.set(claudeSessionPinned, forKey: Key.claudeSessionPinned) }
     }
 
     /// Trackpad taps when the notch opens and on swipes (spec H-7).
-    @Published var hapticsEnabled: Bool {
+    var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
     }
 
     /// A touch of the accent colour in the glass's dark tint (spec D-17).
-    @Published var glassAccent: Bool {
+    var glassAccent: Bool {
         didSet { defaults.set(glassAccent, forKey: Key.glassAccent) }
     }
 
     /// How strong the accent in the glass is, 0.5 being the default strength (spec D-17f).
-    @Published var glassAccentStrength = 0.5 {
+    var glassAccentStrength = 0.5 {
         didSet { defaults.set(glassAccentStrength, forKey: Key.glassAccentStrength) }
     }
 
     static let glassAccentStrengthRange = 0.1...1.0
 
     /// The closed notch has round ends like the Dynamic Island (spec N-11).
-    @Published var roundedNotch: Bool {
+    var roundedNotch: Bool {
         didSet { defaults.set(roundedNotch, forKey: Key.roundedNotch) }
     }
 
     /// The look of the open notch and the menu bar panels (spec D-1).
-    @Published var design: NotchDesign {
+    var design: NotchDesign {
         didSet { defaults.set(design.rawValue, forKey: Key.design) }
     }
 
     /// How opaque the open panel's background is; the closed notch stays black (spec D-13).
-    @Published var panelOpacity: Double {
+    var panelOpacity: Double {
         didSet { defaults.set(panelOpacity, forKey: Key.panelOpacity) }
     }
 
     static let panelOpacityRange: ClosedRange<Double> = 0.4...1
 
     /// Modules can be resized from their bottom right corner (spec RS-4).
-    @Published var resizableModules: Bool {
+    var resizableModules: Bool {
         didSet { defaults.set(resizableModules, forKey: Key.resizableModules) }
     }
 
     /// Resting the pointer at the notch's bottom edge shows the modules under it (spec MS-1).
-    @Published var moduleStrip: Bool {
+    var moduleStrip: Bool {
         didSet { defaults.set(moduleStrip, forKey: Key.moduleStrip) }
     }
 
     /// How long the pointer rests at the bottom edge before the modules show (spec MS-2).
-    @Published var moduleStripDelay: Double {
+    var moduleStripDelay: Double {
         didSet { defaults.set(moduleStripDelay, forKey: Key.moduleStripDelay) }
     }
 
     /// The share of the notch's height, from the bottom, that shows the modules (spec MS-2).
-    @Published var moduleStripBand: Double {
+    var moduleStripBand: Double {
         didSet { defaults.set(moduleStripBand, forKey: Key.moduleStripBand) }
     }
 
     /// A module of the strip also opens when the pointer rests on its icon (spec MS-7).
-    @Published var moduleStripHover = false { didSet { defaults.set(moduleStripHover, forKey: Key.moduleStripHover) } }
-    @Published var moduleStripHoverDelay = 0.5 {
+    var moduleStripHover = false { didSet { defaults.set(moduleStripHover, forKey: Key.moduleStripHover) } }
+    var moduleStripHoverDelay = 0.5 {
         didSet { defaults.set(moduleStripHoverDelay, forKey: Key.moduleStripHoverDelay) }
     }
     static let moduleStripHoverDelayRange: ClosedRange<Double> = 0.2...1.5
@@ -223,27 +224,27 @@ final class AppSettings: ObservableObject {
     static let moduleStripBandRange: ClosedRange<Double> = 0.25...0.5
 
     /// Rules of the smart opening that are turned off (spec SO-1).
-    @Published private(set) var smartRulesOff: Set<SmartRule> {
+    private(set) var smartRulesOff: Set<SmartRule> {
         didSet { defaults.set(smartRulesOff.map(\.rawValue).sorted(), forKey: Key.smartRulesOff) }
     }
 
     /// The look on displays without a physical notch (spec D-7).
-    @Published var externalStyle: ExternalNotchStyle {
+    var externalStyle: ExternalNotchStyle {
         didSet { defaults.set(externalStyle.rawValue, forKey: Key.externalStyle) }
     }
 
     /// The Phone or FaceTime app stays hidden while a call rings and lasts (spec P-5).
-    @Published var keepsPhoneInDock: Bool {
+    var keepsPhoneInDock: Bool {
         didSet { defaults.set(keepsPhoneInDock, forKey: Key.keepsPhoneInDock) }
     }
 
     /// Only the sides of the notch with something beside them are round (spec N-13).
-    @Published var roundOnlyWhereShown: Bool {
+    var roundOnlyWhereShown: Bool {
         didSet { defaults.set(roundOnlyWhereShown, forKey: Key.roundOnlyWhereShown) }
     }
 
     /// Over a full-screen app the closed notch is hidden (spec N-12).
-    @Published var hideInFullScreen: Bool {
+    var hideInFullScreen: Bool {
         didSet { defaults.set(hideInFullScreen, forKey: Key.hideInFullScreen) }
     }
 
@@ -251,27 +252,27 @@ final class AppSettings: ObservableObject {
     static let menuBarFeatures: [FeatureID] = [.calculator, .notes, .reminders, .claudeUsage, .claudeChat]
 
     /// Features whose menu bar icon is turned off (they stay in the notch).
-    @Published private(set) var hiddenFromMenuBar: Set<FeatureID> {
+    private(set) var hiddenFromMenuBar: Set<FeatureID> {
         didSet { defaults.set(hiddenFromMenuBar.map(\.rawValue).sorted(), forKey: Key.hiddenFromMenuBar) }
     }
 
     /// Usage indicator beside the notch (spec CL-6).
-    @Published var claudeRingVisible: Bool {
+    var claudeRingVisible: Bool {
         didSet { defaults.set(claudeRingVisible, forKey: Key.claudeRing) }
     }
 
     /// Notch notifications from 70 % usage (spec CL-5).
-    @Published var claudeUsageAlerts: Bool {
+    var claudeUsageAlerts: Bool {
         didSet { defaults.set(claudeUsageAlerts, forKey: Key.claudeAlerts) }
     }
 
     /// The app under the pointer gets the focus, its window is never raised (spec F-1).
-    @Published var focusFollowsMouse: Bool {
+    var focusFollowsMouse: Bool {
         didSet { defaults.set(focusFollowsMouse, forKey: Key.focusFollowsMouse) }
     }
 
     /// How long the pointer rests before the focus moves (spec F-3).
-    @Published var focusDelay: Double {
+    var focusDelay: Double {
         didSet {
             let clamped = (min(max(focusDelay, Self.focusDelayRange.lowerBound), Self.focusDelayRange.upperBound) * 20).rounded() / 20
             if clamped != focusDelay { focusDelay = clamped; return }
@@ -280,11 +281,11 @@ final class AppSettings: ObservableObject {
     }
 
     /// Close the macOS banner of notifications the notch shows (spec E-8).
-    @Published var hideNativeBanners: Bool {
+    var hideNativeBanners: Bool {
         didSet { defaults.set(hideNativeBanners, forKey: Key.hideNativeBanners) }
     }
 
-    @Published var settingsPresentation: SettingsPresentation {
+    var settingsPresentation: SettingsPresentation {
         didSet { defaults.set(settingsPresentation.rawValue, forKey: Key.settingsPresentation) }
     }
 

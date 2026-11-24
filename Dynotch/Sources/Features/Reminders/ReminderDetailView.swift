@@ -3,7 +3,7 @@ import SwiftUI
 /// A reminder's details over the module, like the Reminders app's info panel (spec R-14):
 /// title, notes, link, date and time, repeat, early alert, list and priority.
 struct ReminderDetailView: View {
-    @ObservedObject var store: RemindersStore
+    var store: RemindersStore
     let id: String
     @State private var details: ReminderDetails?
     @State private var original: ReminderDetails?

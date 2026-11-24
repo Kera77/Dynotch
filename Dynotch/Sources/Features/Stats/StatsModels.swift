@@ -1,5 +1,5 @@
-import Combine
 import Foundation
+import Observation
 
 /// The values the closed notch can show of the stats, any of them (spec SY-7).
 enum StatsValue: String, CaseIterable, Identifiable, Sendable {
@@ -96,16 +96,17 @@ enum StatsWarnings {
 
 /// The stats' choices (spec SY-7, SY-9), kept in the defaults.
 @MainActor
-final class StatsOptions: ObservableObject {
+@Observable
+final class StatsOptions {
     /// Shown beside the closed notch.
-    @Published private(set) var shownValues: Set<StatsValue> {
+    private(set) var shownValues: Set<StatsValue> {
         didSet { defaults.set(shownValues.map(\.rawValue).sorted(), forKey: Self.valuesKey) }
     }
-    @Published private(set) var alertsOff: Set<StatsAlert> {
+    private(set) var alertsOff: Set<StatsAlert> {
         didSet { defaults.set(alertsOff.map(\.rawValue).sorted(), forKey: Self.alertsKey) }
     }
     /// Gigabytes of swap that bring a notification; nil: none.
-    @Published var swapLimit: Int? {
+    var swapLimit: Int? {
         didSet { defaults.set(swapLimit ?? 0, forKey: Self.swapKey) }
     }
 

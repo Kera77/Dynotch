@@ -4,7 +4,7 @@ import SwiftUI
 /// newest message; a click opens the unread messages, each answerable on its own, and a reply
 /// field that sends through Beeper.
 struct BeeperUnreadCard: View {
-    @ObservedObject var beeper: BeeperService
+    var beeper: BeeperService
     let chat: BeeperChatInfo
     let isExpanded: Bool
     let toggle: () -> Void
@@ -225,7 +225,7 @@ struct BeeperUnreadCard: View {
 
 /// The unread Beeper chats as cards, one open at a time (spec UM-9).
 struct BeeperUnreadCards: View {
-    @ObservedObject var beeper: BeeperService
+    var beeper: BeeperService
     /// One highlighted network's chats (spec BP-15); nil: the ones Beeper stands for together.
     var network: String?
     let open: (BeeperChatInfo) -> Void
@@ -269,7 +269,7 @@ struct BeeperUnreadCards: View {
 
 /// A highlighted Beeper network's tab: its unread chats as cards with their reply field (spec BP-15).
 struct BeeperNetworkTab: View {
-    @ObservedObject var beeper: BeeperService
+    var beeper: BeeperService
     let network: String
     let open: (BeeperChatInfo) -> Void
 

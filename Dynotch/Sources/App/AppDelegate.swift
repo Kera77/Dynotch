@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import SwiftUI
 
 @MainActor
@@ -44,10 +43,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private var notchManager: NotchManager?
     private var textService: TextServiceProvider?
-    private var switcherObserver: AnyCancellable?
-    private var screenshotObserver: AnyCancellable?
-    private var mailBadgeObserver: AnyCancellable?
-    private var chatBadgeObserver: AnyCancellable?
+    private var switcherObserver: ChangeObservation?
+    private var screenshotObserver: ChangeObservation?
     /// Keeps App Nap away: after a long idle time the first opening of the notch lagged while the
     /// app woke up (spec N-14). Idle system sleep is still allowed.
     private let noNap = ProcessInfo.processInfo.beginActivity(
@@ -103,7 +100,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startSwitcher(manager)
         services.screenshots.openEditor = { [weak manager] url in manager?.openScreenshotEditor(url) }
         // The tray's Screenshots tab follows the tool (spec SH-11).
-        screenshotObserver = services.screenshots.settings.$isOn.sink { [tray = services.tray] in tray.showsScreenshots = $0 }
+        let screenshotSettings = services.screenshots.settings
+        services.tray.showsScreenshots = screenshotSettings.isOn
+        screenshotObserver = observeChanges { _ = screenshotSettings.isOn } onChange: { [tray = services.tray] in
+            tray.showsScreenshots = screenshotSettings.isOn
+        }
         services.beeper.start()
         services.devices.start()
 
@@ -139,7 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 feature: .reminders,
                 panelSize: NSSize(width: 400, height: 520),
                 settings: settings,
-                badge: Badge(changes: reminders.objectWillChange) { reminders.access == .granted ? reminders.openCount : nil },
+                badge: Badge { reminders.access == .granted ? reminders.openCount : nil },
                 onOpen: { reminders.activate() },
                 makeContent: { AnyView(RemindersMenuBarView(store: reminders, state: $0)) }
             ),
@@ -148,7 +149,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 panelSize: NSSize(width: 340, height: 300),
                 settings: settings,
                 icon: StatusIcon(
-                    changes: usage.objectWillChange,
                     image: { nil },
                     toolTip: { usage.limits.isEmpty ? nil : "Claude · " + usage.summary }
                 ),
@@ -159,7 +159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 feature: .claudeChat,
                 panelSize: NSSize(width: 640, height: 470),
                 settings: settings,
-                icon: StatusIcon(changes: chat.objectWillChange, image: { nil }, toolTip: { "AI" }),
+                icon: StatusIcon(image: { nil }, toolTip: { "AI" }),
                 onOpen: { chat.isVisibleInMenuBar = true },
                 onClose: { chat.isVisibleInMenuBar = false },
                 makeContent: { AnyView(ClaudeChatMenuBarView(service: chat, state: $0)) }
@@ -193,7 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switcher.displayFrame = { NotchManager.pointerDisplayFrame() }
         switcher.start()
         startModuleSwitcher(manager)
-        let follow: @MainActor () -> Void = {
+        let follow: @MainActor @Sendable () -> Void = {
             let settings = switcher.settings
             TrackpadSwipe.fingers = settings.isOn ? settings.swipeFingers : 0
             TrackpadSwipe.upFingers = settings.moduleSwitcherOn ? settings.moduleFingers : 0
@@ -217,9 +217,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         follow()
-        switcherObserver = switcher.settings.objectWillChange.sink { _ in
-            DispatchQueue.main.async { MainActor.assumeIsolated { follow() } }
-        }
+        switcherObserver = observeChanges { [settings = switcher.settings] in
+            _ = (settings.isOn, settings.swipeFingers, settings.moduleSwitcherOn, settings.moduleFingers)
+        } onChange: { follow() }
     }
 
     /// The module switcher: the chosen modules, opened like their shortcut (spec QS-6, QS-10).
@@ -292,12 +292,6 @@ extension AppDelegate {
     func startBadges() {
         services.badges.labelOverride = { [weak notifications = services.notifications] app in
             notifications?.mailBadgeLabel(for: app) ?? notifications?.chatBadgeLabel(for: app)
-        }
-        mailBadgeObserver = services.notifications.mail.objectWillChange.sink { [weak badges = services.badges] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
-        }
-        chatBadgeObserver = services.notifications.chatWeb.objectWillChange.sink { [weak badges = services.badges] in
-            DispatchQueue.main.async { MainActor.assumeIsolated { badges?.objectWillChange.send() } }
         }
         services.badges.beeperNetworks = { [weak beeper = services.beeper] in beeper?.highlightedNetworks ?? [] }
         services.badges.beeperNetworkUnread = { [weak beeper = services.beeper] in beeper?.unreadTotal(network: $0) ?? 0 }

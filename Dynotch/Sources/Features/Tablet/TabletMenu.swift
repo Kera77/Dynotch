@@ -5,7 +5,7 @@ import SwiftUI
 /// like the "+" menu of macOS's Displays settings (spec TB-1). A plain notch button that pops up
 /// an AppKit menu, so it looks and hovers like the buttons beside it (spec TB-8).
 struct TabletMenu: View {
-    @ObservedObject var service: TabletDisplayService
+    var service: TabletDisplayService
     /// The button's view, so the menu opens right below it (spec TB-9).
     @State private var anchor = MenuAnchor()
 

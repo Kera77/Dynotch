@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings › Menu bar › Color (spec MB-7, MB-7b, MB-8, MB-11, MB-12).
 struct MenuBarTintSection: View {
-    @ObservedObject var tint: MenuBarTintService
+    @Bindable var tint: MenuBarTintService
 
     var body: some View {
         Section {

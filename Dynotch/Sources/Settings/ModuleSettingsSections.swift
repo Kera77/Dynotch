@@ -3,9 +3,9 @@ import SwiftUI
 /// The module switcher on a swipe up and its modules, on the Modules page (spec QS-1, QS-9,
 /// QS-10, QS-13).
 struct ModuleSwitcherSections: View {
-    @ObservedObject var settings: SwitcherSettings
+    @Bindable var settings: SwitcherSettings
     /// The modules and whether they are on (spec QS-10).
-    @ObservedObject var modules: AppSettings
+    var modules: AppSettings
 
     var body: some View {
         Section {
@@ -39,8 +39,8 @@ struct ModuleSwitcherSections: View {
 /// Which modules the swipe-up row shows, laid out like the strip's list (spec QS-10, QS-18):
 /// the chosen ones first in their order, then the rest; a toggle adds or removes, dragging reorders.
 private struct SwipeModulesRows: View {
-    @ObservedObject var settings: SwitcherSettings
-    @ObservedObject var modules: AppSettings
+    @Bindable var settings: SwitcherSettings
+    var modules: AppSettings
     @State private var isOpen = false
     /// The row being dragged to a new place (spec SD-4).
     @State private var dragged: FeatureID?
@@ -79,7 +79,7 @@ private struct SwipeModulesRows: View {
 
 /// The modules under the notch, on the Modules page (spec MS-1…MS-4, QS-14).
 struct ModuleStripSection: View {
-    @ObservedObject var settings: AppSettings
+    @Bindable var settings: AppSettings
 
     var body: some View {
         Section {
@@ -114,7 +114,7 @@ struct ModuleStripSection: View {
 
 /// Which modules the strip shows (spec MS-5).
 private struct StripModulesRows: View {
-    @ObservedObject var settings: AppSettings
+    @Bindable var settings: AppSettings
     @State private var hidden = ModuleStripChoice.hidden
     @State private var isOpen = false
     /// The row being dragged to a new place (spec MS-6b).
@@ -155,7 +155,7 @@ private struct StripModulesRows: View {
 /// Dragging a strip row over another moves it there; the module order follows (spec MS-6b).
 private struct StripDropDelegate: DropDelegate {
     let target: FeatureID
-    let settings: AppSettings
+    @Bindable var settings: AppSettings
     @Binding var dragged: FeatureID?
 
     func dropEntered(info: DropInfo) {

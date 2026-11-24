@@ -37,7 +37,7 @@ extension ClaudeChatService {
 
 /// The starred answers in the chat list; a click opens the chat (spec AI-15).
 struct AIFavoritesSection: View {
-    @ObservedObject var service: ClaudeChatService
+    var service: ClaudeChatService
 
     var body: some View {
         let favorites = service.favorites(of: service.shownProvider)

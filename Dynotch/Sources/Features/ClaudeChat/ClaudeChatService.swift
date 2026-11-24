@@ -1,5 +1,5 @@
 import AppKit
-import Combine
+import Observation
 
 /// Collects a process's output into lines; filled from a background queue.
 private final class LineBuffer: @unchecked Sendable {
@@ -22,50 +22,51 @@ private final class LineBuffer: @unchecked Sendable {
 
 /// Chats with Claude in the notch (spec CC-1…CC-5), through the Claude Code program.
 @MainActor
-final class ClaudeChatService: ObservableObject {
+@Observable
+final class ClaudeChatService {
     /// Newest first.
-    @Published private(set) var chats: [ClaudeChat] = []
+    private(set) var chats: [ClaudeChat] = []
     /// nil: a new chat that has no question yet.
-    @Published private(set) var selectedID: UUID?
-    @Published var draft = ""
+    private(set) var selectedID: UUID?
+    var draft = ""
     /// The chat Claude is answering in.
-    @Published private(set) var workingID: UUID? {
+    private(set) var workingID: UUID? {
         didSet { if indicator.isWorking != isWorking { indicator.isWorking = isWorking } }
     }
     /// Only whether an answer is being written, for the notch (spec N-16).
     let indicator = ChatIndicator()
     /// The chat is on screen in the notch or in the menu bar panel; an answer arriving
     /// meanwhile needs no notice.
-    var isVisible = false
-    var isVisibleInMenuBar = false
+    @ObservationIgnored var isVisible = false
+    @ObservationIgnored var isVisibleInMenuBar = false
     /// Claude Code's own sessions that were not taken over yet (spec CC-6).
-    @Published private(set) var codeSessions: [ClaudeCodeSession] = []
+    private(set) var codeSessions: [ClaudeCodeSession] = []
     /// The list of earlier chats is shown (spec CC-7).
-    @Published var showsSidebar: Bool {
+    var showsSidebar: Bool {
         didSet { defaults.set(!showsSidebar, forKey: Self.sidebarKey) }
     }
 
     /// The service new chats use (spec AI-1); the default comes from the settings.
-    @Published var provider: AIProvider {
+    var provider: AIProvider {
         didSet { defaults.set(provider.rawValue, forKey: Self.providerKey) }
     }
     /// Answers with more thinking (spec AI-2).
-    @Published var thinksHarder = false
+    var thinksHarder = false
     /// Files and images going with the next question (spec AI-5).
-    @Published var attachments: [URL] = []
+    var attachments: [URL] = []
     /// The session Codex announced before its answer ended.
-    var pendingSessions: [UUID: String] = [:]
+    @ObservationIgnored var pendingSessions: [UUID: String] = [:]
     /// What the program wrote to its error output, for a useful message.
-    var errorOutput: [UUID: String] = [:]
+    @ObservationIgnored var errorOutput: [UUID: String] = [:]
 
     static let providerKey = "aiDefaultProvider"
     private static let sidebarKey = "claudeChatSidebarHidden"
     let defaults: UserDefaults
 
     private let file: URL
-    var process: Process?
+    @ObservationIgnored var process: Process?
     /// Called when an answer is ready while the chat is not on screen (spec CC-5).
-    var onAnswerReady: (ClaudeChat) -> Void = { _ in }
+    @ObservationIgnored var onAnswerReady: (ClaudeChat) -> Void = { _ in }
 
     static var defaultFolder: URL {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
@@ -361,6 +362,7 @@ extension ClaudeChatService {
 
 /// Whether the AI is writing an answer: all the closed notch needs of the chat.
 @MainActor
-final class ChatIndicator: ObservableObject {
-    @Published fileprivate(set) var isWorking = false
+@Observable
+final class ChatIndicator {
+    fileprivate(set) var isWorking = false
 }

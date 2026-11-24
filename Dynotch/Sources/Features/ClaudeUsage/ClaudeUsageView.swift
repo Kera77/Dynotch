@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Usage like Claude's own usage screen (spec CL-3).
 struct ClaudeUsageView: View {
-    @ObservedObject var service: ClaudeUsageService
+    var service: ClaudeUsageService
     let isActive: Bool
 
     static var blue: Color { Theme.blue }
@@ -178,7 +178,7 @@ private struct UsageRow: View {
 
 /// Claude usage in the notch.
 struct ClaudeUsageFeatureView: View {
-    @ObservedObject var service: ClaudeUsageService
+    var service: ClaudeUsageService
     let isActive: Bool
 
     var body: some View {
@@ -189,8 +189,8 @@ struct ClaudeUsageFeatureView: View {
 
 /// Content of the Claude usage menu bar panel.
 struct ClaudeUsageMenuBarView: View {
-    @ObservedObject var service: ClaudeUsageService
-    @ObservedObject var state: MenuBarPanelState
+    var service: ClaudeUsageService
+    var state: MenuBarPanelState
 
     var body: some View {
         ClaudeUsageView(service: service, isActive: true)

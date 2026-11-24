@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct NotificationSettingsView: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var service: NotificationService
+    @Bindable var settings: AppSettings
+    var service: NotificationService
 
     var body: some View {
         form
@@ -114,7 +114,7 @@ struct NotificationSettingsView: View {
 /// How many lines of a message the pop-up shows before hovering shows all of it (spec E-22b);
 /// whether it shows the message at all is set per app.
 private struct PeekSettingsRows: View {
-    @ObservedObject var preferences: NotificationPreferences
+    @Bindable var preferences: NotificationPreferences
 
     var body: some View {
         // Name or message is chosen per app, under each app's rules (spec E-22b).

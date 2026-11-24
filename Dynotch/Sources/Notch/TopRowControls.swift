@@ -36,11 +36,12 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
 
 /// The order and the hidden controls, kept in the defaults (spec M-11).
 @MainActor
-final class TopRowLayout: ObservableObject {
+@Observable
+final class TopRowLayout {
     static let shared = TopRowLayout()
 
-    @Published private(set) var order: [TopRowControl]
-    @Published private(set) var hidden: Set<TopRowControl>
+    private(set) var order: [TopRowControl]
+    private(set) var hidden: Set<TopRowControl>
 
     private let defaults: UserDefaults
     private static let orderKey = "topRowOrder"
@@ -99,7 +100,7 @@ final class TopRowLayout: ObservableObject {
 
 /// Settings rows: drag to reorder, switch to show (spec M-11).
 struct TopRowSettingsRows: View {
-    @ObservedObject var layout = TopRowLayout.shared
+    var layout = TopRowLayout.shared
     @State private var dragged: TopRowControl?
 
     var body: some View {

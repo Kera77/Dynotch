@@ -3,7 +3,7 @@ import SwiftUI
 /// One sender's new messages, shown when the peek is hovered (spec E-4): the sender once on
 /// top, the texts one under the other, and a reply field for apps that can be answered (spec E-11).
 struct NotificationStackView: View {
-    @ObservedObject var service: NotificationService
+    var service: NotificationService
     let notifications: [AppNotification]
     let canReply: Bool
     let notchHeight: CGFloat

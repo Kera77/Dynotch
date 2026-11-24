@@ -1,15 +1,16 @@
 import AppKit
 import ApplicationServices
-import Combine
+import Observation
 
 /// Blocks every key press while on, so the keyboard can be cleaned without typing (spec KL-1…KL-3).
 /// Only the mouse can turn it off again.
 @MainActor
-final class KeyboardLock: ObservableObject {
-    @Published private(set) var isLocked = false
+@Observable
+final class KeyboardLock {
+    private(set) var isLocked = false
 
-    private var tap: CFMachPort?
-    private var tapSource: CFRunLoopSource?
+    @ObservationIgnored private var tap: CFMachPort?
+    @ObservationIgnored private var tapSource: CFRunLoopSource?
 
     func toggle() {
         if isLocked {

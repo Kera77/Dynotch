@@ -3,7 +3,7 @@ import SwiftUI
 /// One source of notifications in the settings: on or off, and its own rules (spec E-15).
 struct NotificationSourceRow: View {
     let app: NotificationApp
-    @ObservedObject var service: NotificationService
+    var service: NotificationService
     let isOn: Binding<Bool>
 
     @State private var isOpen = false

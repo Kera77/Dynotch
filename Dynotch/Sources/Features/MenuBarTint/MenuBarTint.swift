@@ -93,11 +93,12 @@ enum TintColor {
 /// on (the default), nothing behind the menu bar shows, so the tint lies over it, see-through,
 /// so its titles and icons show and clicks go through; the notch's place stays black.
 @MainActor
-final class MenuBarTintService: ObservableObject {
+@Observable
+final class MenuBarTintService {
     static let shared = MenuBarTintService()
     private static let key = "menuBarTint"
 
-    @Published var style: MenuBarTintStyle {
+    var style: MenuBarTintStyle {
         didSet {
             if let data = try? JSONEncoder().encode(style) { defaults.set(data, forKey: Self.key) }
             update()
@@ -105,9 +106,9 @@ final class MenuBarTintService: ObservableObject {
     }
 
     private let defaults: UserDefaults
-    private var windows: [NSWindow] = []
-    private var observers: [NSObjectProtocol] = []
-    private var isHiddenForMissionControl = false
+    @ObservationIgnored private var windows: [NSWindow] = []
+    @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private var isHiddenForMissionControl = false
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -206,7 +207,7 @@ final class MenuBarTintService: ObservableObject {
 
 /// The strip's colour, following light and dark mode (spec MB-8).
 struct MenuBarTintView: View {
-    @ObservedObject var service: MenuBarTintService
+    var service: MenuBarTintService
     /// The notch's place, left clear (spec MB-9).
     var gap: ClosedRange<CGFloat>?
     @Environment(\.colorScheme) private var colorScheme

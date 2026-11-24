@@ -3,7 +3,7 @@ import SwiftUI
 /// The chosen Mail accounts' unread messages, one group per account (spec GM-6). Under All only
 /// the newest few per account; the Mail tab lists them all.
 struct MailUnreadList: View {
-    @ObservedObject var mail: MailService
+    var mail: MailService
     /// At most this many rows per account; nil: all.
     var limit: Int?
 
@@ -85,7 +85,7 @@ struct MailMessageRow: View {
 
 /// The Mail tab: every unread message of the chosen accounts, or why there is none (spec GM-6, GM-11).
 struct MailTabView: View {
-    @ObservedObject var mail: MailService
+    var mail: MailService
 
     var body: some View {
         if mail.state == .reading, !mail.shownAccounts.isEmpty {

@@ -1,50 +1,51 @@
 import AppKit
 import ApplicationServices
-import Combine
+import Observation
 
 /// Unread counts of the chosen apps, read from their Dock badges (spec B-1…B-7).
 @MainActor
-final class BadgeService: ObservableObject {
+@Observable
+final class BadgeService {
     private static let appsKey = "badgeApps"
     private static let brandIconsKey = "badgeBrandIcons"
     private static let hiddenKey = "badgeHidden"
     private static let interval: TimeInterval = 2
 
     /// The chosen apps in the order they stand beside the notch.
-    @Published private(set) var apps: [BadgeApp] {
+    private(set) var apps: [BadgeApp] {
         didSet { save() }
     }
 
     /// Badge text per bundle identifier; only apps with a badge.
-    @Published private(set) var labels: [String: String] = [:]
-    @Published private(set) var pulses: [String: Date] = [:]
+    private(set) var labels: [String: String] = [:]
+    private(set) var pulses: [String: Date] = [:]
     /// Badges taken out of the notch for a while, by bundle identifier (spec B-11).
-    @Published private(set) var hidden: [String: BadgeHide] = [:] {
+    private(set) var hidden: [String: BadgeHide] = [:] {
         didSet {
             if let data = try? JSONEncoder().encode(hidden) { defaults.set(data, forKey: Self.hiddenKey) }
         }
     }
     /// A count from elsewhere than the Dock: Gmail's from Mail (spec GM-7); "" hides the badge.
-    var labelOverride: (BadgeApp) -> String? = { _ in nil }
+    @ObservationIgnored var labelOverride: (BadgeApp) -> String? = { _ in nil }
     /// The highlighted Beeper networks (spec BP-13) and one network's unread count (spec BP-14).
-    var beeperNetworks: () -> [String] = { [] }
-    var beeperNetworkUnread: (String) -> Int = { _ in 0 }
-    var removeBeeperNetwork: (String) -> Void = { _ in }
+    @ObservationIgnored var beeperNetworks: () -> [String] = { [] }
+    @ObservationIgnored var beeperNetworkUnread: (String) -> Int = { _ in 0 }
+    @ObservationIgnored var removeBeeperNetwork: (String) -> Void = { _ in }
     /// Reading the Dock needs Accessibility access.
-    @Published private(set) var isTrusted = true
+    private(set) var isTrusted = true
 
     private let defaults: UserDefaults
-    private var timer: Timer?
-    private var isReading = false
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var isReading = false
     /// The first reading only records what is there: old badges are not new notifications.
-    private var hasBaseline = false
-    private var bundleIDs: [String: String] = [:]
-    private var loggedSignature = ""
+    @ObservationIgnored private var hasBaseline = false
+    @ObservationIgnored private var bundleIDs: [String: String] = [:]
+    @ObservationIgnored private var loggedSignature = ""
     /// Unread counts from the default browser's Gmail and Google Chat tabs, by site (spec B-2b, B-2c).
-    private var tabCounts: [String: Int] = [:]
-    private var isReadingTabs = false
-    private var lastTabRead = Date.distantPast
-    private var loggedTabs = ""
+    @ObservationIgnored private var tabCounts: [String: Int] = [:]
+    @ObservationIgnored private var isReadingTabs = false
+    @ObservationIgnored private var lastTabRead = Date.distantPast
+    @ObservationIgnored private var loggedTabs = ""
     private static let tabInterval: TimeInterval = 6
 
     init(defaults: UserDefaults = .standard) {

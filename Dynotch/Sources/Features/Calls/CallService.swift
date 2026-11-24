@@ -1,32 +1,33 @@
 import AppKit
 import ApplicationServices
-import Combine
+import Observation
 
 /// Shows incoming calls in the notch (spec P-1…P-4). The call is found by watching for the
 /// macOS call banner; answering and declining press that banner's buttons.
 @MainActor
-final class CallService: ObservableObject {
-    @Published private(set) var call: IncomingCall?
+@Observable
+final class CallService {
+    private(set) var call: IncomingCall?
     /// The message field is open (spec P-3).
-    @Published var isComposing = false
-    @Published var draft = ""
-    @Published private(set) var isSending = false
-    @Published private(set) var sendError: String?
+    var isComposing = false
+    var draft = ""
+    private(set) var isSending = false
+    private(set) var sendError: String?
     /// The caller's Contacts card: picture, and the name when the banner only shows a number.
-    @Published private(set) var contact: CallerContact?
+    private(set) var contact: CallerContact?
 
     private let settings: AppSettings
-    private var watch: WindowListMonitor.Token?
-    private var hasBaseline = false
-    private var knownWindows: Set<CGWindowID> = []
-    private var isScanning = false
+    @ObservationIgnored private var watch: WindowListMonitor.Token?
+    @ObservationIgnored private var hasBaseline = false
+    @ObservationIgnored private var knownWindows: Set<CGWindowID> = []
+    @ObservationIgnored private var isScanning = false
     /// Scans without the banner; it may flicker, so the call ends after two.
-    private var misses = 0
+    @ObservationIgnored private var misses = 0
     /// Processes to look at for a few more ticks: banners fill in after their window appears.
-    private var watched: [pid_t: Int] = [:]
-    private var loggedOwners: Set<String> = []
-    private var loggedLabels: Set<String> = []
-    private lazy var phoneHider = PhoneAppHider(settings: settings)
+    @ObservationIgnored private var watched: [pid_t: Int] = [:]
+    @ObservationIgnored private var loggedOwners: Set<String> = []
+    @ObservationIgnored private var loggedLabels: Set<String> = []
+    @ObservationIgnored private lazy var phoneHider = PhoneAppHider(settings: settings)
 
     init(settings: AppSettings) {
         self.settings = settings

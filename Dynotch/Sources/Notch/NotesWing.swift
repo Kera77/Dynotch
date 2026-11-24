@@ -5,7 +5,7 @@ import SwiftUI
 struct NotesWing: View {
     enum Side { case left, right }
 
-    @ObservedObject var notes: NotesStore
+    var notes: NotesStore
     let side: Side
 
     var body: some View {

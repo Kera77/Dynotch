@@ -1,5 +1,5 @@
-import Combine
 import Foundation
+import Observation
 
 /// A message that stays under the closed notch until it is swiped away (spec CN-1).
 struct StickyNotice: Equatable, Sendable {
@@ -44,10 +44,11 @@ struct StickyNotice: Equatable, Sendable {
 }
 
 @MainActor
-final class NoticeService: ObservableObject {
-    @Published private(set) var notice: StickyNotice?
+@Observable
+final class NoticeService {
+    private(set) var notice: StickyNotice?
 
-    private var downloadExpiry: Task<Void, Never>?
+    @ObservationIgnored private var downloadExpiry: Task<Void, Never>?
     /// How long a finished download stays (spec PV-57).
     static let downloadStays: TimeInterval = 3
 

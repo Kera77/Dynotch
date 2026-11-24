@@ -1,23 +1,24 @@
 import AppKit
-import Combine
 import IOKit.ps
+import Observation
 
 /// Battery levels of the Mac and of the devices connected to it (spec BT-1…BT-3).
 @MainActor
-final class BatteryService: ObservableObject {
-    @Published private(set) var devices: [BatteryDevice] = []
+@Observable
+final class BatteryService {
+    private(set) var devices: [BatteryDevice] = []
     /// Devices whose warning was closed with the X; kept until they are recharged.
-    @Published private(set) var dismissed: Set<String> = []
-    @Published private(set) var lastUpdated: Date?
+    private(set) var dismissed: Set<String> = []
+    private(set) var lastUpdated: Date?
     /// Per device: the level at which the notch warns, when it differs from 20 % (spec BT-7).
-    @Published private(set) var thresholds: [String: Int]
+    private(set) var thresholds: [String: Int]
     /// Every device seen so far (id → name), so Settings lists it while it is away (spec BT-7).
-    @Published private(set) var known: [String: String]
+    private(set) var known: [String: String]
     private let defaults: UserDefaults
 
     private let settings: AppSettings
-    private var timer: Timer?
-    private var isReading = false
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var isReading = false
     /// system_profiler is heavy: every five minutes (spec BT-1b).
     private static let interval: TimeInterval = 300
 
@@ -62,7 +63,7 @@ final class BatteryService: ObservableObject {
     /// Levels over the last week (spec BT-4).
     let history = BatteryHistory()
     /// Tells when a device finished charging (spec BT-5).
-    var onCharged: (BatteryDevice) -> Void = { _ in }
+    @ObservationIgnored var onCharged: (BatteryDevice) -> Void = { _ in }
 
     func apply(_ found: [BatteryDevice]) {
         // Charging reached full since the last reading.

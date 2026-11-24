@@ -323,8 +323,8 @@ struct WingsAppIcon: View {
 struct AIWing: View {
     enum Side { case left, right }
 
-    @ObservedObject var usage: ClaudeUsageService
-    @ObservedObject var chat: ClaudeChatService
+    var usage: ClaudeUsageService
+    var chat: ClaudeChatService
     /// The merged AI module's chat tab is the current one: its own AI counts.
     let isChat: Bool
     let side: Side

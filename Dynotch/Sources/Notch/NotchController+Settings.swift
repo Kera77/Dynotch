@@ -231,6 +231,25 @@ extension NotchController {
         stickyZone = stickyZone.map { $0.union(before) } ?? before
     }
 
+    /// The area before the change is kept at once; the new state is looked at on the next run loop turn.
+    func observeModel() {
+        followQuickLook()
+        let before = ZoneBeforeChange()
+        settingsObserver = observeChanges { [weak self] in
+            guard let self else { return }
+            _ = self.model.wantsKeyboard
+            _ = self.model.isExpanded
+            _ = self.model.isShowingSettings
+            _ = self.model.currentFeature
+            _ = self.keepOpenZone
+        } willChange: { [weak self] in
+            before.zone = self?.model.isExpanded == true ? self?.keepOpenZone : nil
+        } onChange: { [weak self] in
+            self?.updateKeyboardFocus()
+            self?.keepShrunkArea(before.zone)
+        }
+    }
+
     nonisolated static func shrank(from before: CGRect, to now: CGRect) -> Bool {
         now.width < before.width - 0.5 || now.height < before.height - 0.5
     }
@@ -241,11 +260,10 @@ extension NotchController {
 extension NotchController {
     /// With the chat list closed the Beeper tab is as small as Google Chat's.
     func observeBeeperList(_ beeper: BeeperService) {
-        beeperListObserver = beeper.$showsChatList.removeDuplicates().sink { [weak self] open in
-            MainActor.assumeIsolated {
-                guard let self else { return }
-                withAnimation(Self.animation) { self.model.beeperListOpen = open }
-            }
+        model.beeperListOpen = beeper.showsChatList
+        beeperListObserver = observeChanges { [beeper] in _ = beeper.showsChatList } onChange: { [weak self, beeper] in
+            guard let self, self.model.beeperListOpen != beeper.showsChatList else { return }
+            withAnimation(Self.animation) { self.model.beeperListOpen = beeper.showsChatList }
         }
     }
 }
@@ -267,4 +285,10 @@ extension NotchController {
             }
         }
     }
+}
+
+/// The keep-open area just before the panel's state changed (spec N-20).
+@MainActor
+private final class ZoneBeforeChange {
+    var zone: CGRect?
 }

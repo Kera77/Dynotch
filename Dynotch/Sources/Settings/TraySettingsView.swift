@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Settings › Tray: how long files stay, and Dynotch's tray folder (spec FT-6, FT-14, FT-15).
 struct TraySettingsView: View {
-    @ObservedObject var tray: TrayStore
+    @Bindable var tray: TrayStore
 
     var body: some View {
         Form {

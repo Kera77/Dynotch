@@ -1,9 +1,10 @@
 import AppKit
-import Combine
+import Observation
 
 /// Keeps Dynotch up to date from its GitHub releases (spec U-1…U-4).
 @MainActor
-final class UpdateService: ObservableObject {
+@Observable
+final class UpdateService {
     enum State: Equatable {
         case idle
         case checking
@@ -17,10 +18,10 @@ final class UpdateService: ObservableObject {
         let message: String
     }
 
-    @Published private(set) var state: State = .idle
-    @Published private(set) var lastChecked: Date?
+    private(set) var state: State = .idle
+    private(set) var lastChecked: Date?
     /// New versions are installed without asking (spec U-3).
-    @Published var installsAutomatically: Bool {
+    var installsAutomatically: Bool {
         didSet { defaults.set(!installsAutomatically, forKey: Self.manualKey) }
     }
 
@@ -29,8 +30,8 @@ final class UpdateService: ObservableObject {
     private static let interval: TimeInterval = 6 * 3600
 
     private let defaults: UserDefaults
-    private var timer: Timer?
-    private var found: ReleaseInfo?
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var found: ReleaseInfo?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

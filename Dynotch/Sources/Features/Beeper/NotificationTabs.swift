@@ -86,9 +86,9 @@ enum ChatSources {
 
 /// The notifications module with its tabs (spec UM-5, UM-8).
 struct NotificationsTabsView: View {
-    @ObservedObject var service: NotificationService
-    @ObservedObject var beeper: BeeperService
-    @ObservedObject var mail: MailService
+    var service: NotificationService
+    var beeper: BeeperService
+    var mail: MailService
     @Binding var tab: NotificationsTab
     var isActive = false
     /// The pointer is over the tab picker: only there a swipe steps between the tabs (spec UM-8d).

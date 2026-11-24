@@ -142,8 +142,8 @@ struct SettingsSidebar: View {
 
 /// Settings › Permissions: every permission, granted or not, with a way to grant it (spec C-8).
 struct PermissionsSettingsView: View {
-    @ObservedObject var notifications: NotificationService
-    @ObservedObject var settings: AppSettings
+    var notifications: NotificationService
+    var settings: AppSettings
     @State private var refresh = 0
 
     var body: some View {

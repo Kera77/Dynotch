@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Settings › Clipboard: the clipboard's shortcuts and size (spec CB-7).
 struct ClipboardSettingsView: View {
-    @ObservedObject var clipboard: ClipboardStore
+    @Bindable var clipboard: ClipboardStore
 
     var body: some View {
         Form {

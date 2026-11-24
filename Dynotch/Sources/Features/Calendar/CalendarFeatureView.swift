@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Calendar feature: compact day view, or the full month view in the large panel.
 struct CalendarFeatureView: View {
-    @ObservedObject var service: CalendarService
-    @ObservedObject var model: NotchViewModel
+    var service: CalendarService
+    var model: NotchViewModel
 
     var body: some View {
         switch service.access {

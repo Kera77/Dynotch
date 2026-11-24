@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The Terminal module: the tabs above, the shown shell below, filling the module (spec TE-1…TE-6).
 struct TerminalFeatureView: View {
-    @ObservedObject var store: TerminalStore
+    var store: TerminalStore
     let isActive: Bool
 
     var body: some View {

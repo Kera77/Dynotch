@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Day strip on top, the selected day's events below (spec K-4, K-5).
 struct CalendarCompactView: View {
-    @ObservedObject var service: CalendarService
+    @Bindable var service: CalendarService
     let expand: () -> Void
     /// The meeting in progress or the next one at the top, set before the first frame: scrolling
     /// there a frame later made the opening jerk (spec K-5b, K-16).

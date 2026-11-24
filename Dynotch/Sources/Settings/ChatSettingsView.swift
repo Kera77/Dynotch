@@ -39,9 +39,9 @@ extension NotificationService {
 /// Settings › Chats: everything Beeper, Google Chat and Gmail need, so nothing of theirs is left
 /// under Notifications (spec SD-6).
 struct ChatSettingsView: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var service: NotificationService
-    @ObservedObject var beeper: BeeperService
+    var settings: AppSettings
+    var service: NotificationService
+    var beeper: BeeperService
 
     @State private var beeperToken = ""
     @State private var beeperHasToken = BeeperClient.hasToken

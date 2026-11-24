@@ -3,8 +3,8 @@ import SwiftUI
 /// Settings › Notifications › Gmail: where Gmail's unread mail comes from, and the Mail accounts
 /// shown (spec GM-3, GM-9, GM-11, GM-12).
 struct MailSettingsSection: View {
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var mail: MailService
+    @Bindable var settings: AppSettings
+    @Bindable var mail: MailService
 
     var body: some View {
         Section {

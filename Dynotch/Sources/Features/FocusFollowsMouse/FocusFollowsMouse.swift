@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 
 /// Focus follows the mouse, without ever raising a window (spec F-1…F-6).
 @MainActor
@@ -7,7 +6,7 @@ final class FocusFollowsMouse {
     private let settings: AppSettings
     private var monitor: Any?
     private var pending: Task<Void, Never>?
-    private var settingsObserver: AnyCancellable?
+    private var settingsObserver: ChangeObservation?
     private var lastFocused: CGWindowID?
     private var attempts = FocusRules.Attempts()
     /// When each reason for not switching was last written to the log.
@@ -18,7 +17,7 @@ final class FocusFollowsMouse {
     }
 
     func start() {
-        settingsObserver = settings.afterChange { [weak self] in self?.apply() }
+        settingsObserver = observeChanges { [settings] in _ = settings.focusFollowsMouse } onChange: { [weak self] in self?.apply() }
         apply()
     }
 

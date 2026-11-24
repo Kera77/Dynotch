@@ -2,13 +2,14 @@ import SwiftUI
 
 /// State of the menu bar panel.
 @MainActor
-final class MenuBarPanelState: ObservableObject {
+@Observable
+final class MenuBarPanelState {
     /// Lock: the panel stays open when clicking elsewhere (spec SZ-8).
-    @Published var isPinned = false
+    var isPinned = false
     /// True for a moment after "copy all".
-    @Published var didCopy = false
+    var didCopy = false
     /// Horizontal position of the arrow tip inside the panel.
-    @Published var arrowX: CGFloat = 0
+    var arrowX: CGFloat = 0
 }
 
 /// Popover outline: rounded rectangle with an arrow on its top edge.
@@ -69,8 +70,8 @@ private struct PopoverChrome: ViewModifier {
 
 /// Content of the menu bar panel: the notepad with a status bar below it (spec SZ-6).
 struct CalculatorMenuBarView: View {
-    @ObservedObject var store: CalculatorStore
-    @ObservedObject var state: MenuBarPanelState
+    @Bindable var store: CalculatorStore
+    var state: MenuBarPanelState
 
     private static let accent = Color(nsColor: CalculatorResultsView.resultColor)
 

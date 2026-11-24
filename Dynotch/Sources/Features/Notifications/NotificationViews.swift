@@ -96,7 +96,7 @@ struct NotificationPeekView: View {
 
 /// Notifications feature: what arrived since launch, newest first (spec E-4, E-5).
 struct NotificationsFeatureView: View {
-    @ObservedObject var service: NotificationService
+    var service: NotificationService
     /// Looking at the list counts as having seen the new notifications.
     var isActive = false
     /// Which notifications the tab lists (spec UM-8).

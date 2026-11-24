@@ -4,7 +4,7 @@ import SwiftUI
 /// newest one; a click opens it with every message and a reply field.
 struct NotificationGroupRow: View {
     /// Observed: messages loaded from the Google Chat web app redraw the card (spec GW-17c).
-    @ObservedObject var service: NotificationService
+    var service: NotificationService
     let group: NotificationGroup
     let isExpanded: Bool
     /// Each change (from a badge's drop-down) focuses the reply field (spec B-10f).

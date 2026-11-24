@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 /// Which apps show their unread count beside the notch, their icons and order (spec B-1, B-3).
 struct BadgeSettingsView: View {
-    @ObservedObject var service: BadgeService
+    var service: BadgeService
 
     @State private var installed: [InstalledApp] = []
     /// The row being dragged to a new place (spec SD-4).
@@ -80,7 +80,7 @@ struct BadgeSettingsView: View {
 
 private struct BadgeAppRow: View {
     let app: BadgeApp
-    @ObservedObject var service: BadgeService
+    var service: BadgeService
 
     var body: some View {
         HStack(spacing: 8) {

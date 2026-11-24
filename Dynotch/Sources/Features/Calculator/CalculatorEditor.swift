@@ -67,7 +67,7 @@ struct PinButton: View {
 
 /// Calculator feature in the notch.
 struct CalculatorFeatureView: View {
-    @ObservedObject var store: CalculatorStore
+    @Bindable var store: CalculatorStore
     var isActive = false
 
     var body: some View {

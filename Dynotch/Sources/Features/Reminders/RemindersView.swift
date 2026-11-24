@@ -9,7 +9,7 @@ struct RemindersView: View {
         case split
     }
 
-    @ObservedObject var store: RemindersStore
+    @Bindable var store: RemindersStore
     let layout: Layout
     let isActive: Bool
     var pin: PinControl?
@@ -139,7 +139,7 @@ struct RemindersView: View {
 
 /// "Type a reminder and hit enter" field with the list and option menu (spec R-3, R-4).
 private struct QuickAddField: View {
-    @ObservedObject var store: RemindersStore
+    @Bindable var store: RemindersStore
     @State private var text = ""
 
     var body: some View {
@@ -193,7 +193,7 @@ private struct QuickAddField: View {
 
 /// Circle checkbox, title and due date (spec R-5).
 struct ReminderRow: View {
-    @ObservedObject var store: RemindersStore
+    @Bindable var store: RemindersStore
     let item: ReminderItem
     let showsList: Bool
     @State private var isHovered = false
@@ -271,7 +271,7 @@ struct ReminderRow: View {
 
 /// Reminders feature in the notch.
 struct RemindersFeatureView: View {
-    @ObservedObject var store: RemindersStore
+    @Bindable var store: RemindersStore
     let isActive: Bool
 
     var body: some View {
@@ -282,8 +282,8 @@ struct RemindersFeatureView: View {
 
 /// Content of the reminders menu bar panel.
 struct RemindersMenuBarView: View {
-    @ObservedObject var store: RemindersStore
-    @ObservedObject var state: MenuBarPanelState
+    @Bindable var store: RemindersStore
+    var state: MenuBarPanelState
 
     var body: some View {
         RemindersView(

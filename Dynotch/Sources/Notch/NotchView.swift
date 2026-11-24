@@ -1,28 +1,28 @@
 import SwiftUI
 
 struct NotchView: View {
-    @ObservedObject var model: NotchViewModel
-    @ObservedObject var settings: AppSettings
-    @ObservedObject var wallpaperTone = WallpaperTone.shared
+    @Bindable var model: NotchViewModel
+    var settings: AppSettings
+    var wallpaperTone = WallpaperTone.shared
     /// The day view watches the calendar itself; the notch only the meetings beside it.
     let calendar: CalendarService
-    @ObservedObject var calendarIndicator: CalendarIndicator
-    @ObservedObject var notifications: NotificationService
+    var calendarIndicator: CalendarIndicator
+    var notifications: NotificationService
     let calculator: CalculatorStore
     let notes: NotesStore
     let reminders: RemindersStore
-    @ObservedObject var tasks: TaskIndicator
-    @ObservedObject var claudeUsage: ClaudeUsageService
-    @ObservedObject var hud: HUDService
-    @ObservedObject var badges: BadgeService
-    @ObservedObject var calls: CallService
-    @ObservedObject var keyboardLock: KeyboardLock
-    @ObservedObject var notices: NoticeService
+    var tasks: TaskIndicator
+    var claudeUsage: ClaudeUsageService
+    var hud: HUDService
+    var badges: BadgeService
+    var calls: CallService
+    var keyboardLock: KeyboardLock
+    var notices: NoticeService
     /// Watched by its own views: every streamed word and keystroke of the chat used to redraw
     /// the whole notch. The notch only needs whether it works.
     let chat: ClaudeChatService
-    @ObservedObject var chatIndicator: ChatIndicator
-    @ObservedObject var battery: BatteryService
+    var chatIndicator: ChatIndicator
+    var battery: BatteryService
     let shortcuts: ShortcutStore
     let updates: UpdateService
     /// Watched by its own views, not by the whole notch (spec N-16).
@@ -38,16 +38,16 @@ struct NotchView: View {
     let tray: TrayStore
     /// Watched by its own views, not by the whole notch (spec N-16).
     /// Observed: its unread chats show in the Notifications wings (spec PV-52).
-    @ObservedObject var beeper: BeeperService
-    @ObservedObject var devices: DeviceWatcher
+    var beeper: BeeperService
+    var devices: DeviceWatcher
     /// Only whether a cover or a value shows beside the notch; the numbers are watched by their
     /// own views (spec MU-2, SY-7).
-    @ObservedObject var musicIndicator: MusicIndicator
-    @ObservedObject var statsIndicator: StatsIndicator
+    var musicIndicator: MusicIndicator
+    var statsIndicator: StatsIndicator
     let music: MusicService
     let stats: StatsService
     /// The mode chooser, the pop-up after a shot and the recording (spec SH-1, SH-6, SH-5).
-    @ObservedObject var screenshots: ScreenshotService
+    var screenshots: ScreenshotService
     /// Gear button: opens the settings in the notch or in a window, as configured.
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).

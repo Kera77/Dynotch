@@ -116,8 +116,8 @@ struct StatsDetail: View {
 /// The values beside the closed notch: CPU, memory and network speed as chosen, or a warning
 /// (spec SY-7, SY-8).
 struct StatsSlot: View {
-    @ObservedObject var service: StatsService
-    @ObservedObject var indicator: StatsIndicator
+    var service: StatsService
+    var indicator: StatsIndicator
 
     var body: some View {
         HStack(spacing: 6) {

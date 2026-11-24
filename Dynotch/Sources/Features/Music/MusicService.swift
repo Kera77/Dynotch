@@ -1,12 +1,12 @@
 import AppKit
-import Combine
 import CoreAudio
 import SwiftUI
 
 /// What the closed notch shows of the music: the cover with its colour (spec MU-2, MU-3).
 /// Its own object, so the whole notch is not redrawn as the position moves.
 @MainActor
-final class MusicIndicator: ObservableObject {
+@Observable
+final class MusicIndicator {
     struct Glance: Equatable {
         let trackID: String
         let title: String
@@ -16,39 +16,40 @@ final class MusicIndicator: ObservableObject {
         let tint: ArtworkColor.RGB
     }
 
-    @Published fileprivate(set) var glance: Glance?
+    fileprivate(set) var glance: Glance?
     /// A new track's name is written under the notch for a moment (spec MU-4).
-    @Published fileprivate(set) var isAnnouncing = false
+    fileprivate(set) var isAnnouncing = false
 }
 
 /// Spotify in the notch (spec MU-1…MU-7): reads what plays when Spotify says it changed, and
 /// every few seconds while the module is on; sends the controls back.
 @MainActor
-final class MusicService: ObservableObject {
-    @Published private(set) var nowPlaying: NowPlaying?
+@Observable
+final class MusicService {
+    private(set) var nowPlaying: NowPlaying?
     /// When `nowPlaying.position` was read; the position runs on from there while playing.
-    @Published private(set) var readAt = Date()
-    @Published private(set) var artwork: NSImage?
-    @Published private(set) var tint = ArtworkColor.fallback
+    private(set) var readAt = Date()
+    private(set) var artwork: NSImage?
+    private(set) var tint = ArtworkColor.fallback
     /// The sound outputs and the pause hiding, each its own object: their menus are not rebuilt
     /// as the music plays, so they stay open (spec N-22).
     let outputs = MusicOutputs()
     let hiding = MusicHiding()
     let indicator = MusicIndicator()
     /// Hidden by hand until the music plays again (spec MU-9).
-    @Published private(set) var isHiddenUntilPlay = false
-    private var pausedSince: Date?
+    private(set) var isHiddenUntilPlay = false
+    @ObservationIgnored private var pausedSince: Date?
 
     private let settings: AppSettings
-    private var timer: Timer?
-    private var isVisible = false
-    private var observers: [NSObjectProtocol] = []
-    private var settingsObserver: AnyCancellable?
-    private var hidingObserver: AnyCancellable?
-    private var announceTask: Task<Void, Never>?
-    private var artworkTask: Task<Void, Never>?
-    private var artworkTrack: String?
-    private var hasRead = false
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var isVisible = false
+    @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private var settingsObserver: ChangeObservation?
+    @ObservationIgnored private var hidingObserver: ChangeObservation?
+    @ObservationIgnored private var announceTask: Task<Void, Never>?
+    @ObservationIgnored private var artworkTask: Task<Void, Never>?
+    @ObservationIgnored private var artworkTrack: String?
+    @ObservationIgnored private var hasRead = false
 
     /// Spotify announces play, pause and track changes itself; the script only fills the gaps:
     /// often while the player is on screen (seeking), rarely otherwise.
@@ -88,8 +89,13 @@ final class MusicService: ObservableObject {
                 MainActor.assumeIsolated { self?.refresh() }
             })
         }
-        hidingObserver = hiding.afterChange { [weak self] in self?.updateGlance() }
-        settingsObserver = settings.afterChange { [weak self] in self?.applyEnabled() }
+        hidingObserver = observeChanges { [hiding] in _ = hiding.minutes } onChange: { [weak self] in self?.updateGlance() }
+        settingsObserver = observeChanges { [weak self] in
+            _ = self?.isOn
+            _ = self?.settings.showsNowPlaying
+        } onChange: { [weak self] in
+            self?.applyEnabled()
+        }
         applyEnabled()
     }
 
@@ -174,7 +180,7 @@ final class MusicService: ObservableObject {
     }
 
     /// True while a notch is open on the Music module: the track is in view there (spec MU-10).
-    var holdsAnnouncement: () -> Bool = { false }
+    @ObservationIgnored var holdsAnnouncement: () -> Bool = { false }
 
     private func announce() {
         guard !holdsAnnouncement() else { return }
@@ -265,9 +271,10 @@ extension MusicService {
 
 /// The Mac's sound outputs for the player's menu (spec MU-6).
 @MainActor
-final class MusicOutputs: ObservableObject {
-    @Published private(set) var devices: [SoundOutputs.Device] = []
-    @Published private(set) var current: AudioDeviceID?
+@Observable
+final class MusicOutputs {
+    private(set) var devices: [SoundOutputs.Device] = []
+    private(set) var current: AudioDeviceID?
 
     func refresh() {
         devices = SoundOutputs.list()
@@ -282,8 +289,9 @@ final class MusicOutputs: ObservableObject {
 
 /// After how many minutes of pause the cover goes away; nil: never (spec MU-9).
 @MainActor
-final class MusicHiding: ObservableObject {
-    @Published var minutes: Int? {
+@Observable
+final class MusicHiding {
+    var minutes: Int? {
         didSet { UserDefaults.standard.set(minutes ?? -1, forKey: Self.key) }
     }
 

@@ -39,8 +39,8 @@ enum SwitcherLayout {
 /// The windows in the notch (spec AS-5, AS-6): thumbnails, app icons or titles; the chosen one
 /// highlighted; hovering chooses, a click switches.
 struct SwitcherView: View {
-    @ObservedObject var switcher: SwitcherController
-    @ObservedObject var settings: SwitcherSettings
+    var switcher: SwitcherController
+    var settings: SwitcherSettings
     let notchHeight: CGFloat
     let width: CGFloat
 
