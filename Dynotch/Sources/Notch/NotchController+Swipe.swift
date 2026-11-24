@@ -69,7 +69,7 @@ extension NotchController {
         let isMomentum = !event.momentumPhase.isEmpty
         if phase == .began {
             switcherReachedEnd = false
-            switcherThrottle.reset()
+            switcherQueue.reset()
         }
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         let steps = switcherStepper.handle(
@@ -77,14 +77,38 @@ extension NotchController {
         )
         // At an end the rest of the gesture and its momentum stop there: one bounce, no more (spec M-13).
         guard !switcherReachedEnd else { return true }
-        // The steps gather and switch together, at most every 0.1 s (spec M-14).
-        let pending = switcherThrottle.add(steps)
-        guard pending != 0 else { return true }
-        let before = model.currentFeature
-        withAnimation(Self.animation) { model.step(by: pending) }
-        if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
-        if model.isAtEnd(pending > 0 ? .next : .previous) { switcherReachedEnd = true }
+        // One module at a time, faster while more are waiting (spec M-17).
+        switcherQueue.add(steps)
+        drainSteps()
         return true
+    }
+
+    /// Lets the waiting module and day steps through, one at a time, until none is left.
+    func drainSteps() {
+        stepSwitcherOnce()
+        stepDayOnce()
+        guard switcherQueue.pending != 0 || dayQueue.pending != 0 else {
+            stepTimer?.invalidate()
+            stepTimer = nil
+            return
+        }
+        guard stepTimer == nil else { return }
+        stepTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.drainSteps() }
+        }
+    }
+
+    private func stepSwitcherOnce() {
+        let step = switcherQueue.next()
+        guard step != 0 else { return }
+        guard model.isExpanded, !model.isShowingSettings else { return switcherQueue.reset() }
+        let before = model.currentFeature
+        withAnimation(Self.animation) { model.step(by: step) }
+        if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
+        if model.isAtEnd(step > 0 ? .next : .previous) {
+            switcherReachedEnd = true
+            switcherQueue.reset()
+        }
     }
 
     /// Where a trackpad gesture is.

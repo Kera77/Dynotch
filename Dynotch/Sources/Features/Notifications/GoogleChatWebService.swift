@@ -38,6 +38,10 @@ final class GoogleChatWebService: ObservableObject {
 
     /// Called with every new snapshot.
     var onSnapshot: ((ChatWebSnapshot) -> Void)?
+    /// A reply sent in the background did not show up in Google Chat (spec GW-31).
+    var onReplyProblem: ((String) -> Void)?
+    /// Checks the last reply arrived, then goes back to Home (spec GW-30, GW-31).
+    var replyConfirmation: Task<Void, Never>?
 
     private let defaults: UserDefaults
     private var timer: Timer?

@@ -7,14 +7,11 @@ struct V095Tests {
     @Test func startsOnTheRowsLatestModule() {
         let row: [FeatureID] = [.calendar, .notes, .calculator]
         let history: [FeatureID] = [.terminal, .calculator, .calendar]
-        // The row keeps its order; the latest opened of it is chosen (spec QS-11).
-        #expect(ModuleSwitcher.startIndex(row, history: history, current: nil) == 2)
-        // Open now: the one opened before it.
-        #expect(ModuleSwitcher.startIndex(row, history: history, current: .calculator) == 0)
-        // No history: the first, or the second if the first is open.
-        #expect(ModuleSwitcher.startIndex(row, history: [], current: nil) == 0)
-        #expect(ModuleSwitcher.startIndex(row, history: [], current: .calendar) == 1)
-        #expect(ModuleSwitcher.startIndex([.notes], history: [.notes], current: .notes) == 0)
+        // The row keeps its order; the latest opened of it is chosen, also while open (spec QS-11, QS-16).
+        #expect(ModuleSwitcher.startIndex(row, history: history) == 2)
+        // No history: the first.
+        #expect(ModuleSwitcher.startIndex(row, history: []) == 0)
+        #expect(ModuleSwitcher.startIndex([.notes], history: [.notes]) == 0)
     }
 
     @Test func oneRowShrinksOnlyWhenItMust() {

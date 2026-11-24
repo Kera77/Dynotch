@@ -85,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.chat.onAnswerReady = { chat in
             notices.show(.answered(by: chat.service.title, in: chat.title))
         }
+        showsReplyProblems(services.notifications.chatWeb, in: notices)
         NSApp.mainMenu = EditMenu.make()
 
         let manager = NotchManager(services: services) { [weak self] in
@@ -232,9 +233,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         modules.candidates = { [weak modules] in
             modules?.settings.moduleRow.filter { !settings.isMerged($0) || settings.isSwitchedOn($0) } ?? []
         }
-        modules.current = { [weak manager] in manager?.openModule() }
         modules.present = { [weak manager] shown in manager?.showModuleSwitcher(shown) }
         modules.open = { [weak manager] in manager?.openFromModuleSwitcher($0, pinned: shortcuts.pinsWhenOpened($0)) }
+        modules.onStep = { Haptics.perform(.featureSwitch, settings: settings) }
     }
 
     /// "New Dynotch Note" in the Services menu (spec J-13).
@@ -302,5 +303,16 @@ extension AppDelegate {
         services.badges.beeperNetworkUnread = { [weak beeper = services.beeper] in beeper?.unreadTotal(network: $0) ?? 0 }
         services.badges.removeBeeperNetwork = { [weak beeper = services.beeper] in beeper?.setHighlighted($0, false) }
         services.badges.start()
+    }
+}
+
+extension AppDelegate {
+    /// A Google Chat reply that went out in the background but never showed up (spec GW-31).
+    func showsReplyProblems(_ chatWeb: GoogleChatWebService, in notices: NoticeService) {
+        chatWeb.onReplyProblem = { problem in
+            notices.show(StickyNotice(
+                title: "Google Chat", detail: problem, date: Date(), symbol: "exclamationmark.bubble.fill", sourceName: "Google Chat"
+            ))
+        }
     }
 }

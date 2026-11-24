@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.106 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.107 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -53,6 +53,7 @@
 | N-22 | (v0.57) Amíg a notchból nyitott **menü** (pl. választó, hangkimenet, elrejtés) nyitva van, a notch és a lenyíló lista **nyitva marad**, akkor is, ha a menü kilóg a notchból. (v0.58) Az almenük (pl. swap-limit, elrejtés ideje) sem zárulnak be: a menük beállításai külön, ritkán változó állapotban vannak, így a percenkénti frissítés nem építi újra őket. |
 | N-23 | (v0.59) Ha egy ikon (jobb oldali jelző vagy bal oldali badge) lenyílója nyitva van, a mellette lévő ikonon **áthaladó** egér nem cseréli le: a másik ikon csak akkor veszi át, ha az egér **0,3 mp-ig** rajta marad. |
 | N-24 | (v0.90) **Késleltetett nyitás oldalról érkezve:** ha az egér a becsukott notch melletti sorban egy jelvényen, jelzőn vagy számlálón (vagy annak lenyílóján) állt, és onnan közvetlenül (0,4 mp-en belül) a notchra ér, a notch **nem nyílik ki azonnal**: csak ha az egér 0,6 mp-ig a notchon marad. Így a notchon átvágva el lehet érni a túloldali lenyílót. Máshonnan érkezve a nyitás azonnali marad (N-2). |
+| N-25 | (v0.107) **Billentyűzet a csúszás után:** gépelős modulról (AI, Jegyzetek, Terminál, Számológép…) nem gépelős modulra váltáskor a billentyűzet visszaadása az előző appnak a váltás csúszó animációja **után** történik (~0,28 mp), így nem akasztja meg a csúszást. Ha közben gépelős modulra lépsz vissza, a billentyűzet a panelen marad; ha a notch bezárul, a billentyűzet visszakerül. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -76,6 +77,7 @@
 | M-14 | (v0.99) **Kevésbé érzékeny, folyamatos modul-swipe (M-12, S-1 módosítása):** a felső ikonsoron ~80 pt ujjmozgás lép egy modult (50 helyett), a lendület fele súllyal számít; a váltás legfeljebb 0,1 mp-enként történik, a közben összegyűlt lépések egyszerre, így nagy swipe-nál sem akad. A panel feletti egyes swipe (S-1) küszöbe 30-ról 45 pt-ra nő. |
 | M-15 | (v0.100) **A modulok húzása (M-10, SD-4 javítása):** a *Settings › Modules* listában a sorok ismét húzással átrendezhetők; a sor mögötti, a kinyitott sort görgetéssel láthatóvá tevő láthatatlan réteg nem fogja el az egeret. |
 | M-16 | (v0.101) **Nincs zöld plusz húzáskor:** a beállítások sorainak húzásakor (Modules, és minden átrendezhető lista) a mutató mellett nem jelenik meg a másolást jelző zöld „+”, a sorok között és a listán kívül sem (ott is áthelyezésként fogadja). |
+| M-17 | (v0.107) **Egyesével léptető swipe (M-14 módosítása):** a felső ikonsoron a swipe a modulokat **mindig egyesével** lépteti, sosem ugrik egyszerre többet. Egy erősebb pöccintés gyorsabb tempót ad: egy várakozó lépésnél 0,15 mp, sok várakozó lépésnél 0,06 mp telik el két lépés között. Egy gesztus legfeljebb 5 lépést gyűjthet, így egy pöccintés nem visz el a sor végéig. Visszafordított mozdulatnál a még várakozó lépések elvesznek. A végén megáll (M-13). |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -224,6 +226,7 @@
 | K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. (v0.49) A swipe is legfeljebb ±14 napig léptet (fal), nem csak a napsor. |
 | K-15b | (v0.89) A napsor alatti **hónapnévnek nincs fekete háttere**: átlátszó, Liquid glass és Black to glass designnál sem áll alatta fekete folt. |
 | K-16 | (v0.102) **Akadásmentes nyitás:** a napsor a kiválasztott napon, az eseménylista a folyamatban lévő vagy következő eseményen (K-5b) már az első képkockán a helyén áll; eddig egy képkockával a nyitás után ugrottak oda, ami a nyitást darabossá tette. |
+| K-17 | (v0.107) **Egyesével léptető napsor (K-4 módosítása):** a napsor feletti swipe a napokat **egyesével** lépteti, ugyanazzal a gyorsuló tempóval, mint az M-17; egy gesztus legfeljebb 7 napot gyűjthet. A két hetes határnál (K-15) a maradék lendület elvész. |
 | K-14b | (v0.45) Az idővonal sávjain **nincs felirat**, csak a naptár saját színe. Egy sávra mutatva a sáv alatt, az órák sorában buborék jelenik meg a meeting nevével és idejével (a rendszer lassú súgója helyett). |
 
 ---
@@ -328,6 +331,7 @@
 | SZ-15 | (v0.43) **Összeg:** `total` / `sum` / `összesen` sor az előtte álló sorok (az előző üres sorig) összegét adja. |
 | SZ-16 | (v0.43) Az eredmények a sor alapvonalán ülnek: Enter az utolsó sorban nem csúsztatja lejjebb az utolsó eredményt. |
 | SZ-17 | (v0.103) **A felső sor a helyén marad (javítás):** a számológép megnyitásakor és gépelés közben a kurzor sorához görgetés **csak a számológép saját görgetőjét** mozgatja; a notch tartalma nem csúszik fel, a felső sor (modul-ikonok, gombok) végig látszik. |
+| SZ-18 | (v0.107) **A felső sor tényleg a helyén marad (SZ-17 javítása):** a számológép (és a Jegyzetek) szövegmezőjének görgetője a kurzor láthatóvá tételét **nem adja tovább** a notch tartalmának, semmilyen úton (gépelés, fókusz, kijelölés). Ha a notch tartalma mégis elmozdul, a napló megírja, melyik nézet mozdult. |
 
 ---
 
@@ -896,6 +900,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-27 | (v0.101, hiba) **Kitűzött beszélgetés neve:** a webapp oldalsávjában és Kezdőlap-listájában a kitűzött beszélgetés sora a „Kitűzött beszélgetés” / „Pinned conversation” (és hasonló „Kitűzve”, „Pinned”) jelzést is hordozza; ez nem név, így kimarad, és a kártyán, a kis értesítésben és a jelvény-listában a küldő (beszélgetés) neve áll. |
 | GW-28 | (v0.101) **Mark as read a Google Chatnél (BP-20 párja):** a Google Chat-kártyák fejlécében (All, Chats, Google Chat fül) pipa gomb, ha a webapp olvasható (GW-14 „Reading”): a Dynotch a háttérben megnyitja a beszélgetést a webappban (GW-8), így ott olvasott lesz, a kártya pedig eltűnik. Csak a felhasználó kattintására. |
 | GW-29 | (v0.103) **Válasz mindig a háttérben (GW-9 módosítása):** ha a webapp olvasható (állapota „reading”), a válasz **soha nem hozza előre** a Google Chatet: ha a beszélgetés nincs a legutóbbi olvasásban, előbb újraolvassa az oldalt, és csak ezután keresi; ha így sem írható, semmi nem megy el, a szöveg a vágólapra kerül, és hibaüzenet jön („Couldn't reply in the background… Text copied”). A régi, előtérbe hozó begépelés (E-11d) csak akkor marad, ha a webapp nem fut vagy nem olvasható. |
+| GW-30 | (v0.107) **Vissza a Kezdőlapra:** a háttérben elküldött Google Chat válasz megerősítése után a Dynotch a webappot a háttérben visszaviszi a **Kezdőlapra** (*Home*). Így a megnyitva hagyott beszélgetés nem jelöli olvasottnak az oda közben érkező üzeneteket, és a Kezdőlap-lista (GW-21) újra olvasható. Ha a Kezdőlap gomb nem található, a napló jelzi („Home not found”). |
+| GW-31 | (v0.107) **Gyorsabb válasz (GW-9 módosítása):** a beírás és a küldés gomb megnyomása egyetlen bejárásból megy; a beszélgetés állapotát a már meglévő olvasásból veszi; a várakozás 100 ms-onként néz rá (250 helyett). A *Sent* rögtön a küldés gomb megnyomása után megjelenik; a megérkezést a Dynotch a háttérben ellenőrzi (legfeljebb 5 mp), és ha az üzenet nem jelent meg, a notch alatt értesítés jön („Not sent? It didn't show up in Google Chat: check there.”). A napló lépésenként írja az időket. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -919,6 +925,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | AI-15 | (v0.43) **Kedvencek:** csillag a válaszok alatt; a csevegőlistában *Favorites* szakasz, kattintásra a csevegés nyílik meg, jobb klikkel másolás vagy eltávolítás. |
 | AI-16 | (v0.43) **ChatGPT módja:** *Codex* (a notchban, a Codex CLI-vel) vagy *ChatGPT* (a kérdés a chatgpt.com-on nyílik meg, ingyenes fiókkal is). A beállításokban *Sign in to ChatGPT…*. |
 | AI-17 | (v0.65.1) Az AI bal oldalsávjában **mindkét szolgáltatónál csak a notchban folytatott beszélgetések** (a választott szolgáltatóé); nincsenek Claude Code- és Codex-munkamenetek, sem webes (claude.ai, chatgpt.com) beszélgetések – a ChatGPT webes módja is a böngészőben nyílik. |
+| AI-18 | (v0.107) **Akadásmentes váltás az AI modulról:** az AI válaszainak formázása (Markdown) válaszonként egyszer készül el, nem minden újrarajzoláskor; az üzenetlista csak a látható üzeneteket építi fel; egy üzenet csak akkor rajzolódik újra, ha változott. |
 
 ## 4ö. Modulok átméretezése (v0.45)
 
@@ -1117,6 +1124,8 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | QS-13 | (v0.100) **Áthelyezés a Modules lapra:** a modulváltó (*Module switcher*, ujjak száma) és a sor moduljainak listája a *Settings › Switcher* lapról a *Settings › Modules* lapra került, a lista neve *Swipe-up modules* (korábban *In the swipe row*). |
 | QS-14 | (v0.100) **A Module strip is a Modules lapon (MS-2, MS-5 áthelyezése):** a *Module strip* szakasz (ikonsor, késleltetések, *Modules in the strip*) a *Settings › Appearance* lapról a *Settings › Modules* lapra került. |
 | QS-15 | (v0.102) **Kikapcsolt modul is (QS-10 módosítása):** a *Swipe-up modules* listába kikapcsolt modul is felvehető, és a sorban is megjelenik; kiválasztva lenyílik, és amíg a notch nyitva van, úgy működik, mintha be lenne kapcsolva (a felső ikonsorban is látszik). Csukáskor visszaáll kikapcsoltra; a *Settings › Modules* kapcsolója közben is kikapcsoltat mutat. |
+| QS-16 | (v0.107) **Mindig a legutóbbin indul (QS-11 módosítása):** a swipe-up modulválasztó induláskor mindig a sorból **legutóbb megnyitott** modult jelöli ki, akkor is, ha az épp nyitva van a notchban (eddig ilyenkor az előtte lévőt). A választóból kiválasztott modul azonnal a legutóbbi lesz, akkor is, ha épp az volt nyitva. |
+| QS-17 | (v0.107) **Haptika a választóban:** a swipe-up modulválasztóban az ujjak oldalra mozgatásával minden kijelölés-lépés ugyanolyan haptikus visszajelzést ad, mint a modulváltás (ha a haptika be van kapcsolva). |
 
 ## 4ő++++++. Beállítások egységes designja (v0.95)
 
@@ -1184,6 +1193,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.107.0** | Google Chat válasz gyorsabban és vissza a Kezdőlapra, egyesével léptető swipe az ikonsoron és a napsoron, akadásmentes váltás az AI modulról, a Calculator felső sora a helyén, a modulválasztó a legutóbbin indul, haptikával (GW-30, GW-31, M-17, K-17, AI-18, N-25, SZ-18, QS-16, QS-17) |
 | **v0.106.0** | A meeting Join gombja a notch melletti kinyíló rész elején (PV-74) |
 | **v0.105.0** | Badge-lenyílóból kattintott csevegés kinyitva, azonnal gépelhető (B-10f) |
 | **v0.104.0** | Letöltések automatikusan a tálcába külön lejárattal, kis értesítések a notch mellett kapcsoló a Wings alatt, válaszmező kattintásra azonnal gépelhető (FT-15, PV-73, E-27) |

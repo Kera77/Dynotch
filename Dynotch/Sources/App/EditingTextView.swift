@@ -77,7 +77,7 @@ class EditingTextView: NSTextView {
 
     /// Wraps the text view in a transparent, overlay-scrolling scroll view.
     func embedInScrollView() -> NSScrollView {
-        let scrollView = NSScrollView()
+        let scrollView = ContainedScrollView()
         scrollView.documentView = self
         scrollView.drawsBackground = false
         scrollView.borderType = .noBorder
@@ -138,5 +138,14 @@ struct PlainTextEditor: NSViewRepresentable {
             guard let textView = notification.object as? NSTextView else { return }
             text.wrappedValue = textView.string
         }
+    }
+}
+
+/// A scroll view whose "make this visible" stops at itself: the caret scrolls the editor, never
+/// the notch around it, so the top row stays in view (spec SZ-18).
+final class ContainedScrollView: NSScrollView {
+    override func scrollToVisible(_ rect: NSRect) -> Bool {
+        // The clip view already scrolled the editor; nothing above it moves.
+        true
     }
 }

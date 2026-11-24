@@ -66,10 +66,9 @@ final class NotchController {
     /// One swipe over the panel switches one module, after 45 pt (spec S-1, M-14).
     var swipe = SwipeDetector(threshold: 45)
     var dayStepper = DayStepper()
-    /// Swipes over the feature icons switch modules, one per step (spec M-12).
-    /// About one module per 80 pt of finger movement, the momentum counting half (spec M-12, M-14).
+    /// Over the icons ~80 pt a module, momentum counting half; steps go one by one (spec M-12, M-14, M-17, K-17).
     var switcherStepper = DayStepper(stepWidth: 80, momentumScale: 0.5)
-    var switcherThrottle = StepThrottle()
+    var switcherQueue = StepQueue(maxPending: 5), dayQueue = StepQueue(maxPending: 7), stepTimer: Timer?
     /// The swipe over the feature icons reached an end: the rest of it is ignored (spec M-13).
     var switcherReachedEnd = false
     /// A swipe over the tasks counter's list picker (spec R-19).
@@ -81,7 +80,7 @@ final class NotchController {
     var suppressIndicatorHover = false
     /// A notice beside the notch was just put away: the icons under it wait (spec PV-59).
     var indicatorHoverPausedUntil: Date?
-    var wasExpanded = false
+    var wasExpanded = false, keyboardBackPending = false
     /// The pointer is on the notice under the notch: its X can be clicked (spec CN-5b).
     var isOverNotice = false
     /// The pointer is on a small notice beside the closed notch in Wings mode (spec PV-38).

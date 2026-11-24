@@ -16,6 +16,7 @@ final class ModuleHistory {
 
     func opened(_ feature: FeatureID) {
         guard recent.first != feature else { return }
+        DiagnosticsLog.append("spaces", "module history: \(feature.rawValue) first")
         recent = [feature] + recent.filter { $0 != feature }
         defaults.set(recent.map(\.rawValue), forKey: Self.key)
     }
@@ -32,12 +33,12 @@ final class ModuleSwitcher: ObservableObject {
     let settings: SwitcherSettings
     /// The chosen modules, in the row's order, those that are off too (spec QS-10, QS-15).
     var candidates: () -> [FeatureID] = { [] }
-    /// The module open in the notch under the pointer, if any.
-    var current: () -> FeatureID? = { nil }
     /// Shows or hides the row in the notch.
     var present: (Bool) -> Void = { _ in }
     /// Opens the chosen module like its shortcut (spec QS-6).
     var open: (FeatureID) -> Void = { _ in }
+    /// The choice moved by a swipe: a tick like a module switch (spec QS-17).
+    var onStep: () -> Void = {}
 
     private var isPending = false
     private var showTimer: Timer?
@@ -49,13 +50,10 @@ final class ModuleSwitcher: ObservableObject {
 
     var selected: FeatureID? { items.indices.contains(selection) ? items[selection] : nil }
 
-    /// The row's most recently opened module, or the one before it if it is open now; without a
-    /// history the first, or the second if the first is open (spec QS-11).
-    nonisolated static func startIndex(_ items: [FeatureID], history: [FeatureID], current: FeatureID?) -> Int {
-        let recent = history.filter(items.contains)
-        let pick = current != nil && recent.first == current ? recent.dropFirst().first : recent.first
-        if let pick, let index = items.firstIndex(of: pick) { return index }
-        return items.count > 1 && current != nil && items.first == current ? 1 : 0
+    /// The row's most recently opened module, also when it is open now (spec QS-16); without a
+    /// history the first.
+    nonisolated static func startIndex(_ items: [FeatureID], history: [FeatureID]) -> Int {
+        history.first(where: items.contains).flatMap { items.firstIndex(of: $0) } ?? 0
     }
 
     /// The tiles' scale that keeps every module in one row within `width` (spec QS-12).
@@ -71,7 +69,7 @@ final class ModuleSwitcher: ObservableObject {
         guard settings.moduleSwitcherOn, !isShown, !isPending else { return }
         items = candidates()
         guard !items.isEmpty else { return }
-        selection = Self.startIndex(items, history: ModuleHistory.shared.recent, current: current())
+        selection = Self.startIndex(items, history: ModuleHistory.shared.recent)
         swipeStart = selection
         isPending = true
         let delay = settings.showDelay
@@ -95,7 +93,10 @@ final class ModuleSwitcher: ObservableObject {
     func swipeMoved(travel: Double) {
         guard isShown || isPending, !items.isEmpty else { return }
         let steps = SwitcherController.steps(travel: travel, step: settings.swipeStep)
-        selection = min(max(swipeStart + steps, 0), items.count - 1)
+        let moved = min(max(swipeStart + steps, 0), items.count - 1)
+        guard moved != selection else { return }
+        selection = moved
+        onStep()
     }
 
     func swipeEnded(cancelled: Bool) {
@@ -123,7 +124,11 @@ final class ModuleSwitcher: ObservableObject {
         stopTimer()
         // The row gives way to the module itself, without closing first (spec QS-6).
         if wasShown, chosen == nil { present(false) }
-        if let chosen { open(chosen) }
+        if let chosen {
+            // Remembered at once, also when it is the module already open (spec QS-16).
+            ModuleHistory.shared.opened(chosen)
+            open(chosen)
+        }
     }
 
     private func stopTimer() {

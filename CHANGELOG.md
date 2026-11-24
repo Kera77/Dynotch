@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.107.0] - 2026-11-24
+
+### Changed
+
+- Google Chat replies are faster: "Sent" shows as soon as the message goes out, arrival is checked in the background (a notice comes if it never shows up), and the web app goes back to Home afterwards (GW-30, GW-31).
+- Swiping over the module icons or the calendar's day strip steps one at a time, faster for a stronger flick, instead of jumping to the end (M-17, K-17).
+- The swipe-up module switcher always starts on the module opened last, also while it is open, and ticks with haptics as the choice moves (QS-16, QS-17).
+
+### Fixed
+
+- The Calculator no longer slides the notch content up and hides the top row (SZ-18).
+- Switching off the AI module is smooth: answers are formatted once and only the visible ones are built, and the keyboard is handed back after the slide (AI-18, N-25).
+
 ## [0.106.0] - 2026-11-24
 
 ### Changed

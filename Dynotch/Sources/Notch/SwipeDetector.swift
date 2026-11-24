@@ -129,23 +129,44 @@ struct VerticalSwipe {
     }
 }
 
-/// Gathers steps and lets them through together at most every `interval`, so a long swipe
-/// switches smoothly instead of restarting the animation on every event (spec M-14).
-struct StepThrottle {
-    var interval: TimeInterval = 0.1
-    private var pending = 0
+/// Gathers steps and lets them through one at a time, never several at once: a strong flick
+/// walks through the modules or days faster, not jumps to the end (spec M-17, K-17).
+struct StepQueue {
+    /// One waiting step goes every 0.15 s, many every 0.06 s.
+    static let slowest: TimeInterval = 0.15
+    static let fastest: TimeInterval = 0.06
+
+    /// The most steps one gesture can have waiting.
+    var maxPending = 5
+    private(set) var pending = 0
     private var last = Date.distantPast
+
+    init(maxPending: Int = 5) {
+        self.maxPending = maxPending
+    }
 
     mutating func reset() {
         pending = 0
     }
 
-    /// The steps to take now, 0 while waiting.
-    mutating func add(_ steps: Int, now: Date = Date()) -> Int {
-        pending += steps
-        guard pending != 0, now.timeIntervalSince(last) >= interval else { return 0 }
-        defer { pending = 0 }
+    /// Adds a gesture's steps; turning back drops the ones still waiting the other way.
+    mutating func add(_ steps: Int) {
+        guard steps != 0 else { return }
+        if pending != 0, (pending > 0) != (steps > 0) { pending = 0 }
+        pending = max(-maxPending, min(maxPending, pending + steps))
+    }
+
+    /// The wait before the next step: shorter while more are waiting.
+    nonisolated static func interval(pending: Int) -> TimeInterval {
+        max(fastest, slowest - 0.03 * Double(abs(pending) - 1))
+    }
+
+    /// One step (+1 or -1) when it is due, 0 otherwise.
+    mutating func next(now: Date = Date()) -> Int {
+        guard pending != 0, now.timeIntervalSince(last) >= Self.interval(pending: pending) else { return 0 }
         last = now
-        return pending
+        let step = pending > 0 ? 1 : -1
+        pending -= step
+        return step
     }
 }

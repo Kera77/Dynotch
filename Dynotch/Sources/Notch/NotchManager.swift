@@ -137,14 +137,6 @@ final class NotchManager {
         controller.openFromModuleSwitcher(feature, pinned: pinned)
     }
 
-    /// The module open on the pointer's display, for where the module switcher starts (spec QS-5).
-    func openModule() -> FeatureID? {
-        guard let model = pointerController?.model, model.isExpanded, !model.isPreview, !model.isShowingOverlayPage,
-              !model.isShowingSettings, !model.isShowingNotifications
-        else { return nil }
-        return model.currentFeature
-    }
-
     private var pointerController: NotchController? {
         let pointer = NSEvent.mouseLocation
         return controllers.first { $0.model.geometry.screenFrame.contains(pointer) } ?? controllers.first

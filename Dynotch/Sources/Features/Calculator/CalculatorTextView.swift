@@ -43,6 +43,24 @@ final class CalculatorTextView: EditingTextView {
     override func didChangeText() {
         super.didChangeText()
         refreshResults()
+        logShiftedAncestors()
+    }
+
+    private var lastShift = ""
+
+    /// Logs a view above the editor that moved out of place (spec SZ-18): the notch content
+    /// sliding up shows here, with the view that moved.
+    func logShiftedAncestors() {
+        var shifted: [String] = []
+        var view = enclosingScrollView?.superview
+        while let current = view {
+            if current.bounds.origin != .zero { shifted.append("\(type(of: current)) \(current.bounds.origin)") }
+            view = current.superview
+        }
+        let line = shifted.joined(separator: ", ")
+        guard line != lastShift else { return }
+        lastShift = line
+        DiagnosticsLog.append("calculator", line.isEmpty ? "content in place" : "content moved: \(line)")
     }
 
     override func setFrameSize(_ newSize: NSSize) {
@@ -99,6 +117,7 @@ final class CalculatorTextView: EditingTextView {
         }
         setSelectedRange(NSRange(location: (string as NSString).length, length: 0))
         scrollRangeToVisible(selectedRange())
+        DispatchQueue.main.async { [weak self] in self?.logShiftedAncestors() }
     }
 
     /// Scrolls only the calculator's own scroll view: the default one also moved the notch's

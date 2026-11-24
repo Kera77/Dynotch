@@ -48,7 +48,11 @@ extension NotchController {
         wasExpanded = model.isExpanded
         guard wantsKeyboard != panel.allowsKey else { return }
         panel.allowsKey = wantsKeyboard
-        if !wantsKeyboard {
+        if !wantsKeyboard, model.isExpanded, !openedJustNow {
+            // Switched off a typing module: handing the keys over (app activation, the panel
+            // ordered out and in) would jolt the slide, so it comes after it (spec N-25).
+            giveKeyboardBackAfterSlide()
+        } else if !wantsKeyboard {
             giveKeyboardBack()
         } else if model.isShowingSettings || !openedJustNow || model.currentFeature == .calculator || settings.focusFollowsMouse {
             // The calculator takes typing right away, even when opened by hover (spec SZ-10);
@@ -56,6 +60,23 @@ extension NotchController {
             panel.makeKey()
         }
     }
+
+    private func giveKeyboardBackAfterSlide() {
+        guard !keyboardBackPending else { return }
+        keyboardBackPending = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.slideDuration) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.keyboardBackPending = false
+                // Back on a typing module meanwhile: it keeps the keys.
+                guard !self.model.wantsKeyboard || !self.model.isExpanded else { return }
+                self.giveKeyboardBack()
+            }
+        }
+    }
+
+    /// How long a module switch's slide takes (the spring's response, a little more).
+    static let slideDuration: TimeInterval = 0.28
 
     /// resignKey() only reports; the app in front gets its key window back for real, or its
     /// window stayed half active (e.g. VS Code did not scroll) (spec F-15).

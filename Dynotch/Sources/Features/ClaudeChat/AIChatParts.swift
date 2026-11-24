@@ -139,9 +139,21 @@ struct AIChatHeader: View {
 }
 
 /// An answer: paragraphs with bold, italic, links; headings; code blocks with Copy (spec AI-7).
-struct AIMessageContent: View {
+struct AIMessageContent: View, Equatable {
     let text: String
     let isError: Bool
+
+    /// Parsed paragraphs by their text: a module switch redraws every answer, and parsing them
+    /// all again on each frame made switching off the AI module stutter (spec AI-18).
+    @MainActor private static var cache: [String: AttributedString] = [:]
+
+    @MainActor static func cachedFormatted(_ paragraph: String) -> AttributedString {
+        if let hit = cache[paragraph] { return hit }
+        if cache.count > 400 { cache.removeAll(keepingCapacity: true) }
+        let result = formatted(paragraph)
+        cache[paragraph] = result
+        return result
+    }
 
     private enum Part {
         case text(String)
@@ -168,7 +180,7 @@ struct AIMessageContent: View {
             ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
                 switch part {
                 case .text(let paragraph):
-                    Text(Self.formatted(paragraph))
+                    Text(Self.cachedFormatted(paragraph))
                         .font(.notch(size: 13))
                         .foregroundStyle(isError ? Color.red : Color.white.level(0.92))
                         .textSelection(.enabled)

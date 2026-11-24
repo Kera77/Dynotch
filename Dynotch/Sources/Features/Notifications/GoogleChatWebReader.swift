@@ -62,6 +62,8 @@ enum GoogleChatWebReader {
     private static let unreadClass = "H7du2"
     private static let messageSuffix = "/qJTHM"
     private static let sendTitles: Set<String> = ["Üzenet küldése", "Send message"]
+    /// The sidebar's Home item (spec GW-30).
+    private static let homeTitles: Set<String> = ["Kezdőlap", "Home"]
     /// A message group's sender heading, and the mark of the owner's own (spec GW-20).
     private static let senderHeadingClass = "ZTmjQb"
     private static let ownHeadingClass = "cPjwNc"
@@ -232,39 +234,8 @@ enum GoogleChatWebReader {
         return (snapshot, token)
     }
 
-    // MARK: - Acting
-
-    /// Opens a conversation in the web app, in the background (spec GW-8).
-    nonisolated static func open(_ conversationID: String, pid: pid_t, windowToken: UInt64?) -> Bool {
-        var walker = Walker()
-        // The sidebar comes first: the walk stops at the link instead of reading the whole page (spec GW-20b).
-        walker.stopAtLink = conversationID
-        for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
-        guard let link = walker.links[conversationID] else { return false }
-        return AXUIElementPerformAction(link, kAXPressAction as CFString) == .success
-    }
-
-    /// Writes into the open conversation's message box; true when it then holds the text.
-    nonisolated static func write(_ text: String, pid: pid_t, windowToken: UInt64?) -> Bool {
-        var walker = Walker()
-        for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
-        guard let composer = walker.composer else { return false }
-        AXUIElementSetAttributeValue(composer, kAXFocusedAttribute as CFString, kCFBooleanTrue)
-        guard AXUIElementSetAttributeValue(composer, kAXValueAttribute as CFString, text as CFString) == .success else { return false }
-        let written = AXRead.string(composer, kAXValueAttribute) ?? ""
-        return written.trimmingCharacters(in: .whitespacesAndNewlines) == text.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    /// Presses the send button, only when it is enabled (it is once the web app took the text).
-    nonisolated static func pressSend(pid: pid_t, windowToken: UInt64?) -> Bool {
-        var walker = Walker()
-        for window in AXWindows.all(pid: pid, hint: windowToken).0 { walker.walk(window) }
-        guard let button = walker.sendButton, AXRead.bool(button, kAXEnabledAttribute) != false else { return false }
-        return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
-    }
-
     /// Walks the page once and collects what the reader needs.
-    private struct Walker {
+    struct Walker {
         var conversations: [ChatWebConversation] = []
         var previews: [(id: String?, preview: ChatWebPreview)] = []
         var links: [String: AXUIElement] = [:]
@@ -273,8 +244,11 @@ enum GoogleChatWebReader {
         var foundPage = false
         var composer: AXUIElement?
         var sendButton: AXUIElement?
+        var homeLink: AXUIElement?
         /// Stops the walk once this conversation's link is found.
         var stopAtLink: String?
+        /// Stops the walk once the Home item is found.
+        var stopAtHome = false
         /// Whether the last sender heading was the owner's: the messages under it are theirs.
         private var ownGroup = false
         private var visited = 0
@@ -287,6 +261,7 @@ enum GoogleChatWebReader {
                 visited += 1
                 guard visited < GoogleChatWebReader.elementLimit else { return }
                 if let stopAtLink, links[stopAtLink] != nil { return }
+                if stopAtHome, homeLink != nil { return }
                 if visit(element) { stack += AXRead.children(element).reversed() }
             }
         }
@@ -296,6 +271,10 @@ enum GoogleChatWebReader {
             let role = AXRead.string(element, kAXRoleAttribute) ?? ""
             if role == "AXWebArea" { readPage(element) }
             let domID = AXRead.string(element, "AXDOMIdentifier") ?? ""
+            if stopAtHome, homeLink == nil, isHomeItem(element, role: role) {
+                homeLink = element
+                return false
+            }
             if role == (kAXGroupRole as String),
                AXRead.strings(element, "AXDOMClassList").contains(GoogleChatWebReader.homeItemClass) {
                 if let preview = GoogleChatWebReader.homePreview(AXRead.texts(in: element)) {
@@ -328,6 +307,14 @@ enum GoogleChatWebReader {
             let name = (AXRead.string(heading, kAXTitleAttribute) ?? AXRead.texts(in: heading).first ?? "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             ownGroup = GoogleChatWebReader.isOwnHeading(name: name, classes: classes)
+        }
+
+        /// The sidebar's Home: a link to …/app/home, or a link or button titled Home.
+        private func isHomeItem(_ element: AXUIElement, role: String) -> Bool {
+            guard role == "AXLink" || role == (kAXButtonRole as String) else { return false }
+            if let url = AXRead.url(element), url.path.hasSuffix("/app/home") || url.fragment?.hasSuffix("/home") == true { return true }
+            let title = AXRead.string(element, kAXTitleAttribute) ?? AXRead.string(element, kAXDescriptionAttribute) ?? ""
+            return GoogleChatWebReader.homeTitles.contains(title.trimmingCharacters(in: .whitespacesAndNewlines))
         }
 
         private func isSendButton(_ button: AXUIElement) -> Bool {

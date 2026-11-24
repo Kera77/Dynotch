@@ -152,12 +152,14 @@ struct ClaudeChatView: View {
             if let chat = service.selected, !chat.messages.isEmpty {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
-                        VStack(alignment: .leading, spacing: 8) {
+                        // Lazy: only the answers in view are built (spec AI-18).
+                        LazyVStack(alignment: .leading, spacing: 8) {
                             ForEach(chat.messages) { message in
                                 let isLast = message.id == chat.messages.last?.id
                                 ChatBubble(
                                     message: message, isWriting: service.workingID == chat.id && isLast, provider: chat.service
                                 ) { service.toggleFavorite(message.id, in: chat.id) }
+                                    .equatable()
                                     .id(message.id)
                             }
                         }
@@ -274,11 +276,16 @@ private struct ChatRow: View {
     }
 }
 
-private struct ChatBubble: View {
+private struct ChatBubble: View, Equatable {
     let message: ChatMessage
     let isWriting: Bool
     var provider = AIProvider.claude
     var toggleFavorite: (() -> Void)?
+
+    /// Redrawn only when its own message changed (spec AI-18); the action does not count.
+    nonisolated static func == (lhs: ChatBubble, rhs: ChatBubble) -> Bool {
+        lhs.message == rhs.message && lhs.isWriting == rhs.isWriting && lhs.provider == rhs.provider
+    }
 
     var body: some View {
         switch message.role {

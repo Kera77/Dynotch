@@ -65,14 +65,31 @@ struct VerticalSwipeTests {
     }
 }
 
-struct StepThrottleTests {
-    @Test func gathersStepsWithinTheInterval() {
-        var throttle = StepThrottle()
+struct StepQueueTests {
+    @Test func letsStepsThroughOneAtATime() {
+        var queue = StepQueue(maxPending: 5)
         let start = Date()
-        #expect(throttle.add(1, now: start) == 1)
-        #expect(throttle.add(1, now: start.addingTimeInterval(0.03)) == 0)
-        #expect(throttle.add(1, now: start.addingTimeInterval(0.06)) == 0)
-        #expect(throttle.add(0, now: start.addingTimeInterval(0.12)) == 2)
+        queue.add(3)
+        #expect(queue.next(now: start) == 1)
+        #expect(queue.next(now: start.addingTimeInterval(0.03)) == 0)
+        #expect(queue.next(now: start.addingTimeInterval(0.15)) == 1)
+        #expect(queue.next(now: start.addingTimeInterval(0.32)) == 1)
+        #expect(queue.next(now: start.addingTimeInterval(0.60)) == 0)
+    }
+
+    @Test func aStrongFlickIsCappedAndFaster() {
+        var queue = StepQueue(maxPending: 5)
+        queue.add(12)
+        #expect(queue.pending == 5)
+        #expect(StepQueue.interval(pending: 5) < StepQueue.interval(pending: 1))
+        #expect(StepQueue.interval(pending: 5) >= StepQueue.fastest)
+    }
+
+    @Test func turningBackDropsTheWaitingSteps() {
+        var queue = StepQueue()
+        queue.add(3)
+        queue.add(-1)
+        #expect(queue.pending == -1)
     }
 
     @Test func momentumCountsLessForTheModuleStepper() {
