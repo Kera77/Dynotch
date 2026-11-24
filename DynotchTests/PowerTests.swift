@@ -1,3 +1,4 @@
+import CoreGraphics
 @testable import Dynotch
 import Foundation
 import Testing
@@ -92,5 +93,26 @@ struct PowerTests {
         #expect(CallBaseline.isStale(lastTick: .distantPast, now: now))
         #expect(!CallBaseline.isStale(lastTick: now.addingTimeInterval(-3), now: now))
         #expect(CallBaseline.isStale(lastTick: now.addingTimeInterval(-30), now: now))
+    }
+
+    @Test func missionControlNotifications() {
+        #expect(MissionControlWatcher.isShowing(after: "AXExposeShowAllWindows"))
+        #expect(MissionControlWatcher.isShowing(after: "AXExposeShowDesktop"))
+        #expect(!MissionControlWatcher.isShowing(after: "AXExposeExit"))
+    }
+
+    @Test func missionControlIsADockWindowOverAWholeDisplay() {
+        let screen = CGRect(x: 0, y: 0, width: 2560, height: 1440)
+        func dock(_ width: Int, _ height: Int, layer: Int = 20) -> ListedWindow {
+            ListedWindow(owner: "Dock", layer: layer, frame: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        let spacesBar = ListedWindow(owner: "WindowManager", layer: 14, frame: CGRect(x: 0, y: 0, width: 2560, height: 134))
+        #expect(MissionControlWatcher.isMissionControl([dock(2560, 1440), spacesBar], screens: [screen]))
+        // The Dock sliding in under the pointer puts up the same window, without WindowManager's (N-19c).
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 1440)], screens: [screen]))
+        #expect(!MissionControlWatcher.isMissionControl([spacesBar], screens: [screen]))
+        // The Dock bar itself, or another layer, is not Mission Control.
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 80)], screens: [screen]))
+        #expect(!MissionControlWatcher.isMissionControl([dock(2560, 1440, layer: 0)], screens: [screen]))
     }
 }

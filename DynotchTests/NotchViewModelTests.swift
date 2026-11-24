@@ -169,4 +169,15 @@ struct NotchViewModelTests {
         #expect(model.openSize.height > model.geometry.expandedSize.height)
         #expect(model.geometry.windowSize.height >= model.openSize.height)
     }
+
+    @Test func shortcutModuleIsNotRememberedForHover() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.calendar)
+        model.select(.calculator, remember: false)
+        #expect(model.currentFeature == .calculator)
+        model.setExpanded(false)
+        model.setExpanded(true)
+        #expect(model.currentFeature == .calendar)
+    }
 }

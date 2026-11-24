@@ -95,4 +95,51 @@ struct IndicatorLayoutTests {
         #expect(layout.slot(at: CGPoint(x: ring, y: notchRect.midY), notchRect: notchRect) == 1)
         #expect(layout.slot(at: CGPoint(x: ring + 20, y: notchRect.midY), notchRect: notchRect) == nil)
     }
+
+    /// Even widths keep the row beside the notch on whole pixels.
+    @MainActor @Test func widthsBesideTheNotchAreEven() {
+        let widths: [CGFloat] = [
+            NotchGeometry.virtualNotchWidth, IndicatorLayout.slotWidth, IndicatorLayout.ringSlotWidth,
+            IndicatorLayout.batterySlotWidth, IndicatorLayout.iconWidth, IndicatorLayout.spacing, IndicatorLayout.padding,
+            IndicatorLayout.separatorWidth, IndicatorLayout.badgeSpacing, LevelRing.size,
+            BatteryItemWidths.one, BatteryItemWidths.three
+        ]
+        #expect(widths.allSatisfy { $0.truncatingRemainder(dividingBy: 2) == 0 })
+        let layout = IndicatorLayout(
+            slotWidths: [IndicatorLayout.slotWidth, IndicatorLayout.ringSlotWidth], badgeWidths: [BatteryItemWidths.one]
+        )
+        #expect(layout.horizontalOffset == layout.horizontalOffset.rounded())
+    }
+
+    private enum BatteryItemWidths {
+        static let one = BadgeItem.width(text: "7")
+        static let three = BadgeItem.width(text: "99+")
+    }
+
+    private let limits = [UsageLimit(id: "five_hour", title: "Session", utilization: 82, resetsAt: Date().addingTimeInterval(3600))]
+
+    /// PV-58: in Wings mode the hovered AI ring widens sideways, nothing drops down.
+    @MainActor @Test func usageUnfoldsSidewaysInWings() {
+        let items = IndicatorItem.items(meetings: [], usage: limits)
+        let unfolded = IndicatorItem.unfoldingUsage(items, hovered: 0, wings: true)
+        #expect(unfolded[0].labelHeight == 0)
+        #expect(unfolded[0].slotWidth > items[0].slotWidth + 40)
+        #expect(unfolded[0].id == items[0].id)
+        let layout = IndicatorLayout(items: unfolded)
+        let notch = CGSize(width: 200, height: 32)
+        #expect(layout.size(notch: notch, labelHeight: 0).height == notch.height)
+    }
+
+    /// PV-58: without Wings (or without hover) it drops its details down as before.
+    @MainActor @Test func usageDropsDownOutsideWings() {
+        let items = IndicatorItem.items(meetings: [], usage: limits)
+        #expect(IndicatorItem.unfoldingUsage(items, hovered: 0, wings: false) == items)
+        #expect(IndicatorItem.unfoldingUsage(items, hovered: nil, wings: true) == items)
+        #expect(items[0].labelHeight > 0)
+    }
+
+    @MainActor @Test func resetTextNamesTheTime() {
+        let text = IndicatorItem.usageResetText(limits)
+        #expect(text.hasPrefix("Resets today") || text.hasPrefix("Resets tomorrow"))
+    }
 }

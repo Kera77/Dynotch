@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [0.111.0] - 2026-11-24
+
+### Added
+
+- Settings › About: after an update, "Go back to X" installs the version it came from (with the same checks as an update) and turns off automatic updates so it stays; `./scripts/install.sh vX.Y.Z` with an older version also turns them off (RF-21).
+- The keyboard lock ends by itself after 3 minutes, or when Esc is held for 3 seconds (RF-4).
+- Open, close and module switches show as signposts (category "notch") in Instruments (RF-16).
+
+### Changed
+
+- Haptics play on the trackpad's own motor, so they are felt although Dynotch is never the active app: the three-finger swipe up, every sideways swipe (modules, the module strip, Notifications and Tray tabs, wings), flicking a notice or meeting away, swiping back to the wings and swiping down to open fully. Where the motor is missing the system haptics play as before (H-8).
+- Views redraw only when what they show changes: the notch no longer redraws as a whole for every Stats, badge or music update (RF-13); chained animations wait for the previous one to end instead of a fixed time (RF-14).
+- Background checks run only while their feature is on, pause while the displays sleep or the Mac is locked, and look three times less often on battery or in Low Power Mode (RF-8…RF-10). The Mission Control watch reads the window list about once a second instead of 3 times a second (RF-7); notifications come from the database's file watch, with a 30 s fallback (RF-12); the menu bar is measured when the app, the display or the badges change (RF-12); clocks that show hours and minutes redraw once a minute (RF-11).
+- Replies typed into Google Chat or a linked conversation, and AI answers pasted into an app, are marked transient: no clipboard history keeps them, and the whole previous clipboard (images and files too) comes back afterwards (RF-5).
+- Replying by typing waits for the conversation's field, not a fixed 2.5 s; the Google Chat jump waits for its window and checks the conversation as soon as it shows (RF-15).
+- Continuing an AI chat in Terminal quotes every part of the command (RF-6).
+- CI actions are pinned to commit hashes, and a release without the signing certificate fails instead of building an unsigned app (RF-2, RF-3).
+- Housekeeping: unused code removed, one place each for AppleScript, key presses and the clipboard around them, tests grouped by feature, CHANGELOG entries before 0.90 in `docs/CHANGELOG-archive.md` (RF-17…RF-20).
+
 ## [0.110.0] - 2026-11-24
 
 ### Changed

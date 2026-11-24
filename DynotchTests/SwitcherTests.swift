@@ -98,4 +98,62 @@ struct SwitcherTests {
         let lower = SwitcherWindows.items(from: info, apps: apps, minimized: [], ownPID: 1, options: options).map(\.windowID)
         #expect(lower == [2, 3, 4])
     }
+
+    @Test func quickSwipeGoesToAnotherApp() {
+        let item = { (window: CGWindowID, pid: pid_t) in
+            SwitcherItem(windowID: window, pid: pid, bundleID: nil, appName: "", title: "", bounds: .zero)
+        }
+        let items = [item(1, 10), item(2, 10), item(3, 20), item(4, 30)]
+        #expect(SwitcherController.previousApp(items, front: 10)?.windowID == 3)
+        #expect(SwitcherController.previousApp(items, front: nil)?.windowID == 3)
+        #expect(SwitcherController.previousApp([item(1, 10)], front: 10) == nil)
+    }
+
+    @MainActor @Test func historyPutsTheLatestFirst() throws {
+        let defaults = try #require(UserDefaults(suiteName: "SwitcherTests.history"))
+        defaults.removePersistentDomain(forName: "SwitcherTests.history")
+        let history = ModuleHistory(defaults: defaults)
+        history.opened(.notes)
+        history.opened(.calendar)
+        history.opened(.notes)
+        #expect(ModuleHistory(defaults: defaults).recent == [.notes, .calendar])
+    }
+
+    @Test func startsOnTheRowsLatestModule() {
+        let row: [FeatureID] = [.calendar, .notes, .calculator]
+        let history: [FeatureID] = [.terminal, .calculator, .calendar]
+        // The row keeps its order; the latest opened of it is chosen, also while open (spec QS-11, QS-16).
+        #expect(ModuleSwitcher.startIndex(row, history: history) == 2)
+        // No history: the first.
+        #expect(ModuleSwitcher.startIndex(row, history: []) == 0)
+        #expect(ModuleSwitcher.startIndex([.notes], history: [.notes]) == 0)
+    }
+
+    @Test func oneRowShrinksOnlyWhenItMust() {
+        // Plenty of room: the chosen size stays (spec QS-12).
+        #expect(ModuleSwitcher.rowScale(count: 6, scale: 1, width: 1400) == 1)
+        let scale = ModuleSwitcher.rowScale(count: 20, scale: 1, width: 1000)
+        #expect(scale < 1)
+        let tile = SwitcherLayout.tile(.icons, scale: scale).width
+        #expect(20 * tile + 19 * SwitcherLayout.spacing + 2 * SwitcherLayout.padding <= 1000.5)
+    }
+
+    @MainActor @Test func rowIsSeededOnceThenEdited() throws {
+        let defaults = try #require(UserDefaults(suiteName: "SwitcherTests.row"))
+        defaults.removePersistentDomain(forName: "SwitcherTests.row")
+        let settings = SwitcherSettings(defaults: defaults)
+        settings.seedModuleRow([.calendar, .notes])
+        #expect(settings.moduleRow == [.calendar, .notes])
+        settings.addToModuleRow(.terminal)
+        settings.addToModuleRow(.notes)
+        settings.moveInModuleRow(from: IndexSet(integer: 2), to: 0)
+        settings.removeFromModuleRow(.calendar)
+        #expect(settings.moduleRow == [.terminal, .notes])
+        // A later launch keeps the edited row, even an empty one (spec QS-10).
+        settings.removeFromModuleRow(.terminal)
+        settings.removeFromModuleRow(.notes)
+        let again = SwitcherSettings(defaults: defaults)
+        again.seedModuleRow([.calendar])
+        #expect(again.moduleRow.isEmpty)
+    }
 }

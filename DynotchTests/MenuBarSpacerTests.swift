@@ -2,8 +2,9 @@
 import Foundation
 import Testing
 
-/// Menu bar spaces hidden while alone, and spaces saved before it (spec MB-13, MB-14).
-struct V0100Tests {
+/// Spaces in the menu bar (spec MB-1…MB-6, MB-13, MB-14).
+@MainActor
+struct MenuBarSpacerTests {
     private let space = CGRect(x: 1000, y: 880, width: 16, height: 24)
 
     @Test func spaceWithAnIconLeftOfItIsNotAlone() {
@@ -29,5 +30,20 @@ struct V0100Tests {
         #expect(spacers.first?.style == .line)
         #expect(spacers.first?.width == .large)
         #expect(spacers.first?.hidesWhenAlone == false)
+    }
+
+    @MainActor @Test func spacesAreKept() {
+        let defaults = UserDefaults(suiteName: "MenuBarSpacerTests-\(UUID().uuidString)") ?? .standard
+        let service = MenuBarSpacerService(defaults: defaults)
+        let first = service.add()
+        service.add()
+        service.setStyle(.line, of: first.id)
+        service.setWidth(.large, of: first.id)
+        let reopened = MenuBarSpacerService(defaults: defaults)
+        #expect(reopened.spacers.count == 2)
+        #expect(reopened.spacers.first?.style == .line)
+        #expect(reopened.spacers.first?.width == .large)
+        reopened.remove(first.id)
+        #expect(MenuBarSpacerService(defaults: defaults).spacers.count == 1)
     }
 }

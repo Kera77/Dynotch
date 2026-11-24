@@ -189,4 +189,77 @@ struct BadgeTests {
         #expect(layout.badge(at: CGPoint(x: notchRect.midX, y: y), notchRect: notchRect) == nil)
         #expect(layout.badge(at: CGPoint(x: icon.x, y: notchRect.minY - 20), notchRect: notchRect) == nil)
     }
+
+    @Test func backgroundHelpersAreNotOfferedForBadges() {
+        #expect(InstalledApps.isBackgroundOnly(["LSUIElement": true]))
+        #expect(InstalledApps.isBackgroundOnly(["LSUIElement": "1"]))
+        #expect(InstalledApps.isBackgroundOnly(["LSBackgroundOnly": NSNumber(value: 1)]))
+        #expect(!InstalledApps.isBackgroundOnly(["LSUIElement": false]))
+        #expect(!InstalledApps.isBackgroundOnly(["CFBundleName": "Mail"]))
+        #expect(!InstalledApps.isBackgroundOnly(nil))
+        #expect(InstalledApps.coreServicesAllowed.contains("com.apple.finder"))
+    }
+
+    @Test func chatBadgesOpenTheirTab() {
+        let beeper = BadgeApp(bundleID: "com.automattic.beeper.desktop", name: "Beeper Desktop", isEnabled: true, icon: .app)
+        let chat = BadgeApp(bundleID: "com.apple.Safari.WebApp.940A", name: "Google Chat", isEnabled: true, icon: .app)
+        let mail = BadgeApp(bundleID: "com.apple.mail", name: "Mail", isEnabled: true, icon: .app)
+        #expect(BadgeApp.chatTab(for: beeper) == .beeper)
+        #expect(BadgeApp.chatTab(for: chat) == .googleChat)
+        #expect(BadgeApp.chatTab(for: mail) == nil)
+    }
+
+    @Test func badgeListHeightFollowsItsNotificationsUpToFive() {
+        func row(_ id: Int64, _ sender: String) -> BadgeNotificationRow {
+            BadgeNotificationRow(id: id, sender: sender, detail: "m", date: Date())
+        }
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: []) == 34)
+        // Anna twice, Béla once: two name lines, three messages (spec B-10b).
+        let rows = [row(1, "Anna"), row(2, "Béla"), row(3, "Anna")]
+        #expect(BadgeNotificationRow.bySender(rows, limit: 5).map(\.sender) == ["Anna", "Béla"])
+        #expect(BadgeNotificationRow.bySender(rows, limit: 5).first?.rows.map(\.id) == [1, 3])
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: rows) == CGFloat(8 + 2 * 20 + 3 * 18))
+        let many = (0..<12).map { row(Int64($0), "Anna") }
+        // All twelve are in the list; it stops growing at its limit and scrolls (spec B-10e).
+        #expect(IndicatorLayout.badgeContentHeight(rows: many) == CGFloat(8 + 20 + 12 * 18))
+        #expect(IndicatorLayout.badgeDropdownHeight(rows: many) == IndicatorLayout.badgeDropdownMaxHeight)
+    }
+
+    @Test func highlightedNetworksTakeTheirShareOfBeepersBadge() {
+        #expect(BeeperNetworkBadge.remainder("7", minus: 3) == "4")
+        #expect(BeeperNetworkBadge.remainder("3", minus: 3) == nil)
+        #expect(BeeperNetworkBadge.remainder("5", minus: 0) == "5")
+        let beeper = BadgeApp(bundleID: "com.automattic.beeper.desktop", name: "Beeper", isEnabled: true, icon: .app)
+        let synced = BeeperNetworkBadge.synced([beeper, BeeperNetworkBadge.app("WhatsApp")], networks: ["Google Chat"])
+        #expect(synced.map(\.bundleID) == [beeper.bundleID, "beeper-network:Google Chat"])
+        #expect(BadgeApp.chatTab(for: BeeperNetworkBadge.app("Google Chat")) == .network("Google Chat"))
+    }
+
+    @Test func aHiddenBadgeComesBackAfterItsTime() {
+        let hour = BadgeHide.make(.hour, label: "2", now: now)
+        let hidden = ["a": hour, "b": BadgeHide.always]
+        #expect(BadgeHide.remaining(hidden, labels: ["a": "2", "b": "1"], now: now.addingTimeInterval(1800)).count == 2)
+        let later = BadgeHide.remaining(hidden, labels: ["a": "2", "b": "1"], now: now.addingTimeInterval(3601))
+        #expect(later["a"] == nil)
+        #expect(later["b"] == .always)
+    }
+
+    @Test func untilNewEndsWithANewMessageOrNoBadge() {
+        let hidden = ["a": BadgeHide.make(.untilNew, label: "3", now: now)]
+        // The same or fewer unread: still hidden.
+        #expect(BadgeHide.remaining(hidden, labels: ["a": "3"], now: now).count == 1)
+        #expect(BadgeHide.remaining(hidden, labels: ["a": "2"], now: now).count == 1)
+        // A new one, or all read (the next one shows).
+        #expect(BadgeHide.remaining(hidden, labels: ["a": "4"], now: now).isEmpty)
+        #expect(BadgeHide.remaining(hidden, labels: [:], now: now).isEmpty)
+    }
+
+    @MainActor @Test func hiddenBadgesStayHiddenAfterARestart() {
+        let defaults = UserDefaults(suiteName: "BadgeTests-\(UUID().uuidString)") ?? .standard
+        let service = BadgeService(defaults: defaults)
+        service.hide("com.example.app", .always)
+        #expect(BadgeService(defaults: defaults).hidden["com.example.app"] == .always)
+        service.unhide("com.example.app")
+        #expect(BadgeService(defaults: defaults).hidden.isEmpty)
+    }
 }

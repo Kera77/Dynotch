@@ -47,4 +47,10 @@ struct BrowserTabBadgeTests {
         #expect(FocusRules.focusedKeepsFocus(subrole: "AXDialog", size: CGSize(width: 800, height: 600)))
         #expect(FocusRules.focusedKeepsFocus(subrole: "AXUnknown", size: CGSize(width: 800, height: 800)))
     }
+
+    @MainActor @Test func tabsAreReadFromScriptableDefaultBrowsersOnly() {
+        #expect(BrowserTabBadges.browser(defaultBrowser: "com.ardia.browser")?.titleKey == "title")
+        #expect(BrowserTabBadges.browser(defaultBrowser: "com.apple.Safari")?.titleKey == "name")
+        #expect(BrowserTabBadges.browser(defaultBrowser: "app.zen-browser.zen") == nil)
+    }
 }

@@ -3,14 +3,23 @@ import CoreGraphics
 import Foundation
 import Testing
 
-/// Behaviours added in 0.26.
+/// Batteries: devices, low warnings, history and the Mac's own battery (spec BT-1…BT-7).
 @MainActor
-struct V026Tests {
+struct BatteryTests {
     private func device(_ id: String, _ level: Int, charging: Bool = false, kind: BatteryDevice.Kind = .mouse) -> BatteryDevice {
         BatteryDevice(id: id, name: id, kind: kind, level: level, isCharging: charging)
     }
 
-    // MARK: - Batteries (spec BT-1…BT-3)
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Budapest") ?? .current
+        return calendar
+    }
+
+    /// 2026-11-18 10:00 Budapest
+    private var now: Date {
+        calendar.date(from: DateComponents(year: 2026, month: 11, day: 18, hour: 10)) ?? Date()
+    }
 
     @Test func hidDevicesAreReadFromTheRegistry() throws {
         let entries: [[String: Any]] = [
@@ -56,7 +65,7 @@ struct V026Tests {
 
     /// Spec BT-3: below 20 % a warning shows until it is closed; it returns after a recharge.
     @Test func lowBatteriesWarnUntilDismissed() {
-        let name = "V026Tests-\(UUID().uuidString)"
+        let name = "BatteryTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name) ?? .standard
         defaults.removePersistentDomain(forName: name)
         let service = BatteryService(settings: AppSettings(defaults: defaults), defaults: defaults)
@@ -79,7 +88,7 @@ struct V026Tests {
 
     /// Spec BT-7: each device warns at its own level; Off never warns; the re-arm follows the level.
     @Test func eachDeviceHasItsOwnLowLevel() {
-        let name = "V026Tests-\(UUID().uuidString)"
+        let name = "BatteryTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name) ?? .standard
         defaults.removePersistentDomain(forName: name)
         let service = BatteryService(settings: AppSettings(defaults: defaults), defaults: defaults)
@@ -108,66 +117,54 @@ struct V026Tests {
         #expect(layout.slotWidths == [IndicatorLayout.ringSlotWidth, IndicatorLayout.batterySlotWidth, IndicatorLayout.batterySlotWidth])
     }
 
-    // MARK: - Crisp on non-Retina displays
-
-    /// Even widths keep the row beside the notch on whole pixels.
-    @Test func widthsBesideTheNotchAreEven() {
-        let widths: [CGFloat] = [
-            NotchGeometry.virtualNotchWidth, IndicatorLayout.slotWidth, IndicatorLayout.ringSlotWidth,
-            IndicatorLayout.batterySlotWidth, IndicatorLayout.iconWidth, IndicatorLayout.spacing, IndicatorLayout.padding,
-            IndicatorLayout.separatorWidth, IndicatorLayout.badgeSpacing, LevelRing.size,
-            BatteryItemWidths.one, BatteryItemWidths.three
+    @Test func estimateFromTheDaysDischarge() throws {
+        let samples = [
+            BatterySample(date: now.addingTimeInterval(-10 * 3600), level: 80),
+            BatterySample(date: now, level: 30)
         ]
-        #expect(widths.allSatisfy { $0.truncatingRemainder(dividingBy: 2) == 0 })
-        let layout = IndicatorLayout(
-            slotWidths: [IndicatorLayout.slotWidth, IndicatorLayout.ringSlotWidth], badgeWidths: [BatteryItemWidths.one]
-        )
-        #expect(layout.horizontalOffset == layout.horizontalOffset.rounded())
+        // 50 % in 10 hours: the remaining 30 % lasts 6 hours.
+        let left = try #require(BatteryHistory.estimate(from: samples, now: now))
+        #expect(abs(left - 6 * 3600) < 1)
+        #expect(BatteryHistory.estimateText(left) == "about 6 hours left")
     }
 
-    private enum BatteryItemWidths {
-        static let one = BadgeItem.width(text: "7")
-        static let three = BadgeItem.width(text: "99+")
+    @Test func noEstimateWhileCharging() {
+        let samples = [BatterySample(date: now.addingTimeInterval(-3600), level: 20), BatterySample(date: now, level: 40)]
+        #expect(BatteryHistory.estimate(from: samples, now: now) == nil)
     }
 
-    // MARK: - System notices (spec E-2c)
-
-    @Test func everySystemNoticeBelongsToSystemSettings() {
-        #expect(NotificationApp.isSystem(identifier: "com.apple.btmnotificationagent", hasApplication: false))
-        #expect(NotificationApp.isSystem(identifier: "com.apple.somedaemon", hasApplication: false))
-        #expect(NotificationApp.isSystem(identifier: "_system_center_:anything", hasApplication: false))
-        #expect(NotificationApp.isSystem(identifier: NotificationApp.systemGroupID, hasApplication: false))
-        // Apple's apps are apps; other vendors' identifiers are never system notices.
-        #expect(!NotificationApp.isSystem(identifier: "com.apple.mail", hasApplication: true))
-        #expect(!NotificationApp.isSystem(identifier: "com.vendor.tool", hasApplication: false))
-
-        let name = "V026Tests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: name) ?? .standard
-        defaults.removePersistentDomain(forName: name)
-        let settings = AppSettings(defaults: defaults)
-        let service = NotificationService(settings: settings)
-        var daemon = NotificationApp(identifier: "com.apple.somedaemon", name: "System Settings", url: nil, icon: nil)
-        daemon.isSystem = true
-        #expect(service.isEnabled(daemon))
-        settings.setNotificationApp(NotificationApp.systemGroupID, enabled: false)
-        #expect(!service.isEnabled(daemon))
+    @MainActor @Test func historyKeepsAWeekOnDisk() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("battery-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        let history = BatteryHistory(file: file)
+        let mouse = BatteryDevice(id: "mouse", name: "Mouse", kind: .mouse, level: 50)
+        history.record([mouse], at: now.addingTimeInterval(-8 * 86_400))
+        history.record([mouse], at: now)
+        #expect(history.samples["mouse"]?.count == 1)
+        #expect(BatteryHistory(file: file).samples["mouse"]?.count == 1)
     }
 
-    // MARK: - Claude finished names the right project (spec CN-4)
+    @Test func earbudsShowEachSideAndTheCase() throws {
+        let json = Data("""
+        {"SPBluetoothDataType":[{"device_connected":[{"Peter's AirPods Pro":{"device_batteryLevelCase":"74%",
+        "device_batteryLevelLeft":"90%","device_batteryLevelRight":"89%"}},{"Mouse":{"device_batteryLevelMain":"15%"}}]}]}
+        """.utf8)
+        let airPods = DeviceBattery.structuredLevels(named: "Peter's AirPods Pro", json: json)
+        #expect(airPods.map(\.part) == [.left, .right, .caseBattery])
+        #expect(airPods.map(\.percent) == [90, 89, 74])
+        #expect(DeviceBattery.structuredLevels(named: "Mouse", json: json) == [DeviceLevel(part: .main, percent: 15)])
+        #expect(DeviceBattery.structuredLevels(named: "Unknown", json: json).isEmpty)
+    }
 
-    @Test func theNoticeNamesTheProjectThatWasWorkedOn() {
-        let text = [
-            #"{"name":"Edit","input":{"file_path":"/Users/x/Dynotch/Sources/A.swift"}}"#,
-            #"{"name":"Bash","input":{"command":"cd /Users/x/Dynotch && git status"}}"#,
-            #"{"name":"Read","input":{"file_path":"/Users/x/Other/notes.md"}}"#,
-            #"{"name":"Read","input":{"file_path":"/tmp/scratch/out.txt"}}"#
-        ].joined(separator: "\n")
-        let paths = ClaudeTranscript.workedPaths(in: text)
-        #expect(paths.contains("/Users/x/Dynotch/Sources"))
-        #expect(paths.contains("/Users/x/Dynotch"))
-        let repositories: Set<String> = ["/Users/x/Dynotch", "/Users/x/Other"]
-        #expect(ClaudeTranscript.project(amongPaths: paths) { repositories.contains($0) } == "Dynotch")
-        #expect(ClaudeTranscript.project(amongPaths: ["/tmp/a"]) { _ in false } == nil)
-        #expect(ClaudeTranscript.project(amongPaths: []) { _ in true } == nil)
+    @Test func batteryDetailsComeFromItsRegistryEntry() {
+        var battery = MacBattery(level: 80, isCharging: false, isOnPower: false)
+        battery.addDetails([
+            "CycleCount": 123, "AppleRawMaxCapacity": 4500, "DesignCapacity": 5000, "Voltage": 12000,
+            "Amperage": Int(bitPattern: UInt(UInt64.max - 999))
+        ])
+        #expect(battery.cycles == 123)
+        #expect(battery.health == 0.9)
+        // -1000 mA at 12 V: 12 W going out.
+        #expect(battery.watts == -12)
     }
 }

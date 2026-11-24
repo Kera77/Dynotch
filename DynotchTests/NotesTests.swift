@@ -59,6 +59,11 @@ struct NoteHTMLTests {
         let summary = NoteSummary(id: "a", name: "b", modified: 1_763_280_000_000)
         #expect(summary.modifiedDate == Date(timeIntervalSince1970: 1_763_280_000))
     }
+
+    @Test func scratchpadEscapesAndKeepsLines() {
+        let html = NotesStore.appending("a < b & c\n\nnext", to: "<div>old</div>")
+        #expect(html == "<div>old</div><div>a &lt; b &amp; c</div><div><br></div><div>next</div>")
+    }
 }
 
 @MainActor

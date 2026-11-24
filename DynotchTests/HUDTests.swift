@@ -1,4 +1,5 @@
 @testable import Dynotch
+import Foundation
 import Testing
 
 struct HUDTests {
@@ -27,5 +28,12 @@ struct HUDTests {
         #expect(MediaKey(rawValue: 4) == nil)
         #expect(MediaKey.mute.isVolume)
         #expect(!MediaKey.brightnessUp.isVolume)
+    }
+
+    @Test func aLevelJustSetWinsOverAnOldReading() {
+        let now = Date(timeIntervalSince1970: 100)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: (0.5625, now.addingTimeInterval(-0.2)), now: now) == 0.5625)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: (0.5625, now.addingTimeInterval(-3)), now: now) == 0.5)
+        #expect(HUDLogic.currentLevel(read: 0.5, lastSet: nil, now: now) == 0.5)
     }
 }

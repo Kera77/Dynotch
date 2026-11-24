@@ -36,6 +36,20 @@ struct SwipeDetectorTests {
         #expect(detector.handle(phase: .none, isMomentum: false, fingerDeltaX: -100, deltaY: 0) == nil)
         #expect(detector.handle(phase: .changed, isMomentum: true, fingerDeltaX: -100, deltaY: 0) == nil)
     }
+
+    /// Spec N-10: only the left/right dock swipe counts, with its phases.
+    @MainActor @Test func theSpaceSwipeIsRecognised() {
+        #expect(SpaceSwipe.isSpaceSwipe(type: 30, hidType: 23, motion: 1))
+        // Up and down are Mission Control and App Exposé.
+        #expect(!SpaceSwipe.isSpaceSwipe(type: 30, hidType: 23, motion: 2))
+        #expect(!SpaceSwipe.isSpaceSwipe(type: 29, hidType: 23, motion: 1))
+        #expect(!SpaceSwipe.isSpaceSwipe(type: 30, hidType: 6, motion: 1))
+        #expect(SpaceSwipe.phase(fromRaw: 1) == .began)
+        #expect(SpaceSwipe.phase(fromRaw: 2) == .changed)
+        #expect(SpaceSwipe.phase(fromRaw: 4) == .ended)
+        #expect(SpaceSwipe.phase(fromRaw: 8) == .ended)
+        #expect(SpaceSwipe.phase(fromRaw: 0) == nil)
+    }
 }
 
 struct VerticalSwipeTests {

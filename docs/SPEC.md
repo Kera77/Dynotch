@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.110 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.111 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1179,7 +1179,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | RF-16 | **Mérés:** a nyitás, zárás és modulváltás `os_signpost` jelzést kap (Instruments-ben látható, alig kerül valamibe), hogy a folyékonyság mérhető legyen. |
 | RF-17 | **Halott kód:** a sehol nem használt típusok (`BrandGlyphImage`, `DesignEnvironment`, `PlainTextEditor`, `SwipeUpArrow`) törölve. A Számológép „content moved” naplója marad: a SZ-18 előírja. |
 | RF-18 | **Közös segédek:** a szintetikus billentyűleütés, az AppleScript-futtatás (háttérsoron, időkorláttal) és a vágólap mentése/visszaállítása egy-egy közös helyen van. |
-| RF-19 | **Tesztek funkció szerint:** a verziószámmal elnevezett tesztfájlok (`V025Tests`…) tartalma a funkciójuk szerinti tesztfájlokba kerül; a `NotchView+Wings2.swift` beszédes nevet kap. |
+| RF-19 | **Tesztek funkció szerint:** a verziószámmal elnevezett tesztfájlok (`V025Tests`…) tartalma a funkciójuk szerinti tesztfájlokba kerül; a `NotchView+Wings2.swift` beszédes nevet kap (`NotchView+WingsParts.swift`). |
 | RF-20 | **Rövidebb CHANGELOG:** a v0.90 előtti bejegyzések a `docs/CHANGELOG-archive.md`-be kerülnek. |
 | RF-21 | **Visszaállás az előző verzióra:** *Settings › About*-ban, frissítés után „**Go back to X**” gomb: letölti és (ugyanazzal az ellenőrzéssel, U-2) telepíti azt a verziót, amelyről az app frissült, és kikapcsolja az automatikus telepítést, hogy ne frissüljön vissza magától. Ha az új verzió el sem indul: `./scripts/install.sh vX.Y.Z`, amely a legfrissebbnél régebbi verzió telepítésekor szintén kikapcsolja az automatikus telepítést. A git-ben a refaktorálás előtti állapot a `v0.110.0` tag. |
 
@@ -1229,6 +1229,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.111.0** | Refaktorálás: haptika a trackpad motorján minden swipe-ra (H-8), célzott újrarajzolás `@Observable`-lel, takarékos háttérfigyelés (csak bekapcsolt funkció, szünet alvás/zárolás alatt, ×3 akkun és energiatakarékos módban, Mission Control figyelő ritkábban), billentyűzár vészkijárat, átmeneti vágólap, idézett Terminál-parancsok, visszaállás az előző verzióra, rögzített CI-actionök (RF-1…RF-21) |
 | **v0.110.0** | Swipe-up modulok listája a Module strip mintájára, haptika a swipe-upra, nincs névfelirat hoverre az ikonokon, System fejléc nélkül, Options a fülek mellett, hatodik Speed csempe (QS-18, M-22, SY-13) |
 | **v0.109.0** | Akadásmentes Tray, a felső sor sosem csúszik ki, swipe pillanatképekkel (az átlépett modulok nem épülnek fel), húzás út szerint és pöccintés a sor végére, rejtett modul szeme a kapcsoló előtt (FT-16, N-26, M-20, M-21, M-19) |
 | **v0.108.0** | Bármely modul elrejthető a modulok közül: fut tovább, gyorsbillentyűvel és a swipe-up sorból nyílik (M-18) |

@@ -109,4 +109,39 @@ struct ScreenshotTests {
         let saved = try #require(ScreenshotEditor(url: url, tools: EditorTool.allCases))
         #expect(saved.image.width == 100 && saved.image.height == 50)
     }
+
+    private func image(width: Int, height: Int) throws -> CGImage {
+        let context = try #require(CGContext(
+            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        return try #require(context.makeImage())
+    }
+
+    @Test func aPartIsCutOnWholePixels() throws {
+        let full = try image(width: 200, height: 100)
+        // Half points on a 1x display land on whole pixels.
+        let part = try #require(ScreenCapture.crop(full, to: CGRect(x: 10.4, y: 5.6, width: 50.2, height: 20.4), scale: 1))
+        #expect(part.width == 50)
+        #expect(part.height == 20)
+        let retina = try #require(ScreenCapture.crop(full, to: CGRect(x: 10, y: 5, width: 30, height: 20), scale: 2))
+        #expect(retina.width == 60)
+        #expect(retina.height == 40)
+        // Outside the display it is clipped, never bigger than the display.
+        let edge = try #require(ScreenCapture.crop(full, to: CGRect(x: 190, y: 0, width: 50, height: 10), scale: 1))
+        #expect(edge.width == 10)
+        #expect(ScreenCapture.crop(full, to: CGRect(x: 300, y: 0, width: 5, height: 5), scale: 1) == nil)
+    }
+
+    @Test func areaRecordingRectIsOnWholeEvenPixels() throws {
+        let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
+        let area = CGRect(x: 100.3, y: 200.2, width: 300.5, height: 151.1)
+        let rect = try #require(ScreenRecorder.sourceRect(area, screen: screen, scale: 2))
+        let pixels = CGRect(x: rect.minX * 2, y: rect.minY * 2, width: rect.width * 2, height: rect.height * 2)
+        #expect(pixels.minX == pixels.minX.rounded() && pixels.minY == pixels.minY.rounded())
+        #expect(Int(pixels.width) % 2 == 0 && Int(pixels.height) % 2 == 0)
+        // Top-left origin: the area's top edge, 982 − 351.3 points down from the top.
+        #expect(abs(rect.minY - (982 - 351.3)) < 0.5)
+        #expect(ScreenRecorder.sourceRect(CGRect(x: 0, y: 0, width: 4, height: 4), screen: screen, scale: 2) == nil)
+    }
 }

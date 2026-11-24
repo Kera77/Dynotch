@@ -1,4 +1,5 @@
 import AppKit
+import CoreGraphics
 @testable import Dynotch
 import Testing
 
@@ -88,5 +89,20 @@ struct CalculatorEngineTests {
             #expect(abs(bounds.minY - rect.minY) < 0.5)
             #expect(abs(bounds.maxY - rect.maxY) < 0.5)
         }
+    }
+
+    @Test(arguments: [
+        ("Asd: 10*10", "100"),
+        ("Rent 1200*12 eur", "14\u{00A0}400"),
+        ("Lunch: 2 x 4,5", "9"),
+        ("total: (2+3)*2", "10")
+    ])
+    func wordsAroundACalculation(_ line: String, _ expected: String) {
+        #expect(CalculatorEngine.result(for: line) == expected)
+    }
+
+    @Test(arguments: ["Asd: 42", "Price 1200", "two apples and 3 pears + 2", "note: nothing here"])
+    func wordsWithoutACalculation(_ line: String) {
+        #expect(CalculatorEngine.result(for: line) == nil)
     }
 }

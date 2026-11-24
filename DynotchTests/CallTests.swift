@@ -74,4 +74,8 @@ struct CallTests {
         #expect(composing.width <= geometry.windowSize.width)
         #expect(composing.height <= geometry.windowSize.height)
     }
+
+    @Test func onlyThePhoneAppsAreHidden() {
+        #expect(PhoneAppHider.identifiers == ["com.apple.FaceTime", "com.apple.mobilephone"])
+    }
 }

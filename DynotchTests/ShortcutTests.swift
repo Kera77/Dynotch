@@ -86,4 +86,17 @@ struct ShortcutTests {
         #expect(((removed["hooks"] as? [String: Any])?["Stop"] as? [[String: Any]])?.count == 1)
         #expect(ClaudeHook.settings(ClaudeHook.settings([:], installed: true), installed: false).isEmpty)
     }
+
+    /// Spec SC-2: without a shortcut the Pin box is shown unticked and does nothing.
+    @Test func pinNeedsAShortcut() throws {
+        let store = ShortcutStore(defaults: makeDefaults())
+        store.setPins(.notes, true)
+        #expect(store.pins(.notes))
+        #expect(!store.pinsWhenOpened(.notes))
+        let shortcut = try #require(KeyShortcut.make(keyCode: UInt16(kVK_ANSI_1), flags: [.option], characters: "1"))
+        store.set(shortcut, for: .notes)
+        #expect(store.pinsWhenOpened(.notes))
+        store.set(nil, for: .notes)
+        #expect(!store.pinsWhenOpened(.notes))
+    }
 }

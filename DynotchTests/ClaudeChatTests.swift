@@ -113,4 +113,81 @@ struct ClaudeChatTests {
         let own = try #require(URL(string: "dynotch://claude-finished?project=\(ClaudeCLI.folderName)"))
         #expect(ClaudeHook.notice(from: own, now: Date()) == nil)
     }
+
+    private func makeDefaults() -> UserDefaults {
+        let name = "ClaudeChatTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        return defaults
+    }
+
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Budapest") ?? .current
+        return calendar
+    }
+
+    /// 2026-11-18 10:00 Budapest
+    private var now: Date {
+        calendar.date(from: DateComponents(year: 2026, month: 11, day: 18, hour: 10)) ?? Date()
+    }
+
+    @Test func aClaudeCodeSessionIsTakenOverAsAChat() {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("chats-\(UUID().uuidString).json")
+        let service = ClaudeChatService(file: file, defaults: makeDefaults())
+        let session = ClaudeCodeSession(
+            id: "sess-1", title: "Old work", workingDirectory: "/tmp", file: file, modified: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+        service.setCodeSessions([session])
+        #expect(service.codeSessions == [session])
+
+        service.open(session)
+        #expect(service.codeSessions.isEmpty)
+        let chat = service.selected
+        #expect(chat?.title == "Old work")
+        #expect(chat?.sessionID == "sess-1")
+        #expect(chat?.needsFork == true)
+        if let id = chat?.id {
+            service.setImportedMessages([ChatMessage(role: .user, text: "hello")], for: id)
+            #expect(service.selected?.messages.count == 1)
+            // The first answer continues a copy: its new session replaces the old one.
+            _ = service.begin("more")
+            service.finish(id, text: "ok", sessionID: "sess-2", isError: false)
+            #expect(service.selected?.sessionID == "sess-2")
+            #expect(service.selected?.needsFork == nil)
+        }
+        // Already taken over: not offered again.
+        service.setCodeSessions([session])
+        #expect(service.codeSessions.isEmpty)
+        #expect(ClaudeCLI.arguments(prompt: "x", sessionID: "s", fork: true).suffix(3) == ["--resume", "s", "--fork-session"])
+    }
+
+    @Test func theSidebarStateIsRememberedAndBothPanelsCountAsVisible() {
+        let defaults = makeDefaults()
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("chats-\(UUID().uuidString).json")
+        let service = ClaudeChatService(file: file, defaults: defaults)
+        #expect(service.showsSidebar)
+        service.showsSidebar = false
+        #expect(!ClaudeChatService(file: file, defaults: defaults).showsSidebar)
+
+        var announced = 0
+        service.onAnswerReady = { _ in announced += 1 }
+        service.isVisibleInMenuBar = true
+        service.finish(service.begin("a"), text: "x", sessionID: nil, isError: false)
+        #expect(announced == 0)
+        service.isVisibleInMenuBar = false
+        service.finish(service.begin("b"), text: "y", sessionID: nil, isError: false)
+        #expect(announced == 1)
+    }
+
+    @Test func favoritesNewestFirst() {
+        var older = ChatMessage(role: .assistant, text: "old", date: now.addingTimeInterval(-60))
+        older.isFavorite = true
+        var newer = ChatMessage(role: .assistant, text: "new", date: now)
+        newer.isFavorite = true
+        let plain = ChatMessage(role: .assistant, text: "plain", date: now)
+        let chat = ClaudeChat(title: "C", messages: [older, plain, newer])
+        let favorites = ClaudeChatService.favorites(in: [chat])
+        #expect(favorites.map(\.message.text) == ["new", "old"])
+    }
 }
