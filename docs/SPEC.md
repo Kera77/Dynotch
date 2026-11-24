@@ -113,6 +113,7 @@
 | C-6 | (v0.37, v0.40-ben módosítva) Ha a beállítások a notchban nyílnak meg, a notch **nyitva marad az első kattintásig a notchon kívül** (akkor is, ha az egér közben elhagyja), és arra a kattintásra bezáródik. Nem rögzíti (a lakat nem kapcsol be). Modul választásakor vagy a fogaskerékre kattintva a szokásos viselkedés tér vissza. |
 | C-4 | **Bal kattintás** a notch-on nem csinál semmit, mert a panel hoverre nyílik. |
 | H-7 | **Trackpad-visszajelzés** (Force Touch): a notch lenyílásakor, funkcióváltó swipe-nál és a napsávon napváltáskor. *Settings › General*-ban kikapcsolható. Csak akkor érezhető, ha az ujjad a trackpaden van. |
+| H-8 | (v0.111) **Haptika háttérből is (H-7 javítása):** a visszajelzés közvetlenül a trackpad rezgőmotorján szól (privát `MultitouchSupport`, dinamikusan betöltve), mert a rendszer haptikája csak az aktív appnál érződik, a notch-panel pedig nem aktiválja a Dynotchot. Így érződik a háromujjas felfelé swipe (QS-18), a modulsorban léptető és a modulok közt váltó oldalsó swipe (S-1, M-12, M-17, M-21), a fülek közti lépés (UM-8, FT-4) és a napváltás is. Ha a motor nem érhető el, a rendszer haptikája szól (mint eddig); a `haptics.log` naplózza, melyik működik. |
 | C-5b | (v0.95: az SD-2 váltja fel) (v0.31) A Notifications fülön a keresőmező az „Apps” szakasz fejlécében van (sorként nem lehetett belekattintani). (v0.33) A fejlécben sem lehetett, ezért a fül tetején, az űrlap fölött áll (mint az App badges fülön), és az appokat és a weboldalakat is szűri; az űrlapon belüli szövegmezők (szabály neve, Beeper-token) kattintásra programból is fókuszt kapnak. |
 | C-5 | **Kilépés:** *Beállítások › Névjegy › Kilépés a Dynotch-ból*. Az appot újra elindítva (például a Finderből) a beállítások ablaka nyílik meg. |
 | C-7 | (v0.43) *Névjegy › Copy Diagnostics*: verzió, bekapcsolt modulok, engedélyek és a naplók vége a vágólapra, hibabejelentéshez. Üzenettartalom nincs benne. |
@@ -1155,6 +1156,32 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-13 | (v0.97) **Screenshots módsorok (SD-10 módosítása):** a sorrendszám („1×”, „Off”) nem látszik; a sorrend a sorok sorrendje, a kapcsoló a sor jobb szélén áll. |
 | SD-14 | (v0.99) **Átrendezés vége (SD-4 javítása):** a beállítások átrendezhető listáiban a húzott sor elengedés után mindig visszakapja a teljes színét, akkor is, ha két sor közé vagy a listán kívül engedik el, és a húzott kép nem repül vissza. |
 | SD-15 | (v0.100) **Utolsó lap:** a beállítások az utoljára megnyitott lapon nyílnak meg (újraindítás után is). |
+
+## 4ő+++++++. Refaktorálás: energia, folyékonyság, biztonság (v0.111)
+
+| # | Követelmény |
+|---|---|
+| RF-1 | **Commit-szerző:** a repó commitjai a GitHub noreply címével készülnek, nem a gép helyi címével (amely a felhasználónevet és a gép típusát mutatta). A régi előzmény nem íródik át. |
+| RF-2 | **CI ellátási lánc:** a workflow-k minden külső actionje **commit SHA-ra rögzítve** (mellette megjegyzésben a verzió); a Dependabot ezeket is frissíti. |
+| RF-3 | **Aláírás nélkül nincs kiadás:** ha a release workflow-ban hiányzik az aláíró tanúsítvány, a kiadás hibával leáll (eddig ad-hoc aláírással épült, amelyet az updater úgyis elutasított). |
+| RF-4 | **Billentyűzár vészkijárat (KL-3 kiegészítése):** a zár **3 perc után magától feloldódik**, és az **Esc 3 mp-es nyomva tartása** is feloldja (a többi billentyű továbbra is tiltva). |
+| RF-5 | **Vágólap kíméletesen:** a gépelt válasz (GW, Beeper), a vágólap-választó és az AI beillesztése a szöveget **átmenetiként** (`org.nspasteboard.TransientType`) teszi a vágólapra, így sem a Dynotch, sem más vágólapkezelő nem menti el; utána a vágólap **teljes** előző tartalma (kép, fájl is) visszakerül, nem csak a szöveg. |
+| RF-6 | **Terminálos folytatás biztonságosan:** az AI-chat Terminálban folytatásakor (AI-15, „Resume”) minden paraméter (mappa, program, session-azonosító) shell-idézőjelben, az AppleScript-szöveg `\` és `"` escape-pel kerül át; a két Terminál-script egy közös függvény. |
+| RF-7 | **Mission Control figyelő takarékosan (N-19):** elsősorban a Dock AX-értesítéseiből dolgozik; az ablaklistát csak egy swipe/gesztus után néhány mp-ig nézi sűrűn (0,3 mp), egyébként legfeljebb 2 mp-enként. |
+| RF-8 | **Csak bekapcsolt funkció figyel:** a hívás-, badge-, böngészőfül-, menüsor-mérés-, vágólap-, értesítés-, Beeper-, Mail-, Google Chat-, zene- és statisztika-figyelő csak akkor fut, ha a funkciója be van kapcsolva; kikapcsoláskor megáll, bekapcsoláskor újraindul (újraindítás nélkül). |
+| RF-9 | **Szünet alvás és zárolás alatt:** ha a kijelzők alszanak vagy a munkamenet zárolt/inaktív, minden ismétlődő figyelő szünetel; ébredéskor azonnal egyet frissít, és folytatja. |
+| RF-10 | **Energiatakarékos mód:** Alacsony fogyasztású módban (és akkuról járva) az ismétlődő figyelők intervalluma háromszoros; a lenyitott notch gyors frissítései (stat, zene, hover) maradnak. |
+| RF-11 | **Óra percre:** a Home és a Wings órája (csak órát:percet mutat) percváltáskor frissül, nem másodpercenként. |
+| RF-12 | **Kevesebb kettős figyelés:** az értesítések az adatbázis fájlfigyelőjéből frissülnek; a polling csak tartalék (30 mp). A menüsor mérése (B-8) app-váltáskor, kijelzőváltáskor és a badge-ek változásakor fut, nem 3 mp-enként (tartalékként 15 mp). |
+| RF-13 | **Célzott újrarajzolás:** a megfigyelt modellek és szolgáltatások `@Observable`-re állnak át (a `ObservableObject`/`@Published` helyett), így egy érték változása csak az azt olvasó nézetet rajzolja újra, nem a teljes notch-ot. Viselkedés és kinézet nem változik. |
+| RF-14 | **Animációk láncolása:** az egymás utáni animációs lépések az előző animáció végére várnak (`withAnimation` completion), nem fix idejű alvásra; így terhelés alatt sem ugranak. |
+| RF-15 | **Feltételre várás fix idők helyett:** a Google Chat-ugrás és a gépelt válasz az app/ablak/mező megjelenésére vár (gyakori, rövid ellenőrzéssel, felső időkorláttal), nem rögzített 0,9–3 mp-ig; gépelés előtt továbbra is ellenőrzi, hogy a jó app van elöl. |
+| RF-16 | **Mérés:** a nyitás, zárás és modulváltás `os_signpost` jelzést kap (Instruments-ben látható, alig kerül valamibe), hogy a folyékonyság mérhető legyen. |
+| RF-17 | **Halott kód:** a sehol nem használt típusok (`BrandGlyphImage`, `DesignEnvironment`, `PlainTextEditor`, `SwipeUpArrow`) és a Számológép hibakereső „content moved” naplója törölve. |
+| RF-18 | **Közös segédek:** a szintetikus billentyűleütés, az AppleScript-futtatás (háttérsoron, időkorláttal) és a vágólap mentése/visszaállítása egy-egy közös helyen van. |
+| RF-19 | **Tesztek funkció szerint:** a verziószámmal elnevezett tesztfájlok (`V025Tests`…) tartalma a funkciójuk szerinti tesztfájlokba kerül; a `NotchView+Wings2.swift` beszédes nevet kap. |
+| RF-20 | **Rövidebb CHANGELOG:** a v0.90 előtti bejegyzések a `docs/CHANGELOG-archive.md`-be kerülnek. |
+| RF-21 | **Visszaállás az előző verzióra:** *Settings › Updates*-ben, frissítés után „**Go back to X**” gomb: letölti és (ugyanazzal az ellenőrzéssel, U-2) telepíti azt a verziót, amelyről az app frissült, és kikapcsolja az automatikus telepítést, hogy ne frissüljön vissza magától. Ha az új verzió el sem indul: `./scripts/install.sh vX.Y.Z`, amely régebbi verzió telepítésekor szintén kikapcsolja az automatikus telepítést. |
 
 ## 5. Nyitott kérdések
 
