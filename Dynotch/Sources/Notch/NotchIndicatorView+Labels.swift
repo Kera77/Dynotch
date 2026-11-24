@@ -233,12 +233,18 @@ extension NotchIndicatorView {
         }
     }
 
-    /// Beside the notch: the countdown opens to the right with the name, the time, Join and the
-    /// X (spec PV-69).
+    /// Beside the notch: the countdown opens to the right with Join, the name, the time and the
+    /// X (spec PV-69, PV-74).
     func unfoldedMeeting(_ item: IndicatorItem, event: CalendarEvent, countdown: some View, now: Date) -> some View {
         let phase = CalendarAgenda.status(of: event, now: now, leadTime: leadTime).phase
         return HStack(spacing: 6) {
             countdown
+            // Join first, right beside the countdown, so it is the nearest thing to the pointer (PV-74).
+            if event.meetingURL != nil {
+                JoinButton(style: .muted) { join(event) }
+                    .help("Join the meeting")
+                    .accessibilityLabel("Join the meeting")
+            }
             Text(event.title)
                 .font(.notch(size: 12, weight: .semibold))
                 .foregroundStyle(.white)
@@ -252,11 +258,6 @@ extension NotchIndicatorView {
                 .lineLimit(1)
                 .fixedSize()
             Spacer(minLength: 0)
-            if event.meetingURL != nil {
-                JoinButton(style: .muted) { join(event) }
-                    .help("Join the meeting")
-                    .accessibilityLabel("Join the meeting")
-            }
             dismissButton(for: item, help: "Hide this countdown")
         }
         .frame(width: item.slotWidth, alignment: .leading)

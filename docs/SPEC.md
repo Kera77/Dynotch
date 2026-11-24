@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.105 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.106 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -599,6 +599,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | PV-71 | (v0.84) **Wings késleltetés lenyíló kis értesítésnél:** ha a kis értesítések helye *Drop down* (PV-66), és a notch alatt épp lenyíló kis értesítés áll (pl. zeneszám-bejelentés, meeting, „Dynotch updated”), a notch fölé vitt egér **nem nyitja ki azonnal** a modul Wingsét, csak ha ~0,6 mp-ig a notchon marad; így közben le lehet húzni (swipe) vagy rá lehet kattintani. Ha az egér közben elhagyja a notchot, a várakozás újraindul. |
 | PV-72 | (v0.84) **Notifications Wings – chat ikonok (PV-17 módosítása):** a Beeper ikonjára kattintva a panel a **Beeper** fülön nyílik, a Google Chat ikonjára kattintva a **Google Chat** fülön (mint a jelvényükre kattintva, BP-12, GC-5), nem az All fülön. |
 | PV-73 | (v0.104) **Kis értesítések a notch mellett, Wings nélkül (PV-66 helye):** a választó helyett *Settings › Appearance*, a **DyNotch Wings** alatt kapcsoló: **Small notices beside the notch**. Bekapcsolva minden kis lenyíló (értesítés, eszköz, Claude/ChatGPT kész, kérdés, frissítés, letöltés, meeting- és zeneszám-bejelentés, hover-részletek) a notch vonalában, két oldalt jelenik meg, mint Wings módban; a többi Wings-funkció (hoverre szétnyíló szárnyak) ettől nem kapcsol be. Kikapcsolva lenyílnak. A korábbi választás (vagy ha nem volt, a Wings mód) adja a kezdőállapotot. A bejövő hívás és a képernyőkép-bélyegkép továbbra is lenyílik. |
+| PV-74 | (v0.106) **Join a kinyíló rész elején (PV-67, PV-69, PV-9 módosítása):** a notch mellett kinyíló meeting-részletekben a **Join** gomb (ha van link) a kinyíló rész **notchhoz legközelebbi** helyére kerül, így hover után az egér rögtön odaér: a hoverre kinyíló visszaszámlálónál közvetlenül a visszaszámláló mellett (Join, név, idő, X), a bejelentett meeting jobb szárnyán legbelül (Join, idő, X), a Calendar Wings jobb szárnyán legbelül (Join, cím). A lenyíló (nem a notch melletti) meeting-sor (K-8h) nem változik. |
 | C-5 | A Beállítások **App badges** és **Notifications** fülén keresőmező szűri az alkalmazások listáját. |
 
 ## 4p. Akkumulátorok (v0.26)
@@ -1183,6 +1184,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.106.0** | A meeting Join gombja a notch melletti kinyíló rész elején (PV-74) |
 | **v0.105.0** | Badge-lenyílóból kattintott csevegés kinyitva, azonnal gépelhető (B-10f) |
 | **v0.104.0** | Letöltések automatikusan a tálcába külön lejárattal, kis értesítések a notch mellett kapcsoló a Wings alatt, válaszmező kattintásra azonnal gépelhető (FT-15, PV-73, E-27) |
 | **v0.103.0** | Screenshot-lenyíló a designnal, Google Chat válasz mindig a háttérben, megnyitás gomb a feladat-lenyílóban, a Calculator nem csúszik fel (SH-16, GW-29, R-20, SZ-17) |

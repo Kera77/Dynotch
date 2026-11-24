@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.106.0] - 2026-11-24
+
+### Changed
+
+- The Join button of a meeting beside the notch (announced, unfolded on hover, Calendar Wings) sits nearest the notch, the first thing the pointer reaches (PV-74).
+
 ## [0.105.0] - 2026-11-24
 
 ### Changed

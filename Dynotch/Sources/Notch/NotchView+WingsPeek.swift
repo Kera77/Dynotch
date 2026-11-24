@@ -152,20 +152,21 @@ extension NotchView {
         }
     }
 
-    /// When, Join and the X, which puts the name away as a swipe up does (spec PV-67, K-8f).
+    /// Join (nearest the notch), when and the X, which puts the name away as a swipe up does
+    /// (spec PV-67, PV-74, K-8f).
     private func meetingWingRight(_ event: CalendarEvent) -> some View {
         TimelineView(.periodic(from: .now, by: 15)) { context in
             let status = CalendarAgenda.status(of: event, now: context.date, leadTime: calendar.leadTime)
             HStack(spacing: 6) {
+                if event.meetingURL != nil {
+                    WingButton(title: "Join", symbol: "video.fill", prominent: true) { joinedMeeting(event) }
+                }
                 Text(IndicatorLayout.meetingTimeText(event, phase: status.phase == .ongoing ? "in progress" : "starting"))
                     .font(.notch(size: 11))
                     .monospacedDigit()
                     .foregroundStyle(CalendarStyle.eventTime)
                     .lineLimit(1)
                     .fixedSize()
-                if event.meetingURL != nil {
-                    WingButton(title: "Join", symbol: "video.fill", prominent: true) { joinedMeeting(event) }
-                }
                 Button(action: dismissNotice) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.notch(size: 13))

@@ -120,10 +120,11 @@ extension NotchView {
     @ViewBuilder private var calendarWingRight: some View {
         if let event = nextEvent {
             HStack(spacing: 8) {
-                WingText(event.title)
+                // Join nearest the notch, the first thing the pointer reaches (spec PV-74).
                 if event.meetingURL != nil {
                     WingButton(title: "Join", symbol: "video.fill", prominent: true) { joinedMeeting(event) }
                 }
+                WingText(event.title)
             }
         }
     }
