@@ -97,7 +97,7 @@ enum CallMessenger {
     static func send(_ text: String, toCaller caller: String) throws {
         let targets = targets(for: caller, contact: contact(for: caller))
         guard !targets.isEmpty else { throw Failure.noNumber }
-        guard let result = ProcessRunner.run("/usr/bin/osascript", ["-e", script, text] + targets, timeout: 30) else {
+        guard let result = AppleScriptRunner.osascript(script, arguments: [text] + targets, timeout: 30) else {
             throw Failure.failed("osascript could not start")
         }
         guard result.succeeded else {

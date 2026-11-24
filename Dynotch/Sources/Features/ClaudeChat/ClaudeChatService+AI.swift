@@ -45,10 +45,7 @@ extension ClaudeChatService {
     /// Codex's sign-in with the ChatGPT account, in Terminal; it opens the browser (spec AI-15).
     func signInToChatGPT() {
         guard let program = CodexCLI.locate() else { return }
-        let line = Self.quoted(program.path) + " login"
-        let source = "tell application \"Terminal\"\nactivate\ndo script \"\(line.replacingOccurrences(of: "\"", with: "\\\""))\"\nend tell"
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
+        AppleScriptRunner.runInTerminal([program.path, "login"])
     }
 
     /// ChatGPT through Codex, with the account the Mac is signed in with (spec AI-3).
@@ -190,16 +187,15 @@ extension ClaudeChatService {
 
     // MARK: Using the answer (spec AI-7, AI-12)
 
-    /// Pastes an answer into the app in front (after the notch closed).
+    /// Pastes an answer into the app in front (after the notch closed); the clipboard keeps what
+    /// was on it, and no clipboard history lists the answer (spec RF-5).
     static func insert(_ text: String) {
-        let board = NSPasteboard.general
-        board.clearContents()
-        board.setString(text, forType: .string)
-        let source = CGEventSource(stateID: .combinedSessionState)
-        for isDown in [true, false] {
-            let event = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: isDown)
-            event?.flags = .maskCommand
-            event?.post(tap: .cghidEventTap)
+        let saved = SyntheticInput.Snapshot.take()
+        SyntheticInput.put(text, transient: true)
+        SyntheticInput.paste()
+        Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            saved.restore()
         }
     }
 
@@ -207,25 +203,17 @@ extension ClaudeChatService {
     func continueInTerminal(_ chat: ClaudeChat) {
         guard let session = chat.sessionID else { return }
         let program: URL?
-        let command: String
+        let command: [String]
         switch chat.service {
         case .claude:
             program = ClaudeCLI.locate()
-            command = "--resume \(session)"
+            command = ["--resume", session]
         case .chatgpt:
             program = CodexCLI.locate()
-            command = "resume \(session)"
+            command = ["resume", session]
         }
         guard let program else { return }
-        let folder = chat.workingDirectory ?? Self.chatFolder.path
-        let line = "cd \(Self.quoted(folder)) && \(Self.quoted(program.path)) \(command)"
-        let source = "tell application \"Terminal\"\nactivate\ndo script \"\(line.replacingOccurrences(of: "\"", with: "\\\""))\"\nend tell"
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if error != nil { DiagnosticsLog.append("ai", "could not open Terminal") }
-    }
-
-    static func quoted(_ path: String) -> String {
-        "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        // Every word quoted, so nothing in them reaches the shell as code (spec RF-6).
+        AppleScriptRunner.runInTerminal([program.path] + command, in: chat.workingDirectory ?? Self.chatFolder.path)
     }
 }

@@ -79,16 +79,8 @@ enum BrowserTabBadges {
               !NSRunningApplication.runningApplications(withBundleIdentifier: browser.id).isEmpty
         else { return nil }
         let source = script(browserID: browser.id, titleKey: browser.titleKey)
-        return await withCheckedContinuation { continuation in
-            queue.async {
-                var error: NSDictionary?
-                let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
-                if let error {
-                    let code = error[NSAppleScript.errorNumber] as? Int ?? 0
-                    DiagnosticsLog.append("badges", "\(browser.id) tabs could not be read (\(code))")
-                }
-                continuation.resume(returning: result.map { parse($0.stringValue ?? "") })
-            }
+        return await AppleScriptRunner.run(source, on: queue, log: "badges", what: "\(browser.id) tabs") { result in
+            parse(result.stringValue ?? "")
         }
     }
 

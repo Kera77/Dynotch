@@ -38,6 +38,13 @@ struct AboutSettingsView: View {
                             .disabled(isBusy)
                     }
                 }
+                if let previous = updates.rollbackVersion {
+                    Button("Go back to \(previous)") { updates.rollBack() }
+                        .controlSize(.small)
+                        .disabled(isBusy)
+                        .help("Installs \(previous) again and turns off automatic updates, so it stays")
+                        .accessibilityLabel("Go back to \(previous): installs it again and turns off automatic updates")
+                }
             }
             .padding(.top, 14)
             .frame(maxWidth: 360)

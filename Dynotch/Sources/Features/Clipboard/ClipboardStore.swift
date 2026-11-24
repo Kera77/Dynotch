@@ -191,7 +191,7 @@ final class ClipboardStore: ObservableObject {
     /// Puts the item on the pasteboard and pastes it into the app in front with ⌘V.
     func paste(_ item: ClipItem) {
         copy(item)
-        Self.pressCommandV()
+        SyntheticInput.paste()
     }
 
     /// Puts the item on the pasteboard; it comes first in the history again (spec PV-22).
@@ -208,15 +208,6 @@ final class ClipboardStore: ObservableObject {
         if history.contains(where: { $0.id == item.id }) {
             history = [item] + history.filter { $0.id != item.id }
             persist()
-        }
-    }
-
-    private static func pressCommandV() {
-        let source = CGEventSource(stateID: .combinedSessionState)
-        for isDown in [true, false] {
-            let event = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: isDown)
-            event?.flags = .maskCommand
-            event?.post(tap: .cghidEventTap)
         }
     }
 

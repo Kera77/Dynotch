@@ -26,40 +26,55 @@ enum GoogleChatJump {
             NSWorkspace.shared.open([chatURL], withApplicationAt: appURL, configuration: configuration) { _, _ in }
         }
         guard await TypedReply.waitUntilFrontmost(bundleID) else { return try fail(text, "Google Chat didn't come to the front.") }
-        try? await Task.sleep(for: webApp != nil ? .milliseconds(900) : .milliseconds(3000))
+        await waitForChat(bundleID, isWebApp: webApp != nil)
 
         // ⌘⇧K: find a person, group or space; the name; Return opens it.
-        TypedReply.press(key: 0x28, flags: [.maskCommand, .maskShift])
-        try? await Task.sleep(for: .milliseconds(600))
+        let fieldBefore = AXRead.focusedField(of: bundleID)
+        SyntheticInput.press(SyntheticInput.Key.letterK, flags: [.maskCommand, .maskShift])
+        _ = await AXRead.wait(upTo: .milliseconds(600)) { !AXRead.same(AXRead.focusedField(of: bundleID), fieldBefore) }
         guard isFront(bundleID) else { return try fail(text, "Another app came to the front.") }
-        let saved = NSPasteboard.general.string(forType: .string)
-        TypedReply.copyToClipboard(conversation)
-        TypedReply.press(key: 0x09, flags: .maskCommand)
+        let saved = SyntheticInput.Snapshot.take()
+        SyntheticInput.put(conversation, transient: true)
+        SyntheticInput.paste()
+        // The search results come from the network: no sign to wait for.
         try? await Task.sleep(for: .milliseconds(1400))
-        TypedReply.press(key: 0x24, flags: [])
-        try? await Task.sleep(for: .milliseconds(1800))
+        SyntheticInput.press(SyntheticInput.Key.returnKey)
 
         // Never type into a conversation that is not the one answered: the conversation's empty
         // message field must have the keyboard, and it or the window must name the conversation.
-        let check = shownConversation(in: bundleID)
+        // Checked until it holds, at most as long as it used to wait (spec RF-15).
+        var check = Shown()
+        _ = await AXRead.wait(upTo: .milliseconds(1800), step: .milliseconds(150)) {
+            check = shownConversation(in: bundleID)
+            return check.isMessageField && Self.matches(conversation, in: check.texts)
+        }
         let named = Self.matches(conversation, in: check.texts)
         let titleNamed = check.texts.first.map { Self.matches(conversation, in: [$0]) } ?? false
         DiagnosticsLog.append(
             "reply", "google chat check: role=\(check.role) empty=\(check.isEmpty) titleNamed=\(titleNamed) named=\(named)"
         )
         guard isFront(bundleID), check.isMessageField, named else {
-            TypedReply.press(key: 0x35, flags: []) // Escape closes the search if it is still open.
-            if let saved { TypedReply.copyToClipboard(saved) }
+            SyntheticInput.press(SyntheticInput.Key.escape) // Closes the search if it is still open.
+            saved.restore()
             return try fail(text, "Couldn't confirm the conversation in Google Chat. Text copied: paste it with ⌘V.")
         }
-        TypedReply.copyToClipboard(text)
-        TypedReply.press(key: 0x09, flags: .maskCommand)
+        SyntheticInput.put(text, transient: true)
+        SyntheticInput.paste()
         try? await Task.sleep(for: .milliseconds(150))
-        TypedReply.press(key: 0x24, flags: [])
+        SyntheticInput.press(SyntheticInput.Key.returnKey)
         try? await Task.sleep(for: .milliseconds(400))
-        if let saved { TypedReply.copyToClipboard(saved) }
+        saved.restore()
         DiagnosticsLog.append("reply", "google chat sent after jump")
         return "Sent in Google Chat"
+    }
+
+    /// Until its window shows Google Chat, at most as long as it used to wait (spec RF-15).
+    private static func waitForChat(_ bundleID: String, isWebApp: Bool) async {
+        try? await Task.sleep(for: .milliseconds(300))
+        _ = await AXRead.wait(upTo: isWebApp ? .milliseconds(600) : .milliseconds(2700)) {
+            guard let window = AXRead.focusedWindow(of: bundleID) else { return false }
+            return isWebApp || (AXRead.string(window, kAXTitleAttribute) ?? "").localizedCaseInsensitiveContains("chat")
+        }
     }
 
     private static func fail(_ text: String, _ message: String) throws -> String {
@@ -97,29 +112,15 @@ enum GoogleChatJump {
         else { return Shown() }
         let app = AXUIElementCreateApplication(pid)
         var shown = Shown()
-        let window = element(app, kAXFocusedWindowAttribute)
-        if let title = window.flatMap({ string($0, kAXTitleAttribute) }) { shown.texts.append(title) }
-        let field = element(app, kAXFocusedUIElementAttribute)
+        let window = AXRead.element(app, kAXFocusedWindowAttribute)
+        if let title = window.flatMap({ AXRead.string($0, kAXTitleAttribute) }) { shown.texts.append(title) }
+        let field = AXRead.element(app, kAXFocusedUIElementAttribute)
         shown.texts += [kAXDescriptionAttribute, kAXPlaceholderValueAttribute, kAXHelpAttribute]
-            .compactMap { attribute in field.flatMap { string($0, attribute) } }
-        shown.role = field.flatMap { string($0, kAXRoleAttribute) } ?? "-"
-        let value = field.flatMap { string($0, kAXValueAttribute) } ?? ""
+            .compactMap { attribute in field.flatMap { AXRead.string($0, attribute) } }
+        shown.role = field.flatMap { AXRead.string($0, kAXRoleAttribute) } ?? "-"
+        let value = field.flatMap { AXRead.string($0, kAXValueAttribute) } ?? ""
         shown.isEmpty = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return shown
-    }
-
-    private static func element(_ parent: AXUIElement, _ attribute: String) -> AXUIElement? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(parent, attribute as CFString, &value) == .success, let value,
-              CFGetTypeID(value) == AXUIElementGetTypeID()
-        else { return nil }
-        return unsafeBitCast(value, to: AXUIElement.self)
-    }
-
-    private static func string(_ element: AXUIElement, _ attribute: String) -> String? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
-        return value as? String
     }
 
     /// Whether one of the texts names the conversation: its full name, or for a person their

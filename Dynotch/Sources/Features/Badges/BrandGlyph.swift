@@ -126,22 +126,3 @@ struct BrandGlyphView: View {
             .frame(width: size, height: size)
     }
 }
-
-/// Brand marks as menu bar images (spec CC-8).
-@MainActor
-enum BrandGlyphImage {
-    /// Claude's mark, tinted by the menu bar like any other icon.
-    static let claude: NSImage = {
-        let size = NSSize(width: 16, height: 16)
-        let image = NSImage(size: size, flipped: true) { rect in
-            let path = BrandGlyphShape(glyph: .claude).path(in: rect.insetBy(dx: 0.5, dy: 0.5))
-            NSColor.black.setFill()
-            guard let context = NSGraphicsContext.current?.cgContext else { return false }
-            context.addPath(path.cgPath)
-            context.fillPath()
-            return true
-        }
-        image.isTemplate = true
-        return image
-    }()
-}

@@ -279,6 +279,7 @@ extension NotchController {
             .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
         guard area.contains(NSEvent.mouseLocation) else { return false }
         if isSwipeUp(event) {
+            Haptics.perform(.open, settings: settings)
             suppressIndicatorHover = true
             withAnimation(NotchView.quickAnimation) {
                 calendar.dismissAnnouncement()

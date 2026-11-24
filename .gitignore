@@ -21,3 +21,6 @@ build/
 dist/
 *.dmg
 *.zip
+
+# Agent worktrees
+.claude/worktrees/

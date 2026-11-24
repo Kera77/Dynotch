@@ -24,6 +24,7 @@ extension NotchController {
         let phase = Self.phase(of: event)
         let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
         if previewSwipe.handle(phase: phase, fingerUp: fingerDown, deltaX: event.scrollingDeltaX) {
+            Haptics.perform(.open, settings: settings)
             openFully()
             return true
         }
@@ -49,6 +50,7 @@ extension NotchController {
         guard wingsSwipes.back.handle(phase: Self.phase(of: event), fingerUp: fingerUp, deltaX: event.scrollingDeltaX) else {
             return false
         }
+        Haptics.perform(.open, settings: settings)
         withAnimation(Self.animation) { startPreview() }
         return true
     }
@@ -143,6 +145,8 @@ extension NotchController {
 
     func foldPeekAway(_ dismiss: () -> Void) {
         pauseIndicatorHover()
+        // Every flick away upwards is felt (spec H-8).
+        Haptics.perform(.open, settings: settings)
         guard settings.noticesBeside, !model.isExpanded, !AppleStyle.reducesMotion else {
             withAnimation(NotchView.quickAnimation, dismiss)
             return

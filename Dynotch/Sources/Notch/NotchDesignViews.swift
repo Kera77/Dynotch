@@ -15,16 +15,6 @@ extension EnvironmentValues {
     }
 }
 
-/// Passes the chosen design down and keeps it current.
-struct DesignEnvironment<Content: View>: View {
-    @ObservedObject var settings: AppSettings
-    let content: Content
-
-    var body: some View {
-        content.environment(\.notchDesign, settings.design)
-    }
-}
-
 /// Dark liquid glass: the system's glass from macOS 26, a dark material before. Tinted dark so
 /// white text stays readable in front of a light background (spec D-2).
 struct GlassFill<S: Shape>: View {

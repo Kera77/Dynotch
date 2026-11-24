@@ -167,7 +167,7 @@ final class MailService: ObservableObject {
         var outcome = Outcome()
         var current = known
         if asksAccounts {
-            let result = ProcessRunner.run("/usr/bin/osascript", ["-e", MailParser.accountScript], timeout: 15)
+            let result = AppleScriptRunner.osascript(MailParser.accountScript, timeout: 15)
             if let result, result.succeeded, let parsed = MailParser.accountInfos(from: result.output) {
                 outcome.infos = parsed
                 current = parsed

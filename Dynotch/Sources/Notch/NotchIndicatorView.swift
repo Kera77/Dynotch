@@ -382,14 +382,3 @@ private struct OverflowChip: View {
         .help("\(count) more app\(count == 1 ? "" : "s") with notifications")
     }
 }
-
-/// The "swipe up to dismiss" hint: a small, sharp chevron with a narrow angle (spec CN-5).
-struct SwipeUpArrow: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        return path
-    }
-}

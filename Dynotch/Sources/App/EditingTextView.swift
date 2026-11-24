@@ -88,59 +88,6 @@ class EditingTextView: NSTextView {
     }
 }
 
-/// Plain text editor for SwiftUI (notes).
-struct PlainTextEditor: NSViewRepresentable {
-    @Binding var text: String
-    var isEditable = true
-    var placeholder: String?
-    var caretColor: NSColor = .white
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
-    }
-
-    func makeNSView(context: Context) -> NSScrollView {
-        let textView = EditingTextView(usingTextLayoutManager: false)
-        textView.configurePlainText(font: .systemFont(ofSize: 14), caretColor: caretColor, lineSpacing: 4)
-        textView.textContainerInset = NSSize(width: 6, height: 8)
-        textView.textContainer?.widthTracksTextView = true
-        textView.placeholder = placeholder
-        textView.isEditable = isEditable
-        textView.string = text
-        textView.delegate = context.coordinator
-        return textView.embedInScrollView()
-    }
-
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        context.coordinator.text = $text
-        guard let textView = scrollView.documentView as? EditingTextView else { return }
-        if textView.isEditable != isEditable { textView.isEditable = isEditable }
-        if textView.placeholder != placeholder {
-            textView.placeholder = placeholder
-            textView.needsDisplay = true
-        }
-        // Another editor or a reload changed the text.
-        if textView.string != text {
-            textView.string = text
-            textView.needsDisplay = true
-        }
-    }
-
-    @MainActor
-    final class Coordinator: NSObject, NSTextViewDelegate {
-        var text: Binding<String>
-
-        init(text: Binding<String>) {
-            self.text = text
-        }
-
-        func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            text.wrappedValue = textView.string
-        }
-    }
-}
-
 /// A scroll view whose "make this visible" stops at itself: the caret scrolls the editor, never
 /// the notch around it, so the top row stays in view (spec SZ-18).
 final class ContainedScrollView: NSScrollView {

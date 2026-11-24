@@ -15,6 +15,12 @@ struct ReleaseInfo: Equatable, Sendable {
 enum UpdateLogic {
     static let latestRelease = URL(string: "https://api.github.com/repos/Kera77/Dynotch/releases/latest")
 
+    /// One version's release, to go back to it (spec RF-21).
+    static func release(version: String) -> URL? {
+        guard version.allSatisfy({ $0.isNumber || $0 == "." }) else { return nil }
+        return URL(string: "https://api.github.com/repos/Kera77/Dynotch/releases/tags/v\(version)")
+    }
+
     /// "1.10.0" is newer than "1.9.3"; missing parts count as 0.
     static func isNewer(_ candidate: String, than current: String) -> Bool {
         func parts(_ version: String) -> [Int] {

@@ -26,6 +26,7 @@ final class UpdateService: ObservableObject {
 
     private static let manualKey = "updatesManual"
     private static let versionKey = "lastRunVersion"
+    private static let previousKey = "previousVersion"
     private static let interval: TimeInterval = 6 * 3600
 
     private let defaults: UserDefaults
@@ -41,8 +42,50 @@ final class UpdateService: ObservableObject {
     func versionUpdatedFrom(current: String = AppInfo.version) -> String? {
         let previous = defaults.string(forKey: Self.versionKey)
         defaults.set(current, forKey: Self.versionKey)
-        guard let previous, previous != current, UpdateLogic.isNewer(current, than: previous) else { return nil }
+        guard let previous, previous != current else { return nil }
+        guard UpdateLogic.isNewer(current, than: previous) else {
+            // Went back: nothing older to go back to from here.
+            defaults.removeObject(forKey: Self.previousKey)
+            return nil
+        }
+        defaults.set(previous, forKey: Self.previousKey)
         return previous
+    }
+
+    /// The version this copy was updated from, to go back to (spec RF-21).
+    var rollbackVersion: String? {
+        defaults.string(forKey: Self.previousKey).flatMap { $0 == AppInfo.version ? nil : $0 }
+    }
+
+    /// Installs the version this copy was updated from, with the same checks as an update, and
+    /// turns automatic updates off so it is not updated again by itself (spec RF-21).
+    func rollBack() {
+        guard let version = rollbackVersion, state != .checking, !isInstalling, let url = UpdateLogic.release(version: version)
+        else { return }
+        installsAutomatically = false
+        state = .checking
+        Task { [weak self] in
+            do {
+                let data = try await Self.fetch(url)
+                guard let self else { return }
+                guard let release = UpdateLogic.release(fromJSON: data), release.version == version else {
+                    throw Failure(message: "Version \(version) was not found.")
+                }
+                DiagnosticsLog.append("updates", "going back to \(version)")
+                self.found = release
+                self.state = .available(version)
+                self.install()
+            } catch {
+                self?.state = .failed((error as? Failure)?.message ?? error.localizedDescription)
+            }
+        }
+    }
+
+    private static func fetch(_ url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.setValue("Dynotch", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        return try await URLSession.shared.data(for: request).0
     }
 
     func start() {
@@ -61,10 +104,7 @@ final class UpdateService: ObservableObject {
         let install = installIfFound ?? installsAutomatically
         Task { [weak self] in
             do {
-                var request = URLRequest(url: url)
-                request.setValue("Dynotch", forHTTPHeaderField: "User-Agent")
-                request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-                let (data, _) = try await URLSession.shared.data(for: request)
+                let data = try await Self.fetch(url)
                 guard let self else { return }
                 self.lastChecked = Date()
                 guard let release = UpdateLogic.release(fromJSON: data) else { throw Failure(message: "No release found.") }

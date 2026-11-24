@@ -36,11 +36,13 @@ extension NotchController {
             // Over the notifications' tabs a swipe steps through them first (spec UM-8, UM-8d).
             if model.currentFeature == .notifications, model.isOverNotificationsTabs, !gestureSwitchedFeature,
                withAnimation(Self.animation, { model.stepNotificationsTab(by: direction == .next ? 1 : -1) }) {
+                Haptics.perform(.featureSwitch, settings: settings)
                 return true
             }
             // Over the tray's tabs a swipe steps between the tray and the folders first (spec FT-4, FT-4d).
             if model.currentFeature == .tray, tray.isOverTabs, !gestureSwitchedFeature,
                withAnimation(Self.animation, { tray.step(by: direction == .next ? 1 : -1) }) {
+                Haptics.perform(.featureSwitch, settings: settings)
                 return true
             }
             let before = model.currentFeature

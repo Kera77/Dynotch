@@ -101,17 +101,7 @@ enum SpotifyClient {
 
     /// Runs a script off the main thread; a list result comes back as text fields.
     private static func run(_ source: String) async -> [String]? {
-        await withCheckedContinuation { continuation in
-            queue.async {
-                var error: NSDictionary?
-                let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
-                if let error {
-                    let code = error[NSAppleScript.errorNumber] as? Int ?? 0
-                    DiagnosticsLog.append("music", "Spotify script failed (\(code))")
-                }
-                continuation.resume(returning: result.map(fields(of:)))
-            }
-        }
+        await AppleScriptRunner.run(source, on: queue, log: "music", what: "Spotify script", read: fields(of:))
     }
 
     private nonisolated static func fields(of descriptor: NSAppleEventDescriptor) -> [String] {

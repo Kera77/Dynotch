@@ -12,6 +12,8 @@ enum TypedReply {
     /// How long the conversation may take to come to the front, and to load.
     private static let activationTimeout: Duration = .seconds(6)
     private static let loadDelay: Duration = .milliseconds(2500)
+    /// After the field appeared, a moment for the page to finish placing it.
+    private static let settleDelay: Duration = .milliseconds(300)
 
     /// The app to type the reply in: a browser's notification opens in the browser in use now,
     /// any other in the app that sent it (spec E-2f).
@@ -43,29 +45,36 @@ enum TypedReply {
             throw Failure(description: "The notification doesn't name its conversation. Text copied: paste it with ⌘V.")
         }
 
+        let bundleID = Bundle(url: appURL)?.bundleIdentifier ?? sourceApp
+        // The field that had the keyboard before: the new conversation's field must be another one.
+        let before = AXRead.focusedField(of: bundleID)
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         NSWorkspace.shared.open([link], withApplicationAt: appURL, configuration: configuration) { _, _ in }
 
-        let bundleID = Bundle(url: appURL)?.bundleIdentifier ?? sourceApp
         guard await waitUntilFrontmost(bundleID) else {
             copyToClipboard(text)
             throw Failure(description: "The conversation didn't open. Text copied: paste it with ⌘V.")
         }
-        try? await Task.sleep(for: loadDelay)
+        // Until a new text field has the keyboard, at most as long as it used to wait (spec RF-15).
+        let loaded = await AXRead.wait(upTo: loadDelay) {
+            guard let field = AXRead.focusedField(of: bundleID) else { return false }
+            return AXRead.isTextInput(field) && !AXRead.same(field, before)
+        }
+        if loaded { try? await Task.sleep(for: settleDelay) }
         // Check again right before typing: never type into another app.
         guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID else {
             copyToClipboard(text)
             throw Failure(description: "Another app came to the front. Text copied: paste it with ⌘V.")
         }
 
-        let saved = NSPasteboard.general.string(forType: .string)
-        copyToClipboard(text)
-        press(key: 0x09, flags: .maskCommand) // V
+        let saved = SyntheticInput.Snapshot.take()
+        SyntheticInput.put(text, transient: true)
+        SyntheticInput.paste()
         try? await Task.sleep(for: .milliseconds(150))
-        press(key: 0x24, flags: []) // Return
+        SyntheticInput.press(SyntheticInput.Key.returnKey)
         try? await Task.sleep(for: .milliseconds(400))
-        if let saved { copyToClipboard(saved) }
+        saved.restore()
         return "Sent in \(FileManager.default.displayName(atPath: appURL.path).replacingOccurrences(of: ".app", with: ""))"
     }
 
@@ -78,17 +87,8 @@ enum TypedReply {
         return false
     }
 
+    /// Text left for the user to paste by hand (not transient: it may stay in the history).
     static func copyToClipboard(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
-    }
-
-    static func press(key: CGKeyCode, flags: CGEventFlags) {
-        let source = CGEventSource(stateID: .combinedSessionState)
-        for isDown in [true, false] {
-            let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: isDown)
-            event?.flags = flags
-            event?.post(tap: .cghidEventTap)
-        }
+        SyntheticInput.put(text, transient: false)
     }
 }

@@ -119,7 +119,7 @@ struct NotesBridge: Sendable {
     }
 
     private static func runSync(script: String, arguments: [String]) throws -> Data {
-        guard let result = ProcessRunner.run("/usr/bin/osascript", ["-l", "JavaScript", "-e", script] + arguments, timeout: 30) else {
+        guard let result = AppleScriptRunner.osascript(script, javaScript: true, arguments: arguments, timeout: 30) else {
             throw NotesBridgeError.failed("osascript could not start")
         }
         guard !result.timedOut else { throw NotesBridgeError.failed("Notes did not answer in time") }
