@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.113.0] - 2026-11-24
+
 ### Added
 
 - Weather: Current location or a saved place; save up to 5 places and tick the one to show, which also stands in when the current location is not known (WX-9).
