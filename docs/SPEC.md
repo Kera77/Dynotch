@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.104 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.105 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -451,6 +451,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-10c | (v0.58) A **Beeper** jelvényénél, ha az Értesítési központban már nincs Beeper-értesítés (a Beeper pár másodperc után törli őket), a lista a Beeper **olvasatlan csevegéseit** mutatja a legutóbbi üzenettel. |
 | B-10d | (v0.62) Webapp jelvényénél (Gmail, Google Chat) a lista a megtartott értesítésekből **legfeljebb annyit** mutat, amennyi a jelvény száma (a legfrissebbeket); amiről a Dynotch nem kapott értesítést (pl. az indítása előtt jött), az nem látszik. |
 | B-10e | (v0.65.1) A jelvény hover-listája **minden** üzenetet tartalmaz (legfeljebb 50); öt feladónyi magasságig nő, azon túl **görgethető**. (v0.66.1) Görgetősáv nem látszik. |
+| B-10f | (v0.105) **Csevegés a lenyílóból, azonnal gépelhető (B-10 módosítása):** a jelvény lenyíló listájában egy feladóra / csevegésre kattintva a notch az app értesítéseire (vagy a saját fülére: Beeper, Google Chat, kiemelt hálózat) nyílik, és **annak a csevegésnek a kártyája egyből kinyitva** áll, a válaszmező fókuszban: azonnal lehet gépelni (E-27 szerint, az olvasottá tétel csak az első leütéskor). Ha a csevegés nincs a listában, csak a lista nyílik meg. |
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 | B-12 | (v0.90) **Monokróm jelvények:** a notch melletti jelvények és a jelvénylista ikonjai (az app saját ikonja, a Beeper-hálózatok ikonja, a feltöltött kép) **fekete-fehérek** (szürkeárnyalatosak); a jelek (B-3) eddig is fehérek voltak. A Beállításokban az ikonválasztó színes marad. |
 | B-13 | (v0.97) **Hozzáadás beállítással:** az *Add an app* listában minden app sorában ikonválasztó (SD-11) van a javasolt kezdő ikonnal; az *Add* a kiválasztott ikonnal veszi fel az appot. A *Choose image…* azonnal fel is veszi az appot a feltöltött képpel. |
@@ -1182,6 +1183,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.105.0** | Badge-lenyílóból kattintott csevegés kinyitva, azonnal gépelhető (B-10f) |
 | **v0.104.0** | Letöltések automatikusan a tálcába külön lejárattal, kis értesítések a notch mellett kapcsoló a Wings alatt, válaszmező kattintásra azonnal gépelhető (FT-15, PV-73, E-27) |
 | **v0.103.0** | Screenshot-lenyíló a designnal, Google Chat válasz mindig a háttérben, megnyitás gomb a feladat-lenyílóban, a Calculator nem csúszik fel (SH-16, GW-29, R-20, SZ-17) |
 | **v0.102.0** | Nincs görgetőnyíl az iPad menüben, nem gépelős modulból is követ a fókusz, a választott fül marad (System alapból), még gyorsabb tempó, akadásmentes Naptár-nyitás, kikapcsolt modul is a swipe-up sorban (TB-11, F-18, MG-10, D-22, K-16, QS-15) |

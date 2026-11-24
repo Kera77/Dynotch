@@ -18,6 +18,8 @@ struct NotchIndicatorView: View {
     var openBadge: (BadgeItem) -> Void = { _ in }
     var moveBadge: (String, Int) -> Void = { _, _ in }
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
+    /// A line of a badge's drop-down: that chat opens in the notch, ready to answer (spec B-10f).
+    var openBadgeChat: (BadgeItem, BadgeNotificationRow) -> Void = { _, _ in }
     /// Hides an indicator (spec K-8e, CL-6).
     let dismiss: (IndicatorItem) -> Void
     /// Opens the meeting's link (spec K-8g).
@@ -83,7 +85,7 @@ struct NotchIndicatorView: View {
                     label(for: items[hoveredIndex], now: context.date)
                 } else if showsBadgeList, let badge = badges.first(where: { $0.id == hoveredBadge }) {
                     BadgeDropdown(
-                        rows: badgeRows(badge), openNotifications: { openBadge(badge) }, openApp: { openBadgeApp(badge) },
+                        rows: badgeRows(badge), openNotifications: { openBadgeChat(badge, $0) }, openApp: { openBadgeApp(badge) },
                         hide: { hideBadge(badge, $0) }
                     )
                 } else if let notice {

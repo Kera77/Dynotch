@@ -31,6 +31,7 @@ extension NotchController {
             rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
             rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }
             rootView.showBadgeNotifications = { [weak self] in self?.showNotifications(for: $0) }
+            rootView.openBadgeChat = { [weak self] in self?.openChat(from: $0, row: $1) }
         rootView.editScreenshot = { [weak self] in self?.openScreenshotEditor($0, fromPeek: false) }
         rootView.closeScreenshotEditor = { [weak self] in self?.closeScreenshotEditor() }
         return rootView

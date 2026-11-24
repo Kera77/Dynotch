@@ -15,6 +15,8 @@ final class BeeperService: ObservableObject {
 
     @Published private(set) var state = State.idle
     @Published private(set) var chats: [BeeperChatInfo] = []
+    /// An unread chat picked in a badge's drop-down, to open ready to answer (spec B-10f).
+    @Published var cardRequest: CardOpenRequest?
     /// The networks of the accounts in Beeper, so a quiet one can be highlighted too (spec BP-17).
     @Published private(set) var accountNetworks: [String] = []
     private var accountsLoadedAt: Date?

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.105.0] - 2026-11-24
+
+### Changed
+
+- Clicking a chat in an app badge's drop-down opens the notch with that chat's card already open and its reply field ready for typing (B-10f).
+
 ## [0.104.0] - 2026-11-24
 
 ### Added

@@ -28,6 +28,7 @@ extension NotchView {
                 withAnimation(Self.quickAnimation) { badges.moveVisible(id, toVisibleIndex: index) }
             },
             showBadgeNotifications: { _ in },
+            openBadgeChat: openBadgeChat,
             dismiss: { item in
                 withAnimation(Self.quickAnimation) {
                     model.hoveredIndicator = nil

@@ -106,11 +106,16 @@ struct NotificationsFeatureView: View {
 
     /// The group whose messages and reply field are open (spec E-5b).
     @State private var expanded: String?
+    /// The card opened from a badge's drop-down, and a count that focuses its reply field (spec B-10f).
+    @State private var focusedGroup: String?
+    @State private var focusToken = 0
 
     var body: some View {
         Group { content }
             // A badge click builds the list anew, with only that app's notifications (spec B-6).
             .id(service.focus?.token)
+            .onAppear { openRequested() }
+            .onChange(of: service.cardRequest) { _, _ in openRequested() }
             .onChange(of: isActive) { _, active in
                 if active { service.markSeen() }
             }
@@ -137,6 +142,19 @@ struct NotificationsFeatureView: View {
         }
     }
 
+    /// Opens the card asked for from a badge's drop-down, its reply field ready (spec B-10f).
+    private func openRequested() {
+        guard let request = service.cardRequest else { return }
+        let groups = NotificationGroup.groups(of: shown)
+        guard let group = groups.first(where: { request.matches(service.content(for: $0.latest).sender) }) else { return }
+        DispatchQueue.main.async {
+            service.cardRequest = nil
+            withAnimation(Motion.quick) { expanded = group.id }
+            focusedGroup = group.id
+            focusToken += 1
+        }
+    }
+
     /// What is listed: everything, or one app's unopened notifications (spec B-6).
     private var shown: [AppNotification] {
         guard let focus = service.focus else { return service.recent.filter(include) }
@@ -157,7 +175,10 @@ struct NotificationsFeatureView: View {
                     if service.focus == nil, let leading { leading }
                     ForEach(groups) { group in
                         // A single group is open right away.
-                        NotificationGroupRow(service: service, group: group, isExpanded: expanded == group.id || groups.count == 1) {
+                        NotificationGroupRow(
+                            service: service, group: group, isExpanded: expanded == group.id || groups.count == 1,
+                            focusRequest: focusedGroup == group.id ? focusToken : 0
+                        ) {
                             withAnimation(Motion.quick) { expanded = expanded == group.id ? nil : group.id }
                         }
                     }

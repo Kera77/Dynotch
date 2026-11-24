@@ -24,6 +24,8 @@ final class NotificationService: ObservableObject {
     /// The Notifications feature shows only these: one app's unopened notifications, after a
     /// click on its badge (spec B-6).
     @Published var focus: NotificationFocus?
+    /// A chat picked in a badge's drop-down, to open ready to answer (spec B-10f).
+    @Published var cardRequest: CardOpenRequest?
     /// Installed apps found in the database, for the settings list.
     @Published private(set) var apps: [NotificationApp] = []
     /// The screen is shared or recorded: nothing pops up (spec N-21).

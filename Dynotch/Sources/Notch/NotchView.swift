@@ -56,6 +56,8 @@ struct NotchView: View {
     var clearNotifications: () -> Void = {}
     /// A right click on an app badge: its unopened notifications (spec B-6).
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
+    /// A line of a badge's drop-down: that chat, open and ready to answer (spec B-10f).
+    var openBadgeChat: (BadgeItem, BadgeNotificationRow) -> Void = { _, _ in }
     /// Opens the whole panel from the preview (spec PV-3).
     var openFully: () -> Void = {}
     var backToWings: () -> Void = {}

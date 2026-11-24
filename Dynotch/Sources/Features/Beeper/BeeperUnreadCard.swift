@@ -9,6 +9,8 @@ struct BeeperUnreadCard: View {
     let isExpanded: Bool
     let toggle: () -> Void
     let openInTab: () -> Void
+    /// Each change (from a badge's drop-down) focuses the reply field (spec B-10f).
+    var focusRequest = 0
 
     @State private var text = ""
     @State private var quote: BeeperFullMessage?
@@ -32,11 +34,7 @@ struct BeeperUnreadCard: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     // Opened by a click: the reply field takes typing at once (spec E-27).
-                    if !isExpanded {
-                        focusedBySelf = true
-                        takeKeyboard()
-                        DispatchQueue.main.async { isFocused = true }
-                    }
+                    if !isExpanded { focusReply() }
                     toggle()
                 }
             if isExpanded {
@@ -58,7 +56,16 @@ struct BeeperUnreadCard: View {
         }
         .onAppear {
             if isExpanded { beeper.loadMessages(chat.id) }
+            if focusRequest > 0 { focusReply() }
         }
+        .onChange(of: focusRequest) { _, _ in focusReply() }
+    }
+
+    /// Focused by itself: the panel takes the keyboard, then the field (spec E-27).
+    private func focusReply() {
+        focusedBySelf = true
+        takeKeyboard()
+        DispatchQueue.main.async { isFocused = true }
     }
 
     private var header: some View {
@@ -224,17 +231,38 @@ struct BeeperUnreadCards: View {
     let open: (BeeperChatInfo) -> Void
 
     @State private var expanded: String?
+    /// The chat opened from a badge's drop-down, and a count that focuses its field (spec B-10f).
+    @State private var focusedChat: String?
+    @State private var focusToken = 0
+
+    private var chats: [BeeperChatInfo] {
+        Array((network.map(beeper.unreadChats(network:)) ?? beeper.unreadChats).prefix(12))
+    }
 
     var body: some View {
-        let chats = Array((network.map(beeper.unreadChats(network:)) ?? beeper.unreadChats).prefix(12))
+        let chats = chats
         ForEach(chats) { chat in
             BeeperUnreadCard(
                 beeper: beeper,
                 chat: chat,
                 isExpanded: expanded == chat.id || chats.count == 1,
                 toggle: { withAnimation(Motion.quick) { expanded = expanded == chat.id ? nil : chat.id } },
-                openInTab: { open(chat) }
+                openInTab: { open(chat) },
+                focusRequest: focusedChat == chat.id ? focusToken : 0
             )
+        }
+        .onAppear { openRequested() }
+        .onChange(of: beeper.cardRequest) { _, _ in openRequested() }
+    }
+
+    /// Opens the chat asked for from a badge's drop-down, its reply field ready (spec B-10f).
+    private func openRequested() {
+        guard let request = beeper.cardRequest, let chat = chats.first(where: { request.matches($0.name) }) else { return }
+        DispatchQueue.main.async {
+            beeper.cardRequest = nil
+            withAnimation(Motion.quick) { expanded = chat.id }
+            focusedChat = chat.id
+            focusToken += 1
         }
     }
 }

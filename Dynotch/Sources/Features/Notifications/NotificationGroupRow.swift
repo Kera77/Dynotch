@@ -7,6 +7,8 @@ struct NotificationGroupRow: View {
     @ObservedObject var service: NotificationService
     let group: NotificationGroup
     let isExpanded: Bool
+    /// Each change (from a badge's drop-down) focuses the reply field (spec B-10f).
+    var focusRequest = 0
     let toggle: () -> Void
     /// Opened by a click: the reply field takes typing at once (spec E-27).
     @State private var openedByClick = false
@@ -28,7 +30,10 @@ struct NotificationGroupRow: View {
                 }
                 .padding(.leading, 36)
                 if service.canReply(to: group.latest) {
-                    NotificationReplyField(service: service, target: group.latest, focusesOnAppear: openedByClick)
+                    NotificationReplyField(
+                        service: service, target: group.latest,
+                        focusesOnAppear: openedByClick || focusRequest > 0, focusRequest: focusRequest
+                    )
                         .padding(.leading, 36)
                         .padding(.bottom, 8)
                 } else {

@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// The notifications of a hovered badge's app, dropping down under the row (spec B-10). A line
-/// opens the app's notifications in the notch; without any, Open starts the app.
+/// opens that chat in the notch, ready to answer (spec B-10f); without any, Open starts the app.
 struct BadgeDropdown: View {
     let rows: [BadgeNotificationRow]
-    let openNotifications: () -> Void
+    let openNotifications: (BadgeNotificationRow) -> Void
     let openApp: () -> Void
     /// Takes the badge out of the notch for a while (spec B-11).
     var hide: (BadgeHide.Choice) -> Void = { _ in }
@@ -35,7 +35,7 @@ struct BadgeDropdown: View {
                     VStack(alignment: .leading, spacing: 0) {
                         // Each sender's name once, their messages under it (spec B-10b).
                         ForEach(BadgeNotificationRow.bySender(rows, limit: IndicatorLayout.badgeRows), id: \.sender) { group in
-                            Button(action: openNotifications) {
+                            Button { if let first = group.rows.first { openNotifications(first) } } label: {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(group.sender)
                                         .font(.notch(size: 11, weight: .semibold))

@@ -44,6 +44,17 @@ struct NotificationFocus: Equatable, Sendable {
     }
 }
 
+/// A chat to open, ready to answer, picked in a badge's drop-down (spec B-10f): the list showing
+/// it opens the card of that sender and focuses its reply field.
+struct CardOpenRequest: Equatable, Sendable {
+    let sender: String
+    let token = UUID()
+
+    nonisolated func matches(_ name: String) -> Bool {
+        name.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(sender.trimmingCharacters(in: .whitespaces)) == .orderedSame
+    }
+}
+
 /// One line of a badge's hover list (spec B-10).
 struct BadgeNotificationRow: Identifiable, Equatable, Sendable {
     let id: Int64

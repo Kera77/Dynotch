@@ -213,6 +213,24 @@ extension NotchController {
     }
 }
 
+extension NotchController {
+    /// A line of a badge's drop-down: the notch opens on that app's list with the sender's card
+    /// open and its reply field taking typing (spec B-10f). Beeper's unread chats (B-10c, BP-14)
+    /// are Beeper cards; anything else a notification card.
+    func openChat(from badge: BadgeItem, row: BadgeNotificationRow) {
+        let request = CardOpenRequest(sender: row.sender)
+        let fromBeeper = row.id < 0 && row.id > -20_000
+        if fromBeeper { beeper.cardRequest = request } else { notifications.cardRequest = request }
+        showNotifications(for: badge)
+        // Not found in the list: it does not open a card later by surprise.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self else { return }
+            if beeper.cardRequest == request { beeper.cardRequest = nil }
+            if notifications.cardRequest == request { notifications.cardRequest = nil }
+        }
+    }
+}
+
 // MARK: - Mission Control (spec N-19)
 
 extension NotchController {
