@@ -34,7 +34,7 @@ final class BadgeService: ObservableObject {
     @Published private(set) var isTrusted = true
 
     private let defaults: UserDefaults
-    private var timer: Timer?
+    private var poller: Poller?
     private var isReading = false
     /// The first reading only records what is there: old badges are not new notifications.
     private var hasBaseline = false
@@ -45,6 +45,10 @@ final class BadgeService: ObservableObject {
     private var isReadingTabs = false
     private var lastTabRead = Date.distantPast
     private var loggedTabs = ""
+    /// The badges beside the notch as last told, to tell the menu bar measuring (spec RF-12).
+    private var visibleSignature = ""
+    /// The badges beside the notch changed: which, or their text.
+    var onVisibleChange: () -> Void = {}
     private static let tabInterval: TimeInterval = 6
 
     init(defaults: UserDefaults = .standard) {
@@ -76,10 +80,28 @@ final class BadgeService: ObservableObject {
         }
     }
 
+    /// The Dock is read only while an app's badge is chosen (spec RF-8).
     func start() {
-        guard timer == nil else { return }
-        self.timer = RepeatingTimer.start(every: Self.interval) { [weak self] in self?.refresh() }
+        guard poller == nil else { return }
+        let poller = Poller(
+            every: Self.interval, isActive: { [weak self] in self?.isWatching ?? false }, action: { [weak self] in self?.refresh() }
+        )
+        // Turned off: the badges go away.
+        poller.onInactive = { [weak self] in self?.refresh() }
+        poller.start()
+        self.poller = poller
         refresh()
+    }
+
+    private var isWatching: Bool {
+        apps.contains(where: \.isEnabled) || !beeperNetworks().isEmpty
+    }
+
+    private func notifyIfVisibleChanged() {
+        let signature = visible.map { "\($0.app.bundleID)=\($0.label)" }.joined(separator: ",")
+        guard signature != visibleSignature else { return }
+        visibleSignature = signature
+        onVisibleChange()
     }
 
     func refresh() {
@@ -106,7 +128,8 @@ final class BadgeService: ObservableObject {
     /// The default browser's tab titles every few seconds, only while it runs (spec B-2b, B-2c).
     private func readTabsIfDue() {
         let now = Date()
-        guard !isReadingTabs, now.timeIntervalSince(lastTabRead) >= Self.tabInterval,
+        let interval = Poller.scaled(Self.tabInterval, factor: Poller.slowFactor, scales: true)
+        guard !isReadingTabs, now.timeIntervalSince(lastTabRead) >= interval,
               apps.contains(where: { $0.isEnabled && BrowserTabBadges.site(forBadgeName: $0.name) != nil })
         else { return }
         isReadingTabs = true
@@ -179,17 +202,20 @@ final class BadgeService: ObservableObject {
         if current != labels { labels = current }
         let stillHidden = BadgeHide.remaining(hidden, labels: current, now: now)
         if stillHidden != hidden { hidden = stillHidden }
+        notifyIfVisibleChanged()
     }
 
     /// Takes a badge out of the notch for a while (spec B-11).
     func hide(_ bundleID: String, _ choice: BadgeHide.Choice, now: Date = Date()) {
         hidden[bundleID] = BadgeHide.make(choice, label: labels[bundleID] ?? "", now: now)
         acknowledge(bundleID)
+        notifyIfVisibleChanged()
     }
 
     /// Back beside the notch (spec B-11).
     func unhide(_ bundleID: String) {
         hidden[bundleID] = nil
+        notifyIfVisibleChanged()
     }
 
     /// The pointer was on the badge: it was noticed, so it stops pulsing (spec B-5).

@@ -40,7 +40,7 @@ final class MusicService: ObservableObject {
     private var pausedSince: Date?
 
     private let settings: AppSettings
-    private var timer: Timer?
+    private var timer: Poller?
     private var isVisible = false
     private var observers: [NSObjectProtocol] = []
     private var settingsObserver: AnyCancellable?
@@ -116,9 +116,12 @@ final class MusicService: ObservableObject {
 
     private func schedule() {
         timer?.invalidate()
-        timer = RepeatingTimer.start(every: isVisible ? Self.pollInterval : Self.backgroundPollInterval) { [weak self] in
-            self?.refresh()
-        }
+        // The open module's quick look stays quick; the background one slows down (spec RF-10).
+        timer = Poller.start(
+            every: isVisible ? Self.pollInterval : Self.backgroundPollInterval, scalesWithPower: !isVisible,
+            isActive: { [weak self] in self?.isOn ?? false },
+            action: { [weak self] in self?.refresh() }
+        )
     }
 
     func refresh() {

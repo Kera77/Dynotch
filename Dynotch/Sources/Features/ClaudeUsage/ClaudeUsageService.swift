@@ -28,7 +28,7 @@ final class ClaudeUsageService: ObservableObject {
 
     private let settings: AppSettings
     private let notify: (String, String) -> Void
-    private var timer: Timer?
+    private var timer: Poller?
     private var settingsObserver: AnyCancellable?
     private var isRefreshing = false
     /// Token read from Claude Code's keychain item, with its expiry.
@@ -102,7 +102,10 @@ final class ClaudeUsageService: ObservableObject {
     private func applyEnabled() {
         let enabled = settings.isEnabled(.claudeUsage)
         if enabled, timer == nil {
-            self.timer = RepeatingTimer.start(every: Self.refreshInterval) { [weak self] in self?.refresh() }
+            let settings = settings
+            self.timer = Poller.start(
+                every: Self.refreshInterval, isActive: { settings.isEnabled(.claudeUsage) }, action: { [weak self] in self?.refresh() }
+            )
             refresh()
         } else if !enabled, let timer {
             timer.invalidate()

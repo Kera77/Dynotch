@@ -364,6 +364,8 @@ extension AppSettings {
     /// Enables or disables a feature. The last enabled feature can't be disabled.
     @discardableResult
     func setEnabled(_ feature: FeatureID, _ enabled: Bool) -> Bool {
+        // The background looks of the feature start or stop at once (spec RF-8).
+        defer { Poller.reevaluateAll() }
         if enabled {
             enabledFeatures.insert(feature)
             return true

@@ -47,3 +47,15 @@ extension NotificationService {
         if let peek, gone.contains(peek.id) { clearPeek() }
     }
 }
+
+extension NotificationService {
+    /// Notifications posted under a shared Safari identifier are attributed to the web app of
+    /// their site (spec E-2b).
+    func resolve(_ notification: AppNotification) -> AppNotification {
+        let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
+        let identifier = WebNotificationSource.resolvedIdentifier(
+            notification.appIdentifier, site: notification.site, apps: pairs
+        )
+        return identifier == notification.appIdentifier ? notification : notification.with(appIdentifier: identifier)
+    }
+}

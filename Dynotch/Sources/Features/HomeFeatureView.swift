@@ -3,7 +3,7 @@ import SwiftUI
 /// Placeholder feature: clock and date.
 struct HomeFeatureView: View {
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(.everyMinute) { context in
             VStack(spacing: 4) {
                 Text(context.date, format: .dateTime.hour().minute())
                     .font(.notch(size: 46, weight: .semibold, design: .rounded))

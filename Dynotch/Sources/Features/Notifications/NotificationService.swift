@@ -46,7 +46,7 @@ final class NotificationService: ObservableObject {
     private(set) var lastSeenID: Int64 = 0
     /// The latest delivery seen, to catch records updated in place (spec E-1d).
     var lastDelivered: Double = 0
-    private var pollTimer: Timer?
+    private var pollTimer: Poller?
     private var lastOpenAttempt = Date.distantPast
     private var pollCount = 0
     var isPolling = false
@@ -58,8 +58,8 @@ final class NotificationService: ObservableObject {
     var heldPeek: AppNotification?
     private var settingsObserver: AnyCancellable?
 
-    /// The database is watched for writes; this is only the fallback (spec E-1b).
-    private static let pollInterval: TimeInterval = 5
+    /// The database is watched for writes; this is only the fallback (spec E-1b, RF-12).
+    private static let pollInterval: TimeInterval = 30
     private let walWatcher = FolderWatcher()
     private var walWatchRenewed = Date.distantPast
     private static let openRetryInterval: TimeInterval = 5
@@ -156,16 +156,6 @@ final class NotificationService: ObservableObject {
         if let sites = try? database?.browserSites() { registerSites(sites) }
     }
 
-    /// Notifications posted under a shared Safari identifier are attributed to the web app of
-    /// their site (spec E-2b).
-    func resolve(_ notification: AppNotification) -> AppNotification {
-        let pairs = apps.map { (identifier: $0.identifier, name: $0.name) }
-        let identifier = WebNotificationSource.resolvedIdentifier(
-            notification.appIdentifier, site: notification.site, apps: pairs
-        )
-        return identifier == notification.appIdentifier ? notification : notification.with(appIdentifier: identifier)
-    }
-
     // MARK: - Polling
 
     private func applyEnabled() {
@@ -177,7 +167,8 @@ final class NotificationService: ObservableObject {
             NativeBannerDismisser.requestTrust()
         }
         if enabled, pollTimer == nil {
-            pollTimer = RepeatingTimer.start(every: Self.pollInterval) { [weak self] in self?.poll() }
+            // Not slowed on battery: it also releases the snoozed notifications on time.
+            pollTimer = Poller.start(every: Self.openRetryInterval, scalesWithPower: false) { [weak self] in self?.poll() }
             poll()
             startChatWeb()
         } else if !enabled, pollTimer != nil {
@@ -196,11 +187,14 @@ final class NotificationService: ObservableObject {
             return
         }
         releaseSnoozed()
-        // Now and then the watch is renewed, in case the log file was replaced.
-        if Date().timeIntervalSince(walWatchRenewed) > 30 {
+        // Now and then the watch is renewed, in case the log file was replaced; at once when it is back.
+        let hasLog = FileManager.default.fileExists(atPath: database.path + "-wal")
+        if hasLog, pollTimer?.interval != Self.pollInterval || Date().timeIntervalSince(walWatchRenewed) > 30 {
             walWatchRenewed = Date()
             walWatcher.watch(URL(fileURLWithPath: database.path + "-wal"), renew: true) { [weak self] in self?.poll() }
         }
+        // Without the log file nothing tells of new notifications: the fallback looks more often (spec RF-12).
+        pollTimer?.interval = hasLog ? Self.pollInterval : Self.openRetryInterval
         guard !isPolling else {
             pollAgain = true
             return

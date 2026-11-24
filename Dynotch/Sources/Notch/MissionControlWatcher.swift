@@ -4,7 +4,9 @@ import ApplicationServices
 /// Mission Control on and off (spec N-19). There is no public event. While it shows, the Dock
 /// puts a window named "Dock" over a whole display; a cheap look at the window list finds it.
 /// The Dock's Accessibility notices ("AXExposeShowAllWindows" … "AXExposeExit") are a faster
-/// path where macOS still sends them.
+/// path where macOS still sends them. The window list is looked at often only for a few seconds
+/// after such a hint (and while Mission Control shows, to see it end); otherwise every 2 s
+/// (spec RF-7).
 @MainActor
 final class MissionControlWatcher {
     private var observer: AXObserver?
@@ -13,7 +15,12 @@ final class MissionControlWatcher {
     private let changed: (Bool) -> Void
     private var watch: WindowListMonitor.Token?
     private var isShown = false
-    private static let pollInterval: TimeInterval = 0.3
+    /// The window list while Mission Control may be opening or shows, and otherwise.
+    nonisolated static let fastInterval: TimeInterval = 0.3
+    nonisolated static let slowInterval: TimeInterval = 2
+    /// How long the list is looked at often after a swipe or a Dock notice.
+    nonisolated static let burstDuration: TimeInterval = 4
+    private var burstUntil = Date.distantPast
     /// How far the trackpad swipe must go before the notch leaves (spec N-19b).
     private static let swipeThreshold = 0.06
     private var verifyTask: Task<Void, Never>?
@@ -29,7 +36,7 @@ final class MissionControlWatcher {
 
     func start() {
         attach()
-        watch = WindowListMonitor.shared.subscribe(every: Self.pollInterval) { [weak self] windows in self?.poll(windows) }
+        watch = WindowListMonitor.shared.subscribe(every: Self.slowInterval) { [weak self] windows in self?.poll(windows) }
         // The Dock restarts now and then (and after a crash): attach to the new one.
         launchObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
@@ -71,6 +78,24 @@ final class MissionControlWatcher {
 
     private func received(_ name: String) {
         set(Self.isShowing(after: name))
+        watchClosely()
+    }
+
+    /// Mission Control may be on its way (a swipe, a Dock notice): the window list often for a while.
+    private func watchClosely(now: Date = Date()) {
+        burstUntil = now.addingTimeInterval(Self.burstDuration)
+        updateInterval(now: now)
+    }
+
+    private func updateInterval(now: Date = Date()) {
+        guard let watch else { return }
+        let interval = Self.pollInterval(isShown: isShown, burstUntil: burstUntil, now: now)
+        WindowListMonitor.shared.setInterval(interval, scalesWithPower: interval >= Self.slowInterval, for: watch)
+    }
+
+    /// Often while Mission Control shows or may be coming; seldom otherwise (spec RF-7).
+    nonisolated static func pollInterval(isShown: Bool, burstUntil: Date, now: Date) -> TimeInterval {
+        isShown || now < burstUntil ? fastInterval : slowInterval
     }
 
     /// The up/down trackpad swipe: the notch leaves as Mission Control starts opening and comes
@@ -78,6 +103,7 @@ final class MissionControlWatcher {
     /// confirms it, so a swipe given up halfway brings the notch back (spec N-19b).
     func swiped(progress: Double, ended: Bool) {
         swipeHold = true
+        watchClosely()
         if progress <= -Self.swipeThreshold, !isShown {
             set(true)
         } else if progress >= Self.swipeThreshold, isShown {
@@ -95,6 +121,7 @@ final class MissionControlWatcher {
     }
 
     private func poll(_ windows: [ListedWindow]) {
+        defer { updateInterval() }
         guard !swipeHold else { return }
         set(Self.isMissionControl(windows, screens: NSScreen.screens.map(\.frame)))
     }
@@ -102,6 +129,7 @@ final class MissionControlWatcher {
     private func set(_ shown: Bool) {
         guard shown != isShown else { return }
         isShown = shown
+        updateInterval()
         DiagnosticsLog.append("spaces", shown ? "Mission Control shown" : "Mission Control closed")
         changed(shown)
     }

@@ -332,6 +332,7 @@ final class NotchViewModel: ObservableObject {
             return
         }
         leavePage()
+        Signposts.moduleSwitch(to: feature)
         currentFeature = feature
         if remember { settings.lastFeature = feature }
         updateLarge()
@@ -344,6 +345,7 @@ final class NotchViewModel: ObservableObject {
         let target = min(max(index + steps, 0), features.count - 1)
         guard target != index else { return bounce(steps > 0 ? .next : .previous) }
         leavePage(passing: isPassing)
+        Signposts.moduleSwitch(to: features[target])
         currentFeature = lastTab(of: features[target])
         settings.lastFeature = currentFeature
         updateLarge()

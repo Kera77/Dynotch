@@ -18,7 +18,7 @@ extension NotchView {
         case .tray: trayWingLeft
         case .music: musicWingLeft
         case .stats: statsWingLeftV2
-        case .home: TimelineView(.periodic(from: .now, by: 1)) { WingText($0.date.formatted(date: .omitted, time: .shortened), bold: true) }
+        case .home: TimelineView(.everyMinute) { WingText($0.date.formatted(date: .omitted, time: .shortened), bold: true) }
         case .info: WingText("Dynotch \(AppInfo.version)", bold: true)
         case .terminal: WingLabel(symbol: "apple.terminal", text: TerminalStore.shared.selected?.title ?? "Terminal")
         }

@@ -106,7 +106,7 @@ final class ClipboardStore: ObservableObject {
     private let defaults: UserDefaults
     private let folder: URL
     private var lastCount = NSPasteboard.general.changeCount
-    private var timer: Timer?
+    private var timer: Poller?
 
     init(defaults: UserDefaults = .standard, folder: URL? = nil) {
         self.defaults = defaults
@@ -146,7 +146,8 @@ final class ClipboardStore: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        self.timer = RepeatingTimer.start(every: 0.75) { [weak self] in self?.poll() }
+        // Always on (spec CB-1); cheap and quick to answer, so not slowed on battery, only paused (spec RF-9).
+        self.timer = Poller.start(every: 0.75, scalesWithPower: false) { [weak self] in self?.poll() }
     }
 
     private func poll() {

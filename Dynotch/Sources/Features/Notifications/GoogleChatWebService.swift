@@ -44,7 +44,7 @@ final class GoogleChatWebService: ObservableObject {
     var replyConfirmation: Task<Void, Never>?
 
     private let defaults: UserDefaults
-    private var timer: Timer?
+    private var timer: Poller?
     private var isReading = false
     private(set) var windowTokenHint: UInt64?
     private var lastLoggedState: State?
@@ -69,7 +69,9 @@ final class GoogleChatWebService: ObservableObject {
         timer?.invalidate()
         timer = nil
         guard isEnabled else { return stop() }
-        timer = RepeatingTimer.start(every: TimeInterval(interval)) { [weak self] in self?.refresh() }
+        timer = Poller.start(
+            every: TimeInterval(interval), isActive: { [weak self] in self?.isEnabled ?? false }, action: { [weak self] in self?.refresh() }
+        )
         refresh()
     }
 

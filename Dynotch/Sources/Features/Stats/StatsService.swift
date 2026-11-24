@@ -39,7 +39,7 @@ final class StatsService: ObservableObject {
     static let historyLength = 90
     private let settings: AppSettings
     private let defaults: UserDefaults
-    private var timer: Timer?
+    private var timer: Poller?
     private var interval: TimeInterval = 0
     private var isVisible = false
     private var settingsObserver: AnyCancellable?
@@ -87,7 +87,12 @@ final class StatsService: ObservableObject {
         timer?.invalidate()
         timer = nil
         guard wanted > 0 else { return }
-        self.timer = RepeatingTimer.start(every: wanted, tolerance: 0.1) { [weak self] in self?.read() }
+        // The open module's 1 s readings stay quick; the background ones slow down (spec RF-10).
+        let settings = settings
+        self.timer = Poller.start(
+            every: wanted, tolerance: 0.1, scalesWithPower: !isVisible, isActive: { settings.isEnabled(.stats) },
+            action: { [weak self] in self?.read() }
+        )
         read()
     }
 
