@@ -18,6 +18,7 @@ final class CallService: ObservableObject {
     private let settings: AppSettings
     private var watch: WindowListMonitor.Token?
     private var hasBaseline = false
+    private var lastTick = Date.distantPast
     private var knownWindows: Set<CGWindowID> = []
     private var isScanning = false
     /// Scans without the banner; it may flicker, so the call ends after two.
@@ -34,12 +35,20 @@ final class CallService: ObservableObject {
 
     func start() {
         guard watch == nil else { return }
-        watch = WindowListMonitor.shared.subscribe(every: 1) { [weak self] windows in self?.tick(windows) }
+        // Only while calls are on, or to end a shown call once they were turned off (spec RF-8).
+        let gate: @MainActor () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.settings.callsEnabled || self.call != nil
+        }
+        watch = WindowListMonitor.shared.subscribe(every: 1, isActive: gate) { [weak self] windows in self?.tick(windows) }
     }
 
     private func tick(_ listed: [ListedWindow]) {
         let windows = CallBannerScanner.topWindows(in: listed)
-        // The windows already up at launch are not new.
+        // The windows already up at launch, or when the watch comes back after a pause, are not new.
+        let now = Date()
+        if CallBaseline.isStale(lastTick: lastTick, now: now) { hasBaseline = false }
+        lastTick = now
         guard hasBaseline else {
             hasBaseline = true
             knownWindows = Set(windows.map(\.id))
@@ -181,5 +190,15 @@ final class CallService: ObservableObject {
                 self.decline()
             }
         }
+    }
+}
+
+/// The calls watch takes the windows on screen as known again after a gap (a pause, calls turned
+/// off): they are not new calls (spec RF-8, RF-9).
+enum CallBaseline {
+    static let maximumGap: TimeInterval = 5
+
+    static func isStale(lastTick: Date, now: Date) -> Bool {
+        now.timeIntervalSince(lastTick) > maximumGap
     }
 }

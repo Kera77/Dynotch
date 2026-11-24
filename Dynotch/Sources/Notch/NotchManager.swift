@@ -11,7 +11,7 @@ final class NotchManager {
     private var screenObserver: NSObjectProtocol?
     private var signature = ""
     private var spaceSwipes: SpaceSwipeMonitor?
-    private var menuBarTimer: Timer?
+    private var menuBarPoller: Poller?
     private var activationObserver: NSObjectProtocol?
     private var isMeasuring = false
 
@@ -55,7 +55,10 @@ final class NotchManager {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.rebuildIfNeeded() }
+            MainActor.assumeIsolated {
+                self?.rebuildIfNeeded()
+                self?.measureMenuBar()
+            }
         }
     }
 
@@ -159,10 +162,20 @@ final class NotchManager {
         controller?.togglePin()
     }
 
-    /// The menu bar is measured when another app becomes active (its menus change) and every few
-    /// seconds, so the badges never cover its items (spec B-8).
+    /// The menu bar is measured when another app becomes active (its menus change), when the
+    /// displays or the badges change, and every 15 s in case, so the badges never cover its items
+    /// (spec B-8, RF-12).
     private func watchMenuBar() {
-        menuBarTimer = RepeatingTimer.start(every: 3) { [weak self] in self?.measureMenuBar() }
+        let badges = services.badges
+        let poller = Poller(
+            every: Self.menuBarFallback, isActive: { !badges.visible.isEmpty }, action: { [weak self] in self?.measureMenuBar() }
+        )
+        poller.start()
+        menuBarPoller = poller
+        badges.onVisibleChange = { [weak self] in
+            self?.menuBarPoller?.reevaluate()
+            self?.measureMenuBar()
+        }
         activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -173,6 +186,8 @@ final class NotchManager {
         }
         measureMenuBar()
     }
+
+    private static let menuBarFallback: TimeInterval = 15
 
     private func measureMenuBar() {
         guard !isMeasuring, !services.badges.visible.isEmpty,

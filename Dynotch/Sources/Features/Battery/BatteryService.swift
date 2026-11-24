@@ -16,7 +16,7 @@ final class BatteryService: ObservableObject {
     private let defaults: UserDefaults
 
     private let settings: AppSettings
-    private var timer: Timer?
+    private var timer: Poller?
     private var isReading = false
     /// system_profiler is heavy: every five minutes (spec BT-1b).
     private static let interval: TimeInterval = 300
@@ -45,7 +45,10 @@ final class BatteryService: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        self.timer = RepeatingTimer.start(every: Self.interval) { [weak self] in self?.refresh() }
+        let settings = settings
+        self.timer = Poller.start(
+            every: Self.interval, isActive: { settings.isEnabled(.battery) }, action: { [weak self] in self?.refresh() }
+        )
         refresh()
     }
 

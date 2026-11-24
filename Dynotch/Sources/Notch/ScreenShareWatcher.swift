@@ -20,7 +20,8 @@ final class ScreenShareWatcher {
     }
 
     func start() {
-        WindowListMonitor.shared.subscribe(every: Self.interval) { [weak self] windows in self?.check(windows) }
+        // Not slowed on battery: the notch must leave a meeting share quickly (spec N-21, RF-10).
+        WindowListMonitor.shared.subscribe(every: Self.interval, scalesWithPower: false) { [weak self] windows in self?.check(windows) }
     }
 
     private func check(_ windows: [ListedWindow]) {

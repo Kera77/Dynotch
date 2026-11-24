@@ -40,7 +40,7 @@ final class CalendarService: ObservableObject {
     private let settings: AppSettings
     private var extraRange: DateInterval?
     private var storeObserver: NSObjectProtocol?
-    private var tickTimer: Timer?
+    private var tickTimer: Poller?
     private var lastFetch: Date?
     private var settingsObserver: AnyCancellable?
 
@@ -80,7 +80,8 @@ final class CalendarService: ObservableObject {
             MainActor.assumeIsolated { self?.fetch() }
         }
 
-        tickTimer = RepeatingTimer.start(every: Self.tickInterval) { [weak self] in self?.tick() }
+        // Cheap and on time for the meeting alerts: paused while asleep, not slowed (spec RF-9).
+        tickTimer = Poller.start(every: Self.tickInterval, scalesWithPower: false) { [weak self] in self?.tick() }
 
         settingsObserver = settings.afterChange { [weak self] in self?.recompute() }
 

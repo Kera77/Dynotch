@@ -51,7 +51,7 @@ final class BeeperService: ObservableObject {
     private static let highlightKey = "beeperHighlightedNetworks"
 
     private let defaults: UserDefaults
-    private var timer: Timer?
+    private var timer: Poller?
     private var loadingAvatars: Set<String> = []
     private var readTask: Task<Void, Never>?
 
@@ -127,7 +127,12 @@ final class BeeperService: ObservableObject {
 
     func start() {
         guard timer == nil else { return }
-        self.timer = RepeatingTimer.start(every: Self.pollInterval) { [weak self] in self?.refresh() }
+        // Beeper Desktop is asked only while it runs (spec RF-8); when it quits, the state says so.
+        let poller = Poller.start(
+            every: Self.pollInterval, isActive: { Self.isBeeperRunning }, action: { [weak self] in self?.refresh() }
+        )
+        poller.onInactive = { [weak self] in self?.refresh() }
+        self.timer = poller
         refresh()
     }
 

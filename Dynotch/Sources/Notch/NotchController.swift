@@ -228,7 +228,7 @@ final class NotchController {
         notifications.cardOpened(stack)
         if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
         let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
-        withAnimation(animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
+        Signposts.animate("open", animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
         notifications.clearPeek()
         startHoverTimer()
         if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }
@@ -249,7 +249,7 @@ final class NotchController {
         if model.isExpanded { notifications.clearFocus() }
         OpenMenus.closeAll()
         stopWatchingClicksOutsideSettings()
-        withAnimation(Self.animation) { model.setExpanded(false) }
+        Signposts.animate("close", Self.animation) { model.setExpanded(false) }
     }
 
     private func scheduleClose() {

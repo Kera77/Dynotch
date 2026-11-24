@@ -66,6 +66,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Unit tests run inside the app host; don't put a panel on screen there.
         guard !AppInfo.isRunningTests else { return }
 
+        // Sleep, lock and power pause or slow every background look (spec RF-9, RF-10).
+        PowerMonitor.shared.start()
         services.calendar.start()
         services.notifications.start()
         // Loads the open count for the menu bar icon if access was granted before; never prompts.

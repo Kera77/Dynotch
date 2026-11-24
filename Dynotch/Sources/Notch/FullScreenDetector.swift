@@ -28,7 +28,12 @@ extension NotchController {
     static let fullScreenCheckInterval: TimeInterval = 1
 
     func startFullScreenChecks() {
-        fullScreenWatch = WindowListMonitor.shared.subscribe(every: Self.fullScreenCheckInterval) { [weak self] windows in
+        // Only while the setting is on, or to show the notch again once it was turned off (spec RF-8).
+        let gate: @MainActor () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.settings.hideInFullScreen || self.model.isHiddenForFullScreen
+        }
+        fullScreenWatch = WindowListMonitor.shared.subscribe(every: Self.fullScreenCheckInterval, isActive: gate) { [weak self] windows in
             self?.checkFullScreen(windows)
         }
     }

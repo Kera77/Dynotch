@@ -62,7 +62,7 @@ final class MenuBarSpacerService: NSObject, ObservableObject {
     private var isStarted = false
     /// Spaces hidden now because nothing stands left of them (spec MB-14).
     private var alone: Set<UUID> = []
-    private var aloneTimer: Timer?
+    private var aloneTimer: Poller?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -127,7 +127,7 @@ final class MenuBarSpacerService: NSObject, ObservableObject {
     private func updateAloneTimer() {
         let wanted = spacers.contains(where: \.hidesWhenAlone)
         if wanted, aloneTimer == nil {
-            aloneTimer = RepeatingTimer.start(every: 2) { [weak self] in self?.checkAlone() }
+            aloneTimer = Poller.start(every: 2) { [weak self] in self?.checkAlone() }
             checkAlone()
         } else if !wanted {
             aloneTimer?.invalidate()

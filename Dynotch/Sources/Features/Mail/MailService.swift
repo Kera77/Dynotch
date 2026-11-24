@@ -45,7 +45,7 @@ final class MailService: ObservableObject {
 
     private let settings: AppSettings
     private let defaults: UserDefaults
-    private var timer: Timer?
+    private var timer: Poller?
     private var isReading = false
     private var settingsObserver: AnyCancellable?
     private var lastLogged: State?
@@ -122,7 +122,9 @@ final class MailService: ObservableObject {
             accounts = []
             return
         }
-        timer = RepeatingTimer.start(every: TimeInterval(interval)) { [weak self] in self?.refresh() }
+        timer = Poller.start(
+            every: TimeInterval(interval), isActive: { [weak self] in self?.isActive ?? false }, action: { [weak self] in self?.refresh() }
+        )
         refresh()
     }
 
