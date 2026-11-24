@@ -62,7 +62,8 @@ extension NotchView {
     var showsDesign: Bool {
         // Only the fully opened notch: notifications, device notices and the preview stay black.
         // The tasks counter's drop-down is a small panel of its own and takes the design too (spec R-17).
-        (model.isExpanded && !model.isPreview) || showsTasksDropDown
+        // The screenshot chooser and pop-up too (spec SH-16).
+        (model.isExpanded && !model.isPreview) || showsTasksDropDown || (!model.isExpanded && showsScreenshotPeek)
     }
 
     /// The tasks counter's drop-down is open under the closed notch (spec R-17).

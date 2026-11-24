@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.103.0] - 2026-11-24
+
+### Added
+
+- Tasks counter drop-down: one small open button (square with an arrow) beside the ×, opening the Tasks module (R-20).
+
+### Changed
+
+- The screenshot mode chooser and the shot pop-up under the notch take the Liquid glass / Black to glass design (SH-16).
+- Google Chat replies always go out in the background through the web app; Google Chat no longer comes to the front. If it can't be done, the text is copied (GW-29).
+
+### Fixed
+
+- Calculator: the panel's top row no longer slides out of view when it opens or while typing (SZ-17).
+
 ## [0.102.0] - 2026-11-24
 
 ### Added

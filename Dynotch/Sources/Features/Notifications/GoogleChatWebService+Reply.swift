@@ -3,7 +3,7 @@ import Foundation
 // Replying through the web app: open the conversation in the background, check it is the right
 // one and its message box is empty, write, send, and see the message arrive (spec GW-9, GW-10).
 extension GoogleChatWebService {
-    private static let openTimeout: Duration = .seconds(5)
+    private static let openTimeout: Duration = .seconds(8)
     private static let confirmTimeout: Duration = .seconds(5)
     private static let step: Duration = .milliseconds(250)
 
@@ -11,9 +11,14 @@ extension GoogleChatWebService {
     /// - Throws: `Unavailable` when nothing was written (the caller may reply the old way),
     ///   `Failure` once the send button was pressed but the message did not show up.
     func reply(_ text: String, toTitle title: String) async throws -> String {
-        guard isEnabled, state == .reading, let pid = Self.webAppPID(),
-              let conversation = conversation(forTitle: title)
-        else { throw Unavailable() }
+        guard isEnabled, state == .reading, let pid = Self.webAppPID() else { throw Unavailable() }
+        // Not in the last background read: read the page again before giving up (spec GW-29).
+        var found = conversation(forTitle: title)
+        if found == nil, let fresh = await read(pid) { found = Self.match(title, in: fresh.conversations) }
+        guard let conversation = found else {
+            DiagnosticsLog.write("google-chat-web", "reply: conversation not found")
+            throw Unavailable()
+        }
         let target = conversation.key
         let hint = windowTokenHint
 
@@ -23,7 +28,10 @@ extension GoogleChatWebService {
         }
         // Write only into the right conversation's empty message box.
         let isReady: (ChatWebSnapshot) -> Bool = { $0.openID == target && $0.composer.map(GoogleChatWebReader.isBlank) == true }
-        guard let ready = await waitFor(pid, timeout: Self.openTimeout, isReady) else { throw Unavailable() }
+        guard let ready = await waitFor(pid, timeout: Self.openTimeout, isReady) else {
+            DiagnosticsLog.write("google-chat-web", "reply: conversation or message box not ready")
+            throw Unavailable()
+        }
         let before = Set(ready.messages.map(\.id))
 
         let written = await Task.detached { GoogleChatWebReader.write(text, pid: pid, windowToken: hint) }.value

@@ -21,6 +21,14 @@ extension NotificationService {
                 chatCardAnswered(notification)
                 return note
             } catch is GoogleChatWebService.Unavailable {
+                // A readable web app never comes to the front: the text waits on the clipboard (spec GW-29).
+                if chatWeb.state == .reading {
+                    DiagnosticsLog.write("google-chat-web", "reply: not possible in the background, text copied")
+                    TypedReply.copyToClipboard(text)
+                    throw GoogleChatWebService.Failure(
+                        description: "Couldn't reply in the background. Text copied: paste it in Google Chat."
+                    )
+                }
                 DiagnosticsLog.write("google-chat-web", "reply: web app not usable, typing instead")
             }
         }

@@ -101,6 +101,31 @@ final class CalculatorTextView: EditingTextView {
         scrollRangeToVisible(selectedRange())
     }
 
+    /// Scrolls only the calculator's own scroll view: the default one also moved the notch's
+    /// content, sliding the top row out of view (spec SZ-17).
+    override func scrollRangeToVisible(_ range: NSRange) {
+        guard let clip = enclosingScrollView?.contentView, let layout = layoutManager, let container = textContainer else { return }
+        let length = (string as NSString).length
+        guard length > 0 else { return clip.scroll(to: .zero) }
+        layout.ensureLayout(for: container)
+        var rect = layout.extraLineFragmentRect
+        if range.location < length || rect.isEmpty {
+            let glyph = layout.glyphIndexForCharacter(at: min(range.location, length - 1))
+            rect = layout.lineFragmentRect(forGlyphAt: glyph, effectiveRange: nil)
+        }
+        rect.origin.y += textContainerOrigin.y
+        let visible = clip.documentVisibleRect
+        var top = visible.minY
+        if rect.maxY + textContainerInset.height > visible.maxY {
+            top = rect.maxY + textContainerInset.height - visible.height
+        } else if rect.minY < visible.minY {
+            top = rect.minY
+        }
+        guard top != visible.minY else { return }
+        clip.scroll(to: NSPoint(x: visible.minX, y: max(0, top)))
+        enclosingScrollView?.reflectScrolledClipView(clip)
+    }
+
     private func refreshResults() {
         resultsView.needsDisplay = true
         window?.invalidateCursorRects(for: resultsView)

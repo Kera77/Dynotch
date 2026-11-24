@@ -31,7 +31,10 @@ extension NotchIndicatorView {
     func tasksLabel(_ count: TaskCount, item: IndicatorItem) -> some View {
         if let tasks = taskIndicator {
             TasksDropDown(tasks: tasks, count: count) {
-                dismissButton(for: item, help: "Hide for a while; it comes back sooner when a task is added")
+                HStack(spacing: 8) {
+                    OpenModuleButton(help: "Open Tasks", action: openTasks)
+                    dismissButton(for: item, help: "Hide for a while; it comes back sooner when a task is added")
+                }
             }
         }
     }
@@ -39,7 +42,7 @@ extension NotchIndicatorView {
 
 /// The tasks counter's drop-down: the count, or the lists side by side when the tasks are in
 /// several (spec R-17); the chosen list's tasks below, checked off with their circle (spec R-12),
-/// more than six scroll (spec R-16). No Open button: a click on the counter opens the module.
+/// more than six scroll (spec R-16). No text Open button, only the small icon (spec R-20).
 struct TasksDropDown<Dismiss: View>: View {
     @ObservedObject var tasks: TaskIndicator
     let count: TaskCount
@@ -92,6 +95,28 @@ struct TasksDropDown<Dismiss: View>: View {
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4 + (groups.count > 1 ? IndicatorLayout.taskPickerExtra : 0))
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The drop-down's one open button: a square with an arrow, sized and dimmed like the ×,
+/// brightening on hover (spec R-20).
+struct OpenModuleButton: View {
+    let help: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.up.forward.square")
+                .font(.notch(size: 13, weight: .medium))
+                .foregroundStyle(Color.white.level(isHovered ? 0.9 : 0.55))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.notch)
+        .onHover { isHovered = $0 }
+        .help(help)
+        .accessibilityLabel(help)
     }
 }
 

@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.102 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.103 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -326,6 +326,7 @@
 | SZ-14 | (v0.43) **Mértékegységek:** `5 km in mi`, `70 kg to lb`, `30 c in f` – hossz, tömeg, hőmérséklet, térfogat, sebesség, adat, idő. Valuta nincs. |
 | SZ-15 | (v0.43) **Összeg:** `total` / `sum` / `összesen` sor az előtte álló sorok (az előző üres sorig) összegét adja. |
 | SZ-16 | (v0.43) Az eredmények a sor alapvonalán ülnek: Enter az utolsó sorban nem csúsztatja lejjebb az utolsó eredményt. |
+| SZ-17 | (v0.103) **A felső sor a helyén marad (javítás):** a számológép megnyitásakor és gépelés közben a kurzor sorához görgetés **csak a számológép saját görgetőjét** mozgatja; a notch tartalma nem csúszik fel, a felső sor (modul-ikonok, gombok) végig látszik. |
 
 ---
 
@@ -371,6 +372,7 @@
 | R-17 | (v0.89) **Feladatszámláló lenyílója (R-10, R-12 módosítása):** a fejlécben **nincs Open gomb** (a számlálóra kattintás továbbra is a modult nyitja). Ha a számolt feladatok **több listában** vannak (pl. Tasks és Reminders), a fejlécben egymás melletti **kapszula-választó** (mint az AI fül választója, D-10) a listák nevével és darabszámával; alatta csak a választott lista feladatai. Alapból mindig az a lista, amelyikben a **legközelebbi határidős** feladat van (a lejárt is); ha egyikben sincs határidő, az első. A választás a lenyíló bezárásáig marad. A lenyíló a notch **designját** kapja (Liquid glass, Black to glass, D-1), mint a lenyitott panel. |
 | R-18 | (v0.90) **Lista-választó minden listával (R-17 javítása):** a kapszula-választó akkor jelenik meg, ha a nyitott feladatok **több listában** vannak, akkor is, ha a mai (ma esedékes vagy lejárt) feladatok csak az egyikben vannak. Listánként a lista mai feladatai, ha vannak, különben az összes nyitott; a kapszulán a lista neve és ez a szám. A számláló száma nem változik (R-10). |
 | R-19 | (v0.91) **Swipe a lista-választón (R-17 kiegészítése):** ha a feladatszámláló lenyílójában látszik a kapszula-választó, és az egér a lenyílón van, a kétujjas vízszintes swipe a listák között vált (balra húzva a következő, jobbra az előző), gesztusonként egyet; az első és az utolsó listánál megáll. |
+| R-20 | (v0.103) **Megnyitás gomb a lenyílóban (R-17 módosítása):** a feladatszámláló lenyílójának fejlécében az X előtt **egyetlen ikon-gomb** (négyzet kifelé mutató nyíllal, `arrow.up.forward.square`, az X-szel azonos méretű és halványságú, hoverre világosodik), ami a Reminders modult nyitja, mint a számlálóra kattintás. Szöveges Open gomb továbbra sincs. |
 
 ---
 
@@ -888,6 +890,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | GW-26 | (v0.93) **A Kezdőlap darabszáma magában nem olvasatlan (a GW-21 javítása):** a Kezdőlap-lista sora csak az „Olvasatlan” jelzéssel számít olvasatlannak; az „1 értesítés” felirat régi tereknél olvasás után is megmarad, ezért egyedül nem növeli a jelvényt (GW-22), és nem ad kártyát. A darabszámot csak olvasatlan sornál használja. |
 | GW-27 | (v0.101, hiba) **Kitűzött beszélgetés neve:** a webapp oldalsávjában és Kezdőlap-listájában a kitűzött beszélgetés sora a „Kitűzött beszélgetés” / „Pinned conversation” (és hasonló „Kitűzve”, „Pinned”) jelzést is hordozza; ez nem név, így kimarad, és a kártyán, a kis értesítésben és a jelvény-listában a küldő (beszélgetés) neve áll. |
 | GW-28 | (v0.101) **Mark as read a Google Chatnél (BP-20 párja):** a Google Chat-kártyák fejlécében (All, Chats, Google Chat fül) pipa gomb, ha a webapp olvasható (GW-14 „Reading”): a Dynotch a háttérben megnyitja a beszélgetést a webappban (GW-8), így ott olvasott lesz, a kártya pedig eltűnik. Csak a felhasználó kattintására. |
+| GW-29 | (v0.103) **Válasz mindig a háttérben (GW-9 módosítása):** ha a webapp olvasható (állapota „reading”), a válasz **soha nem hozza előre** a Google Chatet: ha a beszélgetés nincs a legutóbbi olvasásban, előbb újraolvassa az oldalt, és csak ezután keresi; ha így sem írható, semmi nem megy el, a szöveg a vágólapra kerül, és hibaüzenet jön („Couldn't reply in the background… Text copied”). A régi, előtérbe hozó begépelés (E-11d) csak akkor marad, ha a webapp nem fut vagy nem olvasható. |
 
 ## 4ä. AI modul: Claude és ChatGPT (v0.42)
 
@@ -1016,6 +1019,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | SH-13 | (v0.70) **Területfelvétel** (*Area Recording*), új mód az SH-2 listájában (átrendezhető, kikapcsolható): a terület kijelölése az *Area* módhoz hasonlóan (szálkereszt, méretkijelzés, Esc vagy jobb kattintás megszakít), utána **csak a kijelölt terület** kerül a videóra, a kijelző teljes (Retina) felbontásában, egész pixelekre igazítva (SH-3d). Felvétel közben vékony keret jelzi a területet (a keret nem kerül a videóra), a többi SH-5 szerint: `.mov` a Screenshots mappába, vágólapra, Mac hangja és mikrofon kapcsolói, piros pötty és idő a notch mellett, Stop rámutatásra vagy a gyorsbillentyűvel, a Dynotch nem kerül a felvételre. |
 | SH-14 | (v0.83) **Késleltetett módválasztó (mint AS-16):** a ⌃⇧S után a módok sávja csak akkor ugrik fel, ha a módosítók a *Show modes after* időnél tovább nyomva maradnak (*Settings › Screenshots*, 0–1 mp, 0,05 mp-es lépés, alapból **0,15 mp**). Gyors lenyomás-felengedésnél a sáv meg sem jelenik, és az első mód indul. Az S újbóli megnyomása (következő mód) a sávot azonnal mutatja. |
 | SH-15 | (v0.83) **Szerkesztő bezárása kívülre kattintva:** a nyitott képszerkesztőn (SH-7) kívül, a képernyő más részére kattintva a szerkesztő bezárul, mint a Close-zal (Esc): a nem mentett változások elvesznek, a kattintott app kapja a billentyűzetet. |
+| SH-16 | (v0.103) **Lenyíló designja (SH-1, SH-6 kiegészítése):** a képernyőkép mód-választója és a kép utáni felugró a notch alatt a notch **designját** kapja (Liquid glass, Black to glass, D-1), mint a lenyitott panel és a feladatszámláló lenyílója (R-17). Black designnál fekete marad. |
 
 ## 4ő+. Menüsor-hézagok (v0.62)
 
@@ -1175,6 +1179,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.103.0** | Screenshot-lenyíló a designnal, Google Chat válasz mindig a háttérben, megnyitás gomb a feladat-lenyílóban, a Calculator nem csúszik fel (SH-16, GW-29, R-20, SZ-17) |
 | **v0.102.0** | Nincs görgetőnyíl az iPad menüben, nem gépelős modulból is követ a fókusz, a választott fül marad (System alapból), még gyorsabb tempó, akadásmentes Naptár-nyitás, kikapcsolt modul is a swipe-up sorban (TB-11, F-18, MG-10, D-22, K-16, QS-15) |
 | **v0.101.0** | iPad menü a gomb alatt, nincs notch az iPaden, kitűzött Google Chat-beszélgetésnél a küldő neve, Google Chat Mark as read, egységes betűméret az üres modulokon, gyorsabb alaptempó, nincs zöld plusz húzáskor, Fókusz alatt nincs felugrás (appontos kivétellel), lenyitott notchról is követ a fókusz (TB-9, TB-10, GW-27, GW-28, D-20, D-21, M-16, E-20d, F-17) |
 | **v0.100.0** | Liquid glass újra üveges (három design), egységes, gyorsabb animációk és sima Naptár-nyitás, akadásmentes vágólap-átrendezés, Modules lista újra húzható, Module strip és modulváltó a Modules lapon (Swipe-up modules), új hézagstílusok és elrejtés, ha nincs mellette ikon, Beeper Mark as read, beállítások utolsó lapja, Fókusz-némítás törölve (D-14f, D-19, CB-9, M-15, QS-13, QS-14, MB-13, MB-14, BP-20, SD-15, E-20c) |
