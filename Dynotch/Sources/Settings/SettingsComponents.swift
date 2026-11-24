@@ -118,12 +118,45 @@ struct ReorderDropDelegate<Item: Equatable>: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        dragged = nil
+        ReorderDragEnd.finish { dragged = nil }
         return true
     }
 }
 
+/// Ends a row drag once the mouse button is up, wherever it was let go: dropped between rows or
+/// outside the list no drop delegate hears it, and the row stayed grey (spec SD-14).
+@MainActor
+enum ReorderDragEnd {
+    private static var task: Task<Void, Never>?
+
+    /// Called when a drag starts; `end` clears the dragged row.
+    static func watch(_ end: @escaping @MainActor () -> Void) {
+        task?.cancel()
+        task = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            while !Task.isCancelled, NSEvent.pressedMouseButtons & 1 != 0 {
+                try? await Task.sleep(for: .milliseconds(40))
+            }
+            guard !Task.isCancelled else { return }
+            finish(end)
+        }
+    }
+
+    /// Clears the dragged row at once, without the fade that looked like a second animation.
+    static func finish(_ end: @MainActor () -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { end() }
+    }
+}
+
 extension View {
+    /// Takes a reorder drag let go anywhere in the settings, so the dragged image does not fly
+    /// back to where it started (spec SD-14).
+    func acceptsReorderDrops() -> some View {
+        onDrop(of: [.text], isTargeted: nil) { _ in true }
+    }
+
     /// A row that can be dragged over the others of `items` to reorder them (spec SD-4).
     func reorderable<Item: Equatable>(
         _ item: Item, in items: [Item], dragged: Binding<Item?>, id: String, move: @escaping (IndexSet, Int) -> Void
@@ -131,6 +164,7 @@ extension View {
         opacity(dragged.wrappedValue == item ? 0.4 : 1)
             .onDrag {
                 dragged.wrappedValue = item
+                ReorderDragEnd.watch { dragged.wrappedValue = nil }
                 return NSItemProvider(object: id as NSString)
             }
             .onDrop(of: [.text], delegate: ReorderDropDelegate(target: item, items: items, dragged: dragged, move: move))

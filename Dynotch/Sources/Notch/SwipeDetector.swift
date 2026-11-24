@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 
 /// Turns a stream of trackpad scroll events into single "next/previous" swipes (spec S-1…S-4).
 struct SwipeDetector {
@@ -17,6 +18,10 @@ struct SwipeDetector {
     private(set) var accumulatedX: CGFloat = 0
     private(set) var accumulatedY: CGFloat = 0
     private var hasFired = false
+
+    init(threshold: CGFloat = 30) {
+        self.threshold = threshold
+    }
 
     /// True while the current gesture is mostly horizontal; such events should not reach the content.
     var isHorizontalGesture: Bool {
@@ -60,6 +65,13 @@ struct SwipeDetector {
 /// `stepWidth` points of finger movement, including the momentum after a flick.
 struct DayStepper {
     var stepWidth: CGFloat = 60
+    /// How much the momentum after a flick counts (spec M-14).
+    var momentumScale: CGFloat = 1
+
+    init(stepWidth: CGFloat = 60, momentumScale: CGFloat = 1) {
+        self.stepWidth = stepWidth
+        self.momentumScale = momentumScale
+    }
 
     private var remainder: CGFloat = 0
     private var accumulatedX: CGFloat = 0
@@ -82,7 +94,7 @@ struct DayStepper {
         accumulatedY += abs(deltaY)
         guard isHorizontal else { return 0 }
 
-        remainder -= fingerDeltaX
+        remainder -= fingerDeltaX * (isMomentum ? momentumScale : 1)
         let steps = Int((remainder / stepWidth).rounded(.towardZero))
         remainder -= CGFloat(steps) * stepWidth
         return steps
@@ -114,5 +126,26 @@ struct VerticalSwipe {
         guard !hasFired, accumulatedUp >= threshold, accumulatedUp > accumulatedX else { return false }
         hasFired = true
         return true
+    }
+}
+
+/// Gathers steps and lets them through together at most every `interval`, so a long swipe
+/// switches smoothly instead of restarting the animation on every event (spec M-14).
+struct StepThrottle {
+    var interval: TimeInterval = 0.1
+    private var pending = 0
+    private var last = Date.distantPast
+
+    mutating func reset() {
+        pending = 0
+    }
+
+    /// The steps to take now, 0 while waiting.
+    mutating func add(_ steps: Int, now: Date = Date()) -> Int {
+        pending += steps
+        guard pending != 0, now.timeIntervalSince(last) >= interval else { return 0 }
+        defer { pending = 0 }
+        last = now
+        return pending
     }
 }

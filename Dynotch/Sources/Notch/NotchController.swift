@@ -63,15 +63,13 @@ final class NotchController {
     var fullScreenWatch: WindowListMonitor.Token?
     private var closeTask: Task<Void, Never>?
     private var graceUntil: Date?
-    var swipe = SwipeDetector()
+    /// One swipe over the panel switches one module, after 45 pt (spec S-1, M-14).
+    var swipe = SwipeDetector(threshold: 45)
     var dayStepper = DayStepper()
     /// Swipes over the feature icons switch modules, one per step (spec M-12).
-    var switcherStepper: DayStepper = {
-        var stepper = DayStepper()
-        // About one module per 50 pt of finger movement, momentum included (spec M-12).
-        stepper.stepWidth = 50
-        return stepper
-    }()
+    /// About one module per 80 pt of finger movement, the momentum counting half (spec M-12, M-14).
+    var switcherStepper = DayStepper(stepWidth: 80, momentumScale: 0.5)
+    var switcherThrottle = StepThrottle()
     /// The swipe over the feature icons reached an end: the rest of it is ignored (spec M-13).
     var switcherReachedEnd = false
     /// A swipe over the tasks counter's list picker (spec R-19).

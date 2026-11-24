@@ -30,6 +30,7 @@ final class AppSettings: ObservableObject {
         static let haptics = "haptics"
         static let roundedNotch = "roundedNotch"
         static let glassAccent = "glassAccent"
+        static let glassAccentStrength = "glassAccentStrength"
         static let hideInFullScreen = "hideInFullScreen"
         static let roundOnlyWhereShown = "roundOnlyWhereShown"
         static let design = "design"
@@ -155,11 +156,6 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(claudeSessionPinned, forKey: Key.claudeSessionPinned) }
     }
 
-    /// The refined look of the designs, or the original one (spec D-14).
-    @Published var refinedDesign = true {
-        didSet { defaults.set(refinedDesign, forKey: "refinedDesign") }
-    }
-
     /// Trackpad taps when the notch opens and on swipes (spec H-7).
     @Published var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: Key.haptics) }
@@ -169,6 +165,13 @@ final class AppSettings: ObservableObject {
     @Published var glassAccent: Bool {
         didSet { defaults.set(glassAccent, forKey: Key.glassAccent) }
     }
+
+    /// How strong the accent in the glass is, 0.5 being the default strength (spec D-17f).
+    @Published var glassAccentStrength = 0.5 {
+        didSet { defaults.set(glassAccentStrength, forKey: Key.glassAccentStrength) }
+    }
+
+    static let glassAccentStrengthRange = 0.1...1.0
 
     /// The closed notch has round ends like the Dynamic Island (spec N-11).
     @Published var roundedNotch: Bool {

@@ -52,6 +52,7 @@ struct SettingsView: View {
                 .clipped()
         }
         .animation(Motion.quick, value: selectedTab)
+        .acceptsReorderDrops()
         .frame(width: NotchGeometry.settingsContentSize.width, height: NotchGeometry.settingsContentSize.height)
     }
 

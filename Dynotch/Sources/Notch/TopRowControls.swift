@@ -116,6 +116,8 @@ struct TopRowSettingsRows: View {
             .opacity(dragged == control ? 0.4 : 1)
             .onDrag {
                 dragged = control
+                let binding = $dragged
+                ReorderDragEnd.watch { binding.wrappedValue = nil }
                 return NSItemProvider(object: control.rawValue as NSString)
             }
             .onDrop(of: [.text], delegate: TopRowDropDelegate(target: control, layout: layout, dragged: $dragged))
@@ -136,7 +138,7 @@ private struct TopRowDropDelegate: DropDelegate {
     func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
 
     func performDrop(info: DropInfo) -> Bool {
-        dragged = nil
+        ReorderDragEnd.finish { dragged = nil }
         return true
     }
 }

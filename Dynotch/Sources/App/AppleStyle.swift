@@ -131,14 +131,32 @@ private struct AppleHoverButtonStyle: ButtonStyle {
         var body: some View {
             configuration.label
                 .background {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.white.opacity(configuration.isPressed ? 0.14 : (isHovered ? 0.08 : 0)))
-                        .padding(-3)
+                    HoverHighlight(opacity: configuration.isPressed ? 0.14 : (isHovered ? 0.08 : 0))
                 }
                 .opacity(configuration.isPressed ? 0.7 : 1)
                 .onHover { isHovered = isEnabled && $0 }
                 .animation(.easeOut(duration: 0.12), value: isHovered)
         }
+    }
+}
+
+/// The hover and pressed highlight of a notch button, following the control's shape: a capsule
+/// for a small icon button, at most a 10 pt curve for a larger row (spec D-15j).
+struct HoverHighlight: View {
+    let opacity: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = CGSize(width: proxy.size.width + 6, height: proxy.size.height + 6)
+            RoundedRectangle(cornerRadius: Self.radius(for: size), style: .continuous)
+                .fill(Color.white.opacity(opacity))
+                .frame(width: size.width, height: size.height)
+                .offset(x: -3, y: -3)
+        }
+    }
+
+    nonisolated static func radius(for size: CGSize) -> CGFloat {
+        min(min(size.width, size.height) / 2, 10)
     }
 }
 

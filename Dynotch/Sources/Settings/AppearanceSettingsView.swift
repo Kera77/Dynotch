@@ -13,11 +13,6 @@ struct AppearanceSettingsView: View {
                     ForEach(NotchDesign.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
-                Picker("Look", selection: $settings.refinedDesign) {
-                    Text("Refined").tag(true)
-                    Text("Original").tag(false)
-                }
-                .pickerStyle(.segmented)
                 SettingsSlider(
                     title: "Open panel opacity", value: $settings.panelOpacity, range: AppSettings.panelOpacityRange, step: 0.05
                 ) { "\(Int(($0 * 100).rounded())) %" }
@@ -26,6 +21,12 @@ struct AppearanceSettingsView: View {
                     get: { settings.glassAccent && settings.design != .black }, set: { settings.glassAccent = $0 }
                 ))
                 .disabled(settings.design == .black)
+                // How much of the accent goes into the glass (spec D-17f).
+                SettingsSlider(
+                    title: "Accent strength", value: $settings.glassAccentStrength,
+                    range: AppSettings.glassAccentStrengthRange, step: 0.05
+                ) { "\(Int(($0 * 100).rounded())) %" }
+                .disabled(settings.design == .black || !settings.glassAccent)
                 // Trial (spec D-18): deeper clear glass over a full blur, lighter fills, stronger text.
                 Toggle("Crisp look", isOn: $crispLook)
                 Toggle("Resize modules from the bottom right corner", isOn: $settings.resizableModules)
@@ -136,8 +137,8 @@ struct AppearanceSettingsView: View {
     private var designNote: String {
         var note = "For the open notch, notifications and the menu bar panels; the closed notch stays black like the "
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
-        note += " Refined adds a soft rim light and shadow, a black that deepens towards the bottom, glass tinted to "
-            + "the wallpaper, and an even black-to-glass fade."
+        note += " The open panel has a soft rim light and shadow, a black that deepens towards the bottom, glass tinted "
+            + "to the wallpaper, and an even black-to-glass fade."
         note += " Crisp look (trial): deeper, clearer glass over a stronger blur, lighter grey fills, brighter text."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note
@@ -173,6 +174,8 @@ private struct StripModulesRows: View {
                 .opacity(dragged == feature ? 0.4 : 1)
                 .onDrag {
                     dragged = feature
+                    let binding = $dragged
+                    ReorderDragEnd.watch { binding.wrappedValue = nil }
                     return NSItemProvider(object: feature.rawValue as NSString)
                 }
                 .onDrop(of: [.text], delegate: StripDropDelegate(target: feature, settings: settings, dragged: $dragged))
@@ -199,7 +202,7 @@ private struct StripDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        dragged = nil
+        ReorderDragEnd.finish { dragged = nil }
         return true
     }
 }

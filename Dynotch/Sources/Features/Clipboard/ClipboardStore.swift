@@ -235,6 +235,15 @@ final class ClipboardStore: ObservableObject {
         saved.contains { $0.id == item.id || ($0.kind == .text && item.kind == .text && $0.text == item.text) }
     }
 
+    /// Moves a saved item to `index`, as it is dragged (spec CB-8).
+    func moveSaved(_ id: ClipItem.ID, to index: Int) {
+        guard let from = saved.firstIndex(where: { $0.id == id }) else { return }
+        let target = min(max(index, 0), saved.count - 1)
+        guard target != from else { return }
+        saved.insert(saved.remove(at: from), at: target)
+        persist()
+    }
+
     func addSaved(text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }

@@ -2,13 +2,15 @@ import AppKit
 import SwiftUI
 
 /// Tablet button in the panel's top row, beside "focus follows mouse": its menu connects an iPad as a display,
-/// like the "+" menu of macOS's Displays settings (spec TB-1).
+/// like the "+" menu of macOS's Displays settings (spec TB-1). A plain notch button that pops up
+/// an AppKit menu, so it looks and hovers like the buttons beside it (spec TB-8).
 struct TabletMenu: View {
     @ObservedObject var service: TabletDisplayService
 
     var body: some View {
-        Menu {
-            menuContent
+        Button {
+            service.refresh()
+            TabletMenuBuilder(service: service).popUp()
         } label: {
             Image(systemName: "ipad.landscape")
                 .font(.notch(size: 12, weight: .semibold))
@@ -16,63 +18,79 @@ struct TabletMenu: View {
                 .foregroundStyle(service.connected != nil ? ClaudeUsageView.blue : Color.white.level(0.45))
                 .contentShape(Rectangle())
         }
-        .menuStyle(.button)
         .buttonStyle(.notch)
-        .menuIndicator(.hidden)
-        .fixedSize()
         .help("iPad as a display")
         .accessibilityLabel("iPad as a display")
         .onAppear { service.refresh() }
     }
+}
 
-    @ViewBuilder private var menuContent: some View {
-        Section("Mirror or extend to") {
-            if service.tablets.isEmpty {
-                Text("No iPad nearby")
-            }
-            ForEach(service.tablets) { tablet in
-                Toggle(tablet.name, isOn: Binding(
-                    get: { tablet.isConnected },
-                    set: { $0 ? service.connect(tablet) : service.disconnect(tablet) }
-                ))
-                .disabled(service.pending != nil)
-            }
-        }
-        if let tablet = service.connected {
-            Section(tablet.name) {
-                Picker("Use as", selection: Binding(get: { service.isMirrored }, set: { service.setMirrored($0) })) {
-                    Text("Extended display").tag(false)
-                    Text("Mirror of the main display").tag(true)
-                }
-                .pickerStyle(.inline)
-                Button("Disconnect") { service.disconnect(tablet) }
-            }
-        } else if !service.tablets.isEmpty {
-            Section("Mirror") {
-                ForEach(service.tablets) { tablet in
-                    Button("Mirror to \(tablet.name)") { service.connect(tablet, mirrored: true) }
-                        .disabled(service.pending != nil)
-                }
+/// The tablet button's menu: mirror or extend to an iPad, link the keyboard and mouse, the
+/// Displays settings (spec TB-2, TB-6, TB-8).
+@MainActor
+private final class TabletMenuBuilder: NSObject {
+    private let service: TabletDisplayService
+    private var actions: [() -> Void] = []
+
+    init(service: TabletDisplayService) {
+        self.service = service
+    }
+
+    func popUp() {
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        let busy = service.pending != nil
+        header("Mirror or extend to", in: menu)
+        if service.tablets.isEmpty { disabled("No iPad nearby", in: menu) }
+        for tablet in service.tablets {
+            item(tablet.name, isOn: tablet.isConnected, enabled: !busy, in: menu) { [service] in
+                tablet.isConnected ? service.disconnect(tablet) : service.connect(tablet)
             }
         }
         if !service.tablets.isEmpty {
-            // Universal Control, through the Displays settings' "+" menu (spec TB-6).
-            Section("Link keyboard and mouse to") {
-                ForEach(service.tablets) { tablet in
-                    // Ticked while linked; choosing it again unlinks, in the background too (spec TB-7).
-                    Toggle(tablet.name, isOn: Binding(
-                        get: { service.linkedKeyboards.contains(tablet.id) },
-                        set: { _ in service.linkKeyboard(to: tablet) }
-                    ))
-                    .disabled(service.pending != nil)
+            // Universal Control, through the Displays settings' "+" menu (spec TB-6, TB-7).
+            menu.addItem(.separator())
+            header("Link keyboard and mouse to", in: menu)
+            for tablet in service.tablets {
+                item(tablet.name, isOn: service.linkedKeyboards.contains(tablet.id), enabled: !busy, in: menu) { [service] in
+                    service.linkKeyboard(to: tablet)
                 }
             }
         }
         if let failure = service.failure {
-            Text(failure)
+            menu.addItem(.separator())
+            disabled(failure, in: menu)
         }
-        Divider()
-        Button("Display Settings…") { service.openDisplaySettings() }
+        menu.addItem(.separator())
+        item("Display Settings…", isOn: false, enabled: true, in: menu) { [service] in service.openDisplaySettings() }
+        // Kept alive while the menu is open: the items point at it.
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+        withExtendedLifetime(self) {}
+    }
+
+    private func header(_ title: String, in menu: NSMenu) {
+        menu.addItem(.sectionHeader(title: title))
+    }
+
+    private func disabled(_ title: String, in menu: NSMenu) {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        menu.addItem(item)
+    }
+
+    private func item(_ title: String, isOn: Bool, enabled: Bool, in menu: NSMenu, action: @escaping () -> Void) {
+        let item = NSMenuItem(title: title, action: #selector(choose(_:)), keyEquivalent: "")
+        item.target = self
+        item.tag = actions.count
+        item.state = isOn ? .on : .off
+        item.isEnabled = enabled
+        actions.append(action)
+        menu.addItem(item)
+    }
+
+    @objc private func choose(_ sender: NSMenuItem) {
+        guard actions.indices.contains(sender.tag) else { return }
+        actions[sender.tag]()
     }
 }
 

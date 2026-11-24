@@ -10,6 +10,15 @@ struct ClipboardFeatureView: View {
     @State private var tab = ClipboardTab.history
     @State private var search = ""
     @State private var newSaved = ""
+    /// Reordering the saved items (spec CB-8): the dragged row, where it was grabbed, the pointer.
+    @State private var dragged: ClipItem.ID?
+    @State private var grab: CGFloat = 0
+    @State private var pointerY: CGFloat = 0
+    @State private var rowFrames: [ClipItem.ID: CGRect] = [:]
+    private static let listSpace = "ClipboardList"
+
+    /// The saved items can be reordered, not while searching.
+    private var canReorder: Bool { tab == .saved && search.isEmpty && store.saved.count > 1 }
 
     private var shown: [ClipItem] {
         let items = store.items(in: tab)
@@ -47,8 +56,15 @@ struct ClipboardFeatureView: View {
                 LazyVStack(spacing: 4) {
                     ForEach(Array(shown.enumerated()), id: \.element.id) { index, item in
                         row(item, number: index + 1)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.listSpace)) } action: {
+                                rowFrames[item.id] = $0
+                            }
+                            .offset(y: dragged == item.id ? dragOffset(item.id) : 0)
+                            .zIndex(dragged == item.id ? 1 : 0)
+                            .simultaneousGesture(reorder(item), isEnabled: canReorder)
                     }
                 }
+                .coordinateSpace(name: Self.listSpace)
             }
             .scrollIndicators(.never)
             .overlay {
@@ -63,6 +79,39 @@ struct ClipboardFeatureView: View {
         .padding(.horizontal, 16)
         .padding(.top, 6)
         .padding(.bottom, 10)
+    }
+
+    /// The dragged row follows the pointer from where it now stands in the list.
+    private func dragOffset(_ id: ClipItem.ID) -> CGFloat {
+        guard let frame = rowFrames[id] else { return 0 }
+        return pointerY - grab - frame.midY
+    }
+
+    /// Dragging a saved row moves it past the rows its middle crosses (spec CB-8).
+    private func reorder(_ item: ClipItem) -> some Gesture {
+        DragGesture(minimumDistance: 4, coordinateSpace: .named(Self.listSpace))
+            .onChanged { value in
+                if dragged == nil {
+                    grab = value.startLocation.y - (rowFrames[item.id]?.midY ?? value.startLocation.y)
+                    withAnimation(Motion.hover) { dragged = item.id }
+                }
+                guard dragged == item.id else { return }
+                pointerY = value.location.y
+                let middle = pointerY - grab
+                let saved = store.saved
+                guard let from = saved.firstIndex(where: { $0.id == item.id }) else { return }
+                // The row whose middle the dragged one has passed, the nearest first.
+                let passed = saved.indices.filter { index in
+                    guard index != from, let frame = rowFrames[saved[index].id] else { return false }
+                    return index > from ? middle > frame.midY : middle < frame.midY
+                }
+                if let target = from < (passed.max() ?? from) ? passed.max() : passed.min(), target != from {
+                    withAnimation(Motion.quick) { store.moveSaved(item.id, to: target) }
+                }
+            }
+            .onEnded { _ in
+                withAnimation(Motion.quick) { dragged = nil }
+            }
     }
 
     private func row(_ item: ClipItem, number: Int) -> some View {

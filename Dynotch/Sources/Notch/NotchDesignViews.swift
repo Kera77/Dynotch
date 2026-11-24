@@ -39,6 +39,9 @@ struct GlassFill<S: Shape>: View {
     /// How much of the accent goes into the tint: more under Black to glass, whose lighter,
     /// regular glass otherwise hid it (spec D-17d).
     var accentShare: CGFloat = 0.18
+    /// A wash of the accent laid over the glass: the regular glass of Black to glass hid even a
+    /// stronger tint (spec D-17e).
+    var accentWash: Double = 0
 
     /// The tint's colour: black, or black with a share of the accent colour.
     private var tintColor: Color {
@@ -53,9 +56,24 @@ struct GlassFill<S: Shape>: View {
             shape.fill(Color(white: 0.12))
         } else if #available(macOS 26.0, *) {
             Color.clear.glassEffect((crisp ? Glass.clear : .regular).tint(tintColor.opacity(tint)), in: shape)
+                .overlay { wash }
         } else {
-            shape.fill(.ultraThinMaterial).overlay(shape.fill(tintColor.opacity(tint)))
+            shape.fill(.ultraThinMaterial).overlay(shape.fill(tintColor.opacity(tint))).overlay { wash }
         }
+    }
+
+    @ViewBuilder private var wash: some View {
+        if let accent, accentWash > 0 {
+            shape.fill(Color(nsColor: accent).opacity(accentWash)).allowsHitTesting(false)
+        }
+    }
+
+    /// The accent's share of the tint and its wash for a design at a strength, 0.5 being the
+    /// default (spec D-17d, D-17e, D-17f).
+    nonisolated static func accent(blend: Bool, strength: Double) -> (share: CGFloat, wash: Double) {
+        let scale = strength / 0.5
+        if blend { return (min(0.35 * scale, 0.9), 0.12 * scale) }
+        return (min(0.18 * scale, 0.9), max(0, scale - 1) * 0.08)
     }
 }
 
@@ -111,14 +129,17 @@ struct DesignBackground<S: Shape>: View {
     var solid = Color.black
     /// The open panel's opacity (spec D-13); the closed notch is always fully black.
     var openOpacity = 1.0
-    /// The refined look (spec D-14): rim light, deepening black, wallpaper-aware glass, fixed-height blend.
-    var refined = false
-    /// The top row's height, which stays black in the refined blend.
+    /// The top row's height, which stays black in the blend (spec D-14d).
     var topRow: CGFloat = 38
-    /// The glass tint in the refined look.
+    /// The glass tint, following the wallpaper (spec D-14c).
     var glassTint = 0.45
     /// A touch of the accent colour in the glass (spec D-17).
     var glassAccent = false
+    /// How strong the accent is (spec D-17f).
+    var accentStrength = 0.5
+    /// The notch panel's look (spec D-14, D-14e): rim light and a deepening black. The menu bar
+    /// panels leave it off.
+    var refined = false
     /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
     @AppStorage(AppleStyle.crispKey) private var crisp = true
     /// The accent colour set in macOS, followed live (spec D-17b).
@@ -134,14 +155,6 @@ struct DesignBackground<S: Shape>: View {
             let eased = part * part * (3 - 2 * part)
             return .init(color: .black.opacity(1 - eased), location: min(start + span * part, 1))
         }
-    }
-
-    /// Black to glass: black over the top row, then fading out.
-    static var blendMask: LinearGradient {
-        LinearGradient(
-            stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.12), .init(color: .clear, location: 0.55)],
-            startPoint: .top, endPoint: .bottom
-        )
     }
 
     /// How strong the extra blur is: none for a closed or fully black panel; for black a bit
@@ -173,10 +186,11 @@ struct DesignBackground<S: Shape>: View {
                 // Black to glass keeps the regular, lighter glass: deepened, it turned as black as
                 // the top and the fade disappeared (spec D-18b).
                 let deep = crisp && design != .blend
+                let accent = GlassFill<S>.accent(blend: design == .blend, strength: accentStrength)
                 GlassFill(
-                    shape: shape, tint: Self.tint(refined ? glassTint : 0.45, crisp: deep),
+                    shape: shape, tint: Self.tint(glassTint, crisp: deep),
                     accent: glassAccent ? systemAccent.color : nil, crisp: deep,
-                    accentShare: design == .blend ? 0.35 : 0.18
+                    accentShare: accent.share, accentWash: accent.wash
                 )
                     .opacity(glass ? open : 0)
             }
@@ -206,16 +220,12 @@ struct DesignBackground<S: Shape>: View {
 }
 
 extension DesignBackground {
-    @ViewBuilder fileprivate var blendMask: some View {
-        if refined {
-            GeometryReader { proxy in
-                LinearGradient(
-                    stops: Self.refinedBlendStops(height: proxy.size.height, topRow: topRow),
-                    startPoint: .top, endPoint: .bottom
-                )
-            }
-        } else {
-            Self.blendMask
+    fileprivate var blendMask: some View {
+        GeometryReader { proxy in
+            LinearGradient(
+                stops: Self.refinedBlendStops(height: proxy.size.height, topRow: topRow),
+                startPoint: .top, endPoint: .bottom
+            )
         }
     }
 }

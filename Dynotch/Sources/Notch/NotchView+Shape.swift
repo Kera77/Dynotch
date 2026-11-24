@@ -124,8 +124,8 @@ extension NotchView {
     private var designFill: some View {
         DesignBackground(
             design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity,
-            refined: settings.refinedDesign, topRow: geometry.menuBarHeight,
-            glassTint: wallpaperTone.tint(for: geometry.screenFrame), glassAccent: settings.glassAccent
+            topRow: geometry.menuBarHeight, glassTint: wallpaperTone.tint(for: geometry.screenFrame),
+            glassAccent: settings.glassAccent, accentStrength: settings.glassAccentStrength, refined: true
         )
     }
 
@@ -134,7 +134,7 @@ extension NotchView {
     @ViewBuilder var designShadow: some View {
         // Always there and faded, so it grows with the panel instead of standing at the final
         // size before the module has opened into it (spec PV-49).
-        if layer == .glass, settings.refinedDesign {
+        if layer == .glass {
             OuterShadow(shape: shape)
                 .opacity(showsDesign ? 1 : 0)
                 .animation(showsDesign ? shadowFadeIn : .easeIn(duration: 0.1), value: showsDesign)

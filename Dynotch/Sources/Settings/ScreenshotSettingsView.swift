@@ -53,6 +53,8 @@ struct ScreenshotSettingsView: View {
         .opacity(dragged == mode ? 0.4 : 1)
         .onDrag {
             dragged = mode
+            let binding = $dragged
+            ReorderDragEnd.watch { binding.wrappedValue = nil }
             return NSItemProvider(object: mode.rawValue as NSString)
         }
         .onDrop(of: [.text], delegate: ModeDropDelegate(target: mode, settings: settings, dragged: $dragged))
@@ -72,7 +74,7 @@ private struct ModeDropDelegate: DropDelegate {
     func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
 
     func performDrop(info: DropInfo) -> Bool {
-        dragged = nil
+        ReorderDragEnd.finish { dragged = nil }
         return true
     }
 }

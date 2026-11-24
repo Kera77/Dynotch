@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+
+- *Settings › Appearance › Accent strength*: how strong the accent colour in the glass is (D-17f).
+- *Clipboard › Saved*: drag the rows to reorder them; ⌥⇧V shows them in the same order (CB-8).
+
+### Changed
+
+- The *Original* look is gone; the refined look is the only one (D-14e).
+- The iPad button looks and hovers like the buttons beside it; its menu keeps *Mirror or extend to*, *Link keyboard and mouse to* and *Display Settings…* (TB-8).
+- Hover highlights are rounder: a capsule on icon buttons, a softer curve on rows (D-15j).
+- Module swipe is less sensitive and smoother on long swipes (M-14).
+
+### Fixed
+
+- *Black to glass*: the accent colour now really shows in the glass (D-17e).
+- Settings lists: a dragged row no longer stays grey or flies back after it is let go (SD-14).
+
 ## [0.98.0] - 2026-11-24
 
 ### Fixed

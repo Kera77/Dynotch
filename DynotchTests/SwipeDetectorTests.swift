@@ -1,4 +1,6 @@
 @testable import Dynotch
+import Foundation
+import SwiftUI
 import Testing
 
 struct SwipeDetectorTests {
@@ -60,5 +62,32 @@ struct VerticalSwipeTests {
         #expect(!result6)
         let result7 = sideways.handle(phase: .none, fingerUp: 100, deltaX: 0)
         #expect(!result7)
+    }
+}
+
+struct StepThrottleTests {
+    @Test func gathersStepsWithinTheInterval() {
+        var throttle = StepThrottle()
+        let start = Date()
+        #expect(throttle.add(1, now: start) == 1)
+        #expect(throttle.add(1, now: start.addingTimeInterval(0.03)) == 0)
+        #expect(throttle.add(1, now: start.addingTimeInterval(0.06)) == 0)
+        #expect(throttle.add(0, now: start.addingTimeInterval(0.12)) == 2)
+    }
+
+    @Test func momentumCountsLessForTheModuleStepper() {
+        var stepper = DayStepper(stepWidth: 80, momentumScale: 0.5)
+        _ = stepper.handle(phase: .began, isMomentum: false, fingerDeltaX: 0, deltaY: 0)
+        #expect(stepper.handle(phase: .none, isMomentum: true, fingerDeltaX: -120, deltaY: 0) == 0)
+        #expect(stepper.handle(phase: .none, isMomentum: true, fingerDeltaX: -40, deltaY: 0) == 1)
+    }
+}
+
+struct GlassAccentTests {
+    @Test func defaultStrengthKeepsTheEarlierShares() {
+        #expect(GlassFill<Rectangle>.accent(blend: true, strength: 0.5).share == 0.35)
+        #expect(GlassFill<Rectangle>.accent(blend: false, strength: 0.5).share == 0.18)
+        #expect(GlassFill<Rectangle>.accent(blend: false, strength: 0.5).wash == 0)
+        #expect(GlassFill<Rectangle>.accent(blend: true, strength: 1).wash > GlassFill<Rectangle>.accent(blend: true, strength: 0.5).wash)
     }
 }

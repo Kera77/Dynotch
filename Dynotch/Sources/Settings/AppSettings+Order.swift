@@ -88,7 +88,9 @@ extension AppSettings {
     func loadModuleOptions() {
         unlistedFeatures = Set((defaults.stringArray(forKey: "unlistedFeatures") ?? []).compactMap(FeatureID.init(rawValue:)))
         showsNowPlaying = defaults.object(forKey: "musicShowsNowPlaying") as? Bool ?? true
-        refinedDesign = defaults.object(forKey: "refinedDesign") as? Bool ?? true
+        // The Original look is gone (spec D-14e).
+        defaults.removeObject(forKey: "refinedDesign")
+        glassAccentStrength = Self.stored(defaults, "glassAccentStrength", default: 0.5, in: Self.glassAccentStrengthRange)
         moduleStripHover = defaults.bool(forKey: "moduleStripHover")
         moduleStripHoverDelay = Self.stored(defaults, "moduleStripHoverDelay", default: 0.5, in: Self.moduleStripHoverDelayRange)
     }

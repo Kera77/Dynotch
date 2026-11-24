@@ -73,6 +73,7 @@
 | M-11 | (v0.44) **A notch melletti gombok** (iPad, egérkövetés, billentyűzetzár, rögzítés, beállítások) sorrendje és láthatósága: *Megjelenés › Buttons beside the notch* húzással és kapcsolókkal, a notchban ⌘-húzással. A beállítások gombja nem rejthető el. |
 | M-12 | (v0.90) **Swipe a felső ikonsoron (M-9 módosítása):** a kinyitott panel felső sorában, a modulikonok fölött a kétujjas vízszintes swipe **modult vált** (nem csak az ikonokat lépteti), a swipe hosszával és lendületével arányosan: rövid húzás egy modul, hosszabb vagy erősebb (lendületes) húzás több modul (kb. egy ikonszélességenként egy). Az ikonsor követi, a kiválasztott ikon mindig látszik. Az utolsó és az első modulnál megáll (S-3). A tartalom fölötti swipe marad egy mozdulat = egy váltás (S-2). |
 | M-13 | (v0.91) **Megállás a végén (M-12 javítása):** ha a felső ikonsoron a swipe (a lendülettel együtt) eléri az első vagy az utolsó modult, ott megáll: az ikonsor egyszer jelzi a véget (kis visszarugózás), a gesztus maradék lendülete nem lép és nem rugózik tovább. Új gesztus újra léptet. |
+| M-14 | (v0.99) **Kevésbé érzékeny, folyamatos modul-swipe (M-12, S-1 módosítása):** a felső ikonsoron ~80 pt ujjmozgás lép egy modult (50 helyett), a lendület fele súllyal számít; a váltás legfeljebb 0,1 mp-enként történik, a közben összegyűlt lépések egyszerre, így nagy swipe-nál sem akad. A panel feletti egyes swipe (S-1) küszöbe 30-ról 45 pt-ra nő. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -622,6 +623,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-5 | (v0.37) A tablet ikon mellől elmaradt a kis lefelé nyíl. Ha a notch bezáródik, a nyitva maradt menü (a tablet menü és a notch többi menüje) is bezáródik, nem marad a képernyőn a következő kattintásig. |
 | TB-6 | (v0.89) **Billentyűzet és egér összekapcsolása az iPaddel (Universal Control, TB-4 kiegészítése):** a tablet menüben *Link keyboard and mouse to* szakasz a közeli iPadekkel. Kattintásra a Dynotch megnyitja a Kijelzők beállítást, Kisegítő hozzáféréssel lenyitja a „+” menüt, és a billentyűzet/egér szakaszban kiválasztja az iPadet (újra kiválasztva leválasztja, mint a macOS-ben); utána bezárja a Rendszerbeállításokat, ha előtte nem futott. Ha a menüpont nem található (pl. más macOS-verzió), a Kijelzők beállítás nyitva marad, és a menü hibaüzenetet ír. Napló: `tablet` (lépések, tartalom nélkül). |
 | TB-7 | (v0.90) **Összekapcsolás a háttérben (TB-6 módosítása):** a *Link keyboard and mouse to* menüpont nem hozza elő a Rendszerbeállításokat: a Dynotch aktiválás nélkül nyitja meg a Kijelzők beállítást, az ablakát rögtön a képernyőn kívülre teszi, a korábbi app marad előtérben, és Kisegítő hozzáféréssel választja ki az iPadet a „+” menüben. Utána bezárja a Rendszerbeállításokat (ha előtte nem futott), különben visszateszi az ablakot a helyére. **Leválasztás ugyanígy:** az összekapcsolt iPad a menüben pipát kap; rákattintva ugyanez a háttérbeli lépés leválasztja. Hiba esetén a menü írja az okát (a Kijelzők beállítás ilyenkor sem jön elő). |
+| TB-8 | (v0.99) **Egyforma gomb, rövidebb menü (TB-2, TB-3 módosítása):** a tablet gomb ugyanúgy néz ki és ugyanúgy reagál hoverre, mint a felső sor többi ikongombja. A menüben csak a *Mirror or extend to* és a *Link keyboard and mouse to* szakasz és a *Display Settings…* marad; a külön *Mirror* szakasz és a csatlakozott iPad *Use as / Disconnect* szakasza megszűnt (lecsatlakozás a pipás iPadre kattintva). |
 
 ## 4s. Claude kérdez (v0.36)
 
@@ -673,6 +675,10 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-17d | (v0.98) **Black to glass accent (D-17 javítása):** a Black to glass design normál, világosabb üvegében a 18% accent nem látszott; itt ~35% kiemelőszín keveredik a tintába, a Liquid glassnál marad a ~18%. |
 | D-18 | **Crisp look (próba):** *Settings › Appearance*: „Crisp look” (alapból be), egy kapcsoló négy változáshoz, a tartalom monokróm marad. (a) Az üveg sötétítése +0,15 (legfeljebb 0,75), mélyebb fekete szürke helyett. (b) Halványabb szürke kitöltések a kártyákon, sorokon, vezérlőkön (16/10/5% helyett 12/6/3,5%). (c) Erősebb szöveg: elsődleges 100% (86% helyett), másodlagos 68% (60% helyett). (d) Átlátszóbb, *clear* Liquid Glass, alatta a háttér teljes erővel elmosva, hogy a tartalom ne mosódjon össze a háttérrel. A kitöltés- és szövegszintek a modul következő megnyitásakor frissülnek. |
 | D-18b | (v0.97) **Black to glass a Crisp lookban (D-18 módosítása):** a Black to glass designnál az üveg nem sötétedik (+0,15) és a normál (nem a tiszta) üveg marad, mert kikapcsolt accentnél (D-17) a sötétített üveg ugyanolyan fekete lett, mint a felső rész, és a fekete–üveg átmenet eltűnt. A Liquid glass designra a D-18 változatlan. |
+| D-17e | (v0.99) **Black to glass accent (D-17d javítása):** a kiemelőszín nem csak a fekete tintába keveredik (a világos üvegben így is elveszett), hanem egy halvány színréteg is az üvegre kerül, így a Black to glass üvegében biztosan látszik. |
+| D-17f | (v0.99) **Accent strength:** *Settings › Appearance* az „Accent colour in the glass” alatt csúszka (10–100%, alapból 50%), csak bekapcsolt accentnél és nem Black designnál aktív. 50%-on a D-17/D-17d/D-17e szerinti erősség, a csúszka ezt arányosan gyengíti vagy erősíti. |
+| D-14e | (v0.99) **Az Original nézet megszűnt (D-14 módosítása):** a *Look* választó kikerült, a Refined (D-14a…d) az egyetlen kinézet; a régi kód és beállítás törölve. |
+| D-15j | (v0.99) **Kerekebb hover (D-15i módosítása):** a gombok hover- és nyomás-kiemelése a vezérlő alakját követi: kis ikongombnál kapszula, nagyobb sornál legfeljebb 10 pt-os ív, nem a szögletesebb 6 pt-os téglalap. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -784,6 +790,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | CB-5 | Képmetszőből (pl. Shottr) másolt kép is elem, kicsinyítve látszik. |
 | CB-6 | A jelszókezelők rejtett/ideiglenes jelölésű másolatai (pl. `org.nspasteboard.ConcealedType`) és a kizárt appok másolatai nem kerülnek be. |
 | CB-7 | Beállítások: a két gyorsbillentyű, a megtartott elemek száma (5–100, alapból 25), kizárt appok. |
+| CB-8 | (v0.99) A **Saved** fülön a sorok húzással **átrendezhetők** (a sor bárhol megfogható, a többi menet közben arrébb csúszik); a sorrend megmarad, és a ⌥⇧V lista is így áll. Keresés közben nincs átrendezés. |
 
 ## 4z. Fájltálca (v0.42)
 
@@ -1094,6 +1101,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-11 | (v0.97) **Látható badge-ikonválasztó:** az App badges sorokban az ikonválasztó keretes gomb: az aktuális ikon és egy kis lefelé mutató nyíl jelzi, hogy kattintható. Kattintásra felugró panel nyílik: *App icon*, az előre megadott ikonok rácsban (a saját jelükkel, a Claude/Beeper/Google Chat/Gmail jelet is beleértve, a kiválasztott kiemelve, a nevük súgóban), alatta *Choose image…*. |
 | SD-12 | (v0.97) **Kapcsoló a sor szélén (SD-10 módosítása):** a Notifications/Chats forrássoraiban a kapcsoló a sor jobb szélén áll; a „saját szabályai vannak” ikon és a szabályok nyila elé kerül, így a kapcsolók egy vonalban vannak a lap többi kapcsolójával. |
 | SD-13 | (v0.97) **Screenshots módsorok (SD-10 módosítása):** a sorrendszám („1×”, „Off”) nem látszik; a sorrend a sorok sorrendje, a kapcsoló a sor jobb szélén áll. |
+| SD-14 | (v0.99) **Átrendezés vége (SD-4 javítása):** a beállítások átrendezhető listáiban a húzott sor elengedés után mindig visszakapja a teljes színét, akkor is, ha két sor közé vagy a listán kívül engedik el, és a húzott kép nem repül vissza. |
 
 ## 5. Nyitott kérdések
 
