@@ -36,10 +36,14 @@ struct GlassFill<S: Shape>: View {
     var accent: NSColor?
     /// Crisp look: the clearer glass over a full blur, tinted deeper (spec D-18).
     var crisp = false
+    /// How much of the accent goes into the tint: more under Black to glass, whose lighter,
+    /// regular glass otherwise hid it (spec D-17d).
+    var accentShare: CGFloat = 0.18
 
-    /// The tint's colour: black, or black with ~18 % of the accent colour.
+    /// The tint's colour: black, or black with a share of the accent colour.
     private var tintColor: Color {
-        guard let accent, let mixed = NSColor.black.blended(withFraction: 0.18, of: accent) else { return .black }
+        guard let accent, let rgb = accent.usingColorSpace(.sRGB),
+              let mixed = NSColor.black.blended(withFraction: accentShare, of: rgb) else { return .black }
         return Color(nsColor: mixed)
     }
 
@@ -171,7 +175,8 @@ struct DesignBackground<S: Shape>: View {
                 let deep = crisp && design != .blend
                 GlassFill(
                     shape: shape, tint: Self.tint(refined ? glassTint : 0.45, crisp: deep),
-                    accent: glassAccent ? systemAccent.color : nil, crisp: deep
+                    accent: glassAccent ? systemAccent.color : nil, crisp: deep,
+                    accentShare: design == .blend ? 0.35 : 0.18
                 )
                     .opacity(glass ? open : 0)
             }

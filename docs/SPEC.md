@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.97 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.98 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -670,6 +670,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-17 | **Accent az üvegben (próba):** *Settings › Appearance*: „Accent colour in the glass” (alapból be). A Liquid glass és a Black to glass design üvegének sötét színezésébe ~18% rendszer-kiemelőszín (*Accent colour*) keveredik, hogy a panel ne legyen semleges szürke; a tartalom monokróm marad. Black designnál nincs hatása. |
 | D-17b | (v0.97) **A macOS kiemelőszíne (D-17 módosítása):** az üvegbe kevert szín a *System Settings › Appearance › Accent colour*-ban beállított szín (piros, narancs, sárga, zöld, kék, lila, rózsaszín, grafit; Többszínű esetén kék), nem az app saját kékje, és átállításkor a notch azonnal követi. Kikapcsolva a Black, Liquid glass és Black to glass a megszokott (fekete tintájú) módon néz ki. |
 | D-17c | (v0.97) **Black designnál** az „Accent colour in the glass” kapcsoló inaktív (szürke) és kikapcsolt állást mutat; a beállított érték megmarad, és a Liquid glass / Black to glass designra visszaváltva újra érvényes. |
+| D-17d | (v0.98) **Black to glass accent (D-17 javítása):** a Black to glass design normál, világosabb üvegében a 18% accent nem látszott; itt ~35% kiemelőszín keveredik a tintába, a Liquid glassnál marad a ~18%. |
 | D-18 | **Crisp look (próba):** *Settings › Appearance*: „Crisp look” (alapból be), egy kapcsoló négy változáshoz, a tartalom monokróm marad. (a) Az üveg sötétítése +0,15 (legfeljebb 0,75), mélyebb fekete szürke helyett. (b) Halványabb szürke kitöltések a kártyákon, sorokon, vezérlőkön (16/10/5% helyett 12/6/3,5%). (c) Erősebb szöveg: elsődleges 100% (86% helyett), másodlagos 68% (60% helyett). (d) Átlátszóbb, *clear* Liquid Glass, alatta a háttér teljes erővel elmosva, hogy a tartalom ne mosódjon össze a háttérrel. A kitöltés- és szövegszintek a modul következő megnyitásakor frissülnek. |
 | D-18b | (v0.97) **Black to glass a Crisp lookban (D-18 módosítása):** a Black to glass designnál az üveg nem sötétedik (+0,15) és a normál (nem a tiszta) üveg marad, mert kikapcsolt accentnél (D-17) a sötétített üveg ugyanolyan fekete lett, mint a felső rész, és a fekete–üveg átmenet eltűnt. A Liquid glass designra a D-18 változatlan. |
 
@@ -1140,6 +1141,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.98.0** | Black to glass designnál is látszik az accent az üvegben (D-17d) |
 | **v0.97.0** | Badge-ikonválasztó látható nyíllal és panellel, hozzáadás választott ikonnal; kapcsolók a sor szélén (Notifications, Screenshots); az üvegben a macOS kiemelőszíne, Blacknél inaktív kapcsoló; Black to glass átmenet a Crisp lookban; Batteries és AI Usage mindig fül (B-13, SD-11…SD-13, D-17b, D-17c, D-18b, MG-9) |
 | **v0.96.0** | Egy oszlopban álló kapcsolók a beállításokban (SD-10); próbaként accent az üvegben (D-17) és Crisp look: mélyebb, tisztább üveg erős elmosással, halványabb kitöltések, erősebb szöveg (D-18) |
 | **v0.95.0** | Modulváltó saját, átrendezhető modullistával, mindig egy sorban, a legutóbbi modulon indul (QS-10…QS-12); egységes beállítások: lenyíló listák saját keresővel, egyforma appsorok, App badges és Modules űrlapként, új Chats oldal, Access-sorok, egységes csúszkák (SD-1…SD-9) |

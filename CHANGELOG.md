@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.98.0] - 2026-11-24
+
+### Fixed
+
+- *Black to glass*: the accent colour now shows in the glass (D-17d).
+
 ## [0.97.0] - 2026-11-24
 
 ### Added
