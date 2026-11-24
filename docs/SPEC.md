@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.108 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.109 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -54,6 +54,7 @@
 | N-23 | (v0.59) Ha egy ikon (jobb oldali jelző vagy bal oldali badge) lenyílója nyitva van, a mellette lévő ikonon **áthaladó** egér nem cseréli le: a másik ikon csak akkor veszi át, ha az egér **0,3 mp-ig** rajta marad. |
 | N-24 | (v0.90) **Késleltetett nyitás oldalról érkezve:** ha az egér a becsukott notch melletti sorban egy jelvényen, jelzőn vagy számlálón (vagy annak lenyílóján) állt, és onnan közvetlenül (0,4 mp-en belül) a notchra ér, a notch **nem nyílik ki azonnal**: csak ha az egér 0,6 mp-ig a notchon marad. Így a notchon átvágva el lehet érni a túloldali lenyílót. Máshonnan érkezve a nyitás azonnali marad (N-2). |
 | N-25 | (v0.107) **Billentyűzet a csúszás után:** gépelős modulról (AI, Jegyzetek, Terminál, Számológép…) nem gépelős modulra váltáskor a billentyűzet visszaadása az előző appnak a váltás csúszó animációja **után** történik (~0,28 mp), így nem akasztja meg a csúszást. Ha közben gépelős modulra lépsz vissza, a billentyűzet a panelen marad; ha a notch bezárul, a billentyűzet visszakerül. |
+| N-26 | **A felső sor sosem csúszik ki (általános javítás, SZ-17/SZ-18 kiterjesztése minden modulra):** a nyitott notch felső sora (modul-ikonok, gombok) **minden** modulnál a helyén marad: (1) egy modul tartalma legfeljebb a neki jutó magasságot kapja, ami nem fér el, azt a modul vágja vagy görgeti, és nem tolja feljebb a felső sort; (2) a notch tartalmát semmilyen „tedd láthatóvá” görgetés (fókusz, kijelölés, gépelés) nem mozdítja el. Ha mégis elmozdulna, a notch visszateszi a helyére, és a napló (`notch-layout.log`) megírja. |
 
 > Javaslat (nem kötelező): *Nyitási késleltetés* beállítás (alapból 0 s), ha a véletlen nyitások zavarnak, például amikor a menüsor közepére mész az egérrel.
 
@@ -79,6 +80,9 @@
 | M-16 | (v0.101) **Nincs zöld plusz húzáskor:** a beállítások sorainak húzásakor (Modules, és minden átrendezhető lista) a mutató mellett nem jelenik meg a másolást jelző zöld „+”, a sorok között és a listán kívül sem (ott is áthelyezésként fogadja). |
 | M-17 | (v0.107) **Egyesével léptető swipe (M-14 módosítása):** a felső ikonsoron a swipe a modulokat **mindig egyesével** lépteti, sosem ugrik egyszerre többet. Egy erősebb pöccintés gyorsabb tempót ad: egy várakozó lépésnél 0,15 mp, sok várakozó lépésnél 0,06 mp telik el két lépés között. Egy gesztus legfeljebb 5 lépést gyűjthet, így egy pöccintés nem visz el a sor végéig. Visszafordított mozdulatnál a még várakozó lépések elvesznek. A végén megáll (M-13). |
 | M-18 | (v0.108) **Bármely modul elrejthető a modulok közül (a MU-8 általánosítása):** a *Settings › Modules* minden moduljának › opcióiban **Among the modules** kapcsoló (alapból be). Kikapcsolva a modul nem látszik a felső ikonsorban, a modulsávban, a húzásos és ⌘-számos váltásban, de **fut**: értesítései, jelzői, menüsor-ikonja (*Menu bar icon*) működnek, és a **gyorsbillentyűjével** vagy a **swipe-up sorból** (QS-10) megnyitható; ilyenkor a felső sorban a többi után jelenik meg. A rejtett modul sorában a név mellett áthúzott szem ikon jelzi. Legalább egy modulnak a listában kell maradnia. Nyitáskor, ha a legutóbb nyitott modul rejtett, a notch az **első listázott** modulon nyílik. A Music korábbi *Among the modules* kapcsolója ebbe olvad; a *Cover beside the notch* marad. |
+| M-19 | **Rejtett modul jele a kapcsoló előtt (M-18 módosítása):** a *Settings › Modules* listában a rejtett modul áthúzott szem ikonja a sor kapcsolója **bal oldalán** áll, így a kapcsolók minden sorban egy oszlopban vannak. A › lenyitott opciói között nagyobb a sorköz. |
+| M-20 | **Swipe pillanatképekkel (N-16 módosítása):** a felső ikonsoron swipe-olva a notch nem építi fel azokat a modulokat, amelyeken csak átlép: az elhagyott modulról egy pillanatkép (a legutóbbi kinézete) készül, és átlépéskor ez csúszik át; amelyikről még nincs kép, annál az ikonja és neve. A valódi modul csak ott épül fel, ahol a swipe megáll (~0,2 mp nyugalom után), rövid áttűnéssel. A swipe kezdetén nyitott modul és két szomszédja közben felépítve marad. Kattintásos vagy gyorsbillentyűs váltásnál a modul azonnal épül, mint eddig. |
+| M-21 | **Húzás és pöccintés külön (M-12, M-14, M-17 módosítása):** a felső ikonsoron, amíg az ujjak a trackpaden vannak, a swipe csak a **megtett út** szerint léptet (~80 pt egy modul, egyesével, a végén megáll, M-13); a lendület (az elengedés utáni kifutás) nem léptet. Ha elengedéskor az ujjak gyorsan mozognak (az utolsó 0,1 mp-ben legalább ~800 pt/mp, vízszintesen), a notch a mozdulat irányában a **sor végére** ugrik (első vagy utolsó modul), egy csúszással és egy haptikával. Lassan elengedve ott marad, ahol a húzás tartott. A panel tartalma fölötti swipe (S-1) nem változik. |
 
 ### 1.3 Váltás két ujjas swipe-pal
 
@@ -848,6 +852,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | FT-13 | (v0.43) Fájlt a notch fölé húzva két lekerekített szekció: bal **1/3 AirDrop** (az AirDrop ikonjával), jobb **2/3 Keep in Tray**; mindkettő közepén ikon. A húzást az egérgomb lenyomása alatt figyeli, mert a rendszer-húzások nem adnak egéreseményt. Ha a hover a húzás felismerése előtt már lenyitotta a notchot, a drop zone akkor is megjelenik (kivéve a tálca modulon, ami maga fogadja a fájlokat). (v0.48) Sorrend: bal **2/3 Keep in Tray**, jobb **1/3 AirDrop**. |
 | FT-14 | (v0.45) A tálca beállításai **saját *Tray* fülre** kerültek (eddig a Clipboard fülön voltak): lejárat (FT-6) és **Show in Finder** gomb, ami megnyitja a Dynotch tálcamappáját. |
 | FT-15 | (v0.104) **Letöltések a tálcába:** a **Letöltések** mappában elkészült fájl (PV-57 szerint felismerve) automatikusan a Tray tetejére kerül (hivatkozásként, a fájl a Letöltésekben marad). *Settings › Tray*: **Keep downloads in the tray** kapcsoló (alap: be) és külön lejárat a letöltésekre: **Downloads leave the tray** (Never, 1, 3, 7, 14, 30 nap; alap: **3 nap**); a kézzel betett fájlokra továbbra is FT-6 érvényes. Lejáratkor csak a tálcából kerül ki, a fájl nem törlődik. A lejáratot a futó app óránként is ellenőrzi. Ha a Tray modul ki van kapcsolva, nem tesz semmit. |
+| FT-16 | **Akadásmentes Tray (javítás):** a Tray fülének fájllistája (tálca, csatolt mappa, Screenshots) a háttérben olvasódik be, és csak akkor frissül, ha a fül, a tálca tartalma vagy a figyelt mappa változik, nem minden újrarajzoláskor; a tálca fájljainak helye (könyvjelzője) egyszer oldódik fel, a fájlikonok gyorsítótárból jönnek. Így a modulra váltás és a sok letöltés sem lassítja a notch-ot. |
 
 ## 4zz. Google Chat a notchban, API nélkül (v0.42)
 
@@ -1194,6 +1199,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.109.0** | Akadásmentes Tray, a felső sor sosem csúszik ki, swipe pillanatképekkel (az átlépett modulok nem épülnek fel), húzás út szerint és pöccintés a sor végére, rejtett modul szeme a kapcsoló előtt (FT-16, N-26, M-20, M-21, M-19) |
 | **v0.108.0** | Bármely modul elrejthető a modulok közül: fut tovább, gyorsbillentyűvel és a swipe-up sorból nyílik (M-18) |
 | **v0.107.0** | Google Chat válasz gyorsabban és vissza a Kezdőlapra, egyesével léptető swipe az ikonsoron és a napsoron, akadásmentes váltás az AI modulról, a Calculator felső sora a helyén, a modulválasztó a legutóbbin indul, haptikával (GW-30, GW-31, M-17, K-17, AI-18, N-25, SZ-18, QS-16, QS-17) |
 | **v0.106.0** | A meeting Join gombja a notch melletti kinyíló rész elején (PV-74) |

@@ -23,12 +23,22 @@ struct TrayFolder: Codable, Identifiable, Equatable, Sendable {
 /// The file tray: dropped files and attached folders (spec FT-1…FT-7).
 @MainActor
 final class TrayStore: ObservableObject {
-    @Published private(set) var items: [TrayItem] = []
+    @Published private(set) var items: [TrayItem] = [] {
+        didSet { refreshShownFiles() }
+    }
+    /// The picked tab's files, read off the main thread and only when something changed (spec FT-16).
+    @Published private(set) var shownFiles: [URL] = []
+    /// The tray item behind each shown file of the tray tab.
+    private(set) var trayItemByURL: [URL: TrayItem] = [:]
+    /// Each item's place, resolved from its bookmark once (spec FT-16).
+    private var resolvedURLs: [UUID: URL] = [:]
+    private var listing: Task<Void, Never>?
     @Published private(set) var folders: [TrayFolder] = []
     /// nil: the tray itself; otherwise an attached folder, whose changes are followed (spec FT-9).
     @Published var selectedFolder: UUID? {
         didSet {
             watchSelectedFolder()
+            refreshShownFiles()
             // The tab stays picked across restarts (spec MG-10).
             defaults.set(selectedFolder?.uuidString, forKey: "traySelectedFolder")
         }
@@ -37,7 +47,9 @@ final class TrayStore: ObservableObject {
     /// The built-in Screenshots tab: the newest shots of ~/Pictures/Screenshots (spec SH-11).
     static let screenshotsID = UUID(uuidString: "5C2E5C2E-0000-4000-8000-000000000001") ?? UUID()
     /// Whether the screenshot tool is on, so its tab shows.
-    @Published var showsScreenshots = true
+    @Published var showsScreenshots = true {
+        didSet { if showsScreenshots != oldValue { refreshShownFiles() } }
+    }
     /// The pointer is over the tabs: a swipe there steps between them (spec FT-4d).
     var isOverTabs = false
     /// Days after which a file leaves the tray; 0: never (spec FT-6).
@@ -111,6 +123,7 @@ final class TrayStore: ObservableObject {
             selectedFolder = saved
             watchSelectedFolder()
         }
+        refreshShownFiles()
         // Files also leave while the app keeps running for days (spec FT-15).
         expiryCheck = Task { [weak self] in
             while !Task.isCancelled {
@@ -158,9 +171,12 @@ final class TrayStore: ObservableObject {
 
     /// The file now; nil if it is gone.
     func resolve(_ item: TrayItem) -> URL? {
+        // The bookmark follows a moved file: only a gone file resolves again (spec FT-16).
+        if let known = resolvedURLs[item.id], FileManager.default.fileExists(atPath: known.path) { return known }
         var stale = false
         let url = try? URL(resolvingBookmarkData: item.bookmark, options: [.withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
         guard let url, FileManager.default.fileExists(atPath: url.path) else { return nil }
+        resolvedURLs[item.id] = url
         return url
     }
 
@@ -244,19 +260,6 @@ final class TrayStore: ObservableObject {
         return try? URL(resolvingBookmarkData: folder.bookmark, options: [.withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
     }
 
-    /// The folder's files, newest first, without hidden ones.
-    func contents(of folder: TrayFolder) -> [URL] {
-        guard let url = url(of: folder) else { return [] }
-        let keys: [URLResourceKey] = [.contentModificationDateKey]
-        let found = (try? FileManager.default.contentsOfDirectory(
-            at: url, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]
-        )) ?? []
-        func date(_ url: URL) -> Date {
-            (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-        }
-        return Array(found.sorted { date($0) > date($1) }.prefix(300))
-    }
-
     /// Files dropped on an attached folder: copied, or moved with Option (spec FT-5).
     func put(_ urls: [URL], into folder: TrayFolder, move: Bool) {
         guard let target = url(of: folder) else { return }
@@ -268,13 +271,13 @@ final class TrayStore: ObservableObject {
                 try? FileManager.default.copyItem(at: url, to: destination)
             }
         }
-        objectWillChange.send()
+        refreshShownFiles()
     }
 
     private func watchSelectedFolder() {
         let folder = folders.first { $0.id == selectedFolder }
         let watched = selectedFolder == Self.screenshotsID ? ScreenshotFiles.folder : folder.flatMap(url(of:))
-        watcher.watch(watched) { [weak self] in self?.objectWillChange.send() }
+        watcher.watch(watched) { [weak self] in self?.refreshShownFiles() }
     }
 
     /// Swiping steps between the tray and the folders (spec FT-4); false at either end.
@@ -306,5 +309,49 @@ final class TrayStore: ObservableObject {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         guard let data = try? JSONEncoder().encode(Saved(items: items, folders: folders)) else { return }
         try? data.write(to: file, options: .atomic)
+    }
+}
+
+// MARK: - The shown files (spec FT-16)
+
+extension TrayStore {
+    /// The folder's files, newest first, without hidden ones.
+    func contents(of folder: TrayFolder) -> [URL] {
+        url(of: folder).map(Self.newestFiles(in:)) ?? []
+    }
+
+    /// A folder's files, newest first, at most 300; each date is read once.
+    nonisolated static func newestFiles(in url: URL) -> [URL] {
+        let keys: [URLResourceKey] = [.contentModificationDateKey]
+        let found = (try? FileManager.default.contentsOfDirectory(
+            at: url, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]
+        )) ?? []
+        let dated = found.map { file in
+            (file, (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast)
+        }
+        return Array(dated.sorted { $0.1 > $1.1 }.prefix(300).map(\.0))
+    }
+
+    /// Reads the picked tab's files again: the tray's at once, a folder's in the background (spec FT-16).
+    func refreshShownFiles() {
+        listing?.cancel()
+        let tab = selectedFolder
+        if tab == nil {
+            let files = trayFiles
+            trayItemByURL = Dictionary(files.map { ($0.url, $0.item) }, uniquingKeysWith: { first, _ in first })
+            shownFiles = files.map(\.url)
+            return
+        }
+        trayItemByURL = [:]
+        let isShots = tab == Self.screenshotsID
+        let folder = isShots ? nil : folders.first { $0.id == tab }.flatMap(url(of:))
+        listing = Task { [weak self] in
+            let found = await Task.detached(priority: .userInitiated) {
+                // The ten newest shots and recordings (spec SH-11).
+                folder.map(TrayStore.newestFiles(in:)) ?? (isShots ? ScreenshotFiles.recent(10) : [])
+            }.value
+            guard !Task.isCancelled, let self, self.selectedFolder == tab else { return }
+            if self.shownFiles != found { self.shownFiles = found }
+        }
     }
 }

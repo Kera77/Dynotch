@@ -277,8 +277,9 @@ struct NotchView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)
             } else {
+                // Never taller than its room, so it cannot push the top row up (spec N-26).
                 featureContent
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .offset(x: model.bounceOffset)
                     .transition(.opacity)
                 if model.isClipboardInline {
@@ -289,37 +290,6 @@ struct NotchView: View {
                 }
             }
         }
-    }
-
-    // MARK: - Content
-
-    /// All features sit side by side and the row slides (spec S-5): switching to the next feature
-    /// moves the current one out to the left while the new one comes in from the right, and
-    /// the other way round.
-    private var featureContent: some View {
-        // A module left out of the list (e.g. Music opened from its cover) comes after the others (spec MU-8).
-        let listed = settings.listedFeatures
-        let features = Self.pages(listed: listed, current: model.currentFeature, host: settings.hostFeature(of: model.currentFeature))
-        let index = features.firstIndex(of: model.currentFeature) ?? 0
-        let pageWidth = model.openSize.width
-        return HStack(spacing: 0) {
-            ForEach(Array(features.enumerated()), id: \.element) { position, feature in
-                // Only the module shown and its neighbours (for the swipe) are built (spec N-16).
-                if abs(position - index) <= 1 {
-                    page(for: feature)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 12)
-                        .frame(width: pageWidth)
-                        .frame(maxHeight: .infinity)
-                        .allowsHitTesting(feature == model.currentFeature)
-                } else {
-                    Color.clear.frame(width: pageWidth)
-                }
-            }
-        }
-        .frame(width: pageWidth, alignment: .leading)
-        .offset(x: -CGFloat(index) * pageWidth)
-        .clipped()
     }
 }
 

@@ -132,3 +132,43 @@ extension NotchView {
         .frame(width: max(width, peekSize.width), height: peekSize.height)
     }
 }
+
+extension NotchView {
+    /// All features sit side by side and the row slides (spec S-5): switching to the next feature
+    /// moves the current one out to the left while the new one comes in from the right, and
+    /// the other way round.
+    var featureContent: some View {
+        // A module left out of the list (e.g. Music opened from its cover) comes after the others (spec MU-8).
+        let listed = settings.listedFeatures
+        let features = Self.pages(listed: listed, current: model.currentFeature, host: settings.hostFeature(of: model.currentFeature))
+        let index = features.firstIndex(of: model.currentFeature) ?? 0
+        // While a swipe passes, the pages stay built around where it started (spec M-20).
+        let center = model.liveCenter.flatMap { features.firstIndex(of: $0) } ?? index
+        let pageWidth = model.openSize.width
+        return HStack(spacing: 0) {
+            ForEach(Array(features.enumerated()), id: \.element) { position, feature in
+                // Only the module shown and its neighbours (for the swipe) are built (spec N-16).
+                if abs(position - center) <= 1 {
+                    page(for: feature)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
+                        .frame(width: pageWidth)
+                        // A module taller than its room is cut here, the top row stays (spec N-26).
+                        .frame(minHeight: 0, maxHeight: .infinity)
+                        .allowsHitTesting(feature == model.currentFeature)
+                } else if model.liveCenter != nil {
+                    // Passed over by a swipe: its last look, not the module itself (spec M-20).
+                    PassingPage(feature: feature, snapshot: model.passing.snapshots[feature])
+                        .frame(width: pageWidth)
+                        .frame(minHeight: 0, maxHeight: .infinity)
+                        .allowsHitTesting(false)
+                } else {
+                    Color.clear.frame(width: pageWidth)
+                }
+            }
+        }
+        .frame(width: pageWidth, alignment: .leading)
+        .offset(x: -CGFloat(index) * pageWidth)
+        .clipped()
+    }
+}

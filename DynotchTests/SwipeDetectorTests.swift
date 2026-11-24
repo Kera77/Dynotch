@@ -100,6 +100,39 @@ struct StepQueueTests {
     }
 }
 
+struct FlickTrackerTests {
+    @Test func aFastReleaseIsAFlickTowardsTheEnd() {
+        var tracker = FlickTracker()
+        tracker.add(fingerDeltaX: -40, deltaY: 0, at: 1.00)
+        tracker.add(fingerDeltaX: -50, deltaY: 2, at: 1.04)
+        tracker.add(fingerDeltaX: -45, deltaY: 0, at: 1.08)
+        #expect(tracker.flick(at: 1.09) == 1)
+    }
+
+    @Test func fingersMovingRightFlickTowardsTheStart() {
+        var tracker = FlickTracker()
+        tracker.add(fingerDeltaX: 60, deltaY: 0, at: 2.00)
+        tracker.add(fingerDeltaX: 60, deltaY: 0, at: 2.05)
+        #expect(tracker.flick(at: 2.06) == -1)
+    }
+
+    @Test func aSlowDragOrAPauseBeforeLettingGoIsNoFlick() {
+        var slow = FlickTracker()
+        slow.add(fingerDeltaX: -10, deltaY: 0, at: 1.00)
+        slow.add(fingerDeltaX: -10, deltaY: 0, at: 1.05)
+        #expect(slow.flick(at: 1.06) == nil)
+        var paused = FlickTracker()
+        paused.add(fingerDeltaX: -100, deltaY: 0, at: 1.00)
+        #expect(paused.flick(at: 1.30) == nil)
+    }
+
+    @Test func aMostlyVerticalMoveIsNoFlick() {
+        var tracker = FlickTracker()
+        tracker.add(fingerDeltaX: -90, deltaY: 120, at: 1.00)
+        #expect(tracker.flick(at: 1.01) == nil)
+    }
+}
+
 struct GlassAccentTests {
     @Test func defaultStrengthKeepsTheEarlierShares() {
         #expect(GlassFill<Rectangle>.accent(blend: true, strength: 0.5).share == 0.35)

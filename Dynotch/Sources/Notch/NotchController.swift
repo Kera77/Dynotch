@@ -66,9 +66,9 @@ final class NotchController {
     /// One swipe over the panel switches one module, after 45 pt (spec S-1, M-14).
     var swipe = SwipeDetector(threshold: 45)
     var dayStepper = DayStepper()
-    /// Over the icons ~80 pt a module, momentum counting half; steps go one by one (spec M-12, M-14, M-17, K-17).
+    /// Over the icons ~80 pt of finger movement a module, one by one; momentum only on the day strip (spec M-12, M-17, M-21, K-17).
     var switcherStepper = DayStepper(stepWidth: 80, momentumScale: 0.5)
-    var switcherQueue = StepQueue(maxPending: 5), dayQueue = StepQueue(maxPending: 7), stepTimer: Timer?
+    var switcherQueue = StepQueue(maxPending: 5), dayQueue = StepQueue(maxPending: 7), stepTimer: Timer?, switcherFlick = FlickTracker()
     /// The swipe over the feature icons reached an end: the rest of it is ignored (spec M-13).
     var switcherReachedEnd = false
     /// A swipe over the tasks counter's list picker (spec R-19).
@@ -149,6 +149,7 @@ final class NotchController {
         hosting.frame = NSRect(origin: .zero, size: windowRect.size)
         hosting.autoresizingMask = [.width, .height]
         panel.contentView = hosting
+        model.passing.capture = { [weak self, weak hosting] in hosting.flatMap { self?.snapshotPage(in: $0) } }
     }
 
     // MARK: - Layout

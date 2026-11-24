@@ -44,11 +44,8 @@ struct TrayFeatureView: View {
 
     private var isScreenshots: Bool { store.selectedFolder == TrayStore.screenshotsID }
 
-    private var files: [URL] {
-        // The ten newest shots and recordings (spec SH-11).
-        if isScreenshots { return ScreenshotFiles.recent(10) }
-        return selected.map(store.contents(of:)) ?? store.trayFiles.map(\.url)
-    }
+    /// Read in the background by the store, not on every redraw (spec FT-16).
+    private var files: [URL] { store.shownFiles }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -62,6 +59,8 @@ struct TrayFeatureView: View {
         .padding(.horizontal, 16)
         .padding(.top, 6)
         .padding(.bottom, 10)
+        // Files deleted or added outside Dynotch since the last look (spec FT-16).
+        .onAppear { store.refreshShownFiles() }
     }
 
     private var chips: some View {
@@ -132,7 +131,7 @@ struct TrayFeatureView: View {
     }
 
     private func cell(_ url: URL) -> some View {
-        let trayItem = selected == nil ? store.trayFiles.first(where: { $0.url == url })?.item : nil
+        let trayItem = selected == nil ? store.trayItemByURL[url] : nil
         // Out of the tray a file moves; out of an attached folder it is copied (spec FT-12b).
         return TrayFileCell(
             url: url, isChosen: chosen == url, isRow: store.showsList, gridWidth: gridWidth, move: trayItem != nil,
@@ -157,8 +156,8 @@ struct TrayFeatureView: View {
             Button("Quick Look") { TrayQuickLook.shared.toggle(url) }
             Button("Open") { NSWorkspace.shared.open(url) }
             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-            if selected == nil, let item = store.trayFiles.first(where: { $0.url == url })?.item {
-                Button("Remove from Tray") { store.remove(item) }
+            if let trayItem {
+                Button("Remove from Tray") { store.remove(trayItem) }
             }
         }
     }
@@ -326,7 +325,7 @@ struct TrayFileCell: View {
     }
 
     @ViewBuilder private var content: some View {
-        let icon = Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().scaledToFit()
+        let icon = Image(nsImage: TrayIcons.icon(for: url)).resizable().scaledToFit()
         if isRow {
             HStack(spacing: 8) {
                 icon.frame(width: 20, height: 20)
@@ -351,5 +350,19 @@ struct TrayFileCell: View {
                     .frame(width: 90)
             }
         }
+    }
+}
+
+/// File icons asked from the Finder once per file, not on every redraw (spec FT-16).
+@MainActor
+enum TrayIcons {
+    private static var cache: [String: NSImage] = [:]
+
+    static func icon(for url: URL) -> NSImage {
+        if let known = cache[url.path] { return known }
+        if cache.count > 500 { cache.removeAll() }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        cache[url.path] = icon
+        return icon
     }
 }

@@ -170,3 +170,39 @@ struct StepQueue {
         return step
     }
 }
+
+/// Tells a flick from a drag when the fingers lift: how fast they moved sideways in the last
+/// moment before letting go (spec M-21).
+struct FlickTracker {
+    /// The fingers' speed at release that counts as a flick, in points per second.
+    var threshold: CGFloat = 800
+    /// The time before release the speed is measured over.
+    var window: TimeInterval = 0.1
+
+    private struct Sample {
+        let time: TimeInterval
+        let deltaX: CGFloat
+        let deltaY: CGFloat
+    }
+
+    private var samples: [Sample] = []
+
+    mutating func reset() {
+        samples = []
+    }
+
+    mutating func add(fingerDeltaX: CGFloat, deltaY: CGFloat, at time: TimeInterval) {
+        samples.append(Sample(time: time, deltaX: fingerDeltaX, deltaY: deltaY))
+        samples.removeAll { $0.time < time - window }
+    }
+
+    /// +1 (towards the end; fingers moving left) or -1 (towards the start) for a flick released
+    /// at `time`, nil for a slow release.
+    func flick(at time: TimeInterval) -> Int? {
+        let recent = samples.filter { $0.time >= time - window }
+        let deltaX = recent.reduce(0) { $0 + $1.deltaX }
+        let deltaY = recent.reduce(0) { $0 + abs($1.deltaY) }
+        guard abs(deltaX) / CGFloat(window) >= threshold, abs(deltaX) > deltaY else { return nil }
+        return deltaX < 0 ? 1 : -1
+    }
+}

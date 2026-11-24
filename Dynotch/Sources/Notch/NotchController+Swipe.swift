@@ -66,16 +66,24 @@ extension NotchController {
 
     private func scrollSwitcher(_ event: NSEvent) -> Bool {
         let phase = Self.phase(of: event)
-        let isMomentum = !event.momentumPhase.isEmpty
+        // Only the fingers on the trackpad step; the run-out after letting go does not (spec M-21).
+        guard event.momentumPhase.isEmpty else { return true }
         if phase == .began {
             switcherReachedEnd = false
             switcherQueue.reset()
+            switcherFlick.reset()
         }
         let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
+        switcherFlick.add(fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY, at: event.timestamp)
+        // Let go while moving fast: to the end of the row that way (spec M-21).
+        if phase == .ended {
+            if !switcherReachedEnd, let direction = switcherFlick.flick(at: event.timestamp) { jumpToEnd(direction) }
+            return true
+        }
         let steps = switcherStepper.handle(
-            phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
+            phase: phase, isMomentum: false, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY
         )
-        // At an end the rest of the gesture and its momentum stop there: one bounce, no more (spec M-13).
+        // At an end the rest of the gesture stops there: one bounce, no more (spec M-13).
         guard !switcherReachedEnd else { return true }
         // One module at a time, faster while more are waiting (spec M-17).
         switcherQueue.add(steps)
@@ -103,12 +111,22 @@ extension NotchController {
         guard step != 0 else { return }
         guard model.isExpanded, !model.isShowingSettings else { return switcherQueue.reset() }
         let before = model.currentFeature
-        withAnimation(Self.animation) { model.step(by: step) }
+        // The modules passed over are not built, only the one the swipe stops on (spec M-20).
+        withAnimation(Self.animation) { model.pass(by: step) }
         if model.currentFeature != before { Haptics.perform(.featureSwitch, settings: settings) }
         if model.isAtEnd(step > 0 ? .next : .previous) {
             switcherReachedEnd = true
             switcherQueue.reset()
         }
+    }
+
+    /// A flick: straight to the first or the last module, in one slide (spec M-21).
+    private func jumpToEnd(_ direction: Int) {
+        switcherQueue.reset()
+        switcherReachedEnd = true
+        guard model.isExpanded, !model.isShowingSettings, !model.isAtEnd(direction > 0 ? .next : .previous) else { return }
+        withAnimation(Self.animation) { model.pass(by: direction * settings.listedFeatures.count) }
+        Haptics.perform(.featureSwitch, settings: settings)
     }
 
     /// Where a trackpad gesture is.

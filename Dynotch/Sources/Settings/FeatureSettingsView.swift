@@ -75,16 +75,20 @@ private struct FeatureRow<Music: View>: View {
             HStack(spacing: 8) {
                 DragHandle()
                 Toggle(isOn: Binding(get: { isOn }, set: { settings.setEnabled(feature, $0) })) {
-                    SettingsRowLabel(title: feature.title, detail: shortcuts.shortcuts[feature]?.display) {
-                        Image(systemName: feature.symbolName).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        SettingsRowLabel(title: feature.title, detail: shortcuts.shortcuts[feature]?.display) {
+                            Image(systemName: feature.symbolName).foregroundStyle(.secondary)
+                        }
+                        // Left of the switch, so the switches stay in one column (spec M-19).
+                        if !settings.isListed(feature) {
+                            Spacer(minLength: 0)
+                            Image(systemName: "eye.slash")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .help("Not among the modules: opens with its shortcut or the swipe-up row")
+                                .accessibilityLabel("Hidden from the modules")
+                        }
                     }
-                }
-                if !settings.isListed(feature) {
-                    Image(systemName: "eye.slash")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .help("Not among the modules: opens with its shortcut or the swipe-up row")
-                        .accessibilityLabel("Hidden from the modules")
                 }
                 Button {
                     withAnimation(Motion.quick) { isOpen.toggle() }
@@ -105,7 +109,8 @@ private struct FeatureRow<Music: View>: View {
     }
 
     private var options: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        // A little more room between the option rows (spec M-19).
+        VStack(alignment: .leading, spacing: 10) {
             LabeledContent("Shortcut") {
                 ShortcutRecorder(shortcut: shortcuts.shortcuts[feature]) { shortcuts.set($0, for: feature) }
             }

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.109.0] - 2026-11-24
+
+### Changed
+
+- Swiping over the module icons no longer builds every module it passes: their last look slides past, and only the module the swipe stops on is built (M-20).
+- Swiping over the module icons: with the fingers on the trackpad it steps by the distance moved, the run-out after letting go no longer steps; letting go with a fast flick jumps to the first or last module (M-21).
+- Settings › Modules: a hidden module's eye sits left of its switch, so the switches line up; the opened options have a little more room between rows (M-19).
+
+### Fixed
+
+- The Tray no longer stutters: its file list is read in the background and only when something changed, file places and icons are kept instead of being looked up on every redraw (FT-16).
+- The notch's top row can no longer slide out of view in any module: a module taller than its room is cut instead of pushing the row up, and no "scroll into view" can move the notch content; a shift that still happens is undone and logged in notch-layout.log (N-26).
+
 ## [0.108.0] - 2026-11-24
 
 ### Added

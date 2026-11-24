@@ -42,6 +42,17 @@ final class NotchPanel: NSPanel {
 }
 
 /// Lets buttons react to the first click even though the panel never becomes key.
+/// Its content never slides: no "make this visible" scroll moves it, and a shift is undone and
+/// logged, so the notch's top row always stays in view (spec N-26).
 final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func scrollToVisible(_ rect: NSRect) -> Bool { false }
+
+    override func setBoundsOrigin(_ newOrigin: NSPoint) {
+        if newOrigin != .zero {
+            DiagnosticsLog.append("notch-layout", "content shift undone: \(newOrigin)")
+        }
+        super.setBoundsOrigin(.zero)
+    }
 }

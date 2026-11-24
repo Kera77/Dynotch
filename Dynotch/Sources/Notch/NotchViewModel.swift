@@ -107,6 +107,11 @@ final class NotchViewModel: ObservableObject {
         return last
     }
 
+    /// A swipe over the icons is passing through the modules: the pages around this one stay
+    /// built, the others show their snapshots until it settles (spec M-20). nil: pages follow the current module.
+    @Published var liveCenter: FeatureID?
+    let passing = PagePassing()
+
     /// Horizontal nudge used for the "end of list" bounce (spec S-3).
     @Published private(set) var bounceOffset: CGFloat = 0
 
@@ -326,28 +331,23 @@ final class NotchViewModel: ObservableObject {
             updateLarge()
             return
         }
+        leavePage()
         currentFeature = feature
         if remember { settings.lastFeature = feature }
         updateLarge()
     }
 
     /// Moves `steps` modules at once, stopping at either end (spec S-1, M-12); the icon stays in view.
-    func step(by steps: Int) {
+    func step(by steps: Int, passing isPassing: Bool = false) {
         let features = settings.listedFeatures
         guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
         let target = min(max(index + steps, 0), features.count - 1)
         guard target != index else { return bounce(steps > 0 ? .next : .previous) }
+        leavePage(passing: isPassing)
         currentFeature = lastTab(of: features[target])
         settings.lastFeature = currentFeature
         updateLarge()
         revealCurrentFeature()
-    }
-
-    /// How many feature icons fit left of the notch in the open panel.
-    var switcherVisibleCount: Int {
-        // The row's left side, less its margins (14 at the edge, 8 before the notch).
-        let room = (openSize.width - geometry.notchSize.width) / 2 - 22
-        return FeatureSwitcher.visibleCount(for: room)
     }
 
     /// The current feature's icon is in view.
