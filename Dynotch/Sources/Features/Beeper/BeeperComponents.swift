@@ -95,7 +95,7 @@ struct BeeperAvatar: View {
     let network: String?
     var size: CGFloat = 36
     /// Redraws when a network's icon arrives.
-    private var networkIcons = NetworkIcons.shared
+    private let networkIcons = NetworkIcons.shared
 
     private var initials: String { Self.initials(of: name) }
 

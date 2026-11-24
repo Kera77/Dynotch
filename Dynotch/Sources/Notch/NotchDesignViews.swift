@@ -133,7 +133,7 @@ struct DesignBackground<S: Shape>: View {
     /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
     @AppStorage(AppleStyle.crispKey) private var crisp = true
     /// The accent colour set in macOS, followed live (spec D-17b).
-    private var systemAccent = SystemAccent.shared
+    private let systemAccent = SystemAccent.shared
 
     /// Refined black to glass: black over the top row, then an eased fade over 80 pt (spec D-14d).
     static func refinedBlendStops(height: CGFloat, topRow: CGFloat) -> [Gradient.Stop] {

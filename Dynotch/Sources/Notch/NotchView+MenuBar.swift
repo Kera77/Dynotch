@@ -68,7 +68,7 @@ struct TrailingControls: View {
     let togglePin: () -> Void
     let toggleSettings: () -> Void
 
-    private var layout = TopRowLayout.shared
+    private let layout = TopRowLayout.shared
     @State private var dragged: TopRowControl?
     @State private var dragOffset: CGFloat = 0
     private static let space = "TrailingControls"
