@@ -83,6 +83,8 @@ struct SettingsView: View {
             if let switcher { SwitcherSettingsView(settings: switcher) }
         case .screenshots:
             if let screenshots { ScreenshotSettingsView(settings: screenshots) }
+        case .tools:
+            ToolsSettingsView()
         case .menuBar:
             MenuBarSettingsView(spacers: MenuBarSpacerService.shared)
         case .permissions:
@@ -334,6 +336,7 @@ private struct CalendarSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            WeatherSettingsSection()
         }
         .formStyle(.grouped)
     }

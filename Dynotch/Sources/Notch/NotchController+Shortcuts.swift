@@ -131,6 +131,13 @@ extension NotchController {
             showAnswerIfReady()
             return
         }
+        // A timer's or the weather's notice opens its module (spec TM-5, WX-7).
+        if let feature = notice.opens, settings.isEnabled(feature) {
+            notices.dismiss()
+            if model.isPreview { openFully() } else { expand() }
+            withAnimation(Self.animation) { model.select(feature, exact: true) }
+            return
+        }
         if let app = notice.appIdentifier { NoticeApp.bringForward(app, project: notice.detail) }
         guard !notice.isQuestion else { return }
         foldPeekAway { notices.dismiss() }

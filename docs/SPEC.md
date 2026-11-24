@@ -1183,6 +1183,79 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | RF-20 | **Rövidebb CHANGELOG:** a v0.90 előtti bejegyzések a `docs/CHANGELOG-archive.md`-be kerülnek. |
 | RF-21 | **Visszaállás az előző verzióra:** *Settings › About*-ban, frissítés után „**Go back to X**” gomb: letölti és (ugyanazzal az ellenőrzéssel, U-2) telepíti azt a verziót, amelyről az app frissült, és kikapcsolja az automatikus telepítést, hogy ne frissüljön vissza magától. Ha az új verzió el sem indul: `./scripts/install.sh vX.Y.Z`, amely a legfrissebbnél régebbi verzió telepítésekor szintén kikapcsolja az automatikus telepítést. A git-ben a refaktorálás előtti állapot a `v0.110.0` tag. |
 
+## 4ő++++++++. Eszközök: időzítő, stopper, pomodoro, gyorskapcsolók, HUD-bejelentések (v0.112)
+
+Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pomodoro | Toggles* fülek) és egy közös *Settings › Tools* fül, amelyen a HUD-bejelentések is vannak.
+
+### Közös
+
+| # | Követelmény |
+|---|---|
+| TM-1 | **Tools modul:** új `FeatureID` (ikon: `timer`), a többi modulhoz hasonlóan bekapcsolható, sorrendezhető, gyorsbillentyűt kaphat (SC-1), átméretezhető (RS-1…RS-6), az ikonsorban (MS-1) és a swipe-sorrendben szerepel. A fejléc sorában kapszulaválasztó a **bekapcsolt** fülekkel (*Timer \| Stopwatch \| Pomodoro \| Toggles*); a választott fül megmarad, mint az összevont moduloknál (MG-10). |
+| TM-2 | ***Settings › Tools*** (új beállítás-fül, SD-design): szakaszok **Timer**, **Stopwatch**, **Pomodoro**, **Quick toggles**, **HUD announcements**, mindegyik saját be/ki kapcsolóval a szakasz fejlécében. Alapból mind **be**. Kikapcsolt szakasz nem fut a háttérben (G-4, RF-8), a füle eltűnik a modulból; ha a modul mind a négy füle ki van kapcsolva, a Tools modul sem jelenik meg. A HUD-bejelentések a Tools modultól függetlenül működnek. |
+| TM-3 | **Jelző a notch mellett:** a futó vagy szüneteltetett időzítő, a pomodoro és (ha bekapcsolták, TM-13) a futó stopper a becsukott notch mellett, jobb oldalt látszik: **az ikon** (homokóra, stopper, pomodoro-kör; a pomodoro Focusban piros, szünetben zöld) és **fehéren az idő** (`4:59`, egy óra fölött `1:04:59`; szüneteltetve halványan). Hoverre a Tools modul a jelzett fülön nyílik (mint a System jelzője, SY-7). Teljes képernyős appnál rejtve (N-12). |
+| TM-4 | **Jelzők sorrendje:** a meeting-jelző (K-8) erősebb; utána a hamarosan (1 percen belül) lejáró időzítő/pomodoro, majd a többi jelző (zene, AI-kör, akku) a meglévő sorrendben, végül a futó időzítő/pomodoro/stopper. Egyszerre egy idő-jelző látszik: a legkorábban lejáró; a többi száma „+N”-ként. |
+| TM-5 | **Lejárat-értesítés:** időzítő vagy pomodoro-fázis végén a kis értesítés (a notch alatt vagy *Beside the notch* módban két oldalt, PV-66) ikonnal, névvel és részlettel („Time is up · 5 min”, „Short break · 5 min”), **hanggal** (rendszerhang, *Settings › Tools › Timer › Sound*, „None” is) és haptikával. Kattintásra a Tools modul a fülén nyílik. Az időzítőé 1 percig marad, és 3 mp-enként ismétli a hangot, amíg látszik; a pomodoróé 30 mp-ig, egy hanggal. Nem kerül az értesítéslistába. Fókusz alatt (E-20) is megjelenik. |
+| TM-6 | **Újraindítás és alvás:** a futó időzítők, a pomodoro és a stopper a záró időpontjukat / kezdő időpontjukat tárolják, így az app újraindítása vagy a gép alvása után is pontosak. Ha alvás alatt járt le valami, ébredéskor a lejárat-értesítés „Finished at 14:32” felirattal jelenik meg, hang nélkül. |
+
+### Időzítő
+
+| # | Követelmény |
+|---|---|
+| TM-7 | **Timer fül:** felül egy sor **előbeállítás-kapszula** (alap: 1, 3, 5, 10, 15, 30, 60 perc; *Settings › Tools*-ban szerkeszthető, legfeljebb 8), kattintásra azonnal indul. Alatta szövegmező saját időhöz: `12` = 12 perc, `1:30` = 1 perc 30 mp, `90s`, `1h 15m`, `2h`; Enter indít. Opcionálisan **név** adható („Tea”). |
+| TM-8 | **Több időzítő** futhat egyszerre (legfeljebb 5): a fülön egy-egy sor a névvel, nagy hátralévő idővel, haladás-sávval és **Pause/Resume**, **+1 min**, **X** gombbal; a legkorábban lejáró felül. |
+| TM-9 | Lejáratkor az értesítésre kattintva a Timer fül nyílik (ott a +1 min). A legutóbb beírt 3 egyedi idő az előbeállítások mögött „recent” kapszulaként megjelenik. |
+
+### Stopper
+
+| # | Követelmény |
+|---|---|
+| TM-10 | **Stopwatch fül:** nagy, tizedmásodpercig pontos kijelzés (`02:14.3`), gombok: **Start / Pause**, **Lap** (futás közben), **Reset** (állva). |
+| TM-11 | **Körök:** a körök listája lefelé nő (legújabb felül): sorszám, köridő, összidő; a leggyorsabb zölden, a leglassabb pirosan (legalább 3 kör esetén). **Copy** gomb a köröket szövegként a vágólapra teszi. |
+| TM-12 | A kijelzés csak a látható fülön frissül tizedmásodpercenként; a notch melletti jelző másodpercenként (RF-11 szellemében). |
+| TM-13 | *Settings › Tools › Stopwatch › Show beside the notch* (alap: **ki**): bekapcsolva a futó stopper a TM-3 szerint látszik. |
+
+### Pomodoro
+
+| # | Követelmény |
+|---|---|
+| TM-14 | **Pomodoro fül:** nagy kör a hátralévő idővel és a fázis nevével (**Focus**, **Short break**, **Long break**), alatta a ciklus pontjai (pl. ●●○○), gombok: **Start / Pause**, **Skip** (következő fázis), **Reset**. Focus fázisban piros, szünetben zöld szín. |
+| TM-15 | **Beállítások:** Focus (alap 25 perc), Short break (5), Long break (15), Long break after (4 focus után), **Auto-start next phase** (alap: be a szünetekre, ki a Focusra: a szünet után kattintásra indul az új Focus). |
+| TM-16 | **Fókusz mód:** opcionálisan egy-egy kiválasztott **Shortcuts-parancs** fut a Focus fázis elején és végén (pl. a macOS Fókusz be- és kikapcsolása; a Fókuszt nyilvános API-val nem lehet állítani). Választó a *Settings › Tools › Pomodoro*-ban, „None” alapból. |
+| TM-17 | **Számláló:** a fülön a mai elkészült Focus-ok száma és egy kis 7 napos oszlopdiagram; az előzmény a lemezen marad (csak darabszám és dátum). |
+
+### Gyorskapcsolók
+
+| # | Követelmény |
+|---|---|
+| QT-1 | **Toggles fül:** csempék rácsban (a Vezérlőközpont mintájára, kerek ikon, alatta a név; bekapcsolva kék), a rács a modul méretéhez igazodik. Kattintás vált; a csempék állapota a fül megnyitásakor és a rendszer változásakor frissül, így a máshol (Vezérlőközpont, Rendszerbeállítások) végzett váltást is mutatja. |
+| QT-2 | **Csempék:** **Keep Awake** (a gép és a kijelző nem alszik el; `IOPMAssertion`), **Do Not Disturb** (TM-16-hez hasonlóan két választott Shortcuts-paranccsal be/ki; parancs nélkül a csempe a beállításra mutat), **Dark Mode** (System Events; első használatkor Automation-engedély), **Mute Microphone** (az alapértelmezett bemenet némítása CoreAudio-n), **Night Shift** (privát `CoreBrightness`, dinamikusan betöltve; ha nem érhető el, a csempe nem jelenik meg), **Hide Desktop Icons** és **Show Hidden Files** (Finder-beállítás + Finder újraindítás), **Lock Screen** (művelet, nem kapcsoló). |
+| QT-3 | **Keep Awake időtartama:** a csempén jobb kattintás vagy hosszú nyomás: *15 min, 1 hour, 2 hours, Until a timer ends, Indefinitely* (alap kattintásra: Indefinitely). Lejáratkor magától kikapcsol. Kilépéskor és összeomláskor a rendszer elengedi. |
+| QT-4 | ***Settings › Tools › Quick toggles*:** minden csempe külön ki/bekapcsolható és húzással átrendezhető; minden kapcsoló-csempe kaphat **globális gyorsbillentyűt** (SC-1 szabályai szerint). |
+| QT-5 | **Jelző a notch mellett** (*Settings › Tools › Quick toggles*, mindkettő alap: be): a némított mikrofon **piros áthúzott mikrofonnal**, az aktív Keep Awake kis **kávéscsésze** ikonnal látszik a becsukott notch mellett (az időzítő mellett, TM-3); hoverre a Tools modul nyílik. |
+
+### HUD-bejelentések
+
+| # | Követelmény |
+|---|---|
+| HA-1 | **Rövid rendszerbejelentések a HUD stílusában** (H-1, H-3c): a notch két oldalra kiszélesedik, **bal oldalt fehér ikon, jobb oldalt rövid szöveg**, 1,5 mp után visszahúzódik (H-4); nyitott panelnél a menüsorban, mint H-5. Nem kerül az értesítéslistába. |
+| HA-2 | **Események:** **töltő csatlakoztatva** (villám, „Charging · 64%”), **töltő lecsatlakoztatva** („On battery · 64%”), **Fókusz be/ki** (a Fókusz ikonja és neve, ha olvasható, E-20), **Caps Lock be/ki**, **Alacsony fogyasztású mód be/ki**, **gyorskapcsoló gyorsbillentyűről** (pl. „Microphone muted”, QT-4). A Bluetooth-, USB- és kijelző-eseményeket továbbra is az eszköz-értesítések mutatják (DV-1…DV-14). |
+| HA-3 | ***Settings › Tools › HUD announcements*:** eseményenként kapcsoló; alapból mind **be**, a **Caps Lock ki**. |
+| HA-4 | **Zajszűrés:** indítás és ébredés után 30 mp-ig nincs bejelentés (kivéve Caps Lock), mint DV-5; ugyanabból az eseményből 3 mp-en belül csak az utolsó látszik. Ha éppen hangerő/fényerő-HUD látszik, a bejelentés utána jön. Teljes képernyős appnál nem jelenik meg (N-12). |
+
+## 4ő+++++++++. Időjárás (v0.112)
+
+| # | Követelmény |
+|---|---|
+| WX-1 | **Weather fül a Naptár modulban:** a Calendar fejlécében kapszulaválasztó *Calendar \| Weather* (mint az összevont moduloknál, MG-2; a választott fül megmarad, MG-10; a két fül külön méretet jegyez meg, MG-8). *Settings › Calendar › Weather* kapcsoló, alapból **be**; kikapcsolva a választó eltűnik, és nincs időjárás-lekérdezés. A Naptár modul nélkül az időjárás sem fut (MG-4). |
+| WX-2 | **Helyszín:** *Automatic* (Helymeghatározás, CoreLocation; első bekapcsoláskor a macOS engedélyt kér, a `project.yml`-ben `NSLocationUsageDescription` kell) vagy *City* (név szerinti keresés, a találatok közül választva). Ha az automatikus engedélyt elutasították, a fül erre figyelmeztet, és felajánlja a város választását. |
+| WX-3 | **Adatforrás:** az **Open-Meteo** ingyenes, kulcs nélküli API-ja (előrejelzés és városkeresés). A kérésben **csak a két tizedesre kerekített koordináta** (kb. 1 km) és a mértékegységek mennek, semmi más személyes adat. |
+| WX-4 | **Frissítés:** 30 percenként, és a fül megnyitásakor, ha az adat 15 percnél régebbi; az RF-8…RF-10 szerint (alvás/zárolás alatt szünetel, akkun ritkábban). Hálózat nélkül az utolsó adat látszik „Updated 10:12” felirattal. |
+| WX-5 | **Mértékegységek** a rendszer régióbeállítását követik (°C / °F, km/h / mph; G-7). |
+| WX-6 | **Tartalom:** fejléc: helység neve. **Most:** nagy többszínű időjárás-ikon (SF Symbols), hőmérséklet, állapot („Partly cloudy”), hőérzet, napi max/min. **Részletek sora:** szél, páratartalom, csapadék esélye, UV-index, napkelte/napnyugta. **Óránként:** vízszintesen görgethető sáv a következő 24 órára (idő, ikon, hőmérséklet, csapadék %, ha legalább 20%). **7 nap:** lista (nap, ikon, min–max sáv a hét tartományához viszonyítva, csapadék %). Kis méretben csak a Most és az Óránként sáv látszik, nagyban minden (RS, `maxWidth/maxHeight: .infinity`). |
+| WX-7 | **Reggeli előrejelzés:** minden nap az **első feloldáskor** (bejelentkezés, a képernyőzár feloldása vagy ébredés aktív munkamenettel) egy *Not before* időpont után (alap **05:00**, állítható) egyszer a notch alatt lenyíló értesítés (mint DV-1; *Beside the notch* módban két oldalt, PV-66): ikon, helység és hőmérséklet („Budapest · 7°”), állapot, max/min, és ha nappal (8–20 óra) a csapadék esélye eléri az 50%-ot, egy sor: „Rain likely 14:00–17:00”. Megjelenési idő mint az értesítéseké (E-3); kattintásra a Naptár a Weather fülön nyílik, felfelé pöccintve eltűnik. |
+| WX-8 | A reggeli értesítés előtt friss adatot kér (legfeljebb 60 mp-ig vár a hálózatra); ha nem sikerül, aznap nincs reggeli értesítés. Fókusz alatt (E-20) is megjelenik. *Settings › Calendar › Weather › Morning forecast* kapcsoló, alapból **be**. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.

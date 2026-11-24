@@ -51,6 +51,10 @@
 	<string>Dynotch puts a file you just downloaded into the Tray when the notch opens.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Dynotch</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Dynotch shows the weather where you are in the calendar and in a morning forecast.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Dynotch shows the weather where you are in the calendar and in a morning forecast.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Dynotch records your voice with a screen recording when you turn the microphone on.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>

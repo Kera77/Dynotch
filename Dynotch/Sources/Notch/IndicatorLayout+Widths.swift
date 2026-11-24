@@ -57,3 +57,39 @@ extension IndicatorLayout {
         ceil((text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]).width)
     }
 }
+
+// MARK: - Unfolding beside the notch (spec PV-58, PV-69)
+
+extension IndicatorItem {
+    /// Beside the notch the hovered AI ring, countdown or low battery unfolds to the right
+    /// instead of dropping down (spec PV-58, PV-69).
+    static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool) -> [IndicatorItem] {
+        guard wings, let hovered, items.indices.contains(hovered) else { return items }
+        var unfolded = items
+        switch items[hovered] {
+        case .usage(let limits, false): unfolded[hovered] = .usage(limits, unfolded: true)
+        case .meeting(let event, false): unfolded[hovered] = .meeting(event, unfolded: true)
+        case .battery(let device, false): unfolded[hovered] = .battery(device, unfolded: true)
+        default: return items
+        }
+        return unfolded
+    }
+}
+
+// MARK: - The Tools (spec TM-3, QT-5)
+
+extension IndicatorLayout {
+    /// The icon and the time ("4:59" or "1:04:59"), "+N", and the microphone and cup icons.
+    static func toolsWidth(_ glance: ToolsGlance) -> CGFloat {
+        var width: CGFloat = 4
+        if let clock = glance.clock {
+            let sample = clock.seconds(at: Date()) >= 3600 ? "0:00:00" : "00:00"
+            let font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold)
+            width += 13 + 4 + ceil((sample as NSString).size(withAttributes: [.font: font]).width) + 4
+            if glance.more > 0 { width += textWidth("+\(glance.more)", size: 10, weight: .semibold) + 4 }
+        }
+        if glance.micMuted { width += 16 }
+        if glance.awake { width += 16 }
+        return width + 2
+    }
+}

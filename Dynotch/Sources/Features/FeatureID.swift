@@ -17,6 +17,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case music
     case stats
     case terminal
+    case tools
+    case weather
 
     var id: String { rawValue }
 
@@ -37,6 +39,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .music: "Music"
         case .stats: "System"
         case .terminal: "Terminal"
+        case .tools: "Tools"
+        case .weather: "Weather"
         }
     }
 
@@ -57,6 +61,8 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .music: "music.note"
         case .stats: "chart.bar.xaxis"
         case .terminal: "apple.terminal"
+        case .tools: "timer"
+        case .weather: "cloud.sun.fill"
         }
     }
 }
@@ -67,6 +73,8 @@ extension FeatureID {
         switch self {
         case .battery: .stats
         case .claudeUsage: .claudeChat
+        // A tab of the calendar (spec WX-1).
+        case .weather: .calendar
         default: nil
         }
     }

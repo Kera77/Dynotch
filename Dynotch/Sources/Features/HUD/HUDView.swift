@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Beside the closed notch: the speaker or sun on the left; on the right the level in white, as
@@ -16,28 +17,49 @@ struct HUDView: View {
     @Environment(\.hudReveal) private var reveal
 
     var body: some View {
+        let side = Self.sideWidth(for: display)
         HStack(spacing: 0) {
             // One fixed symbol per kind: no animated swaps while the level changes.
             Image(systemName: symbol)
                 .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: Self.sideWidth)
+                .frame(width: side)
             Color.clear.frame(width: notchWidth)
-            HStack(spacing: 5) {
-                Text("\(LevelRing.label(for: level))%")
+            if case .announcement(_, let text) = display.kind {
+                // A few words instead of the level (spec HA-1).
+                Text(text)
                     .font(.notch(size: 12, weight: .semibold))
-                    .monospacedDigit()
-                    .numericTransition()
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .fixedSize()
-                LevelRing(fraction: level * reveal, color: .white, label: "")
-                    .scaleEffect(Self.ringScale)
-                    .frame(width: LevelRing.size * Self.ringScale, height: LevelRing.size * Self.ringScale)
+                    .frame(width: side)
+            } else {
+                levelSide.frame(width: side)
             }
-            .frame(width: Self.sideWidth)
-            .animation(Motion.quick, value: level)
         }
+    }
+
+    private var levelSide: some View {
+        HStack(spacing: 5) {
+            Text("\(LevelRing.label(for: level))%")
+                .font(.notch(size: 12, weight: .semibold))
+                .monospacedDigit()
+                .numericTransition()
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .fixedSize()
+            LevelRing(fraction: level * reveal, color: .white, label: "")
+                .scaleEffect(Self.ringScale)
+                .frame(width: LevelRing.size * Self.ringScale, height: LevelRing.size * Self.ringScale)
+        }
+        .animation(Motion.quick, value: level)
+    }
+
+    /// Both sides as wide as the announcement's words need, at least the level's width (spec HA-1).
+    static func sideWidth(for display: HUDService.Display) -> CGFloat {
+        guard case .announcement(_, let text) = display.kind else { return sideWidth }
+        let width = (text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .semibold)]).width
+        return max(sideWidth, ceil(width) + 20)
     }
 
     private var level: Double {
@@ -48,6 +70,7 @@ struct HUDView: View {
         switch display.kind {
         case .volume: display.muted ? "speaker.slash.fill" : "speaker.wave.2.fill"
         case .brightness: "sun.max.fill"
+        case .announcement(let symbol, _): symbol
         }
     }
 }

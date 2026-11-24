@@ -91,6 +91,7 @@ extension AppSettings {
     /// A merged module runs while its host is on (spec MG-4); an off module opened from the
     /// swipe-up row runs while it is open (spec QS-15).
     func isEnabled(_ feature: FeatureID) -> Bool {
+        guard isGuestShown(feature) else { return false }
         let module = hostFeature(of: feature)
         return enabledFeatures.contains(module) || visitingFeature == module
     }
@@ -113,8 +114,19 @@ extension AppSettings {
     /// The host and its merged module, as the tabs of the host's page; nil when nothing is merged into it.
     func mergedTabs(for feature: FeatureID) -> [FeatureID]? {
         let host = hostFeature(of: feature)
-        guard let guest = FeatureID.allCases.first(where: { $0.mergeHost == host && isMerged($0) }) else { return nil }
+        guard let guest = FeatureID.allCases.first(where: { $0.mergeHost == host && isMerged($0) && isGuestShown($0) })
+        else { return nil }
         return [host, guest]
+    }
+
+    /// A tab with a switch of its own: the calendar's Weather (spec WX-1); the Tools go with
+    /// their last tab (spec TM-2).
+    func isGuestShown(_ feature: FeatureID) -> Bool {
+        switch feature {
+        case .weather: WeatherSettings.shared.isOn
+        case .tools: !ToolsSettings.shared.shownTabs.isEmpty
+        default: true
+        }
     }
 
     /// The tab of a merged module picked by hand last (spec MG-10); nil: the host's own.

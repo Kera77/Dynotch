@@ -39,7 +39,7 @@ extension NotchView {
                     case .battery(let device, _): battery.dismissWarning(for: device)
                     case .tasks: tasks.hide()
                     case .stats: stats.dismissWarnings()
-                    case .music, .recording: break
+                    case .music, .recording, .tools: break
                     }
                 }
             },
@@ -78,7 +78,8 @@ extension NotchView {
         let items = IndicatorItem.items(
             meetings: calendarIndicator.events, usage: claudeUsage.notchLimits, working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
-            music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince
+            music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
+            tools: ToolsService.shared.glance
         )
         return IndicatorItem.unfoldingUsage(items, hovered: model.hoveredIndicator, wings: settings.noticesBeside)
     }

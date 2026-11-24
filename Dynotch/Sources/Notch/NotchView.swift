@@ -308,8 +308,8 @@ extension NotchView {
     /// Closed notch, widened on both sides while meetings are counted down (spec K-7), and
     /// taller while one of them is hovered (spec K-8d).
     private var naturalCollapsedSize: CGSize {
-        if hud.display != nil {
-            return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth, height: geometry.notchSize.height)
+        if let display = hud.display {
+            return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth(for: display), height: geometry.notchSize.height)
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
         if model.isScreenShared { return geometry.notchSize }

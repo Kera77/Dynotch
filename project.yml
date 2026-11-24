@@ -49,6 +49,8 @@ targets:
         NSRemindersFullAccessUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
         NSRemindersUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
         NSCalendarsUsageDescription: "Dynotch shows your upcoming events in the notch."
+        NSLocationUsageDescription: "Dynotch shows the weather where you are in the calendar and in a morning forecast."
+        NSLocationWhenInUseUsageDescription: "Dynotch shows the weather where you are in the calendar and in a morning forecast."
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
         NSServices:

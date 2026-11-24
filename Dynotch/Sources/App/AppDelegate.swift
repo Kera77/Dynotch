@@ -51,6 +51,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         options: [.userInitiatedAllowingIdleSystemSleep], reason: "The notch reacts to the pointer at once"
     )
     private var hotkeys: HotkeyCenter?
+    private var announcer: HUDAnnouncer?
+    private var toggleHotkeys: ToggleHotkeys?
     /// A finished download shows beside the notch (spec PV-57) and goes into the tray (spec FT-15).
     private lazy var downloadWatcher = DownloadWatcher { [notices = services.notices, tray = services.tray, settings] file in
         if settings.isEnabled(.tray) { tray.addDownload(file) }
@@ -103,6 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startScreenshots(manager)
         services.beeper.start()
         services.devices.start()
+        startToolsAndWeather()
 
         let shortcuts = services.shortcuts
         let center = HotkeyCenter(
@@ -279,6 +282,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         services.stats.start()
         services.screenshots.start()
+    }
+}
+
+extension AppDelegate {
+    /// The Tools, their shortcuts, the HUD announcements and the weather (spec TM-1, QT-4, HA-1, WX-1).
+    func startToolsAndWeather() {
+        ToolsService.shared.start(settings: settings, notices: services.notices)
+        QuickToggleService.shared.start()
+        let announcer = HUDAnnouncer(hud: services.hud)
+        announcer.start()
+        self.announcer = announcer
+        let toggleHotkeys = ToggleHotkeys(settings: .shared) { [weak announcer] toggle, isOn in
+            announcer?.toggled(toggle, isOn: isOn)
+        }
+        toggleHotkeys.start()
+        self.toggleHotkeys = toggleHotkeys
+        WeatherService.shared.start(settings: settings, notices: services.notices)
     }
 }
 

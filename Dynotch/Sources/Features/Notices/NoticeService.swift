@@ -20,6 +20,10 @@ struct StickyNotice: Equatable, Sendable {
     var sourceName: String?
     /// A finished download: a download icon and a green tick, gone after 3 s (spec PV-57).
     var download: URL?
+    /// A click opens this module, e.g. the Tools after a timer (spec TM-5, WX-7).
+    var opens: FeatureID?
+    /// Goes by itself after this many seconds (spec TM-5, WX-7).
+    var stays: TimeInterval?
 
     /// A download in `~/Downloads` finished (spec PV-57).
     static func downloaded(_ file: URL) -> StickyNotice {
@@ -49,11 +53,19 @@ final class NoticeService {
     private(set) var notice: StickyNotice?
 
     @ObservationIgnored private var downloadExpiry: Task<Void, Never>?
+    @ObservationIgnored private var expiry: Task<Void, Never>?
     /// How long a finished download stays (spec PV-57).
     static let downloadStays: TimeInterval = 3
 
     func show(_ notice: StickyNotice) {
         self.notice = notice
+        expiry?.cancel()
+        guard let stays = notice.stays else { return }
+        expiry = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(stays))
+            guard !Task.isCancelled, let self, self.notice == notice else { return }
+            self.notice = nil
+        }
     }
 
     /// A finished download, unless something more important stands there; it goes by itself.

@@ -24,6 +24,9 @@ final class PowerMonitor {
     static let shared = PowerMonitor()
 
     private(set) var conditions = PowerConditions()
+    /// Told of every change, with the state before it: the HUD announcements and the morning
+    /// forecast (spec HA-2, WX-7).
+    var listeners: [@MainActor (_ old: PowerConditions, _ new: PowerConditions) -> Void] = []
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var powerSource: CFRunLoopSource?
     private var gateCheckQueued = false
@@ -85,6 +88,7 @@ final class PowerMonitor {
         }
         Poller.setSlowFactor(next.slowFactor)
         Poller.setPaused(next.isPaused)
+        if next != previous { listeners.forEach { $0(previous, next) } }
     }
 
     private func queueGateCheck() {

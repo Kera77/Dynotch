@@ -64,7 +64,7 @@ struct NotchIndicatorView: View {
     private var tickInterval: TimeInterval {
         let counts = hoveredIndex != nil || items.contains { item in
             switch item {
-            case .meeting, .recording: true
+            case .meeting, .recording, .tools: true
             default: false
             }
         }
@@ -156,8 +156,8 @@ struct NotchIndicatorView: View {
         case .recording(let since):
             // Left of the notch, as wide as its time (spec SH-5c).
             RecordingSlot(since: since, now: now, isHovered: recordingHovered, stop: stopRecording)
-        case .tasks, .stats:
-            // Only on the right (spec R-10, SY-7).
+        case .tasks, .stats, .tools:
+            // Only on the right (spec R-10, SY-7, TM-3).
             EmptyView()
         }
     }
@@ -193,12 +193,12 @@ struct NotchIndicatorView: View {
             batteryCapsule(item, device: device, unfolded: unfolded)
         case .tasks(let count):
             TasksCounter(count: count, width: item.slotWidth, open: openTasks)
-        case .music:
-            EmptyView()
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
-        case .recording:
-            // Left of the notch (spec SH-5c).
+        case .tools(let glance):
+            ToolsSlot(glance: glance, now: now)
+        case .music, .recording:
+            // Left of the notch (spec MU-2, SH-5c).
             EmptyView()
         }
     }
@@ -245,8 +245,8 @@ extension NotchIndicatorView {
             tasksLabel(count, item: item)
         case .music(let glance):
             musicLabel(glance)
-        case .recording:
-            // Nothing drops down: the dot itself becomes Stop (spec SH-5b).
+        case .recording, .tools:
+            // Nothing drops down: the dot itself becomes Stop, the Tools open (spec SH-5b, TM-3).
             EmptyView()
         case .stats:
             statsLabel(item)

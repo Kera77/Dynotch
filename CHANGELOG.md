@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Tools module with Timer | Stopwatch | Pomodoro | Toggles tabs, each switchable in the new Settings › Tools (TM-1, TM-2).
+- Timer: preset times, typed times (`12`, `1:30`, `90s`, `1h 15m`), names, up to 5 at once, pause, +1 min; recent custom times (TM-7…TM-9).
+- Stopwatch with laps (fastest green, slowest red) and Copy; optional time beside the notch (TM-10…TM-13).
+- Pomodoro: Focus, short and long breaks, auto-start options, Shortcuts at focus start and end, today's count and a 7-day chart (TM-14…TM-17).
+- The running timer or pomodoro beside the closed notch; one ending within a minute comes right after the meetings; hover opens its tab. End notice with sound; times survive a restart and sleep (TM-3…TM-6).
+- Quick toggles: Keep Awake (with lengths), Do Not Disturb (via two Shortcuts), Dark Mode, Mute Microphone, Night Shift, Hide Desktop Icons, Show Hidden Files, Lock Screen; reorderable, each with a global shortcut; muted mic and Keep Awake beside the notch (QT-1…QT-5).
+- HUD announcements: charger, Focus, Caps Lock (off by default), Low Power Mode, toggle shortcuts, in the volume HUD's style (HA-1…HA-4).
+- Weather tab in the Calendar (Calendar | Weather): now, 24 hours, 7 days, from Open-Meteo with only the rounded place sent; automatic location or a city (WX-1…WX-6).
+- Morning forecast at the day's first unlock after a set time, with a rain line (WX-7, WX-8).
+
 ## [0.111.0] - 2026-11-24
 
 ### Added

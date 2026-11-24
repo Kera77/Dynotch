@@ -45,6 +45,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case stats(Int)
     /// A screen recording since this time; its details have Stop (spec SH-5).
     case recording(Date)
+    /// A timer, the pomodoro or the stopwatch, the muted microphone, Keep Awake (spec TM-3, QT-5).
+    case tools(ToolsGlance)
 
     var id: String {
         switch self {
@@ -56,20 +58,26 @@ enum IndicatorItem: Identifiable, Equatable {
         case .music: "music"
         case .stats: "stats"
         case .recording: "recording"
+        case .tools: "tools"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks, .music, .stats, .recording: false
+        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools: false
         }
     }
 
     /// Hovering these opens their module instead of writing details (spec SY-7). The cover drops
     /// its player down under the row instead (spec MU-2).
     var opensModule: FeatureID? {
-        if case .stats = self { .stats } else { nil }
+        switch self {
+        case .stats: .stats
+        // Hovering the Tools opens them on the tab it shows (spec TM-3).
+        case .tools: .tools
+        default: nil
+        }
     }
 
     var isBattery: Bool {
@@ -92,6 +100,7 @@ enum IndicatorItem: Identifiable, Equatable {
         case .stats(let values): IndicatorLayout.statsWidth(values: values)
         // Left of the notch, as wide as its time (spec SH-5c).
         case .recording: 0
+        case .tools(let glance): IndicatorLayout.toolsWidth(glance)
         }
     }
 
@@ -100,6 +109,8 @@ enum IndicatorItem: Identifiable, Equatable {
         switch self {
         // Unfolded beside the notch, nothing drops down (spec PV-69).
         case .meeting(_, true), .battery(_, true): 0
+        // The Tools open their module instead (spec TM-3).
+        case .tools: 0
         case .meeting, .working, .battery, .stats: IndicatorLayout.labelHeight
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
         case .recording: 0
@@ -118,26 +129,17 @@ enum IndicatorItem: Identifiable, Equatable {
     /// tasks at the far right.
     static func items(
         meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
-        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil
+        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
+        tools: ToolsGlance? = nil, now: Date = Date()
     ) -> [IndicatorItem] {
-        (recording.map { [.recording($0)] } ?? [])
-            + (music.map { [.music($0)] } ?? []) + meetings.map { .meeting($0) } + (usage.map { [.usage($0)] } ?? [])
+        // A countdown ending within a minute comes right after the meetings, else at the end (spec TM-4).
+        let soon = tools?.clock?.endsSoon(at: now) == true
+        let toolsItem = tools.map { [IndicatorItem.tools($0)] } ?? []
+        return (recording.map { [.recording($0)] } ?? [])
+            + (music.map { [.music($0)] } ?? []) + meetings.map { .meeting($0) } + (soon ? toolsItem : [])
+            + (usage.map { [.usage($0)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
-            + (tasks.map { [.tasks($0)] } ?? [])
-    }
-
-    /// Beside the notch the hovered AI ring, countdown or low battery unfolds to the right
-    /// instead of dropping down (spec PV-58, PV-69).
-    static func unfoldingUsage(_ items: [IndicatorItem], hovered: Int?, wings: Bool) -> [IndicatorItem] {
-        guard wings, let hovered, items.indices.contains(hovered) else { return items }
-        var unfolded = items
-        switch items[hovered] {
-        case .usage(let limits, false): unfolded[hovered] = .usage(limits, unfolded: true)
-        case .meeting(let event, false): unfolded[hovered] = .meeting(event, unfolded: true)
-        case .battery(let device, false): unfolded[hovered] = .battery(device, unfolded: true)
-        default: return items
-        }
-        return unfolded
+            + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem)
     }
 
     /// "Resets today 14:30" of the fullest limit, beside the ring (spec PV-58).

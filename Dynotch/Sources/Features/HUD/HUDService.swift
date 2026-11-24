@@ -10,12 +10,19 @@ final class HUDService {
     enum Kind: Equatable, Sendable {
         case volume
         case brightness
+        /// A short system announcement: an icon and a few words (spec HA-1).
+        case announcement(symbol: String, text: String)
     }
 
     struct Display: Equatable, Sendable {
         let kind: Kind
         let level: Double
         let muted: Bool
+
+        var isAnnouncement: Bool {
+            if case .announcement = kind { return true }
+            return false
+        }
     }
 
     private(set) var display: Display?
@@ -24,6 +31,7 @@ final class HUDService {
     @ObservationIgnored private var tap: CFMachPort?
     @ObservationIgnored private var tapSource: CFRunLoopSource?
     @ObservationIgnored private var hideTask: Task<Void, Never>?
+    @ObservationIgnored private var pendingAnnouncement: (String, String)?
     @ObservationIgnored private var listenedDevice: AudioDeviceID?
     @ObservationIgnored private var settingsObserver: ChangeObservation?
     /// Our own volume changes also arrive through the listener; they are shown once.
@@ -157,6 +165,17 @@ final class HUDService {
         show(.volume, level: VolumeControl.volume(device) ?? 0, muted: VolumeControl.isMuted(device))
     }
 
+    // MARK: - Announcements (spec HA-1, HA-4)
+
+    /// Shown after a volume or brightness level that is up now.
+    func announce(symbol: String, text: String) {
+        if let display, !display.isAnnouncement {
+            pendingAnnouncement = (symbol, text)
+            return
+        }
+        show(.announcement(symbol: symbol, text: text), level: 0, muted: false)
+    }
+
     // MARK: - Display
 
     private func show(_ kind: Kind, level: Double, muted: Bool) {
@@ -164,8 +183,13 @@ final class HUDService {
         hideTask?.cancel()
         hideTask = Task { [weak self] in
             try? await Task.sleep(for: Self.visibleFor)
-            guard !Task.isCancelled else { return }
-            self?.display = nil
+            guard !Task.isCancelled, let self else { return }
+            self.display = nil
+            if let (symbol, text) = self.pendingAnnouncement {
+                self.pendingAnnouncement = nil
+                try? await Task.sleep(for: .milliseconds(250))
+                self.announce(symbol: symbol, text: text)
+            }
         }
     }
 }

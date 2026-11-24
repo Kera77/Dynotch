@@ -13,6 +13,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case focus
     case switcher
     case screenshots
+    case tools
     case menuBar
     case permissions
     case about
@@ -33,6 +34,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .focus: "Focus"
         case .switcher: "Switcher"
         case .screenshots: "Screenshots"
+        case .tools: "Tools"
         case .menuBar: "Menu bar"
         case .permissions: "Permissions"
         case .about: "About"
@@ -53,6 +55,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .focus: "cursorarrow.rays"
         case .switcher: "rectangle.stack"
         case .screenshots: "camera.viewfinder"
+        case .tools: "timer"
         case .menuBar: "menubar.rectangle"
         case .permissions: "lock.shield"
         case .about: "info.circle"
@@ -77,6 +80,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .switcher: "switcher alt tab windows apps swipe trackpad thumbnails"
         case .screenshots: "screenshot capture snip crop record video editor annotate scrolling"
         case .menuBar: "menu bar space spacer divider line gap"
+        case .tools: "timer stopwatch pomodoro toggles keep awake dark mode microphone night shift hud announcements caps lock charger"
         case .permissions: "privacy access full disk accessibility calendar reminders contacts bluetooth"
         case .about: "version update diagnostics quit"
         }

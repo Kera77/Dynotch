@@ -81,7 +81,9 @@ extension NotchView {
     /// Over a full-screen app nothing shows until the pointer reaches the top edge (spec N-12);
     /// a call and the volume or brightness still do.
     var isHiddenForFullScreen: Bool {
-        model.isHiddenForFullScreen && !model.isExpanded && calls.call == nil && hud.display == nil
+        model.isHiddenForFullScreen && !model.isExpanded && calls.call == nil
+            // Announcements stay away from a full-screen app (spec HA-4).
+            && (hud.display == nil || hud.display?.isAnnouncement == true)
     }
 
     var shape: UnevenRoundedRectangle {

@@ -133,6 +133,13 @@ extension NotchView {
         case .terminal:
             detail = TerminalStore.shared.selected.map { "\($0.title) · \(TerminalWing.tabs(TerminalStore.shared.sessions.count))" }
                 ?? "Click or swipe down to open"
+        case .tools:
+            let clock = ToolsService.shared.glance?.clock
+            detail = clock.map { "\($0.tab.title) · \(ClockText.text($0.seconds(at: Date())))" } ?? "Timer, stopwatch, pomodoro, toggles"
+        case .weather:
+            let forecast = WeatherService.shared.forecast
+            detail = forecast.map { "\(WeatherService.degrees($0.now.temperature)) · \(WeatherCode.text($0.now.code))" }
+                ?? "No weather loaded"
         case .home, .info:
             detail = "Click or swipe down to open"
         }

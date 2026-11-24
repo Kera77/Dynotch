@@ -25,7 +25,7 @@ extension NotchController {
         let found = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
-            recording: screenshots.recordingSince
+            recording: screenshots.recordingSince, tools: ToolsService.shared.glance
         )
         let items = IndicatorItem.unfoldingUsage(found, hovered: model.hoveredIndicator, wings: settings.noticesBeside)
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
@@ -107,6 +107,7 @@ extension NotchController {
             // The cover and the stats open their module (spec MU-2, SY-7).
             // With a warning the stats drop it down with an X instead (spec SY-10).
             if let feature = items[slot].opensModule, feature != .stats || stats.indicator.warnings.isEmpty {
+                if case .tools(let glance) = items[slot] { ToolsSettings.shared.tab = glance.tab }
                 openFromIndicator(feature)
                 return
             }
