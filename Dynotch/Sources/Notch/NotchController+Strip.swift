@@ -99,7 +99,8 @@ extension NotchController {
         else { return }
         model.smartUsed.insert(choice.key)
         prepare(choice, context: context)
-        model.select(choice.feature)
+        // A device notice opens the System module on its picked tab, not on Batteries (spec MG-10).
+        model.select(choice.key.hasPrefix("notice:") ? settings.hostFeature(of: choice.feature) : choice.feature)
     }
 
     /// What the chosen module gets ready with: the calculation, the code, the file or today.

@@ -74,6 +74,9 @@ final class AppSettings: ObservableObject {
     @Published private(set) var enabledFeatures: Set<FeatureID> {
         didSet { defaults.set(enabledFeatures.map(\.rawValue).sorted(), forKey: Key.enabledFeatures) }
     }
+    /// A module that is off, opened from the swipe-up row: it runs and shows while the notch is
+    /// open, then goes back to off (spec QS-15). Never saved.
+    @Published var visitingFeature: FeatureID?
 
     /// On, but not among the modules: opened from elsewhere, e.g. Music from its cover (spec MU-8).
     @Published var unlistedFeatures: Set<FeatureID> = [] {
@@ -356,11 +359,6 @@ extension AppSettings {
 
     func setSmartRule(_ rule: SmartRule, enabled: Bool) {
         if enabled { smartRulesOff.remove(rule) } else { smartRulesOff.insert(rule) }
-    }
-
-    /// A merged module runs while its host is on (spec MG-4).
-    func isEnabled(_ feature: FeatureID) -> Bool {
-        enabledFeatures.contains(isMerged(feature) ? hostFeature(of: feature) : feature)
     }
 
     /// Enables or disables a feature. The last enabled feature can't be disabled.

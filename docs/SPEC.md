@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.101 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v0.102 elfogadva** · Utolsó módosítás: 2026-11-24
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -223,6 +223,7 @@
 | K-14 | (v0.43, v0.44-ben bővítve) **Napi idővonal** a napi nézetben: az események színes sávként (ha elég széles, a nevükkel) 8–20 óra között (korábbi/későbbi eseménynél szélesebb), „most” vonal, a következő linkes megbeszélés kiemelve, kattintásra csatlakozik. |
 | K-15 | (v0.44) A napsor a mai naptól **14 napot vissza és 14 napot előre** mutat. A nagy hónap-oszlop helyett a hónap neve kicsiben a napok és az idővonal közötti sávban; ahol új hónap kezdődik, a nap alatt a hónap rövid neve és egy vékony elválasztó. Ha nem a mai nap van kiválasztva, a napsor jobb végén **Today** kapszula visz vissza. (v0.49) A swipe is legfeljebb ±14 napig léptet (fal), nem csak a napsor. |
 | K-15b | (v0.89) A napsor alatti **hónapnévnek nincs fekete háttere**: átlátszó, Liquid glass és Black to glass designnál sem áll alatta fekete folt. |
+| K-16 | (v0.102) **Akadásmentes nyitás:** a napsor a kiválasztott napon, az eseménylista a folyamatban lévő vagy következő eseményen (K-5b) már az első képkockán a helyén áll; eddig egy képkockával a nyitás után ugrottak oda, ami a nyitást darabossá tette. |
 | K-14b | (v0.45) Az idővonal sávjain **nincs felirat**, csak a naptár saját színe. Egy sávra mutatva a sáv alatt, az órák sorában buborék jelenik meg a meeting nevével és idejével (a rendszer lassú súgója helyett). |
 
 ---
@@ -401,6 +402,7 @@ Az [AutoRaise](https://github.com/sbmpost/AutoRaise) „focus without raise” m
 | F-15d | (v0.67.3) Átadáskor a Dynotch ténylegesen deaktiválódik (akkor is, ha a macOS már a másik appot tartja előtérben), és ha a notch-panel ezután is fogja a billentyűzetet, egy pillanatra leveszi és visszateszi, hogy elengedje. A `focus.log` az átadás utáni állapotot is írja. |
 | F-16 | (v0.83) **Kattintások nem akadnak el a notch ablakán:** a notch ablaka szinte a teljes kijelzőt lefedi (a nagy modulok miatt). Becsukott notchnál minden egérmozgásra ellenőrzi, hogy az egér a látható notch valamelyik aktív részén van-e (jelzők és lenyílók, kis értesítés, eszközértesítés, modulsor); ha nem, az ablak biztosan átengedi a kattintásokat. Eddig egy eltűnt értesítés vagy lenyíló után bent ragadhatott, és a notch alatti appok (pl. a Zen oldalsávja: mappák, kiemelt oldalak) nem kapták meg a kattintást. |
 | F-17 | (v0.101, hiba) **Lenyitott notchról is követ:** ha a lenyitott notch-nál van a billentyűzet (F-15), és az egér a notch-on kívül egy másik ablakra megy, a fókusz kattintás nélkül átmegy oda: a notch elengedi a billentyűzetet, és a váltás megtörténik. Amíg az egér a lenyitott notch felett van, a gépelés nem szakad meg (F-4); visszatérve a notch újra megkapja (F-15). |
+| F-18 | (v0.102) (hiba) **Nem gépelős modulnál is elenged:** ha a Dynotch aktív app lett (pl. kattintás vagy menü után a System modulban), de egyik ablaka sem kéri a billentyűzetet, a lenyomott billentyűk eddig némán elvesztek, és a fókusz nem ment át a másik ablakra. Mostantól, ha az egér a lenyitott notch-on kívül egy ablakon megáll, a Dynotch elengedi a billentyűzetet, és az ablak (akkor is, ha a macOS szerint már ő a fókuszált) valóban megkapja. Amíg egy Dynotch-menü nyitva van, nem enged el. |
 
 ---
 
@@ -631,6 +633,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | TB-8 | (v0.99) **Egyforma gomb, rövidebb menü (TB-2, TB-3 módosítása):** a tablet gomb ugyanúgy néz ki és ugyanúgy reagál hoverre, mint a felső sor többi ikongombja. A menüben csak a *Mirror or extend to* és a *Link keyboard and mouse to* szakasz és a *Display Settings…* marad; a külön *Mirror* szakasz és a csatlakozott iPad *Use as / Disconnect* szakasza megszűnt (lecsatlakozás a pipás iPadre kattintva). |
 | TB-9 | (v0.101) **Menü a gomb alatt:** a tablet gomb menüje pontosan a gomb alatt, vízszintesen középre igazítva nyílik le (eddig a mutató helyén). |
 | TB-10 | (v0.101) **Nincs notch az iPaden:** a kijelzőként csatlakozott iPadre (Sidecar) a Dynotch nem tesz notch-ot; a többi kijelző változatlan. |
+| TB-11 | (v0.102) (hiba) **Nincs görgetőnyíl a tablet menüben:** a menü teteje sosem kerül a menüsor sávjába (a kijelző látható területének teteje alá igazodik), így a macOS nem tesz bele felfelé mutató görgetőnyilat, és a menü nem csúszik lejjebb, ha az egér a tetejére megy. |
 
 ## 4s. Claude kérdez (v0.36)
 
@@ -690,6 +693,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-19 | (v0.100) **Egységes tempó:** a notch nyitása, zárása és átméretezése (köztük a Naptár nagy nézetre váltása) ~15%-kal gyorsabb (0,38 helyett 0,32 mp); minden más mozgás (fülváltás, kis részek, szárnyak elemei, modulsor, váltók, görgetés a mai napra, törlések) ugyanezt a két tempót használja: a nyitásét vagy a rövidebb ~0,18 mp-eset; a hover marad 0,12 mp. Kivétel: az ablakváltó szándékosan gyorsabb lenyílása (AS-15), a futó feliratok és a pulzálás. A Naptár kis és nagy nézete közti áttűnés rövid, így a panel nyílása nem akad. |
 | D-20 | (v0.101) **Egységes betűméret az üres modulokon:** minden modul üres állapota (pl. Tray *Drop files on the notch…*, Vágólap, Képek) ugyanúgy néz ki, mint az AI *Ask … anything* felirata: 26 pt ikon, alatta 13 pt közepes vastagságú, másodlagos fehér szöveg (a rendszer nagy, félkövér címe helyett). |
 | D-21 | (v0.101) **Még gyorsabb alaptempó (D-19 módosítása):** a nyitás/zárás/átméretezés tempója 0,32 helyett 0,27 mp, a rövid tempó 0,18 helyett 0,15 mp; a hover marad 0,12 mp. A D-19 kivételei változatlanok. |
+| D-22 | (v0.102) **Még gyorsabb tempó (D-21 módosítása):** a nyitás/zárás/átméretezés 0,27 helyett 0,23 mp (kicsit feszesebb rugóval), a rövid tempó 0,15 helyett 0,13 mp; a hover marad 0,12 mp. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -1046,6 +1050,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MG-7 | A vendégmodul **gyorsbillentyűje** (SC-1) összevonva is megmarad, és a gazdamodult a vendég fülén nyitja; a Features listában a sora a helyén marad, behúzva, a be/ki kapcsolója letiltva (a gazdamodulét követi). |
 | MG-8 | Az átméretezésnél (RS-3, RS-6) a két fül **külön méretet** jegyez meg, mint a nagy és kis nézetek. |
 | MG-9 | (v0.97) **Mindig összevonva (MG-1, MG-3, MG-7 módosítása):** a Batteries mindig a System, az AI Usage mindig az AI füle; az *In System / In AI* választó megszűnt, és a két modul nem szerepel a *Settings › Modules* listában (a be/ki kapcsolásuk a gazdamodulét követi, MG-4). Egy korábban beállított gyorsbillentyűjük megmarad, és a gazdamodult a fülükön nyitja. |
+| MG-10 | (v0.102) **A választott fül marad (MG-2, MG-6, SO-9 módosítása):** az összevont modul (System \| Batteries, AI Chat \| Usage) alapból a **saját** fülén nyílik (System, Chat). A kézzel választott fül minden nyitásnál (hover, ikon, ikonsor, gyorsbillentyű, swipe) marad a következő kézi váltásig, újraindítás után is. A célzott nyitások (alacsony akku SO-2/4, akkujelző MG-5, a vendég gyorsbillentyűje MG-7, eszközértesítésre pihenés DV-14) az adott alkalomra a vendég fülét mutatják, de a választást nem írják felül; a legutóbbi eszközértesítés (SO-9) a System modult a választott fülén nyitja. Ugyanígy megmarad a Vágólap (*Clipboard \| Saved*) és a Tray mappafüle is; az Értesítések füle és az AI szolgáltatása eddig is megmaradt. |
 
 ## 4ő+++. Levelek olvasatlanjai az Apple Mailből (v0.74)
 
@@ -1102,6 +1107,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | QS-12 | (v0.95) **Mindig egy sor (a QS-4 módosítása):** a modulok négynél több esetén is egy sorban állnak; a lenyíló rész ehhez kiszélesedik (legfeljebb a kijelző szélességéig, ~40 pt margóval). Ha így sem férnek ki, a csempék kisebbek lesznek, de nem törnek új sorba. |
 | QS-13 | (v0.100) **Áthelyezés a Modules lapra:** a modulváltó (*Module switcher*, ujjak száma) és a sor moduljainak listája a *Settings › Switcher* lapról a *Settings › Modules* lapra került, a lista neve *Swipe-up modules* (korábban *In the swipe row*). |
 | QS-14 | (v0.100) **A Module strip is a Modules lapon (MS-2, MS-5 áthelyezése):** a *Module strip* szakasz (ikonsor, késleltetések, *Modules in the strip*) a *Settings › Appearance* lapról a *Settings › Modules* lapra került. |
+| QS-15 | (v0.102) **Kikapcsolt modul is (QS-10 módosítása):** a *Swipe-up modules* listába kikapcsolt modul is felvehető, és a sorban is megjelenik; kiválasztva lenyílik, és amíg a notch nyitva van, úgy működik, mintha be lenne kapcsolva (a felső ikonsorban is látszik). Csukáskor visszaáll kikapcsoltra; a *Settings › Modules* kapcsolója közben is kikapcsoltat mutat. |
 
 ## 4ő++++++. Beállítások egységes designja (v0.95)
 
@@ -1169,6 +1175,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v0.102.0** | Nincs görgetőnyíl az iPad menüben, nem gépelős modulból is követ a fókusz, a választott fül marad (System alapból), még gyorsabb tempó, akadásmentes Naptár-nyitás, kikapcsolt modul is a swipe-up sorban (TB-11, F-18, MG-10, D-22, K-16, QS-15) |
 | **v0.101.0** | iPad menü a gomb alatt, nincs notch az iPaden, kitűzött Google Chat-beszélgetésnél a küldő neve, Google Chat Mark as read, egységes betűméret az üres modulokon, gyorsabb alaptempó, nincs zöld plusz húzáskor, Fókusz alatt nincs felugrás (appontos kivétellel), lenyitott notchról is követ a fókusz (TB-9, TB-10, GW-27, GW-28, D-20, D-21, M-16, E-20d, F-17) |
 | **v0.100.0** | Liquid glass újra üveges (három design), egységes, gyorsabb animációk és sima Naptár-nyitás, akadásmentes vágólap-átrendezés, Modules lista újra húzható, Module strip és modulváltó a Modules lapon (Swipe-up modules), új hézagstílusok és elrejtés, ha nincs mellette ikon, Beeper Mark as read, beállítások utolsó lapja, Fókusz-némítás törölve (D-14f, D-19, CB-9, M-15, QS-13, QS-14, MB-13, MB-14, BP-20, SD-15, E-20c) |
 | **v0.99.0** | Accent erősség csúszka és biztosan látszó accent a Black to glassban, az Original nézet megszűnt, egyforma iPad gomb rövidebb menüvel, kerekebb hover, beállítás-sorok húzása nem marad szürke, mentett vágólap átrendezhető, nyugodtabb modul-swipe (D-14e, D-15j, D-17e, D-17f, TB-8, SD-14, CB-8, M-14) |

@@ -27,41 +27,49 @@ struct DayStripView: View {
         return (-reach...reach).compactMap { calendar.date(byAdding: .day, value: $0, to: anchor) }
     }
 
+    /// The day in the middle of the strip, set before the first frame: scrolling there a frame
+    /// later made the opening jerk (spec K-16).
+    @State private var centred: Date?
+
+    init(selectedDay: Binding<Date>, today: Date, counts: [Date: Int]) {
+        _selectedDay = selectedDay
+        self.today = today
+        self.counts = counts
+        _centred = State(initialValue: selectedDay.wrappedValue)
+    }
+
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal) {
-                HStack(spacing: 0) {
-                    ForEach(days, id: \.self) { day in
-                        DayCell(
-                            day: day,
-                            isToday: day == today,
-                            isSelected: day == selectedDay,
-                            hasEvents: (counts[day] ?? 0) > 0
-                        )
-                        .id(day)
-                        .onTapGesture {
-                            withAnimation(Motion.quick) { selectedDay = day }
-                        }
+        ScrollView(.horizontal) {
+            HStack(spacing: 0) {
+                ForEach(days, id: \.self) { day in
+                    DayCell(
+                        day: day,
+                        isToday: day == today,
+                        isSelected: day == selectedDay,
+                        hasEvents: (counts[day] ?? 0) > 0
+                    )
+                    .id(day)
+                    .onTapGesture {
+                        withAnimation(Motion.quick) { selectedDay = day }
                     }
                 }
             }
-            .scrollIndicators(.never)
-            .mask(edgeFade)
-            // The selected day's month, small in the gap under the days (spec K-15).
-            .overlay(alignment: .bottomLeading) {
-                Text(selectedDay.formatted(.dateTime.month(.wide)))
-                    .font(.notch(size: 9, weight: .semibold))
-                    .foregroundStyle(Color.white.level(0.55))
-                    // No backing of its own: it would stand as a black patch on glass (spec K-15b).
-                    .padding(.leading, 6)
-                    .allowsHitTesting(false)
-            }
-            .onAppear {
-                DispatchQueue.main.async { proxy.scrollTo(selectedDay, anchor: .center) }
-            }
-            .onChange(of: selectedDay) { _, day in
-                withAnimation(Motion.quick) { proxy.scrollTo(day, anchor: .center) }
-            }
+            .scrollTargetLayout()
+        }
+        .initialScroll(to: $centred, anchor: .center)
+        .scrollIndicators(.never)
+        .mask(edgeFade)
+        // The selected day's month, small in the gap under the days (spec K-15).
+        .overlay(alignment: .bottomLeading) {
+            Text(selectedDay.formatted(.dateTime.month(.wide)))
+                .font(.notch(size: 9, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.55))
+                // No backing of its own: it would stand as a black patch on glass (spec K-15b).
+                .padding(.leading, 6)
+                .allowsHitTesting(false)
+        }
+        .onChange(of: selectedDay) { _, day in
+            withAnimation(Motion.quick) { centred = day }
         }
     }
 

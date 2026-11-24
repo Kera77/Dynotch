@@ -18,12 +18,12 @@ extension NotchView {
         if let tabs = settings.mergedTabs(for: feature), tabs[0] == .claudeChat {
             // The AI module's header has room for the tabs, beside its buttons on the right.
             modulePage(for: feature)
-                .environment(\.mergedTabs, MergedTabs(tabs: tabs, selected: feature) { tab in model.select(tab, exact: true) })
+                .environment(\.mergedTabs, MergedTabs(tabs: tabs, selected: feature) { tab in model.pickTab(tab) })
         } else if let tabs = settings.mergedTabs(for: feature) {
             VStack(alignment: .leading, spacing: 6) {
                 CapsulePicker(
                     items: tabs,
-                    selection: Binding(get: { feature }, set: { tab in model.select(tab, exact: true) }),
+                    selection: Binding(get: { feature }, set: { tab in model.pickTab(tab) }),
                     title: \.tabTitle
                 )
                 modulePage(for: feature)

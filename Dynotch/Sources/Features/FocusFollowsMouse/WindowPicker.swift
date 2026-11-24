@@ -61,6 +61,15 @@ enum FocusRules {
         return (window as? NotchPanel)?.allowsKey ?? true
     }
 
+    /// A Dynotch menu (Options, list pickers, the tablet menu) is on screen: letting go of the
+    /// keyboard would close it (spec F-18).
+    static func hasOpenMenu(in windows: [ScreenWindow], ownPID: pid_t) -> Bool {
+        windows.contains { $0.pid == ownPID && $0.layer == popUpMenuLayer }
+    }
+
+    /// `kCGPopUpMenuWindowLevel`.
+    static let popUpMenuLayer = Int(CGWindowLevelForKey(.popUpMenuWindow))
+
     /// Windows smaller than this inside the active app are taken for pop-ups (spec F-13).
     static let minimumSwitchSize = CGSize(width: 120, height: 80)
 

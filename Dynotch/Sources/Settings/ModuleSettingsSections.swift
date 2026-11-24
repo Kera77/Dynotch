@@ -69,7 +69,7 @@ struct ModuleSwitcherSections: View {
         } header: {
             Text("Swipe-up modules")
         } footer: {
-            Text("Shown in this order, always in one row. A module that is off stays here but is left out of the row.")
+            Text("Shown in this order, always in one row. A module that is off shows and opens here too.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -82,7 +82,7 @@ struct ModuleSwitcherSections: View {
     }
 
     private func moduleLabel(_ feature: FeatureID) -> some View {
-        SettingsRowLabel(title: feature.title, detail: modules.isEnabled(feature) ? nil : "Off") {
+        SettingsRowLabel(title: feature.title, detail: modules.isSwitchedOn(feature) ? nil : "Off") {
             Image(systemName: feature.symbolName)
                 .foregroundStyle(.secondary)
         }

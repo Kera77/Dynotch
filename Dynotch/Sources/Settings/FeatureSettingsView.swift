@@ -72,7 +72,7 @@ private struct FeatureRow<Music: View>: View {
 
     @State private var isOpen = false
 
-    private var isOn: Bool { settings.isEnabled(feature) }
+    private var isOn: Bool { settings.isSwitchedOn(feature) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

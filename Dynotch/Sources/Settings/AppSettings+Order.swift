@@ -68,6 +68,18 @@ extension AppSettings {
 
     // MARK: Merged modules (spec MG-1…MG-8)
 
+    /// A merged module runs while its host is on (spec MG-4); an off module opened from the
+    /// swipe-up row runs while it is open (spec QS-15).
+    func isEnabled(_ feature: FeatureID) -> Bool {
+        let module = hostFeature(of: feature)
+        return enabledFeatures.contains(module) || visitingFeature == module
+    }
+
+    /// The module's own switch in the settings, without a visit from the swipe-up row (spec QS-15).
+    func isSwitchedOn(_ feature: FeatureID) -> Bool {
+        enabledFeatures.contains(hostFeature(of: feature))
+    }
+
     /// Batteries and AI Usage are always tabs of their hosts (spec MG-9).
     func isMerged(_ feature: FeatureID) -> Bool {
         feature.mergeHost != nil
@@ -83,6 +95,17 @@ extension AppSettings {
         let host = hostFeature(of: feature)
         guard let guest = FeatureID.allCases.first(where: { $0.mergeHost == host && isMerged($0) }) else { return nil }
         return [host, guest]
+    }
+
+    /// The tab of a merged module picked by hand last (spec MG-10); nil: the host's own.
+    func chosenTab(of host: FeatureID) -> FeatureID? {
+        (defaults.dictionary(forKey: "mergedTabChoice")?[host.rawValue] as? String).flatMap(FeatureID.init(rawValue:))
+    }
+
+    func chooseTab(_ tab: FeatureID, of host: FeatureID) {
+        var choices = defaults.dictionary(forKey: "mergedTabChoice") ?? [:]
+        choices[host.rawValue] = tab.rawValue
+        defaults.set(choices, forKey: "mergedTabChoice")
     }
 
     func loadModuleOptions() {

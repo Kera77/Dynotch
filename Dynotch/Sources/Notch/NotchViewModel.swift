@@ -91,18 +91,17 @@ final class NotchViewModel: ObservableObject {
 
     /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
     @Published private(set) var switcherFirst = 0
-    /// The tab last shown of each merged module, by its host (spec MG-2).
-    private var lastTabs: [FeatureID: FeatureID] = [:]
 
     /// Merged, the AI tabs sit in the header beside the chat list, which needs the medium width (spec MG-2).
     private func mergedAIWidth(_ size: CGSize) -> CGSize {
         settings.isMerged(.claudeUsage) ? CGSize(width: max(size.width, geometry.mediumSize.width), height: size.height) : size
     }
 
-    /// The page a merged module's icon opens: the tab last shown, while it is still merged.
+    /// The page a merged module opens on: the tab last picked by hand, else the host's own
+    /// (System, Chat), kept across restarts (spec MG-10).
     func lastTab(of feature: FeatureID) -> FeatureID {
         guard let tabs = settings.mergedTabs(for: feature), feature == tabs[0],
-              let last = lastTabs[feature], tabs.contains(last) else { return feature }
+              let last = settings.chosenTab(of: feature), tabs.contains(last) else { return feature }
         return last
     }
 
@@ -122,6 +121,7 @@ final class NotchViewModel: ObservableObject {
         self.geometry = geometry
         self.screenName = screenName
         currentFeature = settings.initialFeature
+        currentFeature = lastTab(of: settings.hostFeature(of: settings.initialFeature))
     }
 
     /// The panel needs keyboard focus: for the settings' controls and for typing calculations.
@@ -262,13 +262,15 @@ final class NotchViewModel: ObservableObject {
         guard expanded != isExpanded else { return }
         if expanded {
             // Re-check in case the remembered feature was disabled meanwhile (spec L-2).
-            currentFeature = settings.initialFeature
+            // A merged module opens on its picked tab, not on the one an alert showed (spec MG-10).
+            currentFeature = lastTab(of: settings.hostFeature(of: settings.initialFeature))
         }
         notifications = expanded ? presented : []
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         notificationsHeight = expanded ? stackHeight : nil
         if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded {
+            if settings.visitingFeature != nil { settings.visitingFeature = nil }
             holdsForSettings = false
             holdsForTyping = false
             holdsForPreview = false
@@ -361,7 +363,6 @@ final class NotchViewModel: ObservableObject {
         let large = isExpanded && !isShowingNotifications && !isShowingSettings
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
-        if settings.mergedTabs(for: currentFeature) != nil { lastTabs[settings.hostFeature(of: currentFeature)] = currentFeature }
         revealCurrentFeature()
     }
 

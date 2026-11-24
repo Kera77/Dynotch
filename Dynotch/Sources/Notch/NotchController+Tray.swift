@@ -291,6 +291,12 @@ extension NotchController {
                 model.hidesGlass = false
             }
         }
+        // A module that is off opens too, and runs while it is open (spec QS-15).
+        if !settings.isSwitchedOn(feature) {
+            // Closing the notification list first would end the visit at once.
+            if model.isExpanded, model.isShowingNotifications { collapse() }
+            settings.visitingFeature = settings.hostFeature(of: feature)
+        }
         open(feature, pinned: pinned)
     }
 

@@ -140,7 +140,7 @@ final class NotchController {
         model.requestCollapse = { [weak self] in self?.collapse() }
         model.recheckPointer = { [weak self] in self?.evaluatePointerWhileExpanded() }
         panel.keepsKeyboard = { [weak self] point in self?.keepOpenZone.contains(point) ?? true }
-        panel.letGoOfKeyboard = { [weak self] in self?.giveKeyboardBack() }
+        panel.letGoOfKeyboard = { [weak self] in self?.giveKeyboardBack(evenIfNotKey: true) }
         var glassView = rootView
         glassView.layer = .glass
         glassPanel.contentView = NSHostingView(rootView: glassView)

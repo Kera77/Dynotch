@@ -7,7 +7,8 @@ struct ClipboardFeatureView: View {
     /// Closes the notch before pasting, so the app in front gets the keys.
     let close: () -> Void
 
-    @State private var tab = ClipboardTab.history
+    /// The tab stays picked until the next pick, across restarts too (spec MG-10).
+    @AppStorage("clipboardTab") private var tab = ClipboardTab.history
     @State private var search = ""
     @State private var newSaved = ""
     /// Reordering the saved items (spec CB-8): the dragged row, where it was grabbed, the pointer.

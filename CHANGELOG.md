@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.102.0] - 2026-11-24
+
+### Added
+
+- The swipe-up row takes modules that are off too: picked, the module opens and runs while the notch is open (QS-15).
+
+### Changed
+
+- System opens on its System tab, AI on Chat; a tab picked by hand stays until the next pick, across restarts, as do the Clipboard and Tray tabs (MG-10).
+- Animations are faster again: 0.23 s and 0.13 s (D-22).
+
+### Fixed
+
+- No scroll arrow in the iPad menu, which slid it down on hover (TB-11).
+- Focus follows the mouse off the open notch in modules that do not type (e.g. System) too (F-18).
+- The Calendar opens without a jerk: the day strip and the events are in place from the first frame (K-16).
+
 ## [0.101.0] - 2026-11-24
 
 ### Added

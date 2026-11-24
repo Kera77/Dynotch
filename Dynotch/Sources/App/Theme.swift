@@ -25,10 +25,10 @@ enum Theme {
 /// The app's two tempos and the hover (spec D-19): every movement uses one of them.
 enum Motion {
     /// Opening, closing and resizing the notch, and anything that moves as far.
-    static var spring: Animation { AppleStyle.spring(response: 0.27, dampingFraction: 0.82) }
+    static var spring: Animation { AppleStyle.spring(response: 0.23, dampingFraction: 0.84) }
     /// Switching a tab, showing or hiding a small part: the system's snappy one (D-15g).
     static var quick: Animation {
-        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.15)
+        AppleStyle.reducesMotion ? .easeInOut(duration: 0.12) : .snappy(duration: 0.13)
     }
     /// Hover highlights.
     static let hover = Animation.easeOut(duration: 0.12)

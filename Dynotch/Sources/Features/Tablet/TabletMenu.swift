@@ -107,11 +107,14 @@ final class MenuAnchor {
     static func point(below view: NSView?, menuWidth: CGFloat) -> CGPoint {
         guard let view, let window = view.window else { return NSEvent.mouseLocation }
         let frame = window.convertToScreen(view.convert(view.bounds, to: nil))
-        return centred(below: frame, menuWidth: menuWidth)
+        let visibleTop = (window.screen ?? NSScreen.main)?.visibleFrame.maxY ?? .infinity
+        return centred(below: frame, menuWidth: menuWidth, visibleTop: visibleTop)
     }
 
-    nonisolated static func centred(below frame: CGRect, menuWidth: CGFloat) -> CGPoint {
-        CGPoint(x: frame.midX - menuWidth / 2, y: frame.minY - 4)
+    /// Never above the menu bar's bottom edge: a menu reaching into it gets a scroll arrow that
+    /// slides it down on hover (spec TB-11).
+    nonisolated static func centred(below frame: CGRect, menuWidth: CGFloat, visibleTop: CGFloat = .infinity) -> CGPoint {
+        CGPoint(x: frame.midX - menuWidth / 2, y: min(frame.minY - 4, visibleTop))
     }
 }
 

@@ -95,3 +95,15 @@ struct CalendarIconButton: View {
         .help(help)
     }
 }
+
+extension View {
+    /// Scrolls to `id` from the first frame on, not a frame later (spec K-16); the anchor needs macOS 15.
+    @ViewBuilder
+    func initialScroll<ID: Hashable>(to id: Binding<ID?>, anchor: UnitPoint) -> some View {
+        if #available(macOS 15, *) {
+            scrollPosition(id: id, anchor: anchor)
+        } else {
+            scrollPosition(id: id)
+        }
+    }
+}

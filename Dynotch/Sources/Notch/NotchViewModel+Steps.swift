@@ -17,3 +17,11 @@ extension NotchViewModel {
         currentFeature == .terminal && !isPreview && TerminalStore.shared.typedRecently
     }
 }
+
+extension NotchViewModel {
+    /// A merged module's tab picked by hand: shown now and on every opening until the next pick (spec MG-10).
+    func pickTab(_ tab: FeatureID) {
+        settings.chooseTab(tab, of: settings.hostFeature(of: tab))
+        select(tab, exact: true)
+    }
+}

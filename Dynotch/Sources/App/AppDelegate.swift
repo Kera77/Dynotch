@@ -224,10 +224,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let shortcuts = services.shortcuts
         let settings = services.settings
         modules.settings.seedModuleRow(settings.activeFeatures.filter { shortcuts.shortcuts[$0] != nil })
-        // The chosen modules that are on, in the row's order (spec QS-10).
+        // The chosen modules in the row's order, those that are off too (spec QS-15); a merged
+        // module stands on its host's tab (spec MG-9).
         modules.candidates = { [weak modules] in
-            let active = Set(settings.activeFeatures)
-            return modules?.settings.moduleRow.filter(active.contains) ?? []
+            modules?.settings.moduleRow.filter { !settings.isMerged($0) || settings.isSwitchedOn($0) } ?? []
         }
         modules.current = { [weak manager] in manager?.openModule() }
         modules.present = { [weak manager] shown in manager?.showModuleSwitcher(shown) }

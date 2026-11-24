@@ -50,26 +50,20 @@ final class FocusFollowsMouse {
         }
     }
 
-    private func focusWindowUnderPointer(mayLetGo: Bool = true) {
+    private func focusWindowUnderPointer(afterLettingGo: Bool = false) {
         // Never while dragging or selecting, and never take the keyboard from a Dynotch panel
         // someone is typing in (spec F-4).
         guard NSEvent.pressedMouseButtons == 0 else { return }
-        if let window = NSApp.windows.first(where: FocusRules.takesKeyboard) {
-            // The open notch lets go once the pointer has left it; the switch follows (spec F-17).
-            if mayLetGo, let panel = window as? NotchPanel, !panel.keepsKeyboard(NSEvent.mouseLocation) {
-                panel.letGoOfKeyboard()
-                retryAfterLettingGo()
-                return
-            }
-            logSkip("a Dynotch window has the keyboard (\(type(of: window)))")
-            return
-        }
         guard let point = CGEvent(source: nil)?.location,
               let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]]
         else { return }
-
         let windows = WindowPicker.screenWindows(from: info)
+        if !afterLettingGo, letGoIfDynotchHoldsKeys(windows: windows) { return }
+        if NSApp.windows.contains(where: FocusRules.takesKeyboard) {
+            logSkip("a Dynotch window has the keyboard")
+            return
+        }
         guard let target = WindowPicker.window(at: point, in: windows, ownPID: getpid()) else { return }
 
         let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
@@ -81,7 +75,10 @@ final class FocusFollowsMouse {
         // Asked only inside the active app, and only when another of its windows is under the pointer.
         let targetIsStandard = sameApp && target.id != focusedWindow
             && SkyLightFocus.isStandardWindow(pid: target.pid, windowID: target.id, size: target.bounds.size)
-        guard FocusRules.shouldSwitch(
+        // Dynotch just let go: the window may count as focused while it does not get the keys
+        // yet, so it is made key for real (spec F-18).
+        let reassert = afterLettingGo && sameApp && target.id == focusedWindow && !focusedIsDialog
+        guard reassert || FocusRules.shouldSwitch(
             target: target, frontPID: frontPID, focusedWindow: focusedWindow, focusedIsDialog: focusedIsDialog,
             targetIsStandard: targetIsStandard
         ) else {
@@ -93,12 +90,34 @@ final class FocusFollowsMouse {
             return
         }
         if SkyLightFocus.focusWithoutRaise(
-            pid: target.pid, windowID: target.id, focusedPID: frontPID, focusedWindowID: focusedWindow
+            pid: target.pid, windowID: target.id,
+            focusedPID: reassert ? nil : frontPID, focusedWindowID: reassert ? nil : focusedWindow
         ) {
             lastFocused = target.id
         } else {
             logSkip("the window server refused the switch")
         }
+    }
+
+    /// The open notch lets go of the keyboard once the pointer rests outside it, whether a
+    /// module asked for the keys (spec F-17) or Dynotch only became active, e.g. after a click
+    /// in the System module, and typing went nowhere (spec F-18). Not while a Dynotch menu is open.
+    /// - Returns: true when it let go; the switch follows a moment later.
+    private func letGoIfDynotchHoldsKeys(windows: [ScreenWindow]) -> Bool {
+        let panels = NSApp.windows.compactMap { $0 as? NotchPanel }
+        let mouse = NSEvent.mouseLocation
+        // A closed panel may still report itself key without getting any keys (spec F-11).
+        let keyPanel = panels.first { $0.isKeyWindow && $0.isVisible && $0.allowsKey }
+        let otherKey = NSApp.windows.contains { $0.isKeyWindow && $0.isVisible && !($0 is NotchPanel) }
+        guard !otherKey, keyPanel != nil || NSApp.isActive,
+              !FocusRules.hasOpenMenu(in: windows, ownPID: getpid()),
+              !panels.contains(where: { $0.isVisible && $0.keepsKeyboard(mouse) }),
+              let panel = keyPanel ?? panels.first
+        else { return false }
+        DiagnosticsLog.append("focus", "letting go: panel key=\(keyPanel != nil) dynotch active=\(NSApp.isActive)")
+        panel.letGoOfKeyboard()
+        retryAfterLettingGo()
+        return true
     }
 
     /// Once the notch has handed the keyboard back (it takes a moment), the window under the
@@ -108,7 +127,7 @@ final class FocusFollowsMouse {
         pending = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
-            self?.focusWindowUnderPointer(mayLetGo: false)
+            self?.focusWindowUnderPointer(afterLettingGo: true)
         }
     }
 

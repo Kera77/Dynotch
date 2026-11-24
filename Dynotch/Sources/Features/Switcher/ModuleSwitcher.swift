@@ -30,7 +30,7 @@ final class ModuleSwitcher: ObservableObject {
     @Published private(set) var selection = 0
 
     let settings: SwitcherSettings
-    /// The chosen modules that are on, in the row's order (spec QS-10).
+    /// The chosen modules, in the row's order, those that are off too (spec QS-10, QS-15).
     var candidates: () -> [FeatureID] = { [] }
     /// The module open in the notch under the pointer, if any.
     var current: () -> FeatureID? = { nil }

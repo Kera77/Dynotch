@@ -4,6 +4,15 @@ import SwiftUI
 struct CalendarCompactView: View {
     @ObservedObject var service: CalendarService
     let expand: () -> Void
+    /// The meeting in progress or the next one at the top, set before the first frame: scrolling
+    /// there a frame later made the opening jerk (spec K-5b, K-16).
+    @State private var topEvent: String?
+
+    init(service: CalendarService, expand: @escaping () -> Void) {
+        self.service = service
+        self.expand = expand
+        _topEvent = State(initialValue: CalendarAgenda.focusEvent(in: service.events(on: service.selectedDay), now: service.now)?.id)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,38 +68,23 @@ struct CalendarCompactView: View {
         } else {
             DayTimelineView(events: events, day: service.selectedDay, now: service.now) { service.join($0) }
                 .padding(.top, 4)
-            ScrollViewReader { proxy in
-                ScrollView(.vertical) {
-                    VStack(spacing: 8) {
-                        ForEach(events) { event in
-                            CompactEventRow(event: event, now: service.now) { service.join(event) }
-                                .id(event.id)
-                        }
+            ScrollView(.vertical) {
+                VStack(spacing: 8) {
+                    ForEach(events) { event in
+                        CompactEventRow(event: event, now: service.now) { service.join(event) }
+                            .id(event.id)
                     }
-                    .padding(.vertical, 6)
                 }
-                .scrollIndicators(.never)
-                // The meeting in progress or the next one is at the top (spec K-5b).
-                .onAppear { scrollToCurrent(events, proxy: proxy, animated: false) }
-                .onChange(of: service.selectedDay) { _, day in
-                    scrollToCurrent(service.events(on: day), proxy: proxy, animated: false)
-                }
-                .onChange(of: CalendarAgenda.focusEvent(in: events, now: service.now)?.id) { _, _ in
-                    scrollToCurrent(events, proxy: proxy, animated: true)
-                }
+                .scrollTargetLayout()
+                .padding(.vertical, 6)
             }
-        }
-    }
-}
-
-extension CalendarCompactView {
-    private func scrollToCurrent(_ events: [CalendarEvent], proxy: ScrollViewProxy, animated: Bool) {
-        guard let target = CalendarAgenda.focusEvent(in: events, now: service.now) else { return }
-        DispatchQueue.main.async {
-            if animated {
-                withAnimation(Motion.quick) { proxy.scrollTo(target.id, anchor: .top) }
-            } else {
-                proxy.scrollTo(target.id, anchor: .top)
+            .initialScroll(to: $topEvent, anchor: .top)
+            .scrollIndicators(.never)
+            .onChange(of: service.selectedDay) { _, day in
+                topEvent = CalendarAgenda.focusEvent(in: service.events(on: day), now: service.now)?.id
+            }
+            .onChange(of: CalendarAgenda.focusEvent(in: events, now: service.now)?.id) { _, id in
+                withAnimation(Motion.quick) { topEvent = id }
             }
         }
     }

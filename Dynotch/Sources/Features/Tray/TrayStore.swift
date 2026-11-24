@@ -25,7 +25,11 @@ final class TrayStore: ObservableObject {
     @Published private(set) var folders: [TrayFolder] = []
     /// nil: the tray itself; otherwise an attached folder, whose changes are followed (spec FT-9).
     @Published var selectedFolder: UUID? {
-        didSet { watchSelectedFolder() }
+        didSet {
+            watchSelectedFolder()
+            // The tab stays picked across restarts (spec MG-10).
+            defaults.set(selectedFolder?.uuidString, forKey: "traySelectedFolder")
+        }
     }
     private let watcher = FolderWatcher()
     /// The built-in Screenshots tab: the newest shots of ~/Pictures/Screenshots (spec SH-11).
@@ -85,6 +89,11 @@ final class TrayStore: ObservableObject {
         fixedColours = defaults.dictionary(forKey: "trayTabColours") as? [String: Int] ?? [:]
         load()
         dropExpired()
+        let saved = defaults.string(forKey: "traySelectedFolder").flatMap(UUID.init(uuidString:))
+        if let saved, saved == Self.screenshotsID || folders.contains(where: { $0.id == saved }) {
+            selectedFolder = saved
+            watchSelectedFolder()
+        }
     }
 
     // MARK: - The tray
