@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-25
+
 ### Added
 
 - Wings on a large display (1800 pt wide or more): two more upcoming events, up to 9 apps, 5 clipboard items a side, 8 tray files, 8 devices, and the next six hours' weather with today's high and low (PV-75).

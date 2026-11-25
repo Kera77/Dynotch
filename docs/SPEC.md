@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.1 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.2 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1405,6 +1405,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.2.0** | Bemutató kártyája a notch aljához tapad, gyakorláskor a lenyílt notch alá csúszik (OB-34, OB-35); What's new a notchból nyílik a frissítés-értesítésre hoverelve, csak *Got it* tünteti el (WN-6…WN-8); nagy kijelzőn több adat a Wingsben (PV-75); Tools a Pomodoro méretére (TM-22) |
 | **v1.1.0** | Bemutató: tartalomhoz igazodó, egérrel mozgatható kártya, a gombok mindig a képernyőn; *End tour* gomb a tippekkel együtt; 2–3 mondatos modulleírások (OB-30…OB-33); What's new kártya frissítés után (WN-1…WN-5) |
 | **v1.0.0** | Wingmate név (csak a látható név, WM-1, WM-2); első indításkori bemutató a notchnál gyakorló lépésekkel, modulválasztással, engedélyekkel, *Replay tour* a General lapon; első használati tippek modulonként (OB-1…OB-29) |
 | **v0.113.0** | Tools: hoverre vezérlők a notch melletti jelzőn (lefelé, Wingsben oldalra), stopper alapból a notch mellett, magasabb Tools modul; fülekkel bíró modulok egy közös mérete a legnagyobb fül szerint; időjárás: jelenlegi hely vagy mentett helyek, helymeghatározás entitlement javítás (TM-18…TM-21, RS-7, WX-9, WX-10) |
