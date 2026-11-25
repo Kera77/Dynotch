@@ -94,11 +94,7 @@ struct ClaudeUsageView: View {
     /// Auto or an account picked by hand, and the account shown (spec CL-11, CL-12).
     private var accountRow: some View {
         HStack(spacing: 8) {
-            CapsulePicker(
-                items: ["auto"] + service.accounts.map(\.id),
-                selection: Binding(get: { service.selection ?? "auto" }, set: { service.select($0 == "auto" ? nil : $0) }),
-                title: { id in id == "auto" ? "Auto" : service.accounts.first { $0.id == id }?.name ?? id }
-            )
+            CapsulePicker(items: accountItems, selection: accountSelection, title: accountTitle)
             Spacer(minLength: 4)
             HStack(spacing: 5) {
                 if service.isConsuming(service.shownID) {
@@ -113,6 +109,26 @@ struct ClaudeUsageView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Showing \(service.shownAccount.name)")
         }
+    }
+
+    private static let auto = "auto"
+
+    private var accountItems: [String] {
+        [Self.auto] + service.accounts.map(\.id)
+    }
+
+    private var accountSelection: Binding<String> {
+        let service = service
+        return Binding<String>(
+            get: { service.selection ?? Self.auto },
+            set: { (id: String) in service.select(id == Self.auto ? nil : id) }
+        )
+    }
+
+    private func accountTitle(_ id: String) -> String {
+        if id == Self.auto { return "Auto" }
+        let account: ClaudeAccount? = service.accounts.first { $0.id == id }
+        return account?.name ?? id
     }
 
     private var claudeContent: some View {
