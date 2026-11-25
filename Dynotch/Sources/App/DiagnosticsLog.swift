@@ -49,8 +49,9 @@ extension DiagnosticsLog {
     /// and the end of each log (spec C-7).
     static func report(enabledModules: [String], permissions: [String: Bool]) -> String {
         var lines = [
-            "Dynotch \(AppInfo.version) (\(AppInfo.build)) on macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
+            "Wingmate \(AppInfo.version) (\(AppInfo.build)) on macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
             "Modules: " + enabledModules.joined(separator: ", "),
+            "Tour: " + (UserDefaults.standard.bool(forKey: OnboardingProgress.completedKey) ? "done" : "not done"),
             "Permissions: " + permissions.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value ? "yes" : "no")" }.joined(separator: ", ")
         ]
         flush()

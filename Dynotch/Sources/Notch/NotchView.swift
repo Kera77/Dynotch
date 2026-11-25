@@ -280,6 +280,9 @@ struct NotchView: View {
                 // Never taller than its room, so it cannot push the top row up (spec N-26).
                 featureContent
                     .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    .overlay(alignment: .bottom) {
+                        FirstUseTipView(feature: model.currentFeature, active: model.isExpanded && !model.isPreview)
+                    }
                     .offset(x: model.bounceOffset)
                     .transition(.opacity)
                 if model.isClipboardInline {

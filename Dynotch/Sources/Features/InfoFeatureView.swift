@@ -7,7 +7,7 @@ struct InfoFeatureView: View {
 
     var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
-            row("Dynotch", "\(AppInfo.version) (\(AppInfo.build))")
+            row("Wingmate", "\(AppInfo.version) (\(AppInfo.build))")
             row("Display", screenName)
             row("Notch", geometry.hasPhysicalNotch ? "physical" : "virtual")
             row("Notch size", "\(Int(geometry.notchSize.width)) × \(Int(geometry.notchSize.height)) pt")

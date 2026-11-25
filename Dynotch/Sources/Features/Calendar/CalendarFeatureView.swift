@@ -17,10 +17,10 @@ struct CalendarFeatureView: View {
                     .transition(.opacity.animation(Motion.quick))
             }
         case .notDetermined:
-            accessPrompt(text: "Dynotch needs access to your calendars.", button: "Allow Access")
+            accessPrompt(text: "Wingmate needs access to your calendars.", button: "Allow Access")
         case .denied:
             accessPrompt(
-                text: "No calendar access. Allow it in Privacy & Security › Calendars › Dynotch.",
+                text: "No calendar access. Allow it in Privacy & Security › Calendars › Wingmate.",
                 button: "Open System Settings"
             )
         }

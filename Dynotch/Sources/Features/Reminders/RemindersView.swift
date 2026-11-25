@@ -33,13 +33,13 @@ struct RemindersView: View {
                     .animation(Motion.quick, value: store.editingID)
             case .notDetermined:
                 prompt(
-                    "Dynotch needs access to your reminders.",
+                    "Wingmate needs access to your reminders.",
                     button: "Allow Access",
                     action: store.requestAccess
                 )
             case .denied:
                 prompt(
-                    "No access to reminders.\nPrivacy & Security › Reminders › Dynotch",
+                    "No access to reminders.\nPrivacy & Security › Reminders › Wingmate",
                     button: "Open System Settings",
                     action: store.openPrivacySettings
                 )

@@ -1,0 +1,3 @@
+/* The name shown in Finder, Spotlight and System Settings. */
+"CFBundleDisplayName" = "Wingmate";
+"CFBundleName" = "Wingmate";

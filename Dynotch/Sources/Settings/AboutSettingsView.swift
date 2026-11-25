@@ -13,7 +13,7 @@ struct AboutSettingsView: View {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 72, height: 72)
-            Text("Dynotch")
+            Text("Wingmate")
                 .font(.title2.bold())
             Text("Version \(AppInfo.version) (\(AppInfo.build))")
                 .foregroundStyle(.secondary)
@@ -53,7 +53,7 @@ struct AboutSettingsView: View {
                 Button(copied ? "Copied ✓" : "Copy Diagnostics", action: copyDiagnostics)
                     .help("Versions, modules, permissions and the end of the logs, without any content")
                     .accessibilityLabel("Versions, modules, permissions and the end of the logs, without any content")
-                Button("Quit Dynotch") { NSApp.terminate(nil) }
+                Button("Quit Wingmate") { NSApp.terminate(nil) }
             }
             .padding(.top, 12)
         }
@@ -93,11 +93,11 @@ struct AboutSettingsView: View {
             return "Checking for updates…"
         case .upToDate:
             let time = updates.lastChecked?.formatted(date: .omitted, time: .shortened) ?? ""
-            return "Dynotch is up to date (checked \(time))."
+            return "Wingmate is up to date (checked \(time))."
         case .available(let version):
             return "Version \(version) is available."
         case .installing(let version):
-            return "Installing \(version)… Dynotch restarts by itself."
+            return "Installing \(version)… Wingmate restarts by itself."
         case .failed(let message):
             return "Update failed: \(message)"
         }

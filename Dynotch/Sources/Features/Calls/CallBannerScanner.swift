@@ -7,7 +7,7 @@ enum CallBannerScanner {
     private static let maxElements = 400
     private static let maxDepth = 12
     /// Processes whose small top-level windows are never call banners.
-    private static let ignoredOwners: Set<String> = ["Dock", "Window Server", "WindowServer", "Spotlight", "Dynotch"]
+    private static let ignoredOwners: Set<String> = ["Dock", "Window Server", "WindowServer", "Spotlight", "Dynotch", "Wingmate"]
 
     /// Processes that show call banners; they are looked at for as long as they have a window on
     /// screen. Notification Center draws its banners in one screen-sized transparent window.

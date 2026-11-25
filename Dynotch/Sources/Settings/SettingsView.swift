@@ -117,6 +117,15 @@ private struct GeneralSettingsView: View {
                 footer: "Accessibility: the volume keys and the call banner. Contacts: caller names and texting back."
             )
             Section {
+                Button("Replay tour") { OnboardingController.shared?.replay() }
+            } header: {
+                Text("Onboarding")
+            } footer: {
+                Text("Shows the first-launch tour again, and the first-use tips of the modules.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         setLaunchAtLogin(enabled)
@@ -284,7 +293,7 @@ private struct FocusSettingsView: View {
                     bullet("The app under the pointer gets the keyboard focus once the pointer rests on its window.")
                     bullet("Windows are never raised: a window covering part of another stays in front.")
                     bullet("Nothing happens over the menu bar, the Dock, menus, floating windows or the desktop.")
-                    bullet("It waits while a mouse button is held, and while you type in a Dynotch panel.")
+                    bullet("It waits while a mouse button is held, and while you type in a Wingmate panel.")
                     bullet("Switching between windows of the same app needs Accessibility access.")
                 }
                 .font(.callout)

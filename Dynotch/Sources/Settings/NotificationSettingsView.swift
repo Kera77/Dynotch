@@ -62,7 +62,7 @@ struct NotificationSettingsView: View {
             } header: {
                 Text("Native notifications")
             } footer: {
-                Text("Dynotch closes the macOS banner of every notification shown in the notch; it may flash "
+                Text("Wingmate closes the macOS banner of every notification shown in the notch; it may flash "
                     + "for a moment. To never see it, set the app's banner style to \"None\" in System Settings "
                     + "(keep \"Show in Notification Center\" on).")
                     .font(.caption)
@@ -78,7 +78,7 @@ struct NotificationSettingsView: View {
     /// Why notifications can't be read when access alone is not the reason; what Accessibility is for.
     private var accessFooter: String {
         switch service.status {
-        case .noAccess: "Already on in System Settings? Switch Dynotch off and on there. Accessibility hides the native banners."
+        case .noAccess: "Already on in System Settings? Switch Wingmate off and on there. Accessibility hides the native banners."
         case .unsupported(let message): "Can't be read: \(message)"
         case .disabled: "Notifications are off (Modules page)."
         case .running: "Full Disk Access reads the notifications; Accessibility hides the native banners."

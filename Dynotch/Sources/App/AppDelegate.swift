@@ -94,6 +94,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         manager.start()
         notchManager = manager
+        startOnboarding(manager)
         announceUpdate()
         offerTextService(manager)
 
@@ -176,16 +177,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             guard notifications.preferences.isOn(.updates) else { return }
             notifications.present(
-                title: "Dynotch updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier,
+                title: "Wingmate updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier,
                 kind: .updates
             )
             notices.show(StickyNotice(
-                title: "Dynotch updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
+                title: "Wingmate updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
             ))
         }
     }
 
     /// The window switcher: its shortcut and the trackpad swipe (spec AS-8, AS-11).
+    /// The first-launch tour (spec OB-1, OB-5).
+    private func startOnboarding(_ manager: NotchManager) {
+        let onboarding = OnboardingController(
+            settings: settings, switcher: services.switcher.settings,
+            notchModels: { [weak manager] in manager?.notchModels ?? [] },
+            collapseNotches: { [weak manager] in manager?.collapseAll() },
+            closeSettings: { [weak self] in self?.settingsWindow.close() }
+        )
+        onboarding.startIfNeeded()
+    }
+
     private func startSwitcher(_ manager: NotchManager) {
         let switcher = services.switcher
         switcher.present = { [weak manager] shown in manager?.showSwitcher(shown) }

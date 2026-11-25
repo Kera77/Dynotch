@@ -161,6 +161,8 @@ final class NotchController {
 
     func pointerMoved() {
         guard !model.isHiddenForMissionControl else { return }
+        // The tour covers the notch, except while practising on it (spec OB-10).
+        if OnboardingController.blocksNotch, !model.isExpanded { return }
         updateWingsPeekHover(at: NSEvent.mouseLocation)
         if callIsShown {
             updateCallInteraction()
@@ -224,7 +226,7 @@ final class NotchController {
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
         // A Google Chat card without a notification reads its messages from the web app (spec GW-5c).
         notifications.cardOpened(stack)
-        if smart, stack.isEmpty, notices.notice?.opensChat != true { applySmartOpening() }
+        if smart, stack.isEmpty, notices.notice?.opensChat != true, !OnboardingController.isRunning { applySmartOpening() }
         let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
         Signposts.animate("open", animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
         notifications.clearPeek()

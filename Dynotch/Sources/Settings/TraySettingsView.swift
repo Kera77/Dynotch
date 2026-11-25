@@ -27,7 +27,7 @@ struct TraySettingsView: View {
                 Text("File tray")
             } footer: {
                 Text("The tray keeps references to the files, not copies; files without a lasting place (e.g. dragged from a "
-                    + "browser) are copied into Dynotch's tray folder. Finished downloads from the Downloads folder go on top "
+                    + "browser) are copied into Wingmate's tray folder. Finished downloads from the Downloads folder go on top "
                     + "of the tray by themselves; when they leave, only the tray forgets them.")
                     .font(.caption)
                     .foregroundStyle(.secondary)

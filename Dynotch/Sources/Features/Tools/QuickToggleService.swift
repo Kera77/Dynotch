@@ -88,7 +88,7 @@ final class QuickToggleService {
             var created = IOPMAssertionID(0)
             let result = IOPMAssertionCreateWithName(
                 kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString, IOPMAssertionLevel(kIOPMAssertionLevelOn),
-                "Dynotch Keep Awake" as CFString, &created
+                "Wingmate Keep Awake" as CFString, &created
             )
             guard result == kIOReturnSuccess else { return }
             assertion = created

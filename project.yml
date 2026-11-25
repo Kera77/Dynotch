@@ -32,7 +32,10 @@ targets:
     info:
       path: Dynotch/Resources/Info.plist
       properties:
-        CFBundleDisplayName: Dynotch
+        CFBundleDisplayName: Wingmate
+        CFBundleName: Wingmate
+        # Finder, Spotlight and the Privacy lists show Wingmate, while the bundle, its id and folders stay Dynotch.
+        LSHasLocalizedDisplayName: true
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities
@@ -40,22 +43,22 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: com.peterkereki.Dynotch
             CFBundleURLSchemes: [dynotch]
-        NSCalendarsFullAccessUsageDescription: "Dynotch shows your upcoming events in the notch."
-        NSBluetoothAlwaysUsageDescription: "Dynotch shows a notice when a Bluetooth device connects or disconnects, with its battery."
-        NSAppleEventsUsageDescription: "Dynotch reads and saves your notes in Notes, sends a text through Messages when you reply to a call, shows and controls what Spotify plays, shows your unread mail from Mail, and reads the unread counts in the titles of your Gmail and Google Chat tabs in Ardia."
-        NSMicrophoneUsageDescription: "Dynotch records your voice with a screen recording when you turn the microphone on."
-        NSDownloadsFolderUsageDescription: "Dynotch puts a file you just downloaded into the Tray when the notch opens."
-        NSContactsUsageDescription: "Dynotch looks up the caller's phone number to send them a text."
-        NSRemindersFullAccessUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
-        NSRemindersUsageDescription: "Dynotch shows your reminders and checks them off in the notch and the menu bar."
-        NSCalendarsUsageDescription: "Dynotch shows your upcoming events in the notch."
-        NSLocationUsageDescription: "Dynotch shows the weather where you are in the calendar and in a morning forecast."
-        NSLocationWhenInUseUsageDescription: "Dynotch shows the weather where you are in the calendar and in a morning forecast."
+        NSCalendarsFullAccessUsageDescription: "Wingmate shows your upcoming events in the notch."
+        NSBluetoothAlwaysUsageDescription: "Wingmate shows a notice when a Bluetooth device connects or disconnects, with its battery."
+        NSAppleEventsUsageDescription: "Wingmate reads and saves your notes in Notes, sends a text through Messages when you reply to a call, shows and controls what Spotify plays, shows your unread mail from Mail, and reads the unread counts in the titles of your Gmail and Google Chat tabs in Ardia."
+        NSMicrophoneUsageDescription: "Wingmate records your voice with a screen recording when you turn the microphone on."
+        NSDownloadsFolderUsageDescription: "Wingmate puts a file you just downloaded into the Tray when the notch opens."
+        NSContactsUsageDescription: "Wingmate looks up the caller's phone number to send them a text."
+        NSRemindersFullAccessUsageDescription: "Wingmate shows your reminders and checks them off in the notch and the menu bar."
+        NSRemindersUsageDescription: "Wingmate shows your reminders and checks them off in the notch and the menu bar."
+        NSCalendarsUsageDescription: "Wingmate shows your upcoming events in the notch."
+        NSLocationUsageDescription: "Wingmate shows the weather where you are in the calendar and in a morning forecast."
+        NSLocationWhenInUseUsageDescription: "Wingmate shows the weather where you are in the calendar and in a morning forecast."
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
-        NSHumanReadableCopyright: "Copyright © 2026 Dynotch"
+        NSHumanReadableCopyright: "Copyright © 2026 Wingmate"
         NSServices:
           - NSMenuItem:
-              default: New Dynotch Note
+              default: New Wingmate Note
             NSMessage: makeNote
             NSPortName: Dynotch
             NSSendTypes: [NSStringPboardType, public.utf8-plain-text]

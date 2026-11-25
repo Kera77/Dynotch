@@ -8,7 +8,7 @@ struct WingsPeekTests {
     @Test func noticeSaysWhoItIsFrom() {
         let now = Date()
         #expect(StickyNotice(title: "Claude finished", detail: "app", date: now).source == "Claude")
-        #expect(StickyNotice(title: "Dynotch updated", detail: "", date: now, symbol: "arrow.down.circle.fill").source == "Dynotch")
+        #expect(StickyNotice(title: "Wingmate updated", detail: "", date: now, symbol: "arrow.down.circle.fill").source == "Wingmate")
         #expect(StickyNotice(title: "ChatGPT finished", detail: "", date: now, iconApp: "com.openai.codex").source == "ChatGPT")
         #expect(StickyNotice.answered(by: "Claude", in: "Chat").source == "Claude")
         #expect(StickyNotice.answered(by: "Claude", in: "Chat").opensChat)

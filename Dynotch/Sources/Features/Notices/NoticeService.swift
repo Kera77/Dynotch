@@ -41,7 +41,7 @@ struct StickyNotice: Equatable, Sendable {
     /// Who it is from, written beside its icon in the Wings (spec PV-37).
     var source: String {
         if let sourceName { return sourceName }
-        if symbol != nil { return "Dynotch" }
+        if symbol != nil { return "Wingmate" }
         if iconApp == "com.openai.codex" { return "ChatGPT" }
         return "Claude"
     }
@@ -58,6 +58,8 @@ final class NoticeService {
     static let downloadStays: TimeInterval = 3
 
     func show(_ notice: StickyNotice) {
+        // Nothing pops up during the tour (spec OB-11).
+        guard !OnboardingController.isRunning else { return }
         self.notice = notice
         expiry?.cancel()
         guard let stays = notice.stays else { return }

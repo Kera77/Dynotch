@@ -33,8 +33,8 @@ struct NotesWorkspaceView: View {
                 message(text: "Loading notes…", showsProgress: true)
             case .denied:
                 accessPrompt(
-                    text: "Dynotch needs permission to control Notes.\n"
-                        + "System Settings › Privacy & Security › Automation › Dynotch › Notes",
+                    text: "Wingmate needs permission to control Notes.\n"
+                        + "System Settings › Privacy & Security › Automation › Wingmate › Notes",
                     button: "Open System Settings",
                     action: store.openAutomationSettings
                 )
@@ -99,7 +99,7 @@ struct NotesWorkspaceView: View {
                 Button("Make editable", action: store.makeListsEditable)
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Turns the list into a to-do list Dynotch can edit (○ / ◉ lines). Apple Notes gets this form "
+                    .help("Turns the list into a to-do list Wingmate can edit (○ / ◉ lines). Apple Notes gets this form "
                         + "with your first change; its own checkboxes and their ticks are not kept.")
             }
 

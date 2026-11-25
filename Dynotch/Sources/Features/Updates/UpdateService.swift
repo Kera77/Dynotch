@@ -169,10 +169,10 @@ final class UpdateService {
             let app = folder.appendingPathComponent("Dynotch.app")
             let version = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             guard unpack?.succeeded == true, version == release.version else {
-                throw Failure(message: "The download is not Dynotch \(release.version).")
+                throw Failure(message: "The download is not Wingmate \(release.version).")
             }
             guard UpdateLogic.isSignedLikeRunningApp(appAt: app) else {
-                throw Failure(message: "The download is not signed like this copy of Dynotch.")
+                throw Failure(message: "The download is not signed like this copy of Wingmate.")
             }
             return (app, folder)
         }.value

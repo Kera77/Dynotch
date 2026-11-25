@@ -155,6 +155,14 @@ final class NotchManager {
         return CGRect(x: frame.minX, y: primary.frame.maxY - frame.maxY, width: frame.width, height: frame.height)
     }
 
+    /// The notch models of every display, for the tour's practice steps (spec OB-24).
+    var notchModels: [NotchViewModel] { controllers.map(\.model) }
+
+    /// Closes every open notch (the tour starts or moves on, spec OB-10).
+    func collapseAll() {
+        controllers.filter(\.model.isExpanded).forEach { $0.collapse() }
+    }
+
     func togglePin() {
         let pointer = NSEvent.mouseLocation
         let controller = controllers.first { $0.model.isExpanded }

@@ -131,7 +131,7 @@ struct NotificationsFeatureView: View {
             }
         case .noAccess:
             prompt(
-                text: "Reading notifications needs Full Disk Access.\nAlready on? Remove Dynotch with −, add it again, then restart it.",
+                text: "Reading notifications needs Full Disk Access.\nAlready on? Remove Wingmate with −, add it again, then restart it.",
                 button: "Open System Settings",
                 action: service.openFullDiskAccessSettings
             )

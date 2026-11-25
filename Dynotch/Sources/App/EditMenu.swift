@@ -7,7 +7,7 @@ enum EditMenu {
     static func make() -> NSMenu {
         let main = NSMenu()
         let appItem = NSMenuItem()
-        appItem.submenu = NSMenu(title: "Dynotch")
+        appItem.submenu = NSMenu(title: "Wingmate")
         main.addItem(appItem)
 
         let edit = NSMenu(title: "Edit")

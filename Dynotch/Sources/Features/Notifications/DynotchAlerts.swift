@@ -16,7 +16,7 @@ enum DynotchAlert: String, CaseIterable, Sendable {
         case .system: "Disk full, Mac slowing down"
         case .aiUsage: "AI usage"
         case .batteries: "Batteries charged"
-        case .updates: "Dynotch updated"
+        case .updates: "Wingmate updated"
         }
     }
 }
@@ -34,7 +34,7 @@ struct DynotchAlertsSection: View {
                 ))
             }
         } header: {
-            Text("Dynotch alerts")
+            Text("Wingmate alerts")
         } footer: {
             Text("Turned off, that kind does not pop up in the notch and is not listed; for the system "
                 + "warnings neither is the red dot beside the notch.")

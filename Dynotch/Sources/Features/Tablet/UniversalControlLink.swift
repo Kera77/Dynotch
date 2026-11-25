@@ -21,7 +21,7 @@ enum UniversalControlLink {
     /// when it was linked.
     @MainActor
     static func link(named name: String) async -> Outcome {
-        guard AXIsProcessTrusted() else { return Outcome(failure: "Dynotch needs Accessibility access for this.") }
+        guard AXIsProcessTrusted() else { return Outcome(failure: "Wingmate needs Accessibility access for this.") }
         let wasRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: settingsID).isEmpty
         guard let url = displaysURL else { return Outcome(failure: "Displays settings could not be opened.") }
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier

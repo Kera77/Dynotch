@@ -34,7 +34,7 @@ struct WeatherFeatureView: View {
             ProgressView().controlSize(.small)
         case .denied:
             EmptyStateView(
-                symbol: "location.slash", text: "Location Services are off for Dynotch. Save a place in Settings › Calendar › Weather."
+                symbol: "location.slash", text: "Location Services are off for Wingmate. Save a place in Settings › Calendar › Weather."
             )
         case .needsPlace:
             EmptyStateView(

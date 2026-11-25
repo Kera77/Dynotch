@@ -12,6 +12,11 @@ final class SettingsWindowController {
         self.services = services
     }
 
+    /// Replay tour closes the settings window (spec OB-5).
+    func close() {
+        window?.orderOut(nil)
+    }
+
     func show() {
         let window = window ?? makeWindow()
         self.window = window
@@ -28,7 +33,7 @@ final class SettingsWindowController {
             screenshots: services.screenshots.settings, battery: services.battery
         )
         let window = NSWindow(contentViewController: NSHostingController(rootView: rootView))
-        window.title = "Dynotch Settings"
+        window.title = "Wingmate Settings"
         window.styleMask = [.titled, .closable, .miniaturizable]
         window.isReleasedWhenClosed = false
         window.center()
