@@ -1383,9 +1383,71 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 | WN-7 | (v1.2) **Nem tüntethető el másképp:** a What's new értesítésen nincs X, a kétujjas felfelé pöccintés és a kattintás sem tünteti el (kattintásra is lenyílik). Ha a notch *Got it* nélkül csukódik be, az értesítés marad; ha közben más értesítés (pl. Claude kész) áll a helyére, az eltűnése után visszajön. Ha az app *Got it* előtt újraindul, újra megjelenik. |
 | WN-8 | (v1.2) **Csak javítás:** ha a frissítéshez nincs `WhatsNew`-bejegyzés, a lenyílt panel egy sort mutat („Fixes and small improvements”). Első telepítéskor és futó bemutató alatt nincs értesítés (WN-2); ha a *Dynotch updated* értesítésfajta ki van kapcsolva (E-25), nem jelenik meg, a verzió látottnak számít. |
 
+## 4ő++++++++++++. Kezdőlap csempékkel (tervezett)
+
+Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfontosabb adatai csempékként (az Apple widgetjeinek mintájára), kattintásra a csempe a saját moduljára nagyul ki, egy mozdulattal vissza. Ez a fejezet egyelőre csak specifikáció; a nyitott kérdéseket az 5. fejezet sorolja.
+
+### Rács és méretek
+
+| # | Követelmény |
+|---|---|
+| HT-1 | **A Home tartalma:** a beállított csempék rácsa (HT-20); a mostani óra és dátum maga is egy csempe (*Clock*, HT-14). Ha nincs egy csempe sem, a Home a mostani órát és dátumot mutatja, alatta halványan: „Add tiles in Settings › Home”. |
+| HT-2 | **Két méret:** **1×1** (négyzet, egy oszlop) és **1×2** (egy sor magas, két oszlop széles, mint az Apple *medium* widgetje). Ugyanannak az adatnak lehet kis és széles változata is (két külön csempe a katalógusban). |
+| HT-3 | **Oszlopok:** a rács oszlopszáma a panel szélességéből jön: annyi oszlop, ahány legalább ~100 pt széles csempe elfér (8 pt hézaggal), legalább 2. A csempe négyzetes, a sor magassága az oszlopszélesség. Az átméretezés (RS-1…RS-6) így több oszlopot ad, nem óriás csempéket; a rács kitölti a kapott méretet. |
+| HT-4 | **Elrendezés:** a csempék a beállított sorrendben, sorfolytonosan állnak. Ha egy 1×2 csempe nem fér el a sor végén, a következő sorba kerül, és a keletkező lyukat az utána következő első 1×1 csempe tölti ki (ugyanaz a sorrend minden szélességen, csak a tördelés változik). |
+| HT-5 | **Görgetés:** ha a csempék nem férnek el, a Home függőlegesen görgethető (a két ujjas függőleges görgetés a rácsé, S-4); vízszintes swipe továbbra is modult vált (S-1). |
+| HT-6 | **Megjelenés:** lekerekített kártya a Theme közös színeivel (4t, 4ő++++++); bal felül a modul ikonja kicsiben, alatta a csempe tartalma. Hoverre enyhe kiemelés, mint a többi kártyánál. |
+
+### Tartalom és frissítés
+
+| # | Követelmény |
+|---|---|
+| HT-7 | **Csak a fontos pontok:** a csempe csak olvas, a modul legfontosabb 1–3 adatát mutatja (HT-14 katalógus). A tartalmat ugyanazok a szolgáltatások adják, mint a modult és a hover-előnézetet (PV-9); a csempe nem kérdez le külön semmit. |
+| HT-8 | **Üres és engedély nélküli állapot:** ha nincs adat, a csempe egy rövid sort mutat („No events today”, „Nothing playing”…); ha a modulnak engedély kell (Naptár, Emlékeztetők…) és nincs meg, „Needs access” felirat, kattintásra a modul nyílik (ott van az engedélykérés). |
+| HT-9 | **Energia:** a csempék csak akkor frissülnek, amikor a Home látszik; becsukott notchnál nincs miattuk időzítő vagy lekérdezés (RF-szabályok). Az óra percre frissül (RF-11). |
+| HT-10 | **Kikapcsolt vagy összevont modul:** kikapcsolt modul csempéje is felvehető; kattintásra a modul úgy nyílik ki, mint a *Swipe-up modules* sorból (QS-15). Összevont modul (MG) csempéje a gazdamodult a megfelelő fülön nyitja (pl. Weather → Calendar *Weather* füle). |
+
+### Kinagyítás és vissza
+
+| # | Követelmény |
+|---|---|
+| HT-11 | **Kattintásra kinagyul:** a csempére kattintva a csempe rugós animációval a panel méretére nő, és átúszik a saját modulja teljes nézetébe (a csempe helyéről indulva). A felső menüsorban a modul lesz kijelölve; a modul a saját megjegyzett méretén nyílik (RS-3). |
+| HT-12 | **Vissza a Home-ra swipe-pal:** csempéből megnyitott modulban a **két ujjas jobbra swipe** (a „vissza” iránya, mint a Safariban) a csempe helyére zsugorítja vissza a modult, és újra a Home látszik, ugyanazon a görgetési helyen. A balra swipe a szokásos modulváltás (S-1), ez kilép a csempés állapotból. Fülválasztó fölött az S-6 elsőbbséget élvez. Haptika, mint a modulváltásnál (H-7). |
+| HT-13 | **Látható vissza-gomb is:** csempéből nyitott modul fejlécében bal felül kis „‹ Home” kapszula; kattintásra ugyanaz, mint HT-12. A notch becsukásakor a csempés állapot megszűnik; a következő nyitás a szokásos szabályok szerint (1.4). |
+
+### Csempekatalógus (modulonként)
+
+| # | Követelmény |
+|---|---|
+| HT-14 | **A felvehető csempék** (név, méret – tartalom): **Home:** *Clock* 1×1 – idő és dátum; *Clock* 1×2 – idő, dátum, hét napja. **Calendar:** *Next event* 1×1 – időpont, cím, „in 25 min”; *Today* 1×2 – a nap hátralévő 3 eseménye, meetingnél Join jelzés. **Weather:** *Now* 1×1 – ikon, hőmérséklet, max/min; *Forecast* 1×2 – a következő órák. **Notifications:** *Unread* 1×1 – appikonok olvasatlan-számmal (max. 4); *Latest* 1×2 – az utolsó 2 értesítés feladója és első sora. **Calculator:** *Last result* 1×1 – utolsó kifejezés és eredmény. **Notes:** *Latest note* 1×1 – a legutóbbi jegyzet első sorai; *To-dos* 1×2 – a nyitott teendők első 3 sora (4k). **Reminders:** *Open* 1×1 – nyitott tételek száma, a lejártak pirossal; *Upcoming* 1×2 – a következő 3 határidős tétel idővel. **AI Usage:** *5-hour limit* 1×1 – gyűrű %-kal; *Limits* 1×2 – 5 órás és heti keret sávja, nullázás ideje. **AI:** *Chat* 1×2 – beszélgetés címe vagy „Working…”, az utolsó válasz első sora. **Batteries:** *Mac* 1×1 – akku %, töltés jele; *Devices* 1×2 – eszközök ikonnal és %-kal. **Clipboard:** *Last copied* 1×1; *Recent* 1×2 – az utolsó 3 elem típusikonnal. **Tray:** *Files* 1×1 – darabszám és egy bélyegkép; *Files* 1×2 – 3–4 bélyegkép. **Music:** *Now playing* 1×1 – borító; *Now playing* 1×2 – borító, cím, előadó, haladás. **System:** *CPU & memory* 1×1 – két érték; *System* 1×2 – CPU és memória mini görbe, swap. **Terminal:** *Terminal* 1×2 – a futó parancs vagy az utolsó kimenet utolsó sora. **Tools:** *Timer* 1×1, *Stopwatch* 1×1, *Pomodoro* 1×1 – a futó állapot (hátralévő idő, fázis) vagy „Not running”; *Quick toggles* 1×2 – a bekapcsolt gyorskapcsolók ikonjai. **Info:** *Version* 1×1. |
+| HT-15 | **Egy csempe egyszer:** minden csempe legfeljebb egyszer lehet a Home-on. Azonosító: `modul.csempe` (pl. `calendar.nextEvent`), így új csempe külön kód nélkül megjelenik a katalógusban. |
+| HT-16 | **Új modul:** minden új `FeatureID` legalább egy csempét kap (teszt ellenőrzi), a Home kivételével, ha nincs értelmes összefoglalója (ezt a katalógus kivétellistája rögzíti). |
+| HT-17 | **Alapkészlet** (első indításkor és *Reset to default*-ra): *Clock* 1×2, *Next event* 1×1, *Now* (Weather) 1×1, *Open* (Reminders) 1×1, *5-hour limit* 1×1, *Now playing* 1×2 – csak a bekapcsolt modulokból. |
+
+### Összeállítás a beállításokban
+
+| # | Követelmény |
+|---|---|
+| HT-20 | **Helye:** *Settings › Modules › Home* (a Home sor › opciói), két részből: balra a **katalógus**, jobbra a **Home előnézete** (a valódi rács kicsinyítve, a valódi tartalommal). |
+| HT-21 | **Katalógus modulonként:** a modulok a *Settings › Modules* sorrendjében, mindegyik fejléce ikon + név, alatta a modul csempéi kis előnézettel és méretjelzéssel (1×1 / 1×2). A már felvett csempe halvány, pipával. |
+| HT-22 | **Drag and drop:** csempe húzása a katalógusból az előnézetbe felveszi (oda, ahová ejtettük; a többi rugósan arrébb csúszik); az előnézeten belül húzással átrendezhető; az előnézetből kihúzva vagy a hoverre megjelenő × gombbal levehető. Dupla kattintás a katalógusban a végére veszi fel. |
+| HT-23 | **Mentés:** azonnal, `home.tiles` kulcson (az azonosítók rendezett listája, HT-15). Ismeretlen (megszűnt) azonosító csendben kimarad. *Reset to default* gomb (HT-17). |
+
+### Bemutató, napló
+
+| # | Követelmény |
+|---|---|
+| HT-24 | **Onboarding:** a megvalósítással együtt frissül a Home első használati tippje és leírása (`OnboardingModuleTexts`, OB-14…OB-29: „Click a tile to open its module, swipe right to come back. Choose tiles in Settings › Modules › Home.”), és a *What's new* bejegyzés (WN-4). |
+| HT-25 | Napló: a `home.log`-ba kerül a csempék száma és a megnyitott csempe azonosítója; tartalmat nem naplóz. |
+
 ## 5. Nyitott kérdések
 
-Jelenleg nincs.
+| # | Kérdés |
+|---|---|
+| HT-Q1 | **Vissza-mozdulat (HT-12):** a két ujjas jobbra swipe ütközik-e a megszokással (most az előző modulra vált)? Alternatíva: összecsípés (pinch) a trackpaden, vagy két ujjas lefelé húzás a modul tetején. |
+| HT-Q2 | **Műveletek a csempén:** maradjon csak olvasható (HT-7), vagy legyen 1–2 gomb is (Join, emlékeztető pipája, lejátszás/szünet, másolás)? |
+| HT-Q3 | **Reggeli áttekintés (SO-7):** a csempés Home váltsa ki, vagyis reggel a Home nyíljon a Naptár helyett? |
+| HT-Q4 | **Méretek:** elég az 1×1 és 1×2, vagy kell később 2×2 (pl. heti naptár, nagy zenelejátszó)? |
 
 ---
 

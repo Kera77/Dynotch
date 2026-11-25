@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Docs
+
+- Spec for a tiled Home: 1×1 and 1×2 tiles from each module, click to open the module, swipe right back to Home, drag-and-drop setup in Settings › Modules › Home (HT-1…HT-25, open questions HT-Q1…HT-Q4). Not implemented yet; onboarding unchanged.
+
 ## [1.6.1] - 2026-11-25
 
 ### Fixed
