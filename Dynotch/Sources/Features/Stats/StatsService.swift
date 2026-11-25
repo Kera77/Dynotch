@@ -44,6 +44,8 @@ final class StatsService {
     @ObservationIgnored private var timer: Poller?
     @ObservationIgnored private var interval: TimeInterval = 0
     @ObservationIgnored private var isVisible = false
+    /// System tiles on the Home are on screen: every two seconds, without the processes (spec HT-9).
+    @ObservationIgnored private var tilesVisible = false
     @ObservationIgnored private var settingsObserver: ChangeObservation?
     @ObservationIgnored private var ticks: SystemReadings.CPUTicks?
     @ObservationIgnored private var network: (SystemReadings.Network, Date)?
@@ -77,6 +79,12 @@ final class StatsService {
         if visible { read() }
     }
 
+    func setTilesVisible(_ visible: Bool) {
+        guard tilesVisible != visible else { return }
+        tilesVisible = visible
+        schedule()
+    }
+
     private func applyEnabled() {
         let isOn = settings.isEnabled(.stats)
         let values = isOn ? StatsValue.allCases.filter(options.shownValues.contains) : []
@@ -86,7 +94,7 @@ final class StatsService {
     }
 
     private func schedule() {
-        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : !options.shownValues.isEmpty ? 2 : 30
+        let wanted: TimeInterval = !settings.isEnabled(.stats) ? 0 : isVisible ? 1 : tilesVisible || !options.shownValues.isEmpty ? 2 : 30
         guard wanted != interval else { return }
         interval = wanted
         timer?.invalidate()

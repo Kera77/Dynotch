@@ -43,7 +43,11 @@ extension NotchView {
     private func modulePage(for feature: FeatureID) -> some View {
         switch feature {
         case .home:
-            HomeFeatureView()
+            HomeFeatureView(
+                tiles: .shared, calendar: calendar, stats: stats,
+                isActive: model.isExpanded && !model.isPreview && model.currentFeature == .home && model.tileOpening == nil,
+                open: { tile, anchor in withAnimation(Motion.spring) { model.openTile(tile, anchor: anchor) } }
+            )
         case .calendar:
             CalendarFeatureView(service: calendar, model: model)
         case .notifications:
@@ -188,5 +192,37 @@ extension NotchView {
         .frame(width: pageWidth, alignment: .leading)
         .offset(x: -CGFloat(index) * pageWidth)
         .clipped()
+    }
+}
+
+extension NotchView {
+    /// The pages, or the module opened from a Home tile, grown from the tile (spec HT-11, HT-13).
+    @ViewBuilder var pagesOrTile: some View {
+        if let opening = model.tileOpening {
+            VStack(alignment: .leading, spacing: 4) {
+                Button {
+                    withAnimation(Motion.spring) { model.backToHome() }
+                } label: {
+                    Label("Home", systemImage: "chevron.left")
+                        .font(.notch(size: 11, weight: .medium))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Theme.fill))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.white)
+                .help("Back to the Home")
+                page(for: model.currentFeature)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
+            .transition(.scale(scale: 0.2, anchor: opening.anchor).combined(with: .opacity))
+        } else {
+            featureContent
+                .transition(.opacity)
+        }
     }
 }

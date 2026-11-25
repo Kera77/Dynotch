@@ -73,6 +73,8 @@ final class NotchController {
     var taskListSwipe = SwipeDetector()
     /// The current trackpad gesture already switched features: it must not step days too.
     var gestureSwitchedFeature = false
+    /// The pinch or swipe down back to the Home (spec HT-12).
+    var tileBack = TileBackGesture()
     /// After the announcement was swiped away the pointer is still on it: no hover details until
     /// it leaves, so only the countdown stays (spec K-8f).
     var suppressIndicatorHover = false
@@ -302,6 +304,8 @@ final class NotchController {
             return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)
+        case .magnify:
+            return handleTilePinch(event)
         case .leftMouseUp:
             keyboardBackAfterWingsClick()
             return false
@@ -334,7 +338,7 @@ extension NotchController {
         keyClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             MainActor.assumeIsolated { self?.clickedInAnotherApp() }
         }
-        let localEvents: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel, .keyDown, .leftMouseUp]
+        let localEvents: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel, .keyDown, .leftMouseUp, .magnify]
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: localEvents) { [weak self] event in
             guard let self else { return event }
             let consumed = MainActor.assumeIsolated { self.handleLocal(event) }

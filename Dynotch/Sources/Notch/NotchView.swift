@@ -291,7 +291,7 @@ struct NotchView: View {
                     .transition(.opacity)
             } else {
                 // Never taller than its room, so it cannot push the top row up (spec N-26).
-                featureContent
+                pagesOrTile
                     .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .overlay(alignment: .bottom) {
                         FirstUseTipView(

@@ -40,8 +40,8 @@ enum OnboardingModuleTexts {
             + "It lives as a tab of System, and warns beside the notch when one runs low.",
         .music: "Play, pause and skip what Spotify plays, with the cover and the track. "
             + "The current track also shows beside the closed notch.",
-        .home: "A big clock with today's date. "
-            + "A calm first page for the notch when nothing else needs you.",
+        .home: "Tiles with what matters from your modules: the next event, the clock, CPU and more. "
+            + "Click a tile to open its module; choose the tiles in Settings › Modules › Home.",
         .info: "Version, display and notch details of Wingmate. "
             + "Useful for troubleshooting."
     ]

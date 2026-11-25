@@ -133,6 +133,8 @@ private struct FeatureRow<Music: View>: View {
                 .disabled(!isOn)
             }
             if feature == .music { musicOptions() }
+            // The Home's tiles (spec HT-20).
+            if feature == .home { HomeTilesEditor(tiles: .shared, order: settings.featureOrder) }
         }
         .font(.callout)
         .padding(.leading, 34)

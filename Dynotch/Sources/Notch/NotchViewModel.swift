@@ -5,7 +5,9 @@ import SwiftUI
 @Observable
 final class NotchViewModel {
     private(set) var isExpanded = false { didSet { noteOpened() } }
-    private(set) var currentFeature: FeatureID { didSet { noteOpened() } }
+    private(set) var currentFeature: FeatureID { didSet { noteOpened(); leaveTileIfMoved() } }
+    /// The module opened from a Home tile, until it goes back or away (spec HT-11).
+    var tileOpening: TileOpening?
     /// True while the panel shows the full calendar and uses the large size.
     private(set) var isLarge = false { didSet { onLargeChange(isLarge) } }
     /// True while the panel shows the settings instead of the features (spec C-2).
@@ -251,6 +253,7 @@ final class NotchViewModel {
         notificationsHeight = expanded ? stackHeight : nil
         if !expanded {
             leavePages()
+            tileOpening = nil
             if settings.visitingFeature != nil { settings.visitingFeature = nil }
             holdsForSettings = false
             holdsForTyping = false

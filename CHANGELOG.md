@@ -2,9 +2,9 @@
 
 ## [Unreleased]
 
-### Docs
+### Added
 
-- Spec for a tiled Home: 1×1 and 1×2 tiles from each module, click to open the module, pinch or swipe down back to Home, in-tile buttons, month tile paging, sizes up to 3×2, drag-and-drop setup in Settings › Modules › Home (HT-1…HT-29), full tile catalog (HT-14). Not implemented yet; onboarding unchanged.
+- Home tiles, first part (HT-1…HT-29): the Home shows a grid of tiles from your modules that grows with the panel and scrolls. Click a tile and its module grows out of it; pinch with two fingers, or swipe down over the top row (Settings › Modules › Home › Back to Home), or click ‹ Home to shrink it back. Tiles so far: Clock 1×1 and 1×2, Next event, and System's CPU, Memory, Swap, Network, Disk and Battery, each 1×1. Arrange them in Settings › Modules › Home: a small Home to drag tiles in, reorder or remove (×), and the tiles by module (drag or double-click to add), with Reset to default. The full catalog is in the spec (HT-14). Onboarding: the Home's description and first-use tip now explain the tiles and the way back.
 
 ## [1.6.1] - 2026-11-25
 
