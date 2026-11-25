@@ -1277,7 +1277,7 @@ Cél: első indításkor kb. **2 perc** alatt megmutatni, hogyan kell a notch-cs
 | # | Követelmény |
 |---|---|
 | OB-1 | **Első indításkor** magától elindul: a notch (a beépített kijelzőé, ha nincs, a főkijelzőé) indulás után ~1 mp-cel magától lenyílik a bemutatóval, hover nélkül. Első indítás = a `onboarding.completed` kulcs nincs a `UserDefaults`-ban. |
-| OB-2 | **Meglévő telepítés** frissítésekor nem indul el magától: ha az app már futott korábban (van mentett beállítás, pl. utolsó modul vagy modulsorrend), a bemutató késznek számít. |
+| OB-2 | ~~Meglévő telepítés észlelése~~ – nem kell (egyetlen felhasználó): frissítés után is egyszer elindul, mert még nincs `onboarding.completed`. |
 | OB-3 | **Kihagyás bármikor:** minden lépésen *Skip tour* (és Esc). Kihagyáskor egy sor jelenik meg: „You can replay the tour in Settings › General.”, majd a notch becsukódik. A kihagyás is késznek jelöli. |
 | OB-4 | **Félbehagyás:** ha az app a bemutató közben kilép vagy összeomlik, a következő indításkor a félbehagyott lépésnél folytatódik (`onboarding.step`). |
 | OB-5 | **Újraindítás a Beállításokból:** *Settings › General › Onboarding › Replay tour* gomb. Kattintásra a beállítások bezárulnak (külön ablakban is, C-2), és a bemutató **azonnal** elindul az első lépéstől, az app újraindítása nélkül. Kereséssel is megtalálható (C-9: „onboarding”, „tour”, „welcome”, „intro”). |
@@ -1315,7 +1315,7 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 
 | # | Követelmény |
 |---|---|
-| OB-23 | Állapot `UserDefaults`-ban: `onboarding.completed` (Bool), `onboarding.step` (Int, félbehagyáshoz). A *Replay tour* törli mindkettőt és indítja a bemutatót. Az állapotgép (lépések, előre/hátra, kihagyás, folytatás, OB-2 észlelése) UI nélkül, unit-tesztelhetően készül. |
+| OB-23 | Állapot `UserDefaults`-ban: `onboarding.completed` (Bool), `onboarding.step` (Int, félbehagyáshoz). A *Replay tour* törli mindkettőt és indítja a bemutatót. Az állapotgép (lépések, előre/hátra, kihagyás, folytatás, ) UI nélkül, unit-tesztelhetően készül. |
 | OB-24 | A gyakorló lépések (OB-15, OB-16) a meglévő hover- és swipe-eseményekből értesülnek (`NotchController`), külön eseményfigyelő nélkül. |
 | OB-25 | Napló: `onboarding.log` – indulás, elért lépés, kihagyás, befejezés, időbélyeggel; beállításértéket és személyes adatot nem naplóz. A *Copy Diagnostics* (C-7) tartalmazza, kész-e a bemutató. |
 
@@ -1323,7 +1323,6 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 
 | # | Kérdés |
 |---|---|
-| OB-Q1 | Meglévő telepítésnél (OB-2) egyszeri kis jelzés legyen-e („New: take the tour” a beállítások General lapján), vagy semmi? |
 | OB-Q2 | Kell-e a bemutató után néhány napig modulonkénti első-használati tipp (pl. a Tray első megnyitásakor „Drop files here”), vagy elég a bemutató? (Most: nincs.) |
 
 ---
