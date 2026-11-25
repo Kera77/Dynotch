@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.6.1 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.7.0 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1383,7 +1383,7 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 | WN-7 | (v1.2) **Nem tüntethető el másképp:** a What's new értesítésen nincs X, a kétujjas felfelé pöccintés és a kattintás sem tünteti el (kattintásra is lenyílik). Ha a notch *Got it* nélkül csukódik be, az értesítés marad; ha közben más értesítés (pl. Claude kész) áll a helyére, az eltűnése után visszajön. Ha az app *Got it* előtt újraindul, újra megjelenik. |
 | WN-8 | (v1.2) **Csak javítás:** ha a frissítéshez nincs `WhatsNew`-bejegyzés, a lenyílt panel egy sort mutat („Fixes and small improvements”). Első telepítéskor és futó bemutató alatt nincs értesítés (WN-2); ha a *Dynotch updated* értesítésfajta ki van kapcsolva (E-25), nem jelenik meg, a verzió látottnak számít. |
 
-## 4ő++++++++++++. Kezdőlap csempékkel (v1.7, részenként)
+## 4ő++++++++++++. Kezdőlap csempékkel (v1.7)
 
 Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfontosabb adatai csempékként (az Apple widgetjeinek mintájára), kattintásra a csempe a saját moduljára nagyul ki, egy mozdulattal vissza. A v1.7 a rácsot, a kinagyítást, a vissza-mozdulatokat, a beállításokat és a HT-14 teljes katalógusát hozza, mind a hat mérettel (két részben készült).
 
@@ -1492,6 +1492,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.0** | Kezdőlap csempékkel: 57 csempe minden modulból hat méretben (1×1…3×2), kattintásra a modul a csempéből nyílik, vissza csípéssel vagy lefelé swipe-pal, hónaplapozás swipe-pal, gombok és mezők a csempéken, összeállítás drag and droppal a *Settings › Modules › Home* alatt (HT-1…HT-29) |
 | **v1.6.1** | Fülválasztók swipe-ja az aktuális fültől lép (Tools minden fülén végig), a Naptár Calendar \| Weather választóján a füleket lépteti; a gyorskapcsoló-csempék felirata nem tolja le a sort, az Empty Trash megerősítése piros (S-7, QT-11) |
 | **v1.6.0** | AI usage több Claude-fiókkal: fiók hozzáadása böngészős bejelentkezéssel, Auto (amelyik fogy) vagy kézi választás, a notch-kör hoverje fióknévvel (CL-8…CL-15) |
 | **v1.5.0** | Gyorskapcsolók a felső sor gombja mögött, a Tools-ból kikerülnek; új csempék (Hide Dock, Display Sleep, Empty Trash, Eject Disks), húzásos sorrend a notchban (QT-6…QT-10); minden fülválasztó swipe-olható, ha rajta az egér (S-6); a Finder Wingmate-nek mutatja az appot (WM-3) |
