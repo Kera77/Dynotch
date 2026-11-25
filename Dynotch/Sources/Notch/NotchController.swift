@@ -301,6 +301,8 @@ final class NotchController {
             // No module switching under the screenshot editor (spec SH-7).
             // Wings: a swipe down opens fully, up on the top row folds back (spec PV-5, PV-12).
             if let handled = handleWingsScroll(event) { return handled }
+            // Opened from a Home tile: a swipe down at the top goes back (spec HT-12).
+            if let handled = handleTileSwipeDown(event) { return handled }
             return model.editor == nil && handleScroll(event)
         case .keyDown:
             return handleKey(event)

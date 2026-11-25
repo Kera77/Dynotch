@@ -6,8 +6,6 @@ extension NotchController {
 
     func handleScroll(_ event: NSEvent) -> Bool {
         if !model.isExpanded { return handleCollapsedScroll(event) }
-        // Opened from a Home tile: a swipe down at the top goes back (spec HT-12).
-        if let handled = handleTileSwipeDown(event) { return handled }
         // Over the feature icons a swipe switches modules, as far as it reaches (spec M-12).
         if !model.isShowingNotifications, switcherZone.contains(NSEvent.mouseLocation) {
             return scrollSwitcher(event)
