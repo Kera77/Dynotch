@@ -59,7 +59,7 @@ bundle ID, build setting, verzió) a [`project.yml`](project.yml)-ben módosíts
 
 ```
 Dynotch/Sources       Swift forrás
-Dynotch/Resources     Assets (app-ikon: Design/AppIcon.svg-ből), Info.plist, entitlements
+Dynotch/Resources     Assets, AppIcon.icon (app-ikon: Design/AppIcon-light.svg és -dark.svg-ből), Info.plist, entitlements
 DynotchTests          Swift Testing unit tesztek
 scripts/              build / release / install / GitHub bootstrap scriptek
 .github/workflows     CI és Release workflow

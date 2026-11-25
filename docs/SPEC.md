@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.3.1 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.4.0 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -15,6 +15,7 @@
 | G-7 | **Az app felülete angol.** A dátumok és időpontok a rendszer nyelvi és régióbeállítását követik. |
 | G-8 | **App-ikon:** sötétkék, lekerekített négyzet, benne kék kijelző fekete notch-csal (`Design/AppIcon.svg`, ebből készül minden méret). |
 | G-9 | **Szerkesztés-billentyűk:** a ⌘X/⌘C/⌘V/⌘A/⌘Z minden szövegmezőben működik (láthatatlan Szerkesztés menü), a Beeper-token mezője mellett „Paste” gomb is van. |
+| G-10 | (v1.4.0) **Új app-ikon, világos és sötét változattal (G-8 helyett):** matt-üveges, lekerekített négyzet; a felső éléről a MacBook notch-ára emlékeztető fekete, kinyitott notch lóg le (kamerapötty, albumborító, két címsor, hullámforma), alatta két szárny-gomb (a Wings), lent kék és türkiz fényfoltok. Világos témában világos üveg, sötét témában grafitszürke üveg mélyebb fényekkel, a notch körül halvány peremmel; a macOS a rendszer témájával vált köztük (macOS 26-tól, korábbi macOS-en a világos változat látszik). Forrás: `Design/AppIcon-light.svg` és `Design/AppIcon-dark.svg` (kifutó rajz, a maszkot a macOS teszi rá), ezekből készül az Icon Composer-ikon (`Dynotch/Resources/AppIcon.icon`). |
 | G-6 | **Stabil aláírás saját (önaláírt) tanúsítvánnyal** („Dynotch Self-Signed”). A CI ezzel ír alá. | A macOS az adatvédelmi engedélyeket (Naptár, Kisegítő hozzáférés) az aláíráshoz köti; stabil tanúsítvánnyal a frissítések után is megmaradnak. |
 
 ---
@@ -1411,6 +1412,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.4.0** | Új, témával váltó app-ikon: kinyitott notch matt üvegen, világos és sötét változat (G-10) |
 | **v1.3.1** | Gmail Primary címke: a Mail címke-másolatai is számítanak, nem működő címkénél az egész Inbox (GM-17); Modules oldalon a Swipe up a Module strip előtt (SD-18) |
 | **v1.3.0** | A bemutató a notchból nyílik, gyakorlás helyett magyarázó lépések; tippek minden modul minden fülén, 2–3 mondatban; gyorsan nyíló app-listák; egységes keresőmezők; a „Go back to X” gomb megszűnt (OB-36, OB-37, SD-16, SD-17, RF-21) |
 | **v1.2.0** | Bemutató kártyája a notch aljához tapad, gyakorláskor a lenyílt notch alá csúszik (OB-34, OB-35); What's new a notchból nyílik a frissítés-értesítésre hoverelve, csak *Got it* tünteti el (WN-6…WN-8); nagy kijelzőn több adat a Wingsben (PV-75); Tools a Pomodoro méretére (TM-22) |

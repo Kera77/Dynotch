@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-25
+
+### Changed
+
+- New app icon: an open notch hanging from the top edge with music and a waveform, two wing buttons under it, on frosted glass. It has a light and a dark version and follows the system appearance on macOS 26 and later (G-10). Onboarding: no tour step or tip shows the icon, so none changed.
+
 ## [1.3.1] - 2026-11-25
 
 ### Fixed
