@@ -50,6 +50,7 @@ final class MailService {
     @ObservationIgnored private var isReading = false
     @ObservationIgnored private var settingsObserver: ChangeObservation?
     @ObservationIgnored private var lastLogged: State?
+    @ObservationIgnored private var lastLabelReport: String?
     @ObservationIgnored private var quitObserver: NSObjectProtocol?
     /// Reads that ran out of time in a row; each one waits longer before the next (spec GM-14).
     @ObservationIgnored private var timeouts = 0
@@ -163,6 +164,7 @@ final class MailService {
         var scriptErrors = ""
         var timedOut = false
         var databaseError: String?
+        var labelReport = ""
     }
 
     /// Blocks: runs off the main thread.
@@ -181,7 +183,9 @@ final class MailService {
         }
         guard let current else { return outcome }
         do {
-            outcome.accounts = try MailDatabase.read(accounts: current, path: path, label: label)
+            let read = try MailDatabase.read(accounts: current, path: path, label: label)
+            outcome.accounts = read.accounts
+            outcome.labelReport = read.report
         } catch {
             outcome.databaseError = String(describing: error)
         }
@@ -216,6 +220,11 @@ final class MailService {
             return
         }
         guard let read = outcome.accounts else { return }
+        if outcome.labelReport != lastLabelReport {
+            lastLabelReport = outcome.labelReport
+            let report = outcome.labelReport.isEmpty ? "no Gmail account" : outcome.labelReport
+            DiagnosticsLog.append("mail", "Gmail label: \(report)")
+        }
         if accounts != read { accounts = read }
         lastRead = Date()
         set(read.isEmpty ? .noAccounts : .reading)

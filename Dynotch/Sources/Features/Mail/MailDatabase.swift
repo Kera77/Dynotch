@@ -32,6 +32,7 @@ final class MailDatabase {
     private var hasMessageIDs = false
     private var hasSubjectPrefix = false
     private var hasLabels = false
+    private var hasGlobalIDs = false
 
     init(path: String) throws {
         var connection: OpaquePointer?
@@ -65,7 +66,8 @@ final class MailDatabase {
         }
         let messages = try columns(of: "messages")
         let globalData = try columns(of: "message_global_data")
-        hasMessageIDs = messages.contains("global_message_id") && globalData.contains("message_id_header")
+        hasGlobalIDs = messages.contains("global_message_id")
+        hasMessageIDs = hasGlobalIDs && globalData.contains("message_id_header")
         hasSubjectPrefix = messages.contains("subject_prefix")
         hasLabels = try columns(of: "labels").isSuperset(of: ["message_id", "mailbox_id"])
     }
@@ -97,10 +99,28 @@ final class MailDatabase {
         return "(m.mailbox = ?\(argument)\(labelled))"
     }
 
+    /// The message has label box ?n: itself, or Mail's own copy of it in that mailbox (the same
+    /// `global_message_id`), as Mail keeps a Gmail label's mail as rows of their own (spec GM-16).
+    private func hasLabel(_ argument: Int) -> String {
+        guard hasGlobalIDs else { return inBox(argument) }
+        let labelled = hasLabels ? " OR x.ROWID IN (SELECT message_id FROM labels WHERE mailbox_id = ?\(argument))" : ""
+        let copies = "m.global_message_id IN (SELECT x.global_message_id FROM messages x WHERE x.deleted = 0 "
+            + "AND x.global_message_id IS NOT NULL AND (x.mailbox = ?\(argument)\(labelled)))"
+        return "(\(inBox(argument)) OR \(copies))"
+    }
+
     /// Unread, not deleted messages of the Inbox; with a label box also in that label, as Gmail's
     /// Primary tab (spec GM-16).
     private func unreadWhere(label: Int64?) -> String {
-        "m.read = 0 AND m.deleted = 0 AND \(inBox(1))" + (label == nil ? "" : " AND \(inBox(2))")
+        "m.read = 0 AND m.deleted = 0 AND \(inBox(1))" + (label == nil ? "" : " AND \(hasLabel(2))")
+    }
+
+    /// Inbox messages, read or not, that also have the label: none means the label (its Gmail
+    /// filter) does not work, so the whole Inbox counts (spec GM-17).
+    func labelledCount(inbox: Int64, label: Int64) throws -> Int {
+        try query("SELECT COUNT(*) FROM messages m WHERE m.deleted = 0 AND \(inBox(1)) AND \(hasLabel(2))", arguments: [inbox, label]) {
+            Int(sqlite3_column_int64($0, 0))
+        }.first ?? 0
     }
 
     func unreadCount(inbox: Int64, label: Int64? = nil) throws -> Int {
@@ -161,20 +181,36 @@ final class MailDatabase {
 }
 
 extension MailDatabase {
-    /// The chosen view of every known account: its Inbox's unread count and newest headers.
+    /// The chosen view of every known account (its Inbox's unread count and newest headers), and
+    /// one count-only line per Gmail account for the log (spec GM-10, GM-17).
     /// Blocks: call it off the main thread.
     /// - Parameter label: a Gmail account with a mailbox of this name counts only the Inbox mail
-    ///   that has it too (spec GM-16); without one, the whole Inbox.
-    static func read(accounts infos: [MailAccountInfo], path: String, label: String = "") throws -> [MailAccount] {
+    ///   that has it too (spec GM-16); without one, or with no Inbox mail in it, the whole Inbox.
+    static func read(
+        accounts infos: [MailAccountInfo], path: String, label: String = ""
+    ) throws -> (accounts: [MailAccount], report: String) {
         let database = try MailDatabase(path: path)
         let inboxes = try database.inboxes()
         let labels = label.trimmingCharacters(in: .whitespaces).isEmpty ? [:] : try database.labelBoxes(label)
-        return try infos.map { info in
-            guard let inbox = inboxes[info.id] else { return MailParser.account(info, unread: 0, rows: []) }
-            let box = info.isGmail ? labels[info.id] : nil
+        var report: [String] = []
+        let accounts = try infos.enumerated().map { index, info in
+            guard let inbox = inboxes[info.id] else {
+                if info.isGmail { report.append("#\(index) no Inbox") }
+                return MailParser.account(info, unread: 0, rows: [])
+            }
+            var box = info.isGmail ? labels[info.id] : nil
+            if let found = box {
+                let labelled = try database.labelledCount(inbox: inbox, label: found)
+                let all = try database.unreadCount(inbox: inbox)
+                report.append("#\(index) label in Inbox=\(labelled) unread Inbox=\(all)")
+                if labelled == 0 { box = nil }
+            } else if info.isGmail {
+                report.append("#\(index) no label mailbox")
+            }
             let unread = try database.unreadCount(inbox: inbox, label: box)
             let rows = unread > 0 ? try database.unreadRows(inbox: inbox, label: box, limit: MailParser.messageLimit) : []
             return MailParser.account(info, unread: unread, rows: rows)
         }
+        return (accounts, report.joined(separator: "; "))
     }
 }

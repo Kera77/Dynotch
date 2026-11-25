@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-25
+
+### Fixed
+
+- Gmail via Apple Mail with the Primary label: Inbox mail whose copy sits in Mail's Primary mailbox counts again, so the badge and the mail notifications no longer stay at 0. When no Inbox mail carries the Primary label (its Gmail filter does not run), the whole Inbox counts instead of 0; `mail.log` notes per Gmail account whether the label mailbox exists and how much Inbox mail has it, counts only (GM-17).
+
+### Changed
+
+- Settings › Modules: the Swipe up sections come before the Module strip (SD-18).
+
 ## [1.3.0] - 2026-11-25
 
 ### Changed

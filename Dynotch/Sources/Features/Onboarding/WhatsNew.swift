@@ -16,6 +16,12 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.3.1", items: [
+            WhatsNewItem(symbol: "envelope.badge", title: "Gmail Primary count is back",
+                         text: "Mail under your Primary label counts again, so the Gmail badge and mail notifications show up."),
+            WhatsNewItem(symbol: "rectangle.stack", title: "Swipe up comes first",
+                         text: "In Settings › Modules the Swipe up settings now come before the Module strip.")
+        ]),
         WhatsNewRelease(version: "1.3.0", items: [
             WhatsNewItem(symbol: "rectangle.bottomhalf.inset.filled", title: "The tour opens from the notch",
                          text: "No separate window: the tour fills the open notch and stays until you finish or skip it."),

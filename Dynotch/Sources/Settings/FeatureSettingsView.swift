@@ -44,8 +44,8 @@ struct FeatureSettingsView: View {
             } header: {
                 Text("Pin")
             }
-            ModuleStripSection(settings: settings)
             if let switcher { ModuleSwitcherSections(settings: switcher, modules: settings) }
+            ModuleStripSection(settings: settings)
         }
         .formStyle(.grouped)
     }

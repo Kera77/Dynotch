@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.3 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.3.1 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1099,6 +1099,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | GM-14 | (v0.85) **Visszalépés:** ha a Mail nem válaszol a fiók-lekérdezésre (15 mp), a következő próba 1, 2, 5, majd 15 perc múlva jön (egymás utáni hibáknál egyre később); a Gmail-értesítés sem kérdez közben. Sikeres válasz után újra a GM-5 ütem. |
 | GM-15 | (v0.85) **Kilőtt Mail nem indul újra:** ha a Mail kilép (kézzel vagy kényszerített kilépéssel), a Dynotch nem indítja el újra rejtve (GM-9), amíg a Mail újra nem fut és nem válaszol. |
 | GM-16 | (v0.92) **Csak a Primary (Gmail-fülek):** IMAP-on a Gmail fülei nem látszanak, a Mail az egész Inboxot látja. Ha a Gmail-fióknak van a *Settings › Notifications › Gmail › Gmail Primary label* nevű címkéje (alapból „Primary”; a Gmailben egy `category:primary` szűrő adja), a jelvény száma, a hover-lista és a Mail fül csak az Inbox **és** e címke közös olvasatlan leveleit mutatja, mint a Gmail Primary füle. Címke nélkül (vagy üres mezővel) az egész Inbox, mint eddig. Más fióknál mindig az Inbox. |
+| GM-17 | (v1.3.1) **Címke-másolatok és nem működő Primary címke:** a Mail a címke postafiókjában a levélnek saját másolatot (külön sort, azonos `global_message_id`-vel) is tarthat; az Inbox-levél akkor is a címkéhez tartozik, ha csak a másolata van a címke postafiókjában. Ha pedig a Gmail-fiók Primary címkéjű postafiókjában egyetlen (olvasott vagy olvasatlan) Inbox-levél sincs, a címke nem működik (pl. a `category:primary` szűrő nem fut le az érkező leveleken), ezért az egész Inbox számít, mint címke nélkül. A `mail.log` fiókonként csak darabszámokat ír, ha változik: van-e címke-postafiók, hány Inbox-levél viseli, hány olvasatlan van az Inboxban (GM-10). |
 
 ## 4ő++++. Terminál a notchban (v0.90)
 
@@ -1160,6 +1161,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-15 | (v0.100) **Utolsó lap:** a beállítások az utoljára megnyitott lapon nyílnak meg (újraindítás után is). |
 | SD-16 | (v1.3) **Egységes keresőmezők:** a beállítások minden keresőmezője ugyanaz az elem: nagyító ikon, szürke, lekerekített háttér, 26 pt magas, rákattintva fókuszt kap, és ha van benne szöveg, jobbra × törli. Így néz ki és működik a sidebar keresője, a lenyíló listák keresője (SD-2) és a *Calendar › Weather › Location* helykeresője (WX-9) is. |
 | SD-17 | (v1.3) **Gyorsan nyíló hosszú listák (SD-2 javítása):** a lenyíló lista (App badges › Add an app, Notifications › Apps és Websites) sorai animáció nélkül jelennek meg, csak a › nyíl fordul el animálva; az appok ikonjait az app egyszer tölti be és megjegyzi, nem minden kirajzoláskor. |
+| SD-18 | (v1.3.1) **Modules oldal sorrendje:** a *Settings › Modules* oldalon a **Swipe up** (modulváltó, QS) szakaszai a **Module strip** szakasz **előtt** állnak. |
 
 ## 4ő+++++++. Refaktorálás: energia, folyékonyság, biztonság (v0.111)
 
@@ -1409,6 +1411,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.3.1** | Gmail Primary címke: a Mail címke-másolatai is számítanak, nem működő címkénél az egész Inbox (GM-17); Modules oldalon a Swipe up a Module strip előtt (SD-18) |
 | **v1.3.0** | A bemutató a notchból nyílik, gyakorlás helyett magyarázó lépések; tippek minden modul minden fülén, 2–3 mondatban; gyorsan nyíló app-listák; egységes keresőmezők; a „Go back to X” gomb megszűnt (OB-36, OB-37, SD-16, SD-17, RF-21) |
 | **v1.2.0** | Bemutató kártyája a notch aljához tapad, gyakorláskor a lenyílt notch alá csúszik (OB-34, OB-35); What's new a notchból nyílik a frissítés-értesítésre hoverelve, csak *Got it* tünteti el (WN-6…WN-8); nagy kijelzőn több adat a Wingsben (PV-75); Tools a Pomodoro méretére (TM-22) |
 | **v1.1.0** | Bemutató: tartalomhoz igazodó, egérrel mozgatható kártya, a gombok mindig a képernyőn; *End tour* gomb a tippekkel együtt; 2–3 mondatos modulleírások (OB-30…OB-33); What's new kártya frissítés után (WN-1…WN-5) |
