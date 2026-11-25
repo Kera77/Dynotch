@@ -1315,7 +1315,7 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 
 | # | Követelmény |
 |---|---|
-| OB-23 | Állapot `UserDefaults`-ban: `onboarding.completed` (Bool), `onboarding.step` (Int, félbehagyáshoz). A *Replay tour* törli mindkettőt és indítja a bemutatót. Az állapotgép (lépések, előre/hátra, kihagyás, folytatás, ) UI nélkül, unit-tesztelhetően készül. |
+| OB-23 | Állapot `UserDefaults`-ban: `onboarding.completed` (Bool), `onboarding.step` (Int, félbehagyáshoz). A *Replay tour* törli mindkettőt és indítja a bemutatót. Az állapotgép (lépések, előre/hátra, kihagyás, folytatás) UI nélkül, unit-tesztelhetően készül. |
 | OB-24 | A gyakorló lépések (OB-15, OB-16) a meglévő hover- és swipe-eseményekből értesülnek (`NotchController`), külön eseményfigyelő nélkül. |
 | OB-25 | Napló: `onboarding.log` – indulás, elért lépés, kihagyás, befejezés, időbélyeggel; beállításértéket és személyes adatot nem naplóz. A *Copy Diagnostics* (C-7) tartalmazza, kész-e a bemutató. |
 
