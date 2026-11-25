@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-11-25
+
 ### Fixed
 
 - Swiping over a tab picker steps from the tab now shown, so Tools goes through all its tabs instead of flipping between two; over the Calendar | Weather picker a swipe switches the tabs instead of the days (S-7).
