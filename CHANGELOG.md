@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-25
+
 ### Changed
 
 - Quick toggles moved out of the Tools module into the top row: the switch button beside Settings shows only the toggle tiles, and a click, a module icon, a swipe or Settings closes them. Switch the button off or move it in Settings › Appearance › Buttons beside the notch; off also stops the toggles' shortcuts and indicators. The muted microphone and Keep Awake indicators open the toggles (QT-6, QT-9, QT-10).

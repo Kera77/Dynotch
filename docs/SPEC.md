@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.4.0 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.5.0 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1419,6 +1419,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.5.0** | Gyorskapcsolók a felső sor gombja mögött, a Tools-ból kikerülnek; új csempék (Hide Dock, Display Sleep, Empty Trash, Eject Disks), húzásos sorrend a notchban (QT-6…QT-10); minden fülválasztó swipe-olható, ha rajta az egér (S-6); a Finder Wingmate-nek mutatja az appot (WM-3) |
 | **v1.4.0** | Új, témával váltó app-ikon: kinyitott notch matt üvegen, világos és sötét változat (G-10) |
 | **v1.3.1** | Gmail Primary címke: a Mail címke-másolatai is számítanak, nem működő címkénél az egész Inbox (GM-17); Modules oldalon a Swipe up a Module strip előtt (SD-18) |
 | **v1.3.0** | A bemutató a notchból nyílik, gyakorlás helyett magyarázó lépések; tippek minden modul minden fülén, 2–3 mondatban; gyorsan nyíló app-listák; egységes keresőmezők; a „Go back to X” gomb megszűnt (OB-36, OB-37, SD-16, SD-17, RF-21) |
