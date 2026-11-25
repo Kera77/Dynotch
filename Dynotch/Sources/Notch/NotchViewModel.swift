@@ -146,7 +146,8 @@ final class NotchViewModel {
         if editor != nil { return true }
         guard !isShowingOverlayPage else { return false }
         return isExpanded && !isPreview && (isShowingNotifications ? notificationsCanReply
-            : isShowingSettings || Self.typingFeatures.contains(currentFeature))
+            : isShowingSettings || Self.typingFeatures.contains(currentFeature)
+                || currentFeature == .home && HomeTileSettings.shared.hasFields)
     }
 
     /// Modules that take the keyboard (text fields, Space for Quick Look).

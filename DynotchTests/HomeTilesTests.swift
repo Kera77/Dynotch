@@ -55,7 +55,7 @@ struct HomeTilesTests {
     @Test func catalogFollowsTheModuleOrder() {
         let groups = HomeTileGroup.catalog(order: [.stats, .calendar, .home])
         #expect(groups.map(\.feature) == [.stats, .calendar, .home])
-        #expect(groups.first?.tiles.count == 6)
+        #expect(groups.first?.tiles.count == 7)
     }
 
     @Test func tilesArePlacedMovedRemovedAndSaved() {
@@ -142,5 +142,73 @@ struct HomeTilesTests {
         #expect(!fired)
         fired = gesture.swipe(phase: .changed, fingerDown: 25, fingerSideways: 2)
         #expect(fired)
+    }
+
+    // MARK: - Second part (spec HT-14, HT-16, HT-18, HT-27)
+
+    @Test func everyModuleHasATile() {
+        let withTiles = Set(HomeTile.allCases.map(\.feature))
+        #expect(FeatureID.allCases.allSatisfy { withTiles.contains($0) })
+    }
+
+    @Test func everySizeIsUsedAndFitsAGridOfTwo() {
+        let sizes = Set(HomeTile.allCases.map(\.size))
+        #expect(sizes == [.small, .wide, .tall, .large, .wideLarge, .tallLarge])
+        let placements = HomeLayout.place(HomeTile.allCases, columns: 2)
+        #expect(placements.count == HomeTile.allCases.count)
+        #expect(placements.allSatisfy { $0.column + $0.size.columns <= 2 })
+    }
+
+    @Test func aPartOfTheTodayTileOpensItsModule() {
+        let model = makeModel()
+        model.setExpanded(true)
+        model.select(.home)
+        model.openTile(.today, part: .reminders, anchor: .center)
+        #expect(model.currentFeature == .reminders)
+        #expect(model.tileOpening?.feature == .reminders)
+        model.backToHome()
+        #expect(model.currentFeature == .home)
+    }
+
+    @Test func theMonthPagesOnlyUnderThePointer() {
+        let pager = MonthTilePager()
+        #expect(!pager.step(by: 1))
+        pager.isHovered = true
+        #expect(pager.step(by: 1))
+        #expect(pager.step(by: 1))
+        #expect(pager.offset == 2)
+        let now = Date()
+        let start = Calendar.current.dateInterval(of: .month, for: now)?.start ?? now
+        let expected = Calendar.current.date(byAdding: .month, value: 2, to: start)
+        #expect(pager.month(now: now) == expected)
+        pager.reset()
+        #expect(pager.offset == 0)
+    }
+
+    @Test func monthCellsStartOnTheRightWeekday() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2
+        calendar.timeZone = try #require(TimeZone(identifier: "UTC"))
+        // 1 November 2026 is a Sunday: six empty cells before it when weeks start on Monday.
+        let november = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 1)))
+        let cells = MonthGridView.cells(of: november, calendar: calendar)
+        #expect(cells.prefix(6).allSatisfy { $0 == nil })
+        #expect(cells.count == 6 + 30)
+    }
+
+    @Test func rainAndWeeklyLimitAreFound() {
+        let now = Date()
+        let hours = [
+            WeatherForecast.Hour(time: now.addingTimeInterval(3600), temperature: 10, code: 3, rainChance: 20, isDay: true),
+            WeatherForecast.Hour(time: now.addingTimeInterval(7200), temperature: 9, code: 61, rainChance: 70, isDay: true)
+        ]
+        #expect(WeatherTileContent.nextRain(in: hours, now: now)?.rainChance == 70)
+        #expect(WeatherTileContent.nextRain(in: Array(hours.prefix(1)), now: now) == nil)
+        let limits = [
+            UsageLimit(id: "five_hour", title: "5-hour", utilization: 40, resetsAt: nil),
+            UsageLimit(id: "seven_day_opus", title: "Opus", utilization: 10, resetsAt: nil),
+            UsageLimit(id: "seven_day", title: "Weekly", utilization: 25, resetsAt: nil)
+        ]
+        #expect(AITileContent.weekly(in: limits)?.utilization == 25)
     }
 }

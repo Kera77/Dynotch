@@ -19,7 +19,10 @@ enum WhatsNew {
         WhatsNewRelease(version: "1.7.0", items: [
             WhatsNewItem(symbol: "square.grid.2x2", title: "Home tiles",
                          text: "The Home shows tiles from your modules; click one to open it, pinch to come back. "
-                             + "Arrange them in Settings › Modules › Home.")
+                             + "Arrange them in Settings › Modules › Home."),
+            WhatsNewItem(symbol: "calendar", title: "Tiles for every module",
+                         text: "A month that pages with a swipe, weather, reminders to tick, Spotify, timers, toggles "
+                             + "and more, from 1×1 up to 3×2.")
         ]),
         WhatsNewRelease(version: "1.6.1", items: [
             WhatsNewItem(symbol: "hand.draw", title: "Swipe through every tab",

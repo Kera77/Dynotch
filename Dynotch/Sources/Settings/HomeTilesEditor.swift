@@ -26,6 +26,7 @@ struct HomeTilesEditor: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             catalog
+            if tiles.contains(.worldClock) || tiles.contains(.run) { options }
             HStack {
                 Spacer()
                 Button("Reset to default") { withAnimation(Motion.quick) { tiles.reset() } }
@@ -64,6 +65,27 @@ struct HomeTilesEditor: View {
         guard let tile = items.first.flatMap(HomeTile.init(rawValue:)) else { return false }
         withAnimation(Motion.quick) { tiles.place(tile, at: index) }
         return true
+    }
+
+    // MARK: - Tiles' own settings (spec HT-29)
+
+    private static let zones = TimeZone.knownTimeZoneIdentifiers.sorted()
+
+    @ViewBuilder private var options: some View {
+        if tiles.contains(.worldClock) {
+            Picker("World clock", selection: $tiles.worldClockZone) {
+                ForEach(Self.zones, id: \.self) { zone in
+                    Text(zone.replacingOccurrences(of: "_", with: " ")).tag(zone)
+                }
+            }
+            .help("The time zone the World clock tile shows")
+        }
+        if tiles.contains(.run) {
+            TextField("Run tile's name", text: $tiles.runName, prompt: Text("e.g. Deploy"))
+            TextField("Run tile's command", text: $tiles.runCommand, prompt: Text("e.g. git pull"))
+                .font(.system(.callout, design: .monospaced))
+                .help("Typed into the Terminal and run when you click ▶ on the Run tile")
+        }
     }
 
     // MARK: - The catalog (spec HT-21)

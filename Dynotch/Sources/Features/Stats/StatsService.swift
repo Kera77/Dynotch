@@ -46,6 +46,8 @@ final class StatsService {
     @ObservationIgnored private var isVisible = false
     /// System tiles on the Home are on screen: every two seconds, without the processes (spec HT-9).
     @ObservationIgnored private var tilesVisible = false
+    /// The Top processes tile is on screen: the processes are read too (spec HT-14).
+    @ObservationIgnored private var tilesWantProcesses = false
     @ObservationIgnored private var settingsObserver: ChangeObservation?
     @ObservationIgnored private var ticks: SystemReadings.CPUTicks?
     @ObservationIgnored private var network: (SystemReadings.Network, Date)?
@@ -79,7 +81,8 @@ final class StatsService {
         if visible { read() }
     }
 
-    func setTilesVisible(_ visible: Bool) {
+    func setTilesVisible(_ visible: Bool, processes: Bool = false) {
+        tilesWantProcesses = processes
         guard tilesVisible != visible else { return }
         tilesVisible = visible
         schedule()
@@ -126,7 +129,7 @@ final class StatsService {
         downloadHistory = Array((downloadHistory + [next.download]).suffix(Self.historyLength))
         uploadHistory = Array((uploadHistory + [next.upload]).suffix(Self.historyLength))
         checkWarnings(next)
-        if isVisible { readProcesses() }
+        if isVisible || tilesWantProcesses { readProcesses() }
     }
 
     private func readNetwork(into next: inout StatsSnapshot, now: Date) {

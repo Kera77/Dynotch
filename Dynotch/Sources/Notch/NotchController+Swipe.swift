@@ -60,6 +60,8 @@ extension NotchController {
             // The notifications' tabs (spec UM-8, UM-8d) and the tray's chips (spec FT-4, FT-4d).
             if model.currentFeature == .notifications, model.isOverNotificationsTabs { return model.stepNotificationsTab(by: offset) }
             if model.currentFeature == .tray, tray.isOverTabs, tray.step(by: offset) { return true }
+            // The Home's month tile pages the months (spec HT-18).
+            if model.currentFeature == .home, model.tileOpening == nil, MonthTilePager.shared.step(by: offset) { return true }
             // Any other module's tab picker (spec S-6).
             return HoveredTabs.shared.step(by: offset)
         }

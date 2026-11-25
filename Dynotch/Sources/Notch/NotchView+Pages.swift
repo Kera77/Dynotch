@@ -44,9 +44,11 @@ extension NotchView {
         switch feature {
         case .home:
             HomeFeatureView(
-                tiles: .shared, calendar: calendar, stats: stats,
+                tiles: .shared, services: homeTileServices,
                 isActive: model.isExpanded && !model.isPreview && model.currentFeature == .home && model.tileOpening == nil,
-                open: { tile, anchor in withAnimation(Motion.spring) { model.openTile(tile, anchor: anchor) } }
+                open: { [model] tile, part, anchor in
+                    withAnimation(Motion.spring) { model.openTile(tile, part: part, anchor: anchor) }
+                }
             )
         case .calendar:
             CalendarFeatureView(service: calendar, model: model)
@@ -224,5 +226,16 @@ extension NotchView {
             featureContent
                 .transition(.opacity)
         }
+    }
+}
+
+extension NotchView {
+    /// The services the Home's tiles read (spec HT-7).
+    var homeTileServices: HomeTileServices {
+        HomeTileServices(
+            calendar: calendar, stats: stats, notifications: notifications, badges: badges, reminders: reminders,
+            notes: notes, calculator: calculator, usage: claudeUsage, chat: chat, battery: battery, clipboard: clipboard,
+            tray: tray, music: music
+        )
     }
 }

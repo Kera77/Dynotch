@@ -27,14 +27,29 @@ struct HomeTileCard<Content: View>: View {
         )
         .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous))
         .onHover { hovering in withAnimation(Motion.hover) { isHovered = hovering } }
-        .onTapGesture(coordinateSpace: .named(viewportSpace)) { location in
+        .modifier(TileTap(isOn: !HomeTile.withFields.contains(tile), space: viewportSpace) { location in
             let anchor = UnitPoint(x: location.x / max(viewport.width, 1), y: location.y / max(viewport.height, 1))
             open(tile, anchor)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
+        })
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(tile.title)
         .accessibilityAction { open(tile, .center) }
         .help(tile.feature == .home ? tile.title : "Open \(tile.feature.title)")
+    }
+}
+
+/// The click that opens the module; left off on tiles with a text field, so a click there types (spec HT-28).
+private struct TileTap: ViewModifier {
+    let isOn: Bool
+    let space: String
+    let action: (CGPoint) -> Void
+
+    func body(content: Content) -> some View {
+        if isOn {
+            content.onTapGesture(coordinateSpace: .named(space), perform: action)
+        } else {
+            content
+        }
     }
 }
 
@@ -50,12 +65,13 @@ struct TileValueView: View {
             Text(title)
                 .font(.notch(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
             Text(value)
                 .font(.notch(size: 22, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(0.5)
             if let detail {
                 Text(detail)
                     .font(.notch(size: 10))
@@ -66,36 +82,44 @@ struct TileValueView: View {
     }
 }
 
-/// What a tile shows (spec HT-14).
-struct HomeTileContent: View {
-    let tile: HomeTile
-    let calendar: CalendarService
-    let stats: StatsService
+/// A small round button on a tile (spec HT-7): acts, does not open the module.
+struct TileButton: View {
+    let symbol: String
+    let help: String
+    let action: () -> Void
 
     var body: some View {
-        if tile.feature == .stats {
-            StatsTileContent(tile: tile, stats: stats)
-        } else if tile == .nextEvent {
-            NextEventTileContent(calendar: calendar)
-        } else {
-            ClockTileContent(isWide: tile == .clockWide)
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .semibold))
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(Theme.selectedFill))
+                .contentShape(Circle())
         }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+        .help(help)
+        .accessibilityLabel(help)
     }
 }
 
-private struct ClockTileContent: View {
-    let isWide: Bool
+/// A line of a list on a tile: a leading mark, the text, a trailing note.
+struct TileRow<Mark: View>: View {
+    let text: String
+    var note: String?
+    @ViewBuilder let mark: Mark
 
     var body: some View {
-        TimelineView(.everyMinute) { context in
-            VStack(alignment: .leading, spacing: 1) {
-                Text(context.date, format: .dateTime.hour().minute())
-                    .font(.notch(size: isWide ? 34 : 26, weight: .semibold, design: .rounded))
+        HStack(spacing: 5) {
+            mark
+            Text(text)
+                .font(.notch(size: 11))
+                .lineLimit(1)
+            Spacer(minLength: 2)
+            if let note {
+                Text(note)
+                    .font(.notch(size: 10))
                     .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text(context.date, format: isWide ? .dateTime.weekday(.wide).month(.wide).day() : .dateTime.weekday().day())
-                    .font(.notch(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -103,88 +127,45 @@ private struct ClockTileContent: View {
     }
 }
 
-private struct NextEventTileContent: View {
-    var calendar: CalendarService
+/// A tile's empty or not-allowed state (spec HT-8).
+struct TileEmptyView: View {
+    let title: String
+    let text: String
 
     var body: some View {
-        TimelineView(.everyMinute) { context in
-            if calendar.access != .granted {
-                TileValueView(title: "Calendar", value: "—", detail: "Needs access")
-            } else if let event = calendar.events(on: context.date).first(where: { !$0.isAllDay && $0.end > context.date }) {
-                TileValueView(
-                    title: event.title,
-                    value: event.start.formatted(date: .omitted, time: .shortened),
-                    detail: Self.countdown(to: event, now: context.date)
-                )
-            } else {
-                TileValueView(title: "Calendar", value: "—", detail: "Nothing more today")
-            }
-        }
-    }
-
-    static func countdown(to event: CalendarEvent, now: Date) -> String {
-        if event.isOngoing(at: now) { return "Now" }
-        let minutes = Int((event.start.timeIntervalSince(now) / 60).rounded(.up))
-        return minutes < 60 ? "in \(minutes) min" : "in \(minutes / 60) h \(minutes % 60) min"
+        TileValueView(title: title, value: "—", detail: text)
     }
 }
 
-private struct StatsTileContent: View {
+/// How many list lines fit a tile of this size.
+extension TileSize {
+    var lines: Int { rows == 1 ? (columns == 1 ? 2 : 3) : rows * 4 - 1 }
+}
+
+/// What a tile shows (spec HT-14), by module.
+struct HomeTileContent: View {
     let tile: HomeTile
-    var stats: StatsService
+    let services: HomeTileServices
+    let size: TileSize
 
     var body: some View {
-        let snapshot = stats.snapshot
-        switch tile {
-        case .cpu:
-            VStack(alignment: .leading, spacing: 4) {
-                TileValueView(title: "CPU", value: StatsFormat.percent(snapshot.cpu), color: StatsSlot.color(for: snapshot.cpu))
-                StatsSparkline(values: stats.cpuHistory, top: 1, color: Theme.blue).frame(height: 18)
-            }
-        case .memory:
-            TileValueView(
-                title: "Memory", value: StatsFormat.percent(snapshot.memoryShare),
-                detail: snapshot.memory.map { "\(StatsFormat.bytes(Double($0.used))) of \(StatsFormat.bytes(Double($0.total)))" },
-                color: StatsSlot.color(for: snapshot.memoryShare)
-            )
-        case .swap:
-            TileValueView(title: "Swap", value: snapshot.memory.map { StatsFormat.bytes(Double($0.swapUsed)) } ?? "—")
-        case .network:
-            TileValueView(
-                title: "Network", value: "↓ " + StatsFormat.shortRate(snapshot.download),
-                detail: "↑ " + StatsFormat.rate(snapshot.upload)
-            )
-        case .disk:
-            diskContent(snapshot.disk)
+        switch tile.feature {
+        case .home, .calendar:
+            CalendarTileContent(tile: tile, services: services, size: size)
+        case .weather:
+            WeatherTileContent(tile: tile, size: size)
+        case .notifications, .reminders:
+            InboxTileContent(tile: tile, services: services, size: size)
+        case .notes, .calculator, .clipboard:
+            TextTileContent(tile: tile, services: services, size: size)
+        case .claudeUsage, .claudeChat, .battery:
+            AITileContent(tile: tile, services: services, size: size)
+        case .tray, .music:
+            MediaTileContent(tile: tile, services: services, size: size)
+        case .stats:
+            StatsTileContent(tile: tile, stats: services.stats, size: size)
         default:
-            batteryContent(snapshot.battery)
-        }
-    }
-
-    @ViewBuilder
-    private func diskContent(_ disk: SystemReadings.Disk?) -> some View {
-        if let disk {
-            let used = 1 - Double(disk.free) / Double(max(disk.total, 1))
-            VStack(alignment: .leading, spacing: 4) {
-                TileValueView(title: "Disk", value: StatsFormat.bytes(Double(disk.free)), detail: "free")
-                StatsBar(fraction: used, color: StatsSlot.color(for: used))
-            }
-        } else {
-            TileValueView(title: "Disk", value: "—")
-        }
-    }
-
-    @ViewBuilder
-    private func batteryContent(_ battery: MacBattery?) -> some View {
-        if let battery {
-            let state = battery.isCharging ? "Charging" : battery.isOnPower ? "On power" : "On battery"
-            let left = battery.minutesLeft.map { " · " + StatsFormat.minutes($0) } ?? ""
-            TileValueView(
-                title: "Battery", value: "\(battery.level)%", detail: state + left,
-                color: battery.level <= 20 && !battery.isOnPower ? Theme.red : .white
-            )
-        } else {
-            TileValueView(title: "Battery", value: "—", detail: "No battery")
+            ToolTileContent(tile: tile, size: size)
         }
     }
 }
