@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- First-launch tour in the notch: nine short steps that practise opening, closing and switching on the real notch, pick the modules, show what appears beside the closed notch, the power moves, the look and the permissions the chosen modules need. Skip it any time; a tour left half way continues at the next launch (OB-1…OB-25).
+- Settings › General › Replay tour starts the tour again at once (OB-5).
+- First-use tips: one line at the bottom of a module the first time it opens after the tour, and once a tip about resizing (OB-26…OB-29).
+
+### Changed
+
+- The app is now called Wingmate in Finder, Spotlight, System Settings, the permission prompts and everywhere in its interface. Its bundle id, folders, logs and repository keep the Dynotch name, so permissions and settings stay (WM-1, WM-2).
+
 ## [0.113.0] - 2026-11-24
 
 ### Added
