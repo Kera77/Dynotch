@@ -54,7 +54,8 @@ struct HomeTilesTests {
 
     @Test func catalogFollowsTheModuleOrder() {
         let groups = HomeTileGroup.catalog(order: [.stats, .calendar, .home])
-        #expect(groups.map(\.feature) == [.stats, .calendar, .home])
+        #expect(Array(groups.map(\.feature).prefix(3)) == [.stats, .calendar, .home])
+        #expect(groups.count == FeatureID.allCases.count)
         #expect(groups.first?.tiles.count == 7)
     }
 
