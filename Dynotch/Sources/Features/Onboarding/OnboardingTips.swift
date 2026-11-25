@@ -67,7 +67,8 @@ enum OnboardingTips {
         "claudeChat": "Ask Claude or ChatGPT; the header picks the provider, the model and a template. Add the "
             + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",
         "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
-            + "the session ring beside the closed notch; above 70% it shows there by itself.",
+            + "the session ring beside the closed notch; above 70% it shows there by itself. With a second account "
+            + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Options picks what shows beside the closed notch and which warnings you get.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "

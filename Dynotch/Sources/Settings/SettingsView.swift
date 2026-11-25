@@ -17,6 +17,7 @@ struct SettingsView: View {
     var switcher: SwitcherSettings?
     var screenshots: ScreenshotSettings?
     var battery: BatteryService?
+    var claudeUsage: ClaudeUsageService?
 
     /// The last page opened, kept across launches (spec SD-15).
     @AppStorage("settingsLastTab") private var selectedTab = SettingsTab.general
@@ -60,7 +61,7 @@ struct SettingsView: View {
     @ViewBuilder private var content: some View {
         switch selectedTab {
         case .general:
-            GeneralSettingsView(settings: settings, devices: devices, chat: chat, tasks: tasks, battery: battery)
+            GeneralSettingsView(settings: settings, devices: devices, chat: chat, tasks: tasks, battery: battery, claudeUsage: claudeUsage)
         case .appearance:
             AppearanceSettingsView(settings: settings)
         case .features:
@@ -103,6 +104,7 @@ private struct GeneralSettingsView: View {
     let chat: ClaudeChatService
     @Bindable var tasks: TaskIndicator
     var battery: BatteryService?
+    var claudeUsage: ClaudeUsageService?
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
@@ -197,6 +199,7 @@ private struct GeneralSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            if let claudeUsage { ClaudeAccountsSection(usage: claudeUsage) }
             Section {
                 Toggle("Tell me when Claude Code finishes a task", isOn: $claudeHook)
                     .onChange(of: claudeHook) { _, enabled in

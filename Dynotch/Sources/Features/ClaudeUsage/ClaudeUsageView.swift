@@ -85,6 +85,37 @@ struct ClaudeUsageView: View {
     }
 
     private var claude: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if service.hasSeveralAccounts { accountRow }
+            claudeContent
+        }
+    }
+
+    /// Auto or an account picked by hand, and the account shown (spec CL-11, CL-12).
+    private var accountRow: some View {
+        HStack(spacing: 8) {
+            CapsulePicker(
+                items: ["auto"] + service.accounts.map(\.id),
+                selection: Binding(get: { service.selection ?? "auto" }, set: { service.select($0 == "auto" ? nil : $0) }),
+                title: { id in id == "auto" ? "Auto" : service.accounts.first { $0.id == id }?.name ?? id }
+            )
+            Spacer(minLength: 4)
+            HStack(spacing: 5) {
+                if service.isConsuming(service.shownID) {
+                    Circle().fill(Color.green).frame(width: 6, height: 6)
+                        .help("In use: its session is growing")
+                }
+                Text(service.shownAccount.name)
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.7))
+                    .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Showing \(service.shownAccount.name)")
+        }
+    }
+
+    private var claudeContent: some View {
         Group {
             switch service.state {
             case .loaded:
@@ -94,6 +125,13 @@ struct ClaudeUsageView: View {
             case .noCredentials:
                 message("No Claude Code login found, or keychain access was denied.\n"
                     + "Sign in to Claude Code, then refresh.", showsRetry: true)
+            case .signedOut where !service.shownAccount.isClaudeCode:
+                VStack(spacing: 10) {
+                    message("\(service.shownAccount.name) is signed out.")
+                    Button("Sign in again") { service.signIn(replacing: service.shownID) }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                }
             case .signedOut:
                 message("The Claude Code token expired. Use Claude Code once (it renews it), then refresh.",
                         showsRetry: true)

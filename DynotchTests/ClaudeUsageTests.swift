@@ -173,4 +173,71 @@ struct ClaudeUsageTests {
         #expect(!service.isSessionPinned)
         #expect(service.notchLimits == nil)
     }
+
+    // MARK: - Several accounts (spec CL-8…CL-15)
+
+    @MainActor private func twoAccounts() -> (ClaudeUsageService, ClaudeAccount) {
+        let defaults = UserDefaults(suiteName: "DynotchTests-\(UUID().uuidString)") ?? .standard
+        let service = ClaudeUsageService(settings: AppSettings(defaults: defaults)) { _, _ in }
+        let desktop = ClaudeAccount(id: "desktop", name: "Desktop")
+        return (service, desktop)
+    }
+
+    private func session(_ used: Double) -> UsageLimit {
+        UsageLimit(id: "session", title: "Session (5 hr)", utilization: used, resetsAt: nil)
+    }
+
+    /// Spec CL-10, CL-11: Auto shows the account whose session grows; a pick by hand wins.
+    @Test @MainActor func autoFollowsTheGrowingAccount() {
+        let (service, desktop) = twoAccounts()
+        service.setLoadedState([session(30)])
+        #expect(!service.hasSeveralAccounts)
+        service.setLoadedState([session(50)], account: desktop, previous: [session(40)])
+        #expect(service.hasSeveralAccounts)
+        #expect(service.shownID == "desktop")
+        #expect(service.isConsuming("desktop"))
+        #expect(service.limits.first?.utilization == 50)
+        service.select(ClaudeAccount.claudeCodeID)
+        #expect(service.limits.first?.utilization == 30)
+        service.select(nil)
+        #expect(service.shownID == "desktop")
+    }
+
+    /// Spec CL-13: the ring is the account nearest its limit; the hover names every running session.
+    @Test @MainActor func notchNamesEveryAccountsSession() {
+        let (service, desktop) = twoAccounts()
+        service.setLoadedState([session(40)])
+        service.setLoadedState([session(82)], account: desktop)
+        let shown = service.notchLimits
+        #expect(shown?.map(\.utilization) == [82, 40])
+        #expect(shown?.map(\.account) == ["Desktop", "Claude Code"])
+        #expect(IndicatorItem.usageResetText(shown ?? []).hasPrefix("Desktop · "))
+        service.dismissIndicator()
+        #expect(service.notchLimits == nil)
+    }
+
+    /// Spec CL-15: with one account nothing is named.
+    @Test @MainActor func oneAccountIsNotNamed() {
+        let (service, _) = twoAccounts()
+        service.setLoadedState([session(75)])
+        #expect(service.notchLimits?.first?.account == nil)
+        #expect(IndicatorItem.usageResetText(service.notchLimits ?? []) == "Usage high")
+    }
+
+    /// Spec CL-8: the sign-in link, PKCE (RFC 7636 example) and the account's name.
+    @Test func signInLinkAndName() {
+        #expect(ClaudeOAuth.challenge(for: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+            == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+        let url = ClaudeOAuth.authorizationURL(challenge: "c", state: "s", redirect: "http://localhost:1234/callback")
+        let items = URLComponents(url: url ?? URL(fileURLWithPath: "/"), resolvingAgainstBaseURL: false)?.queryItems ?? []
+        #expect(items.first { $0.name == "scope" }?.value == "user:profile user:inference")
+        #expect(items.first { $0.name == "code_challenge_method" }?.value == "S256")
+        #expect(ClaudeOAuth.suggestedName(from: ["organization": ["name": "Acme"]]) == "Acme")
+        #expect(ClaudeOAuth.suggestedName(from: [
+            "organization": ["name": "a@b.com's Organization"], "account": ["email_address": "peter@example.com"]
+        ]) == "peter")
+        let json: [String: Any] = ["access_token": "x", "refresh_token": "y", "expires_in": 60]
+        let token = ClaudeOAuth.token(from: json, now: Date(timeIntervalSince1970: 0))
+        #expect(token == StoredClaudeToken(access: "x", refresh: "y", expiresAt: Date(timeIntervalSince1970: 60)))
+    }
 }

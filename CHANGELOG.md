@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- AI usage with several Claude accounts: Settings › General › AI usage accounts › Add account signs in another account (for example the Claude desktop app's) in the browser; Dynotch keeps and renews that sign-in in its own keychain item. The AI Usage view shows the account whose session is growing (Auto) or the one picked by hand, with its name and a green dot while in use. The notch ring follows the account nearest its limit, and its hover lists every account's session by name; alerts carry the account's name. With one account nothing changes (CL-8…CL-15). Onboarding: the AI Usage module text and tip mention the second account.
+
 ## [1.5.0] - 2026-11-25
 
 ### Changed

@@ -307,7 +307,7 @@ extension NotchIndicatorView {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(limits) { limit in
                     HStack(spacing: 6) {
-                        Text(limit.title)
+                        Text(limit.account.map { "\($0) · \(limit.title)" } ?? limit.title)
                             .font(.notch(size: 12, weight: .semibold))
                             .foregroundStyle(.white)
                             .lineLimit(1)

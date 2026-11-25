@@ -32,7 +32,8 @@ enum OnboardingModuleTexts {
         .claudeChat: "Ask Claude or ChatGPT without leaving the app you are in. "
             + "The Usage tab shows how much of your Claude limits is left and when they reset.",
         .claudeUsage: "Your Claude usage and when the limits reset, at a glance. "
-            + "It lives as the Usage tab of the AI module, and a ring beside the notch warns when you run low.",
+            + "It lives as the Usage tab of the AI module, and a ring beside the notch warns when you run low. "
+            + "Add a second account, like the desktop app's, in Settings › General.",
         .stats: "CPU, memory, disk and network of your Mac at a glance. "
             + "The Batteries tab shows your connected devices and their charge.",
         .battery: "Batteries of your Mac, AirPods, mouse and other connected devices. "

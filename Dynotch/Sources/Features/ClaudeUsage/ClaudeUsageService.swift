@@ -1,11 +1,12 @@
 import AppKit
 import Observation
 
-/// Polls the Claude subscription usage with Claude Code's login (spec CL-1…CL-7).
+/// Polls the Claude subscription usage with Claude Code's login and the accounts added in
+/// Settings (spec CL-1…CL-15).
 @MainActor
 @Observable
 final class ClaudeUsageService {
-    enum State: Equatable {
+    enum State: Equatable, Sendable {
         case idle
         case loading
         case loaded
@@ -16,35 +17,82 @@ final class ClaudeUsageService {
         case failed(String)
     }
 
-    private(set) var state: State = .idle
-    private(set) var limits: [UsageLimit] = []
+    /// Claude Code's login first, then the accounts added in Settings (spec CL-8).
+    var accounts: [ClaudeAccount] = [.claudeCode]
+    var usage: [String: AccountUsage] = [:]
+    /// The account whose session grew last (spec CL-10).
+    var activeID = ClaudeAccount.claudeCodeID
+    /// The account picked by hand; nil is Auto (spec CL-11).
+    var selection: String? {
+        didSet { settings.defaults.set(selection, forKey: Self.selectionKey) }
+    }
+    /// A sign-in in progress or its error, for Settings.
+    var signInMessage: String?
+    var isSigningIn = false
+
     /// ChatGPT's limits, from Codex's logs (spec AI-6).
     private(set) var gptLimits: [UsageLimit] = []
     private(set) var gptUpdated: Date?
-    private(set) var lastUpdated: Date?
     /// "limit key|10 % step" of the fullest limit when its notch indicator was hidden (spec CL-6).
     private var dismissedIndicator: String? {
-        didSet { UserDefaults.standard.set(dismissedIndicator, forKey: Self.dismissedKey) }
+        didSet { settings.defaults.set(dismissedIndicator, forKey: Self.dismissedKey) }
     }
 
-    private let settings: AppSettings
-    private let notify: (String, String) -> Void
+    let settings: AppSettings
+    let notify: (String, String) -> Void
     @ObservationIgnored private var timer: Poller?
     @ObservationIgnored private var settingsObserver: ChangeObservation?
     @ObservationIgnored private var isRefreshing = false
     /// Token read from Claude Code's keychain item, with its expiry.
     @ObservationIgnored private var cachedToken: (token: String, expires: Date?)?
+    /// Tokens of the added accounts, read from Dynotch's keychain item once.
+    @ObservationIgnored var storedTokens: [String: StoredClaudeToken] = [:]
 
     private static let refreshInterval: TimeInterval = 5 * 60
     private static let minimumInterval: TimeInterval = 60
-    private static let alertStateKey = "claudeUsageAlertState"
+    /// A session that grew within this time counts as being used (spec CL-12).
+    private static let consumingWindow: TimeInterval = 12 * 60
+    static let alertStateKey = "claudeUsageAlertState"
     private static let dismissedKey = "claudeIndicatorDismissed"
+    static let accountsKey = "claudeUsageAccounts"
+    private static let selectionKey = "claudeUsageAccount"
     private static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")
 
     init(settings: AppSettings, notify: @escaping (String, String) -> Void) {
         self.settings = settings
         self.notify = notify
-        dismissedIndicator = UserDefaults.standard.string(forKey: Self.dismissedKey)
+        dismissedIndicator = settings.defaults.string(forKey: Self.dismissedKey)
+        let saved = settings.defaults.data(forKey: Self.accountsKey)
+            .flatMap { try? JSONDecoder().decode([ClaudeAccount].self, from: $0) } ?? []
+        let claudeCode = saved.first(where: \.isClaudeCode) ?? .claudeCode
+        accounts = [claudeCode] + saved.filter { !$0.isClaudeCode }
+        selection = settings.defaults.string(forKey: Self.selectionKey).flatMap { id in
+            accounts.contains { $0.id == id } ? id : nil
+        }
+    }
+
+    // MARK: - The shown account
+
+    var hasSeveralAccounts: Bool { accounts.count > 1 }
+
+    /// The picked account, otherwise the one in use (spec CL-10, CL-11).
+    var shownID: String { selection ?? activeID }
+
+    var shownAccount: ClaudeAccount { accounts.first { $0.id == shownID } ?? accounts[0] }
+
+    private var shown: AccountUsage { usage[shownID] ?? AccountUsage() }
+
+    var state: State { shown.state }
+    var limits: [UsageLimit] { shown.limits }
+    var lastUpdated: Date? { shown.lastUpdated }
+
+    /// Its session grew within the last refreshes (spec CL-12).
+    func isConsuming(_ id: String, now: Date = Date()) -> Bool {
+        usage[id]?.lastGrowth.map { now.timeIntervalSince($0) < Self.consumingWindow } ?? false
+    }
+
+    func select(_ id: String?) {
+        selection = id.flatMap { id in accounts.contains { $0.id == id } ? id : nil }
     }
 
     /// The fullest limit.
@@ -53,23 +101,42 @@ final class ClaudeUsageService {
     }
 
     /// The session (5 hour) limit.
-    var session: UsageLimit? {
-        limits.first { $0.title.hasPrefix("Session") }
+    var session: UsageLimit? { shown.session }
+
+    /// Every account's session, named when there are several (spec CL-13).
+    private var sessions: [UsageLimit] {
+        accounts.compactMap { account in
+            guard let entry = usage[account.id], entry.state == .loaded, var session = entry.session else { return nil }
+            if hasSeveralAccounts {
+                session = UsageLimit(
+                    id: account.id + "|" + session.id, title: session.title, utilization: session.utilization,
+                    resetsAt: session.resetsAt, account: account.name
+                )
+            }
+            return session
+        }
     }
 
-    /// What the notch shows (spec CL-6): only the session limit, only from 70 %, and not while
-    /// hidden with the X.
+    /// Claude's sessions or ChatGPT's fullest limit, whichever is nearest its limit (spec AI-6, CL-13).
+    private var nearest: UsageLimit? {
+        (sessions + [gptLimits.max { $0.utilization < $1.utilization }].compactMap { $0 })
+            .max { $0.utilization < $1.utilization }
+    }
+
+    /// What the notch shows (spec CL-6): only sessions, only from 70 %, and not while hidden with
+    /// the X. With several accounts the hover lists every running session by name (spec CL-13).
     var notchLimits: [UsageLimit]? {
-        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible else { return nil }
-        // Claude's session or ChatGPT's fullest limit, whichever is nearer its limit (spec AI-6).
-        let candidates = [state == .loaded ? session : nil, gptLimits.max { $0.utilization < $1.utilization }].compactMap { $0 }
-        guard let nearest = candidates.max(by: { $0.utilization < $1.utilization }) else { return nil }
+        guard settings.isEnabled(.claudeUsage), settings.claudeRingVisible, let nearest else { return nil }
         // Pinned with the button in the AI Usage view: always shown (spec CL-6b).
-        if settings.claudeSessionPinned { return [nearest] }
-        guard nearest.utilization >= UsageAlerts.threshold,
-              !UsageAlerts.isDismissed(nearest, marker: dismissedIndicator)
-        else { return nil }
-        return [nearest]
+        if !settings.claudeSessionPinned {
+            guard nearest.utilization >= UsageAlerts.threshold,
+                  !UsageAlerts.isDismissed(nearest, marker: dismissedIndicator)
+            else { return nil }
+        }
+        guard hasSeveralAccounts else { return [nearest] }
+        let others = sessions.filter { $0.id != nearest.id && $0.utilization > 0 }
+            .sorted { $0.utilization > $1.utilization }
+        return [nearest] + others
     }
 
     var isSessionPinned: Bool { settings.claudeSessionPinned }
@@ -79,11 +146,11 @@ final class ClaudeUsageService {
         settings.claudeSessionPinned.toggle()
     }
 
-    /// Hides the notch indicator until the session reaches its next 10 % (or resets).
+    /// Hides the notch indicator until the nearest limit reaches its next 10 % (or resets).
     func dismissIndicator() {
         settings.claudeSessionPinned = false
-        guard let session else { return }
-        dismissedIndicator = UsageAlerts.dismissMarker(for: session)
+        guard let nearest else { return }
+        dismissedIndicator = UsageAlerts.dismissMarker(for: nearest)
     }
 
     /// The limit shown by the menu bar ring: the session, otherwise the fullest one.
@@ -92,8 +159,11 @@ final class ClaudeUsageService {
     }
 
     var summary: String {
-        limits.map { "\($0.title) \(Int($0.utilization.rounded()))%" }.joined(separator: " · ")
+        let text = limits.map { "\($0.title) \(Int($0.utilization.rounded()))%" }.joined(separator: " · ")
+        return hasSeveralAccounts && !text.isEmpty ? shownAccount.name + " · " + text : text
     }
+
+    // MARK: - Polling
 
     func start() {
         settingsObserver = observeChanges { [settings] in _ = settings.isEnabled(.claudeUsage) } onChange: { [weak self] in
@@ -128,22 +198,43 @@ final class ClaudeUsageService {
         refreshChatGPT()
         guard !isRefreshing, let endpoint = Self.endpoint else { return }
         isRefreshing = true
-        if limits.isEmpty { state = .loading }
+        for account in accounts where usage[account.id]?.limits.isEmpty ?? true {
+            usage[account.id, default: AccountUsage()].state = .loading
+        }
+        let ids = accounts.map(\.id)
         Task {
             defer { isRefreshing = false }
+            for id in ids {
+                await refresh(id, endpoint: endpoint)
+            }
+        }
+    }
+
+    private func refresh(_ id: String, endpoint: URL) async {
+        let token: String
+        if id == ClaudeAccount.claudeCodeID {
             switch await credential() {
             case .missing:
-                state = .noCredentials
+                usage[id, default: AccountUsage()].state = .noCredentials
+                return
             case .expired:
-                state = .signedOut
-            case .token(let token, _):
-                do {
-                    let (data, status) = try await Self.fetch(endpoint, token: token)
-                    try handle(data: data, status: status)
-                } catch {
-                    state = .failed(error.localizedDescription)
-                }
+                usage[id, default: AccountUsage()].state = .signedOut
+                return
+            case .token(let value, _):
+                token = value
             }
+        } else {
+            guard let value = await accountToken(id) else {
+                usage[id, default: AccountUsage()].state = .signedOut
+                return
+            }
+            token = value
+        }
+        do {
+            let (data, status) = try await Self.fetch(endpoint, token: token)
+            try handle(data: data, status: status, for: id)
+        } catch {
+            usage[id, default: AccountUsage()].state = .failed(error.localizedDescription)
         }
     }
 
@@ -168,51 +259,35 @@ final class ClaudeUsageService {
         return credential
     }
 
-    private func handle(data: Data, status: Int) throws {
+    private func handle(data: Data, status: Int, for id: String) throws {
         let shape = ClaudeUsageParser.labels(of: data) + "\n" + ClaudeUsageParser.structure(of: data)
-        DiagnosticsLog.write("claude-usage", "HTTP \(status)\n" + shape)
+        let source = id == ClaudeAccount.claudeCodeID ? "Claude Code" : "added account"
+        DiagnosticsLog.write("claude-usage", "HTTP \(status) (\(source))\n" + shape)
         switch status {
         case 200:
-            apply(try ClaudeUsageParser.limits(from: data))
+            apply(try ClaudeUsageParser.limits(from: data), for: id)
         case 401, 403:
             // Claude Code may have renewed the token meanwhile: read it again next time.
-            cachedToken = nil
-            state = .signedOut
+            if id == ClaudeAccount.claudeCodeID { cachedToken = nil } else { storedTokens[id] = nil }
+            usage[id, default: AccountUsage()].state = .signedOut
         default:
-            state = .failed("HTTP \(status)")
+            usage[id, default: AccountUsage()].state = .failed("HTTP \(status)")
         }
     }
 
-    private func apply(_ limits: [UsageLimit]) {
-        self.limits = limits
-        lastUpdated = Date()
-        state = .loaded
-
-        let stored = (UserDefaults.standard.data(forKey: Self.alertStateKey))
-            .flatMap { try? JSONDecoder().decode([String: UsageAlertState].self, from: $0) } ?? [:]
-        let result = UsageAlerts.evaluate(limits, state: stored, now: Date())
-        if let data = try? JSONEncoder().encode(result.state) {
-            UserDefaults.standard.set(data, forKey: Self.alertStateKey)
+    func apply(_ limits: [UsageLimit], for id: String, now: Date = Date()) {
+        var entry = usage[id] ?? AccountUsage()
+        let before = entry.session?.utilization
+        entry.limits = limits
+        entry.lastUpdated = now
+        entry.state = .loaded
+        // Its session grew: this account is being used (spec CL-10).
+        if let before, let after = entry.session?.utilization, after > before {
+            entry.lastGrowth = now
+            activeID = id
         }
-        guard settings.claudeUsageAlerts else { return }
-
-        // The session started over (spec CL-5b).
-        for limit in result.reset where limit.title.hasPrefix("Session") {
-            notify("AI session reset", "\(limit.title) is at \(Int(limit.utilization.rounded()))% again.")
-        }
-        // Only when a new 10 % step is reached, never again for the same step (spec CL-5).
-        for limit in result.due {
-            let reset = limit.resetsAt.map { "Resets " + UsageAlerts.resetText($0, now: Date()) } ?? ""
-            let message = limit.utilization >= 100 ? "Limit reached." : "You are close to the limit."
-            notify("AI usage: \(limit.title) \(Int(limit.utilization.rounded()))%", "\(message) \(reset)")
-        }
-    }
-
-    /// Puts the service into a loaded state without the keychain or the network (tests, previews).
-    func setLoadedState(_ limits: [UsageLimit], updated: Date = Date()) {
-        self.limits = limits
-        lastUpdated = updated
-        state = .loaded
+        usage[id] = entry
+        alert(limits, for: id, now: now)
     }
 
     nonisolated private static func fetch(_ url: URL, token: String) async throws -> (Data, Int) {
@@ -224,40 +299,5 @@ final class ClaudeUsageService {
         request.timeoutInterval = 20
         let (data, response) = try await URLSession.shared.data(for: request)
         return (data, (response as? HTTPURLResponse)?.statusCode ?? 0)
-    }
-
-}
-
-/// Claude Code's login, read from the keychain item it stores (spec CL-1).
-enum ClaudeCredential: Sendable {
-    case token(String, expires: Date?)
-    case expired
-    case missing
-
-    static let service = "Claude Code-credentials"
-
-    /// Read with `/usr/bin/security`, the tool Claude Code itself stores the item with, so the
-    /// item's access list allows it and macOS does not ask for the password. (Reading it through
-    /// the keychain API asked again every time Claude Code renewed its token.)
-    nonisolated static func read() -> ClaudeCredential {
-        // A long limit: macOS may ask the owner about the keychain item first.
-        guard let result = ProcessRunner.run("/usr/bin/security", ["find-generic-password", "-s", service, "-w"], timeout: 120),
-              result.succeeded
-        else { return .missing }
-        let data = result.output
-        let trimmed = String(bytes: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return parse(Data(trimmed.utf8), now: Date())
-    }
-
-    nonisolated static func parse(_ data: Data, now: Date) -> ClaudeCredential {
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let oauth = json["claudeAiOauth"] as? [String: Any],
-              let token = oauth["accessToken"] as? String, !token.isEmpty
-        else { return .missing }
-        let expires = ((oauth["expiresAt"] as? NSNumber)?.doubleValue).map { Date(timeIntervalSince1970: $0 / 1000) }
-        if let expires, expires <= now {
-            return .expired
-        }
-        return .token(token, expires: expires)
     }
 }

@@ -8,6 +8,8 @@ struct UsageLimit: Identifiable, Equatable, Sendable {
     /// Percent used, 0…100.
     let utilization: Double
     let resetsAt: Date?
+    /// The account's name when several are signed in (spec CL-13).
+    var account: String?
 
     var level: UsageLevel { UsageLevel(utilization: utilization) }
 }

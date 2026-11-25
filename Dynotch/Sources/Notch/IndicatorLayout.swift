@@ -143,8 +143,11 @@ enum IndicatorItem: Identifiable, Equatable {
 
     /// "Resets today 14:30" of the fullest limit, beside the ring (spec PV-58).
     static func usageResetText(_ limits: [UsageLimit], now: Date = Date()) -> String {
-        guard let reset = limits.max(by: { $0.utilization < $1.utilization })?.resetsAt else { return "Usage high" }
-        return "Resets " + UsageAlerts.resetText(reset, now: now)
+        let nearest = limits.max { $0.utilization < $1.utilization }
+        // With several accounts the nearest one's name comes first (spec CL-13).
+        let name = nearest?.account.map { $0 + " · " } ?? ""
+        guard let reset = nearest?.resetsAt else { return name + "Usage high" }
+        return name + (name.isEmpty ? "Resets " : "resets ") + UsageAlerts.resetText(reset, now: now)
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands
