@@ -47,26 +47,28 @@ struct OnboardingModulesStep: View {
 
     /// What the module does, in a few words.
     static func line(_ feature: FeatureID) -> String {
-        switch feature {
-        case .home: "Clock and date"
-        case .calendar: "Today and meetings"
-        case .notifications: "Messages and alerts"
-        case .calculator: "Quick sums"
-        case .notes: "Apple Notes"
-        case .reminders: "To-dos with times"
-        case .claudeUsage: "Claude limits"
-        case .claudeChat: "Claude and ChatGPT"
-        case .battery: "Device batteries"
-        case .clipboard: "Copy history"
-        case .tray: "Files to keep at hand"
-        case .info: "Version and display"
-        case .music: "Spotify controls"
-        case .stats: "CPU, memory, network"
-        case .terminal: "A shell"
-        case .tools: "Timer, stopwatch, pomodoro"
-        case .weather: "Forecast"
-        }
+        lines[feature] ?? ""
     }
+
+    private static let lines: [FeatureID: String] = [
+        .home: "Clock and date",
+        .calendar: "Today and meetings",
+        .notifications: "Messages and alerts",
+        .calculator: "Quick sums",
+        .notes: "Apple Notes",
+        .reminders: "To-dos with times",
+        .claudeUsage: "Claude limits",
+        .claudeChat: "Claude and ChatGPT",
+        .battery: "Device batteries",
+        .clipboard: "Copy history",
+        .tray: "Files to keep at hand",
+        .info: "Version and display",
+        .music: "Spotify controls",
+        .stats: "CPU, memory, network",
+        .terminal: "A shell",
+        .tools: "Timer, stopwatch, pomodoro",
+        .weather: "Forecast"
+    ]
 }
 
 /// Beside the closed notch (spec OB-18).

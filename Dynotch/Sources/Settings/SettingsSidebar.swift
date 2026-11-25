@@ -66,7 +66,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var keywords: String {
         switch self {
         case .general:
-            "onboarding tour welcome intro replay tips launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay "
+            "onboarding tour welcome intro replay tips "
+                + "launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay "
                 + "tasks reminders counter"
         case .appearance: "design glass liquid pill notch rounded full screen preview wings hover smart opening"
         case .features: "modules order shortcuts menu bar pin strip swipe switcher"

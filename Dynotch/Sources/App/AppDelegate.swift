@@ -187,17 +187,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// The window switcher: its shortcut and the trackpad swipe (spec AS-8, AS-11).
-    /// The first-launch tour (spec OB-1, OB-5).
-    private func startOnboarding(_ manager: NotchManager) {
-        let onboarding = OnboardingController(
-            settings: settings, switcher: services.switcher.settings,
-            notchModels: { [weak manager] in manager?.notchModels ?? [] },
-            collapseNotches: { [weak manager] in manager?.collapseAll() },
-            closeSettings: { [weak self] in self?.settingsWindow.close() }
-        )
-        onboarding.startIfNeeded()
-    }
-
     private func startSwitcher(_ manager: NotchManager) {
         let switcher = services.switcher
         switcher.present = { [weak manager] shown in manager?.showSwitcher(shown) }
@@ -348,5 +337,20 @@ extension AppDelegate {
         screenshotObserver = observeChanges { _ = screenshotSettings.isOn } onChange: { [tray = services.tray] in
             tray.showsScreenshots = screenshotSettings.isOn
         }
+    }
+}
+
+// MARK: - Onboarding
+
+extension AppDelegate {
+    /// The first-launch tour (spec OB-1, OB-5).
+    private func startOnboarding(_ manager: NotchManager) {
+        let onboarding = OnboardingController(
+            settings: settings, switcher: services.switcher.settings,
+            notchModels: { [weak manager] in manager?.notchModels ?? [] },
+            collapseNotches: { [weak manager] in manager?.collapseAll() },
+            closeSettings: { [weak self] in self?.settingsWindow.close() }
+        )
+        onboarding.startIfNeeded()
     }
 }
