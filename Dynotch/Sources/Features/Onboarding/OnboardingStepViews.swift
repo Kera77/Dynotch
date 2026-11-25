@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Choose your modules: tiles in groups, each with one line and a switch (spec OB-17).
+/// Choose your modules: one row per module, in groups, with a switch and two or three sentences
+/// about what it does (spec OB-17, OB-33). The texts live in `OnboardingModuleTexts`.
 struct OnboardingModulesStep: View {
     @Bindable var settings: AppSettings
 
@@ -12,63 +13,43 @@ struct OnboardingModulesStep: View {
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(Self.groups, id: \.0) { group in
-                    Text(group.0).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
-                        ForEach(group.1) { feature in tile(feature) }
-                    }
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(Self.groups, id: \.0) { group in
+                Text(group.0).font(.caption.weight(.semibold)).foregroundStyle(.secondary).padding(.top, 4)
+                ForEach(group.1) { feature in row(feature) }
             }
         }
-        .scrollIndicators(.automatic)
+        .padding(.trailing, 6)
     }
 
-    private func tile(_ feature: FeatureID) -> some View {
-        Toggle(isOn: Binding(
-            get: { settings.isEnabled(feature) },
-            set: { _ = settings.setEnabled(feature, $0) }
-        )) {
-            HStack(spacing: 8) {
-                Image(systemName: feature.symbolName).frame(width: 18).foregroundStyle(Theme.blue)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(feature.title).font(.callout)
-                    Text(Self.line(feature)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                }
+    private func row(_ feature: FeatureID) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: feature.symbolName)
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.blue)
+                .frame(width: 22)
+                .padding(.top, 1)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(feature.title).font(.callout.weight(.semibold))
+                Text(OnboardingModuleTexts.text(for: feature))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            Spacer(minLength: 8)
+            Toggle(feature.title, isOn: Binding(
+                get: { settings.isEnabled(feature) },
+                set: { _ = settings.setEnabled(feature, $0) }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.small)
         }
-        .toggleStyle(.switch)
-        .controlSize(.mini)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
         .background(RoundedRectangle(cornerRadius: Theme.Radius.medium).fill(Theme.fill))
     }
-
-    /// What the module does, in a few words.
-    static func line(_ feature: FeatureID) -> String {
-        lines[feature] ?? ""
-    }
-
-    private static let lines: [FeatureID: String] = [
-        .home: "Clock and date",
-        .calendar: "Today and meetings",
-        .notifications: "Messages and alerts",
-        .calculator: "Quick sums",
-        .notes: "Apple Notes",
-        .reminders: "To-dos with times",
-        .claudeUsage: "Claude limits",
-        .claudeChat: "Claude and ChatGPT",
-        .battery: "Device batteries",
-        .clipboard: "Copy history",
-        .tray: "Files to keep at hand",
-        .info: "Version and display",
-        .music: "Spotify controls",
-        .stats: "CPU, memory, network",
-        .terminal: "A shell",
-        .tools: "Timer, stopwatch, pomodoro",
-        .weather: "Forecast"
-    ]
 }
 
 /// Beside the closed notch (spec OB-18).
@@ -76,18 +57,16 @@ struct OnboardingBesideStep: View {
     @Bindable var settings: AppSettings
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                OnboardingRow(symbol: "bell.badge", title: "Notifications", text: "New messages drop down under the notch.")
-                OnboardingRow(symbol: "app.badge", title: "App badges", text: "Unread counts of your apps, next to the notch.")
-                OnboardingRow(symbol: "timer", title: "Indicators", text: "Meeting countdown, timers, “Claude finished”.")
-                OnboardingRow(symbol: "phone.fill", title: "Calls", text: "Incoming calls with answer and text back.")
-                OnboardingRow(symbol: "square.grid.3x1.below.line.grid.1x2", title: "Module strip",
-                              text: "Rest the pointer on the notch's bottom edge: module icons slide out.")
-                OnboardingRow(symbol: "speaker.wave.2.fill", title: "Volume and brightness",
-                              text: "Shown beside the notch instead of the macOS overlay.") {
-                    Toggle("", isOn: $settings.hudEnabled).labelsHidden().toggleStyle(.switch).controlSize(.small)
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            OnboardingRow(symbol: "bell.badge", title: "Notifications", text: "New messages drop down under the notch.")
+            OnboardingRow(symbol: "app.badge", title: "App badges", text: "Unread counts of your apps, next to the notch.")
+            OnboardingRow(symbol: "timer", title: "Indicators", text: "Meeting countdown, timers, “Claude finished”.")
+            OnboardingRow(symbol: "phone.fill", title: "Calls", text: "Incoming calls with answer and text back.")
+            OnboardingRow(symbol: "square.grid.3x1.below.line.grid.1x2", title: "Module strip",
+                          text: "Rest the pointer on the notch's bottom edge: module icons slide out.")
+            OnboardingRow(symbol: "speaker.wave.2.fill", title: "Volume and brightness",
+                          text: "Shown beside the notch instead of the macOS overlay.") {
+                Toggle("", isOn: $settings.hudEnabled).labelsHidden().toggleStyle(.switch).controlSize(.small)
             }
         }
     }
@@ -108,7 +87,6 @@ struct OnboardingPowerStep: View {
             OnboardingRow(symbol: "arrow.up.left.and.arrow.down.right", title: "Resize",
                           text: "Drag a module's bottom-right corner; it remembers the size.")
         }
-        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -147,8 +125,9 @@ struct OnboardingLookStep: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxHeight: .infinity)
+        .padding(.vertical, 8)
     }
 }
 
@@ -162,6 +141,9 @@ struct OnboardingPermissionsStep: View {
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
+        .scrollDisabled(true)
+        // A Form has no height of its own; the card fits it (spec OB-30).
+        .frame(height: CGFloat(permissions.count) * 38 + 96)
     }
 }
 
@@ -178,6 +160,6 @@ struct OnboardingReadyStep: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .frame(maxHeight: .infinity)
+        .padding(.vertical, 8)
     }
 }

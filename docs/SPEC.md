@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.0 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.1 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1333,6 +1333,25 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 | OB-24 | A gyakorló lépések a notch-modellek állapotát (nyitva van-e, melyik modul látszik) figyelik a bemutató alatt 0,15 mp-enként, külön eseményfigyelő nélkül. A bemutató paneljén ←/→ lapoz, Esc kihagy. |
 | OB-25 | Napló: `onboarding.log` – indulás, elért lépés, kihagyás, befejezés, időbélyeggel; beállításértéket és személyes adatot nem naplóz. A *Copy Diagnostics* (C-7) tartalmazza, kész-e a bemutató. |
 
+### Javítások és befejezés (v1.1)
+
+| # | Követelmény |
+|---|---|
+| OB-30 | **Tartalomhoz igazodó ablak** (felülírja OB-8 fix 520 × 440 méretét és a notchhoz simulást): a bemutató egy lekerekített kártya a menüsor alatt, középen; a magassága mindig akkora, amekkora a lépés tartalma. Ha a tartalom magasabb, mint a kijelző látható része, csak a lépés tartalma görget, a cím és a gombok (*Back*, *Next*, *Skip tour*) mindig a képernyőn maradnak. A gyakorló lépések kis kártyája (OB-10) is a tartalmához igazodik. |
+| OB-31 | **Mozgatható:** a kártya a hátterénél vagy a tetején lévő fogantyúnál fogva egérrel elhúzható. Az új helyét a bemutató végéig megtartja (a lépések a felső szélétől lefelé nőnek), és a látható képernyőn belül marad. |
+| OB-32 | **End tour gomb** a *Settings › General › Onboarding* részben a *Replay tour* mellett: leállítja a futó bemutatót, késznek jelöli, és a modulok első használati tippjei (OB-26) többé nem jelennek meg (`onboarding.tipsOff`). Szürke, ha nincs mit leállítani. A *Replay tour* a tippeket is visszakapcsolja. |
+| OB-33 | **Hosszabb modulleírások** (felülírja OB-17 kétoszlopos rácsát): a *Choose your modules* lépésben modulonként egy sor ikonnal, névvel és kapcsolóval, alatta **2–3 mondat** a modul funkcióiról. A leírások egy helyen, adatként vannak; teszt ellenőrzi, hogy minden csoportosított modulnak van leírása. |
+
+## 4ő+++++++++++. Újdonságok frissítés után (v1.1)
+
+| # | Követelmény |
+|---|---|
+| WN-1 | **What's new kártya:** frissítés után az első indításkor (~2 mp-cel, a bemutatóhoz hasonló, mozgatható kártyán, OB-30, OB-31) megjelenik a „What's new in Wingmate X.Y” kártya: az előző futtatott verzió óta érkezett verziók újdonságai, verziónként egy-egy rövid sor (ikon, cím, egy mondat), legújabb felül. Gomb: *Got it* (és Esc). |
+| WN-2 | **Mikor nem:** első telepítéskor (amíg a bemutató nincs kész, OB-1) nem jelenik meg, a bemutató mutatja be az appot; ha a közbeeső verziókhoz nincs bejegyzés (csak javítás), sem. Képernyőmegosztás, teljes képernyős app és Mission Control alatt kivár (mint OB-12). Futó bemutató alatt nem jelenik meg. |
+| WN-3 | **Állapot:** `whatsNew.lastVersion` (az utoljára látott verzió). A *Got it* vagy a megjelenés elmentése után ugyanarra a verzióra nem jön újra. Ha a kulcs még nincs, de a bemutató kész (az 1.0-ról frissítők), az aktuális verzió újdonságai jelennek meg. |
+| WN-4 | **Karbantartás:** minden felhasználó számára látható új funkció vagy változás kiadásakor **ugyanabban a változtatásban** bekerül egy rövid sor a verzió bejegyzésébe (`WhatsNew`, adatként, verzió szerint); a CHANGELOG ennek a hosszú változata. Teszt ellenőrzi, hogy az aktuális verzió bejegyzése nem üres, és a verziók sorrendje helyes. |
+| WN-5 | Napló: az `onboarding.log`-ba kerül, melyik verzió újdonságai jelentek meg; személyes adatot nem naplóz. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -1379,6 +1398,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.1.0** | Bemutató: tartalomhoz igazodó, egérrel mozgatható kártya, a gombok mindig a képernyőn; *End tour* gomb a tippekkel együtt; 2–3 mondatos modulleírások (OB-30…OB-33); What's new kártya frissítés után (WN-1…WN-5) |
 | **v1.0.0** | Wingmate név (csak a látható név, WM-1, WM-2); első indításkori bemutató a notchnál gyakorló lépésekkel, modulválasztással, engedélyekkel, *Replay tour* a General lapon; első használati tippek modulonként (OB-1…OB-29) |
 | **v0.113.0** | Tools: hoverre vezérlők a notch melletti jelzőn (lefelé, Wingsben oldalra), stopper alapból a notch mellett, magasabb Tools modul; fülekkel bíró modulok egy közös mérete a legnagyobb fül szerint; időjárás: jelenlegi hely vagy mentett helyek, helymeghatározás entitlement javítás (TM-18…TM-21, RS-7, WX-9, WX-10) |
 | **v0.112.0** | Tools modul: időzítő, stopper, pomodoro, gyorskapcsolók (TM-1…TM-17, QT-1…QT-5); HUD-bejelentések (HA-1…HA-4); Weather fül a Naptárban és reggeli előrejelzés (WX-1…WX-8) |

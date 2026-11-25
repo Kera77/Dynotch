@@ -31,7 +31,7 @@ final class OnboardingController {
     private let notchModels: () -> [NotchViewModel]
     private let collapseNotches: () -> Void
     private let closeSettings: () -> Void
-    private var panel: OnboardingPanel?
+    private var panel: CardPanel?
     private var timer: Timer?
     private var keyMonitor: Any?
     private var featureAtOpen: FeatureID?
@@ -66,6 +66,20 @@ final class OnboardingController {
         }
     }
 
+    /// The card takes its content's size (spec OB-30).
+    func fit(_ size: CGSize) {
+        panel?.fit(size)
+    }
+
+    /// Settings › General › End tour: stops the tour and the first-use tips (spec OB-32).
+    func end() {
+        DiagnosticsLog.append("onboarding", "ended")
+        progress.end()
+        if Self.isRunning { close() }
+    }
+
+    var canEnd: Bool { progress.canEnd(running: Self.isRunning) }
+
     private func startWhenClear(at step: OnboardingStep) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             MainActor.assumeIsolated {
@@ -82,8 +96,7 @@ final class OnboardingController {
         guard !Self.isRunning else { return }
         Self.isRunning = true
         DiagnosticsLog.append("onboarding", "started at \(step)")
-        let panel = OnboardingPanel(controller: self)
-        self.panel = panel
+        panel = CardPanel(rootView: OnboardingView(controller: self, model: model))
         watchKeys()
         go(to: step)
     }
@@ -105,7 +118,7 @@ final class OnboardingController {
         DiagnosticsLog.append("onboarding", "skipped at \(model.step)")
         progress.complete()
         model.showsSkipNote = true
-        if model.step.isPractice { panel?.place(compact: false) }
+        panel?.setAnchorsLow(false)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
             MainActor.assumeIsolated { self?.close() }
         }
@@ -125,7 +138,7 @@ final class OnboardingController {
         withAnimation(Motion.spring) { model.step = step }
         progress.save(step)
         DiagnosticsLog.append("onboarding", "step \(step)")
-        panel?.place(compact: step.isPractice)
+        panel?.setAnchorsLow(step.isPractice)
         if step.isPractice { startWatchingNotch() } else { stopWatchingNotch() }
     }
 
@@ -133,7 +146,7 @@ final class OnboardingController {
         stopWatchingNotch()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil
-        panel?.orderOut(nil)
+        panel?.dismiss()
         panel = nil
         model.showsSkipNote = false
         Self.isRunning = false
@@ -225,65 +238,5 @@ final class OnboardingController {
         } catch {
             DiagnosticsLog.append("onboarding", "launch at login failed: \(error.localizedDescription)")
         }
-    }
-}
-
-/// The tour's window: at the notch, like the open notch, or a small card lower down while
-/// the real notch is practised on (spec OB-8).
-final class OnboardingPanel: NSPanel {
-    static let size = CGSize(width: 520, height: 440)
-    static let compactSize = CGSize(width: 380, height: 150)
-
-    init(controller: OnboardingController) {
-        super.init(
-            contentRect: CGRect(origin: .zero, size: Self.size),
-            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false
-        )
-        isOpaque = false
-        backgroundColor = .clear
-        hasShadow = true
-        // Above the notch panel (main menu + 3), so the tour covers the notch (spec OB-8).
-        level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 4)
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-        isMovable = false
-        hidesOnDeactivate = false
-        isReleasedWhenClosed = false
-        contentView = NSHostingView(rootView: OnboardingView(controller: controller, model: controller.model))
-    }
-
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { false }
-
-    /// Allowed over the menu bar, like the notch panel.
-    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
-        frameRect
-    }
-
-    /// The display with a built-in notch, otherwise the main one (spec OB-1).
-    private static var screen: NSScreen? {
-        NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main ?? NSScreen.screens.first
-    }
-
-    /// The menu bar's height on that display: the content starts under it.
-    static var topInset: CGFloat {
-        guard let screen else { return 32 }
-        return max(screen.safeAreaInsets.top, screen.frame.maxY - screen.visibleFrame.maxY, 24)
-    }
-
-    func place(compact: Bool) {
-        guard let screen = Self.screen else { return }
-        let area = screen.frame
-        let frame: CGRect
-        if compact {
-            // Lower down, so the real notch opens freely above it.
-            let size = Self.compactSize
-            frame = CGRect(x: area.midX - size.width / 2, y: area.midY - size.height, width: size.width, height: size.height)
-        } else {
-            let size = CGSize(width: Self.size.width, height: Self.size.height + Self.topInset)
-            frame = CGRect(x: area.midX - size.width / 2, y: area.maxY - size.height, width: size.width, height: size.height)
-        }
-        setFrame(frame, display: true, animate: isVisible)
-        orderFrontRegardless()
-        makeKey()
     }
 }

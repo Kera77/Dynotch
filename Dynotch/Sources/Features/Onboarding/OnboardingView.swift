@@ -8,66 +8,46 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ZStack {
-            background
-            if model.showsSkipNote {
-                skipNote
-            } else if model.step.isPractice {
-                PracticeCard(controller: controller, model: model)
-            } else {
-                fullCard
+        CardContainer(design: controller.settings.design, onSize: controller.fit) {
+            Group {
+                if model.showsSkipNote {
+                    skipNote
+                } else if model.step.isPractice {
+                    PracticeCard(controller: controller, model: model)
+                } else {
+                    fullCard
+                }
             }
         }
-        .environment(\.colorScheme, .dark)
         .animation(reduceMotion ? .easeInOut(duration: 0.2) : Motion.spring, value: model.step)
     }
 
-    private var shape: UnevenRoundedRectangle {
-        let compact = model.step.isPractice && !model.showsSkipNote
-        return UnevenRoundedRectangle(
-            topLeadingRadius: compact ? 18 : 0, bottomLeadingRadius: 24,
-            bottomTrailingRadius: 24, topTrailingRadius: compact ? 18 : 0, style: .continuous
-        )
-    }
-
-    /// The chosen design, so a pick on the Make it yours step shows at once (spec OB-20).
-    @ViewBuilder private var background: some View {
-        switch controller.settings.design {
-        case .black:
-            shape.fill(Color.black)
-        case .glass:
-            BehindWindowBlur().clipShape(shape).overlay(shape.fill(Color.black.opacity(0.35)))
-        case .blend:
-            BehindWindowBlur().clipShape(shape).overlay(
-                shape.fill(LinearGradient(colors: [.black, .black.opacity(0.35)], startPoint: .top, endPoint: .bottom))
-            )
-        }
-    }
-
+    /// Title and buttons stay on screen; only the step's content scrolls (spec OB-30).
     private var fullCard: some View {
-        VStack(spacing: 10) {
-            Color.clear.frame(height: OnboardingPanel.topInset)
+        VStack(spacing: 12) {
             OnboardingHeader(step: model.step)
-            OnboardingStepContent(controller: controller, step: model.step)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .id(model.step)
-                .transition(.opacity)
+            FittingScroll(maxHeight: min(CardPanel.maxHeight - 250, 600)) {
+                OnboardingStepContent(controller: controller, step: model.step)
+            }
+            .id(model.step)
+            .transition(.opacity)
             OnboardingFooter(controller: controller, step: model.step)
         }
         .padding(.horizontal, 20)
+        .padding(.top, 22)
         .padding(.bottom, 14)
+        .frame(width: 520)
     }
 
     private var skipNote: some View {
         VStack(spacing: 8) {
-            Color.clear.frame(height: OnboardingPanel.topInset)
-            Spacer()
             Image(systemName: "arrow.counterclockwise.circle").font(.system(size: 30)).foregroundStyle(.secondary)
             Text("You can replay the tour in Settings › General.")
                 .font(.callout)
-            Spacer()
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 28)
+        .frame(width: 380)
     }
 }
 
@@ -161,7 +141,6 @@ struct PracticeCard: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
             HStack {
                 Button("Skip tour") { controller.skip() }.buttonStyle(.plain).foregroundStyle(.secondary)
                 Spacer()
@@ -169,7 +148,10 @@ struct PracticeCard: View {
                 Button("Next") { controller.next() }
             }
         }
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.top, 20)
+        .padding(.bottom, 14)
+        .frame(width: 380)
     }
 
     private var instruction: String {

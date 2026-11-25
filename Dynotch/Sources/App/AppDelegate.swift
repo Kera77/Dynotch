@@ -343,7 +343,7 @@ extension AppDelegate {
 // MARK: - Onboarding
 
 extension AppDelegate {
-    /// The first-launch tour (spec OB-1, OB-5).
+    /// The first-launch tour (spec OB-1, OB-5) and What's new after an update (spec WN-1).
     private func startOnboarding(_ manager: NotchManager) {
         let onboarding = OnboardingController(
             settings: settings, switcher: services.switcher.settings,
@@ -352,5 +352,7 @@ extension AppDelegate {
             closeSettings: { [weak self] in self?.settingsWindow.close() }
         )
         onboarding.startIfNeeded()
+        // After an update: what arrived since the last version (spec WN-1).
+        WhatsNewController(settings: settings, notchModels: { [weak manager] in manager?.notchModels ?? [] }).showIfNeeded()
     }
 }

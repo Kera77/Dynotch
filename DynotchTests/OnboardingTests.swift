@@ -56,4 +56,46 @@ struct OnboardingTests {
             #expect(!OnboardingTips.text(for: feature).isEmpty)
         }
     }
+
+    /// End tour stops the tips; Replay brings them back (spec OB-32).
+    @Test func endTourTurnsTipsOff() {
+        let progress = makeProgress()
+        #expect(progress.canEnd(running: false))
+        progress.end()
+        #expect(progress.isCompleted)
+        #expect(progress.takeTip(for: .calendar) == nil)
+        #expect(!progress.canEnd(running: false))
+        #expect(progress.canEnd(running: true))
+        progress.reset()
+        progress.complete()
+        #expect(progress.takeTip(for: .calendar)?.id == "calendar")
+    }
+
+    /// Every module on the modules step has its two or three sentences (spec OB-33).
+    @Test func everyListedModuleHasADescription() {
+        for feature in OnboardingModulesStep.groups.flatMap(\.1) {
+            #expect(!OnboardingModuleTexts.text(for: feature).isEmpty)
+        }
+    }
+}
+
+struct WhatsNewTests {
+    /// The running version has its lines, and versions run newest first (spec WN-4).
+    @Test func currentVersionHasAnEntry() {
+        let entry = WhatsNew.releases.first { $0.version == AppInfo.version }
+        #expect(entry?.items.isEmpty == false)
+        let versions = WhatsNew.releases.map(\.version)
+        for (newer, older) in zip(versions, versions.dropFirst()) {
+            #expect(UpdateLogic.isNewer(newer, than: older))
+        }
+    }
+
+    /// A first install gets the tour; an update gets what came since (spec WN-1…WN-3).
+    @Test func dueReleases() {
+        #expect(WhatsNew.due(last: nil, current: "1.1.0", tourDone: false).isEmpty)
+        #expect(WhatsNew.due(last: nil, current: "1.1.0", tourDone: true).map(\.version) == ["1.1.0"])
+        #expect(WhatsNew.due(last: "1.1.0", current: "1.1.0", tourDone: true).isEmpty)
+        #expect(WhatsNew.due(last: "0.113.0", current: "1.1.0", tourDone: true).map(\.version) == ["1.1.0", "1.0.0"])
+        #expect(WhatsNew.due(last: "1.0.0", current: "1.0.5", tourDone: true).isEmpty)
+    }
 }

@@ -25,6 +25,7 @@ struct OnboardingProgress {
     static let completedKey = "onboarding.completed"
     static let stepKey = "onboarding.step"
     static let seenTipsKey = "onboarding.seenTips"
+    static let tipsOffKey = "onboarding.tipsOff"
 
     let defaults: UserDefaults
 
@@ -50,6 +51,20 @@ struct OnboardingProgress {
         defaults.removeObject(forKey: Self.completedKey)
         defaults.removeObject(forKey: Self.stepKey)
         defaults.removeObject(forKey: Self.seenTipsKey)
+        defaults.removeObject(forKey: Self.tipsOffKey)
+    }
+
+    /// End tour: done, and no first-use tips any more (spec OB-32).
+    func end() {
+        complete()
+        defaults.set(true, forKey: Self.tipsOffKey)
+    }
+
+    var tipsOff: Bool { defaults.bool(forKey: Self.tipsOffKey) }
+
+    /// Something End tour would stop: the tour itself, or tips still to come (spec OB-32).
+    func canEnd(running: Bool) -> Bool {
+        running || !isCompleted || !tipsOff
     }
 
     var seenTips: Set<String> {
@@ -63,7 +78,7 @@ struct OnboardingProgress {
     /// The tip to show when a module opens, marked as seen: its own the first time, then once
     /// the resize tip on the second module opened (spec OB-26, OB-27).
     func takeTip(for feature: FeatureID) -> FirstUseTip? {
-        guard isCompleted else { return nil }
+        guard isCompleted, !tipsOff else { return nil }
         let seen = seenTips
         if !seen.contains(feature.rawValue) {
             markTipSeen(feature.rawValue)

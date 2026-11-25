@@ -79,7 +79,8 @@ struct OnboardingStepContent: View {
             OnboardingRow(symbol: "hand.draw", title: "Swipe to switch", text: "Two fingers sideways move between modules.")
             OnboardingRow(symbol: "square.grid.2x2", title: "Pick your modules", text: "Calendar, notifications, clipboard, AI and more.")
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 30)
     }
 }
 

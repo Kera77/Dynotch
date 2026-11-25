@@ -66,7 +66,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var keywords: String {
         switch self {
         case .general:
-            "onboarding tour welcome intro replay tips "
+            "onboarding tour welcome intro replay end stop tips whats new "
                 + "launch login hud volume brightness calls phone haptic ai claude chatgpt usage devices bluetooth drive close delay "
                 + "tasks reminders counter"
         case .appearance: "design glass liquid pill notch rounded full screen preview wings hover smart opening"

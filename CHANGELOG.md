@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-25
+
+### Added
+
+- What's new: after an update, a card shows once what arrived since the version you had; not on a first install, where the tour runs (WN-1…WN-5).
+- Settings › General › End tour, beside Replay tour: stops a running tour and turns the modules' first-use tips off; Replay turns them back on (OB-32).
+
+### Changed
+
+- The tour is a card under the menu bar that is exactly as big as its content; a long step scrolls while its title and buttons stay on screen. Drag it by its background or the handle at the top (OB-30, OB-31).
+- Choose your modules: one row per module with two or three sentences about what it does (OB-33).
+
 ## [1.0.0] - 2026-11-25
 
 ### Added

@@ -41,7 +41,11 @@ lists and grids that grow, no fixed panel-wide frames). Side lists scale with
 The first-launch tour and the per-module first-use tips (SPEC OB-14…OB-29) must match the app.
 Whenever a module or feature is added, or a gesture, button or setting location changes, update
 the affected tour step and the module's tip in the same change, without being asked (a new
-`FeatureID` needs a new tip; a test checks this). Mention it in the CHANGELOG entry.
+`FeatureID` needs a new tip and a 2–3 sentence description in `OnboardingModuleTexts`; tests check
+this). Mention it in the CHANGELOG entry.
+Every user-visible new feature or change also gets a short line (icon, title, one sentence) in
+`WhatsNew.releases` under the version being released (SPEC WN-4): after an update the app shows
+these once as "What's new". A test fails if the running version has no entry.
 
 ## Privacy
 

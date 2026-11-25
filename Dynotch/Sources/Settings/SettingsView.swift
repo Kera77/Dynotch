@@ -109,6 +109,7 @@ private struct GeneralSettingsView: View {
     @State private var questionHook = ClaudeQuestionHook.isInstalled()
     @State private var codexHook = CodexHook.isInstalled()
     @State private var claudeHookError: String?
+    @State private var tourEndable = OnboardingController.shared?.canEnd ?? false
 
     var body: some View {
         Form {
@@ -117,11 +118,19 @@ private struct GeneralSettingsView: View {
                 footer: "Accessibility: the volume keys and the call banner. Contacts: caller names and texting back."
             )
             Section {
-                Button("Replay tour") { OnboardingController.shared?.replay() }
+                HStack {
+                    Button("Replay tour") { OnboardingController.shared?.replay() }
+                    Button("End tour") {
+                        OnboardingController.shared?.end()
+                        tourEndable = false
+                    }
+                    .disabled(!tourEndable)
+                }
             } header: {
                 Text("Onboarding")
             } footer: {
-                Text("Shows the first-launch tour again, and the first-use tips of the modules.")
+                Text("Replay shows the first-launch tour again, with the first-use tips of the modules. "
+                     + "End stops a running tour and turns those tips off.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
