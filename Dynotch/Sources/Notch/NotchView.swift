@@ -65,6 +65,8 @@ struct NotchView: View {
     var openModule: (FeatureID) -> Void = { _ in }
     /// The notice under the closed notch clicked (spec CN-6).
     var openNotice: () -> Void = {}
+    /// Got it on What's new (spec WN-6).
+    var doneWhatsNew: () -> Void = {}
     /// The X of a notice beside the notch: it swims into the notch (spec PV-48); a notification's
     /// bin deletes it from Dynotch (spec PV-55).
     var dismissNotice: () -> Void = {}

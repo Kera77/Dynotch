@@ -138,7 +138,7 @@ extension NotchController {
         } else if calendar.announcement != nil, settings.noticesBeside {
             // The countdown stays; only the name goes (spec PV-67).
             foldPeekAway { calendar.dismissAnnouncement() }
-        } else {
+        } else if notices.notice?.whatsNew == nil {
             foldPeekAway { notices.dismiss() }
         }
     }

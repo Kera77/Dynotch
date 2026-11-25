@@ -98,4 +98,26 @@ struct WhatsNewTests {
         #expect(WhatsNew.due(last: "0.113.0", current: "1.1.0", tourDone: true).map(\.version) == ["1.1.0", "1.0.0"])
         #expect(WhatsNew.due(last: "1.0.0", current: "1.0.5", tourDone: true).isEmpty)
     }
+
+    /// The notch's What's new: nothing when seen or on a first install, a fixes line without an entry (spec WN-6, WN-8).
+    @Test func cardAfterUpdate() {
+        #expect(WhatsNew.card(last: "1.1.0", current: "1.1.0", tourDone: true) == nil)
+        #expect(WhatsNew.card(last: nil, current: "1.1.0", tourDone: false) == nil)
+        #expect(WhatsNew.card(last: "1.0.0", current: "1.0.5", tourDone: true)?.first?.items == [WhatsNew.fixes])
+        #expect(WhatsNew.card(last: "1.0.0", current: "1.1.0", tourDone: true)?.map(\.version) == ["1.1.0"])
+    }
+
+    /// Only Got it removes the notice; another notice in its place gives it back (spec WN-7).
+    @MainActor @Test func noticeStaysUntilGotIt() {
+        let notices = NoticeService()
+        let whatsNew = StickyNotice(title: "Updated", detail: "", date: Date(), whatsNew: WhatsNew.releases)
+        notices.show(whatsNew)
+        notices.dismiss()
+        #expect(notices.notice == whatsNew)
+        notices.show(StickyNotice(title: "Claude finished", detail: "", date: Date()))
+        notices.dismiss()
+        #expect(notices.notice == whatsNew)
+        notices.dismissWhatsNew()
+        #expect(notices.notice == nil)
+    }
 }

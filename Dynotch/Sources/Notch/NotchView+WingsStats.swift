@@ -13,8 +13,10 @@ extension NotchView {
     /// Four devices next to the notch; the others open to the left from "+N".
     var statsWingLeftV2: some View {
         let devices = wingsDevices
-        let first = Array(devices.prefix(WingsDevice.shown))
-        let others = Array(devices.dropFirst(WingsDevice.shown))
+        // Eight on a large display (spec PV-75).
+        let shown = geometry.isRoomy ? 2 * WingsDevice.shown : WingsDevice.shown
+        let first = Array(devices.prefix(shown))
+        let others = Array(devices.dropFirst(shown))
         return HStack(spacing: WingsDevice.spacing) {
             if devices.isEmpty {
                 WingLabel(symbol: "battery.100percent", text: "No device found")

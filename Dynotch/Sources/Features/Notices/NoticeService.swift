@@ -24,6 +24,8 @@ struct StickyNotice: Equatable, Sendable {
     var opens: FeatureID?
     /// Goes by itself after this many seconds (spec TM-5, WX-7).
     var stays: TimeInterval?
+    /// After an update: hovering opens What's new in the notch; only its Got it removes it (spec WN-6, WN-7).
+    var whatsNew: [WhatsNewRelease]?
 
     /// A download in `~/Downloads` finished (spec PV-57).
     static func downloaded(_ file: URL) -> StickyNotice {
@@ -54,20 +56,35 @@ final class NoticeService {
 
     @ObservationIgnored private var downloadExpiry: Task<Void, Never>?
     @ObservationIgnored private var expiry: Task<Void, Never>?
+    /// What's new, put aside while another notice stands in its place (spec WN-7).
+    @ObservationIgnored private var parked: StickyNotice?
     /// How long a finished download stays (spec PV-57).
     static let downloadStays: TimeInterval = 3
 
     func show(_ notice: StickyNotice) {
         // Nothing pops up during the tour (spec OB-11).
         guard !OnboardingController.isRunning else { return }
+        if let current = self.notice, current.whatsNew != nil, notice.whatsNew == nil { parked = current }
         self.notice = notice
         expiry?.cancel()
         guard let stays = notice.stays else { return }
         expiry = Task { [weak self] in
             try? await Task.sleep(for: .seconds(stays))
             guard !Task.isCancelled, let self, self.notice == notice else { return }
-            self.notice = nil
+            self.notice = self.takeParked()
         }
+    }
+
+    /// What's new comes back once the notice in its place goes (spec WN-7).
+    private func takeParked() -> StickyNotice? {
+        defer { parked = nil }
+        return parked
+    }
+
+    /// Got it on What's new: the only way it goes (spec WN-6).
+    func dismissWhatsNew() {
+        parked = nil
+        if notice?.whatsNew != nil { notice = nil }
     }
 
     /// A finished download, unless something more important stands there; it goes by itself.
@@ -80,12 +97,14 @@ final class NoticeService {
         downloadExpiry = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Self.downloadStays))
             guard !Task.isCancelled, let self, self.notice == shown else { return }
-            self.notice = nil
+            self.notice = self.takeParked()
         }
     }
 
+    /// What's new does not go this way, only with its Got it (spec WN-7).
     func dismiss() {
-        if notice != nil { notice = nil }
+        guard let notice, notice.whatsNew == nil else { return }
+        self.notice = takeParked()
     }
 
     /// Links other programs open to tell Dynotch something (spec CN-2).

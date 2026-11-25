@@ -41,7 +41,7 @@ extension NotchController {
         let (layout, fit, items) = (row.layout, row.fit, row.items)
         let shownBadges = fit.shown
         let point = NSEvent.mouseLocation
-        if notifications.peek == nil, opensTrayForDownload(at: point, layout: layout)
+        if notifications.peek == nil, opensWhatsNew(at: point, layout: layout) || opensTrayForDownload(at: point, layout: layout)
             || opensAnswer(at: point, layout: layout) || bringsAskerForward(at: point, layout: layout) {
             return
         }
@@ -272,7 +272,7 @@ extension NotchController {
         guard let announced else {
             // No announcement: the notice is what is written under the notch.
             guard notices.notice != nil, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
-            if isSwipeUp(event) {
+            if isSwipeUp(event), notices.notice?.whatsNew == nil { // What's new stays (spec WN-7).
                 foldPeekAway { notices.dismiss() }
             }
             return true

@@ -98,8 +98,26 @@ extension NotchView {
 
     /// The next event that is not all day, whichever day it is on.
     private var nextEvent: CalendarEvent? {
+        upcomingEvents.first
+    }
+
+    private var upcomingEvents: [CalendarEvent] {
         let now = Date()
-        return calendar.events.filter { $0.end > now && !$0.isAllDay }.min { $0.start < $1.start }
+        return calendar.events.filter { $0.end > now && !$0.isAllDay }.sorted { $0.start < $1.start }
+    }
+
+    /// On a large display the two after the next one: time and title (spec PV-75).
+    @ViewBuilder private var laterEvents: some View {
+        if geometry.isRoomy {
+            ForEach(upcomingEvents.dropFirst().prefix(2)) { event in
+                HStack(spacing: 5) {
+                    WingText("·", dim: true)
+                    let time = event.start.formatted(date: .omitted, time: .shortened)
+                    WingText([WingFormat.day(of: event.start, now: Date()), time].compactMap { $0 }.joined(separator: " "), bold: true)
+                    WingText(event.title, dim: true)
+                }
+            }
+        }
     }
 
     private var calendarWingLeft: some View {
@@ -129,6 +147,7 @@ extension NotchView {
                     WingButton(title: "Join", symbol: "video.fill", prominent: true) { joinedMeeting(event) }
                 }
                 WingText(event.title)
+                laterEvents
             }
         }
     }

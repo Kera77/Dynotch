@@ -1,6 +1,6 @@
 import Foundation
 
-/// One line on the What's new card: an icon, a title and one sentence (spec WN-1).
+/// One line of What's new: an icon, a title and one sentence (spec WN-1).
 struct WhatsNewItem: Sendable, Hashable {
     let symbol: String
     let title: String
@@ -16,6 +16,17 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.2.0", items: [
+            WhatsNewItem(symbol: "sparkles", title: "What's new in the notch",
+                         text: "After an update a notice waits under the notch; hover it to read what's new, then Got it."),
+            WhatsNewItem(symbol: "rectangle.bottomhalf.inset.filled", title: "The tour hangs under the notch",
+                         text: "Its card sits right under the notch and moves down when the notch opens while you practise."),
+            WhatsNewItem(symbol: "display", title: "More in the Wings on big displays",
+                         text: "On a large monitor the Wings show more: upcoming events, apps, clipboard items, files, devices "
+                            + "and the next hours' weather."),
+            WhatsNewItem(symbol: "timer", title: "A snugger Tools module",
+                         text: "The Tools module is just as tall as the Pomodoro needs, without the empty band at the bottom.")
+        ]),
         WhatsNewRelease(version: "1.1.0", items: [
             WhatsNewItem(symbol: "sparkles.rectangle.stack", title: "What's new",
                          text: "After an update, this card shows what arrived since the version you had."),
@@ -44,6 +55,23 @@ enum WhatsNew {
             UpdateLogic.isNewer($0.version, than: last) && !UpdateLogic.isNewer($0.version, than: current)
         }
     }
+}
+
+extension WhatsNew {
+    /// What the notch shows after an update, or nil when nothing is due (spec WN-6, WN-8).
+    static func card(last: String?, current: String, tourDone: Bool) -> [WhatsNewRelease]? {
+        guard tourDone, last != current else { return nil }
+        let due = due(last: last, current: current, tourDone: tourDone)
+        guard due.isEmpty else { return due }
+        // Updated without an entry: only fixes (spec WN-8).
+        if let last, UpdateLogic.isNewer(last, than: current) { return nil }
+        return [WhatsNewRelease(version: current, items: [fixes])]
+    }
+
+    static let fixes = WhatsNewItem(
+        symbol: "wrench.and.screwdriver", title: "Fixes and small improvements",
+        text: "This version makes Wingmate work better; nothing changes in how you use it."
+    )
 }
 
 /// The last version whose What's new was seen, in UserDefaults (spec WN-3).

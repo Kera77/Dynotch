@@ -28,6 +28,21 @@ extension NotchView {
     }
 
     var weatherWingRight: some View {
-        WingText(WeatherService.shared.forecast.map { WeatherCode.text($0.now.code) } ?? WeatherService.shared.placeName, dim: true)
+        HStack(spacing: 10) {
+            WingText(WeatherService.shared.forecast.map { WeatherCode.text($0.now.code) } ?? WeatherService.shared.placeName, dim: true)
+            // A large display: the next six hours and today's high and low (spec PV-75).
+            if geometry.isRoomy, let forecast = WeatherService.shared.forecast {
+                ForEach(forecast.nextHours(from: Date()).dropFirst().prefix(6)) { hour in
+                    HStack(spacing: 3) {
+                        WingText(hour.time.formatted(.dateTime.hour()), dim: true)
+                        WingSymbol(WeatherCode.symbol(hour.code, isDay: hour.isDay))
+                        WingText(WeatherService.degrees(hour.temperature), bold: true)
+                    }
+                }
+                if let today = forecast.today {
+                    WingText("↑\(WeatherService.degrees(today.high)) ↓\(WeatherService.degrees(today.low))", dim: true)
+                }
+            }
+        }
     }
 }

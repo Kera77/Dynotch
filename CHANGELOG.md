@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- Wings on a large display (1800 pt wide or more): two more upcoming events, up to 9 apps, 5 clipboard items a side, 8 tray files, 8 devices, and the next six hours' weather with today's high and low (PV-75).
+
+### Changed
+
+- What's new opens from the notch instead of a separate window: after an update the "Wingmate updated" notice stands under the notch without an X and cannot be swiped away; the first hover opens What's new in the notch, and Got it removes it. A notice that takes its place gives it back; an update without an entry shows "Fixes and small improvements" (WN-6…WN-8).
+- The tour card always hangs right under the notch and can no longer be dragged; while practising it slides down under the opened notch and back (OB-34, OB-35). Onboarding: the What's new entry for this version describes it.
+- The Tools module is as tall as the Pomodoro needs, without the empty band at the bottom (TM-22).
+
 ## [1.1.0] - 2026-11-25
 
 ### Added

@@ -167,22 +167,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ]
     }
 
-    /// After an update: in the notifications, and under the notch until swiped up (spec U-5).
+    /// After an update: in the notifications (spec U-5); under the notch stands What's new (spec WN-6).
     /// Shown once the notch exists, so it really appears.
     private func announceUpdate() {
         guard let previous = services.updates.versionUpdatedFrom() else { return }
         DiagnosticsLog.append("updates", "now running \(AppInfo.version), updated from \(previous)")
         let notifications = services.notifications
-        let notices = services.notices
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             guard notifications.preferences.isOn(.updates) else { return }
             notifications.present(
                 title: "Wingmate updated", body: "Version \(AppInfo.version) is running.", appIdentifier: AppInfo.bundleIdentifier,
                 kind: .updates
             )
-            notices.show(StickyNotice(
-                title: "Wingmate updated", detail: "Version \(AppInfo.version)", date: Date(), symbol: "arrow.down.circle.fill"
-            ))
         }
     }
 
@@ -352,7 +348,8 @@ extension AppDelegate {
             closeSettings: { [weak self] in self?.settingsWindow.close() }
         )
         onboarding.startIfNeeded()
-        // After an update: what arrived since the last version (spec WN-1).
-        WhatsNewController(settings: settings, notchModels: { [weak manager] in manager?.notchModels ?? [] }).showIfNeeded()
+        // After an update: what arrived since the last version, from a notice under the notch (spec WN-6).
+        let notifications = services.notifications
+        WhatsNewAnnouncer.showIfNeeded(settings: settings, notices: services.notices) { notifications.preferences.isOn(.updates) }
     }
 }

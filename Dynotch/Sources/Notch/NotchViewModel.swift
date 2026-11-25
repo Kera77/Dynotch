@@ -26,6 +26,12 @@ final class NotchViewModel {
     @ObservationIgnored private(set) var notificationsHeight: CGFloat?
 
     var isShowingNotifications: Bool { !notifications.isEmpty }
+    /// What's new, opened from its notice under the notch (spec WN-6).
+    private(set) var whatsNew: [WhatsNewRelease] = []
+
+    func showWhatsNew(_ releases: [WhatsNewRelease]) {
+        whatsNew = releases
+    }
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     var isPinned = false
     /// The settings keep the panel open until the next click outside it (spec C-6).
@@ -252,6 +258,7 @@ final class NotchViewModel {
             editor = nil
             isShowingClipboardPicker = false
             isClipboardInline = false
+            whatsNew = []
         }
         if !expanded { isShowingDropZone = false }
         if expanded, isShowingStrip { isShowingStrip = false }
@@ -352,6 +359,6 @@ extension NotchViewModel {
 
 extension NotchViewModel {
     var isShowingOverlayPage: Bool {
-        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil
+        (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil || !whatsNew.isEmpty
     }
 }

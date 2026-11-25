@@ -24,7 +24,7 @@ extension NotchView {
             let count = notifications.mail.totalUnread
             apps.insert(WingsApp(id: WingsApp.mailID, name: "Mail", count: count, date: .now, app: nil, line: "\(count) unread"), at: 0)
         }
-        return Array(apps.prefix(5))
+        return Array(apps.prefix(geometry.isRoomy ? 9 : 5))
     }
 
     /// Beeper's unread chats as one app: the newest chat's sender and message.
@@ -152,7 +152,7 @@ extension NotchView {
 
     /// The three newest, the newest next to the notch.
     @ViewBuilder var clipboardWingLeftV2: some View {
-        let items = Array(clipboard.history.prefix(3))
+        let items = Array(clipboard.history.prefix(clipsPerWing))
         if items.isEmpty {
             WingLabel(symbol: "doc.on.clipboard", text: "Nothing copied yet")
         } else {
@@ -162,8 +162,11 @@ extension NotchView {
 
     /// The next three, outwards from the notch.
     var clipboardWingRightV2: some View {
-        clipRow(Array(clipboard.history.dropFirst(3).prefix(3)))
+        clipRow(Array(clipboard.history.dropFirst(clipsPerWing).prefix(clipsPerWing)))
     }
+
+    /// Three items a side, five on a large display (spec PV-75).
+    private var clipsPerWing: Int { geometry.isRoomy ? 5 : 3 }
 
     /// Hovered, an item opens as far as its wing allows; the row's others shrink to dots at the
     /// edges. Left, it stays open two more seconds (spec PV-35, PV-46).

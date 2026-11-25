@@ -127,6 +127,7 @@ extension NotchController {
     /// window, and the notice goes; a question stays until it is answered (spec CN-6, CN-7).
     func openNoticeApp() {
         guard let notice = notices.notice else { return }
+        if openWhatsNew() { return }
         if notice.opensChat {
             showAnswerIfReady()
             return
@@ -157,6 +158,36 @@ extension NotchController {
         model.select(.tray)
         expand(preview: settings.hoverPreview)
         return true
+    }
+
+    /// The first hover on the update's notice opens What's new (spec WN-6).
+    func opensWhatsNew(at point: CGPoint, layout: IndicatorLayout) -> Bool {
+        guard notices.notice?.whatsNew != nil, !model.isExpanded, model.hoveredIndicator == nil, calendar.announcement == nil,
+              noticeArea(for: layout).contains(point)
+        else { return false }
+        return openWhatsNew()
+    }
+
+    /// Opens the notch on What's new, from its notice (spec WN-6).
+    @discardableResult
+    func openWhatsNew() -> Bool {
+        guard let releases = notices.notice?.whatsNew else { return false }
+        setHoveredBadge(nil)
+        if !model.isExpanded {
+            expand()
+        } else if model.isPreview {
+            openFully()
+        }
+        withAnimation(Self.animation) { model.showWhatsNew(releases) }
+        return true
+    }
+
+    /// Got it: seen, the notice goes, the notch closes (spec WN-3, WN-6).
+    func doneWhatsNew() {
+        WhatsNewProgress(defaults: settings.defaults).markSeen(AppInfo.version)
+        DiagnosticsLog.append("onboarding", "whats new seen for \(AppInfo.version)")
+        notices.dismissWhatsNew()
+        collapse()
     }
 
     func opensAnswer(at point: CGPoint, layout: IndicatorLayout) -> Bool {

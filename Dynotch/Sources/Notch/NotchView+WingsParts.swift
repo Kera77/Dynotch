@@ -18,7 +18,7 @@ extension NotchView {
 
     var batteryWingRight: some View {
         HStack(spacing: 10) {
-            ForEach(battery.devices.filter { $0.kind != .mac }.prefix(4)) { device in
+            ForEach(battery.devices.filter { $0.kind != .mac }.prefix(geometry.isRoomy ? 8 : 4)) { device in
                 HStack(spacing: 4) {
                     WingSymbol(device.kind.symbols.first ?? "battery.50percent")
                     WingText("\(device.level)%").foregroundStyle(device.isLow ? .red : .white)
@@ -34,7 +34,7 @@ extension NotchView {
     /// dots, like the clipboard's items (spec PV-61).
     var trayWingLeft: some View {
         let all = tray.trayFiles
-        let files = Array(all.prefix(4))
+        let files = Array(all.prefix(geometry.isRoomy ? 8 : 4))
         let hovered = model.wings.hoveredClip
         let rowHasHover = files.contains { Self.trayKey($0.item) == hovered }
         // The open file fills the row, so it stays under the pointer (spec PV-53).

@@ -1,16 +1,15 @@
 import AppKit
 import SwiftUI
 
-/// A floating card window, exactly as big as its content and draggable with the mouse; used by
-/// the tour and What's new (spec OB-30, OB-31, WN-1).
+/// A floating card window, exactly as big as its content, hanging under the notch; used by the
+/// tour (spec OB-30, OB-34, OB-35).
 final class CardPanel: NSPanel {
     static let margin: CGFloat = 10
-    /// Where the user dragged it (top centre), kept until it closes (spec OB-31).
-    private var userAnchor: CGPoint?
-    private var isPlacing = false
+    /// Between the notch (or the open panel) and the card.
+    static let gap: CGFloat = 8
     private var lastSize: CGSize = .zero
-    /// Lower down, the top edge at the screen's middle, so the real notch opens freely above it.
-    private var anchorsLow = false
+    /// The card's top centre: under the notch, or under the open panel (spec OB-34, OB-35).
+    var anchor: () -> CGPoint? = { nil }
 
     init<Content: View>(rootView: Content) {
         super.init(
@@ -23,15 +22,13 @@ final class CardPanel: NSPanel {
         // Above the notch panel (main menu + 3).
         level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 4)
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
-        isMovable = true
-        isMovableByWindowBackground = true
+        isMovable = false
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
         alphaValue = 0
         let hosting = NSHostingView(rootView: rootView)
         hosting.sizingOptions = []
         contentView = hosting
-        delegate = self
         // Laid out only once on screen; it appears with its first measured size.
         orderFrontRegardless()
     }
@@ -49,31 +46,37 @@ final class CardPanel: NSPanel {
         (screen?.visibleFrame.height ?? 700) - 2 * margin
     }
 
-    /// Moved by the user, not by `fit` (spec OB-31).
-    fileprivate func userMoved() {
-        guard !isPlacing else { return }
-        userAnchor = CGPoint(x: frame.midX, y: frame.maxY)
-    }
-
-    func setAnchorsLow(_ low: Bool) {
-        guard anchorsLow != low else { return }
-        anchorsLow = low
-        if lastSize != .zero { fit(lastSize) }
-    }
-
-    /// Takes the content's size, keeping the top edge where it was (spec OB-30, OB-31).
+    /// Takes the content's size, its top at the anchor (spec OB-30, OB-34).
     func fit(_ size: CGSize) {
-        guard size.width > 1, size.height > 1, let screen = Self.screen else { return }
+        guard size.width > 1, size.height > 1 else { return }
         lastSize = size
-        let area = screen.visibleFrame.insetBy(dx: Self.margin, dy: Self.margin)
-        let anchor = userAnchor ?? CGPoint(x: area.midX, y: anchorsLow ? screen.frame.midY : area.maxY)
-        let height = min(size.height, area.height)
-        var frame = CGRect(x: anchor.x - size.width / 2, y: anchor.y - height, width: size.width, height: height)
-        frame.origin.x = min(max(frame.minX, area.minX), area.maxX - frame.width)
-        frame.origin.y = min(max(frame.minY, area.minY), area.maxY - frame.height)
-        isPlacing = true
-        setFrame(frame, display: true)
-        isPlacing = false
+        place(animated: false)
+    }
+
+    /// Follows the notch as it opens and closes (spec OB-35).
+    func follow() {
+        place(animated: true)
+    }
+
+    private func place(animated: Bool) {
+        guard lastSize != .zero, let screen = Self.screen else { return }
+        let bounds = screen.frame.insetBy(dx: Self.margin, dy: Self.margin)
+        let top = anchor() ?? CGPoint(x: screen.frame.midX, y: screen.visibleFrame.maxY - Self.gap)
+        let bottom = screen.visibleFrame.minY + Self.margin
+        let height = min(lastSize.height, max(top.y - bottom, 120))
+        var frame = CGRect(x: top.x - lastSize.width / 2, y: top.y - height, width: lastSize.width, height: height)
+        frame.origin.x = min(max(frame.minX, bounds.minX), bounds.maxX - frame.width)
+        frame.origin.y = max(frame.minY, bottom)
+        guard frame != self.frame else { return }
+        if animated, alphaValue == 1, !AppleStyle.reducesMotion {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.25
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                animator().setFrame(frame, display: true)
+            }
+        } else {
+            setFrame(frame, display: true)
+        }
         invalidateShadow()
         if alphaValue < 1 {
             alphaValue = 1
@@ -82,14 +85,7 @@ final class CardPanel: NSPanel {
     }
 
     func dismiss() {
-        delegate = nil
         orderOut(nil)
-    }
-}
-
-extension CardPanel: NSWindowDelegate {
-    func windowDidMove(_ notification: Notification) {
-        userMoved()
     }
 }
 
@@ -103,7 +99,6 @@ struct CardContainer<Content: View>: View {
 
     var body: some View {
         content
-            .overlay(alignment: .top) { CardGrip() }
             .background(background)
             .clipShape(shape)
             .overlay(shape.strokeBorder(Color.white.opacity(0.12)))
@@ -141,28 +136,5 @@ struct FittingScroll<Content: View>: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .frame(height: min(max(height, 1), max(maxHeight, 120)))
-    }
-}
-
-/// The handle at the card's top: drag it to move the card (spec OB-31).
-private struct CardGrip: View {
-    var body: some View {
-        Capsule()
-            .fill(Color.white.opacity(0.25))
-            .frame(width: 36, height: 4)
-            .frame(width: 140, height: 14)
-            .background(WindowDragArea())
-            .padding(.top, 3)
-            .accessibilityLabel("Move")
-    }
-}
-
-private struct WindowDragArea: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView { DragView() }
-    func updateNSView(_ nsView: NSView, context: Context) {}
-
-    final class DragView: NSView {
-        override var mouseDownCanMoveWindow: Bool { true }
-        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
     }
 }

@@ -207,17 +207,20 @@ extension NotchView {
             .contentShape(Rectangle())
             // A click brings forward the app the work ran in (spec CN-6).
             .onTapGesture(perform: openNotice)
-            Button {
-                dismissNotice()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.notch(size: 13))
-                    .foregroundStyle(Color.white.level(0.55))
-                    .contentShape(Circle())
+            // What's new has no X: it goes with its Got it (spec WN-7).
+            if notice.whatsNew == nil {
+                Button {
+                    dismissNotice()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.notch(size: 13))
+                        .foregroundStyle(Color.white.level(0.55))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.notch)
+                .help("Dismiss (or swipe up with two fingers)")
+                .accessibilityLabel("Dismiss")
             }
-            .buttonStyle(.notch)
-            .help("Dismiss (or swipe up with two fingers)")
-            .accessibilityLabel("Dismiss")
         }
     }
 

@@ -27,6 +27,7 @@ extension NotchController {
             rootView.openModule = { [weak self] in self?.openFromStrip($0) }
             rootView.joinedMeeting = { [weak self] in self?.joinFromRow($0) }
             rootView.openNotice = { [weak self] in self?.openNoticeApp() }
+            rootView.doneWhatsNew = { [weak self] in self?.doneWhatsNew() }
             rootView.dismissNotice = { [weak self] in self?.dismissPeek() }
             rootView.keepInTray = { [weak self] in self?.keepInTray($0) }
             rootView.sendWithAirDrop = { [weak self] in self?.sendWithAirDrop($0) }

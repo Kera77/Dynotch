@@ -96,7 +96,9 @@ final class OnboardingController {
         guard !Self.isRunning else { return }
         Self.isRunning = true
         DiagnosticsLog.append("onboarding", "started at \(step)")
-        panel = CardPanel(rootView: OnboardingView(controller: self, model: model))
+        let panel = CardPanel(rootView: OnboardingView(controller: self, model: model))
+        panel.anchor = { [weak self] in self?.notchBottom() }
+        self.panel = panel
         watchKeys()
         go(to: step)
     }
@@ -118,7 +120,6 @@ final class OnboardingController {
         DiagnosticsLog.append("onboarding", "skipped at \(model.step)")
         progress.complete()
         model.showsSkipNote = true
-        panel?.setAnchorsLow(false)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
             MainActor.assumeIsolated { self?.close() }
         }
@@ -138,7 +139,7 @@ final class OnboardingController {
         withAnimation(Motion.spring) { model.step = step }
         progress.save(step)
         DiagnosticsLog.append("onboarding", "step \(step)")
-        panel?.setAnchorsLow(step.isPractice)
+        panel?.follow()
         if step.isPractice { startWatchingNotch() } else { stopWatchingNotch() }
     }
 
@@ -165,6 +166,7 @@ final class OnboardingController {
     }
 
     private func watchNotch() {
+        panel?.follow()
         guard !model.practiceDone else { return }
         let open = notchModels().first { $0.isExpanded }
         switch model.step {
@@ -184,6 +186,21 @@ final class OnboardingController {
         default:
             break
         }
+    }
+
+    /// The card's top centre: under the closed notch, or under the open panel and the module
+    /// strip below the Wings (spec OB-34, OB-35).
+    private func notchBottom() -> CGPoint? {
+        guard let screen = CardPanel.screen else { return nil }
+        let models = notchModels()
+        guard let notch = models.first(where: { $0.geometry.screenFrame == screen.frame }) ?? models.first else { return nil }
+        let geometry = notch.geometry
+        var height = geometry.notchSize.height
+        if notch.isExpanded {
+            height = max(notch.openSize.height, height)
+            if notch.isPreview { height += NotchGeometry.stripGap + NotchGeometry.stripIconSize + 4 }
+        }
+        return CGPoint(x: geometry.notchRect.midX, y: geometry.screenFrame.maxY - height - CardPanel.gap)
     }
 
     private func practiceSucceeded() {

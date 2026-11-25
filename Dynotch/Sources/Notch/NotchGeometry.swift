@@ -75,10 +75,17 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: expandedSize.width, height: Self.expandedHeight + 110)
     }
 
-    /// The Tools: taller, so every tab fits under its picker (spec TM-18).
+    /// The Tools: as tall as the Pomodoro needs under the top row, its picker and a 120 pt ring
+    /// with dots and buttons, without an empty band at the bottom (spec TM-18, TM-22).
     var toolsSize: CGSize {
-        CGSize(width: expandedSize.width, height: Self.expandedHeight + 70)
+        CGSize(width: expandedSize.width, height: menuBarHeight + Self.toolsContentHeight)
     }
+
+    /// Picker 22 + gap 8 + ring 120 + dots and buttons 61 + bottom margin 12 (spec TM-22).
+    static let toolsContentHeight: CGFloat = 223
+
+    /// A large display (e.g. an external monitor): the Wings show more (spec PV-75).
+    var isRoomy: Bool { screenFrame.width >= 1800 }
 
     /// Size of the opened panel in the full calendar view.
     var largeSize: CGSize {

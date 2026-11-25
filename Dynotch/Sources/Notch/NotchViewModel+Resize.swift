@@ -79,6 +79,10 @@ extension NotchViewModel {
         }
         if isShowingSwitcher { return switcherSize }
         if editor != nil { return geometry.maxModuleSize }
+        if !whatsNew.isEmpty {
+            let height = geometry.notchSize.height + WhatsNewPage.height(for: whatsNew)
+            return CGSize(width: geometry.expandedSize.width, height: min(height, geometry.maxModuleSize.height))
+        }
         // Files over the wings: they stay at the notch's height (spec PV-14).
         if isShowingDropZone, isPreview { return geometry.previewSize(side: WingsDropView.side) }
         if isShowingOverlayPage {

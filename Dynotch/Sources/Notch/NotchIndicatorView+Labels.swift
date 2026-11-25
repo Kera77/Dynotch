@@ -37,15 +37,18 @@ extension NotchIndicatorView {
                 .lineLimit(1)
             Spacer(minLength: 8)
             // The small X like everywhere else; a swipe up still works too (spec CN-5b).
-            Button(action: dismissNotice) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.notch(size: 13))
-                    .foregroundStyle(Color.white.level(0.55))
-                    .contentShape(Circle())
+            // What's new has none: it goes with its Got it (spec WN-7).
+            if notice.whatsNew == nil {
+                Button(action: dismissNotice) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.notch(size: 13))
+                        .foregroundStyle(Color.white.level(0.55))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.notch)
+                .help("Dismiss (or swipe up with two fingers)")
+                .accessibilityLabel("Dismiss")
             }
-            .buttonStyle(.notch)
-            .help("Dismiss (or swipe up with two fingers)")
-            .accessibilityLabel("Dismiss")
         }
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
