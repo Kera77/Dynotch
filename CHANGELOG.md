@@ -4,7 +4,7 @@
 
 ### Docs
 
-- Spec for a tiled Home: 1×1 and 1×2 tiles from each module, click to open the module, pinch or swipe down back to Home, in-tile buttons, month tile paging, sizes up to 3×2, drag-and-drop setup in Settings › Modules › Home (HT-1…HT-25). Not implemented yet; onboarding unchanged.
+- Spec for a tiled Home: 1×1 and 1×2 tiles from each module, click to open the module, pinch or swipe down back to Home, in-tile buttons, month tile paging, sizes up to 3×2, drag-and-drop setup in Settings › Modules › Home (HT-1…HT-29), full tile catalog (HT-14). Not implemented yet; onboarding unchanged.
 
 ## [1.6.1] - 2026-11-25
 
