@@ -43,6 +43,7 @@ struct CapsulePicker<Item: Hashable>: View {
     let title: (Item) -> String
     var badge: (Item) -> Int? = { _ in nil }
     @Namespace private var namespace
+    @State private var hoverID = UUID()
 
     var body: some View {
         HStack(spacing: 2) {
@@ -80,6 +81,19 @@ struct CapsulePicker<Item: Hashable>: View {
         }
         .padding(2)
         .background(Capsule().fill(Theme.fill))
+        // Over the picker a swipe steps its tabs, in every module (spec S-6).
+        .contentShape(Capsule())
+        .onHover { inside in
+            if inside { HoveredTabs.shared.enter(hoverID, step: step) } else { HoveredTabs.shared.leave(hoverID) }
+        }
+        .onDisappear { HoveredTabs.shared.leave(hoverID) }
+    }
+
+    /// The tab `offset` away, without wrapping around; false at either end.
+    private func step(by offset: Int) -> Bool {
+        guard let index = items.firstIndex(of: selection), items.indices.contains(index + offset) else { return false }
+        selection = items[index + offset]
+        return true
     }
 }
 

@@ -33,15 +33,7 @@ extension NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
-            // Over the notifications' tabs a swipe steps through them first (spec UM-8, UM-8d).
-            if model.currentFeature == .notifications, model.isOverNotificationsTabs, !gestureSwitchedFeature,
-               withAnimation(Self.animation, { model.stepNotificationsTab(by: direction == .next ? 1 : -1) }) {
-                Haptics.perform(.featureSwitch, settings: settings)
-                return true
-            }
-            // Over the tray's tabs a swipe steps between the tray and the folders first (spec FT-4, FT-4d).
-            if model.currentFeature == .tray, tray.isOverTabs, !gestureSwitchedFeature,
-               withAnimation(Self.animation, { tray.step(by: direction == .next ? 1 : -1) }) {
+            if !gestureSwitchedFeature, stepTabs(direction == .next ? 1 : -1) {
                 Haptics.perform(.featureSwitch, settings: settings)
                 return true
             }
@@ -53,6 +45,17 @@ extension NotchController {
             }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
+    }
+
+    /// Over a tab row a swipe steps its tabs before the modules; false when not over one or at its end.
+    private func stepTabs(_ offset: Int) -> Bool {
+        withAnimation(Self.animation) {
+            // The notifications' tabs (spec UM-8, UM-8d) and the tray's chips (spec FT-4, FT-4d).
+            if model.currentFeature == .notifications, model.isOverNotificationsTabs { return model.stepNotificationsTab(by: offset) }
+            if model.currentFeature == .tray, tray.isOverTabs, tray.step(by: offset) { return true }
+            // Any other module's tab picker (spec S-6).
+            return HoveredTabs.shared.step(by: offset)
+        }
     }
 
     /// The feature icons left of the notch in the open panel.

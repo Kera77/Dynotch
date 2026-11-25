@@ -95,6 +95,7 @@
 | S-3 | Az első és az utolsó funkciónál a lista nem fordul körbe, egy rövid „rugózó” animáció jelzi a végét. |
 | S-4 | A függőleges görgetést megkapja a funkció tartalma, például egy lista. |
 | S-5 | **Váltási animáció:** a következő funkcióra váltva az aktuális balra csúszik ki, az új jobbról úszik be; az előzőre váltva fordítva. A kettő együtt mozog, mint egy lapozó. Ugyanez érvényes a menüsor ikonjaira kattintva. |
+| S-6 | (v1.4.1, általánosítja UM-8d-t és FT-4d-t) **Minden modul fülválasztója swipe-olható:** ha egy modulban (vagy összevont modul fejlécében, MG-2) kapszulás fülválasztó van, és az egér rajta áll, a vízszintes swipe a füleket lépteti (a választóval egyező sorrendben, körbefordulás nélkül); a választó szélén, illetve máshol a modulban a swipe modult vált (S-1). Új modul vagy új fülsor esetén ez külön kód nélkül érvényes: a közös `CapsulePicker` jelenti a hovert. |
 
 ### 1.4 Utolsó funkció megjegyzése
 

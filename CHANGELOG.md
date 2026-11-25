@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Every module's tab picker can be swiped: with the pointer over the tabs (Tools, Clipboard, merged modules such as System, the AI header…), a two-finger swipe steps the tabs; at either end, or elsewhere in the module, it switches modules. New modules get this without extra code (S-6). Onboarding: the tour's Swipe sideways step mentions the tab rows.
+
 ### Fixed
 
 - Finder, Spotlight and Launchpad show the app as Wingmate instead of Dynotch: the plain Info.plist name now matches the file name Dynotch.app, so macOS uses the localized name (WM-3). Onboarding: no tour step or tip names the app file, so none changed.

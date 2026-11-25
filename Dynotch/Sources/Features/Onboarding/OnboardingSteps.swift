@@ -94,7 +94,8 @@ struct OnboardingStepContent: View {
     private var movingHints: some View {
         VStack(alignment: .leading, spacing: 8) {
             OnboardingRow(
-                symbol: "hand.draw", title: "Swipe sideways", text: "Two fingers on the trackpad move to the next or previous module."
+                symbol: "hand.draw", title: "Swipe sideways",
+                text: "Two fingers on the trackpad move to the next or previous module; over a row of tabs, to the next tab."
             )
             OnboardingRow(
                 symbol: "square.grid.2x2", title: "Click an icon", text: "The top row of the open notch has an icon for every module."
