@@ -1268,7 +1268,7 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 | WX-9 | **Helyszín-választó (WX-2 módosítása, v0.113):** *Settings › Calendar › Weather › Location*: **Current location** (Helymeghatározás) vagy **Saved place**. Mentett helyek listája (legfeljebb 5, városkereséssel felvéve, egyenként törölhető), közülük egy a kiválasztott. *Current location* módban, ha a hely nem érhető el (nincs engedély vagy nincs pozíció), a kiválasztott mentett hely látszik. |
 | WX-10 | **Hiba javítása:** a Hardened Runtime miatt a helymeghatározáshoz a `com.apple.security.personal-information.location` entitlement kell; nélküle a macOS nem kérdez és nem ad helyet, így az időjárás nem töltött be. Ha nincs hely, a fül a beállításra mutat, és nem marad végtelen töltésben. |
 
-## 4ő++++++++++. Bemutató első indításkor (onboarding) (tervezett)
+## 4ő++++++++++. Bemutató első indításkor (onboarding) (v1.0)
 
 Cél: első indításkor kb. **2 perc** alatt megmutatni, hogyan kell a notch-csal bánni, és hogy mi mindent tud az app, anélkül, hogy minden beállítást végigvennénk. A bemutató **gyakoroltat** (az igazi notch-csal), a modulokat **kiválasztatja**, a többit csak megmutatja, és megmondja, hol találhatók.
 
@@ -1311,6 +1311,15 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 | OB-21 | **8. Permissions** | „Dynotch only asks for what your modules need.” Csak a **4. lépésben bekapcsolt** modulok által igényelt engedélyek, az egységes hozzáférés-sorral (SD-8): ikon, név, **egy mondat, mire kell**, jobbra „Allowed” vagy *Grant…* (C-8b). Az Accessibility mindig szerepel (HUD, gesztusok, Mission Control). Ha minden megvan: „All set.” Semmi nem kötelező; alul: „You can grant these later in Settings › Permissions.” A *Grant…* után visszatérve a notchba a sor frissül (a Rendszerbeállítások megnyitása nem zárja le a bemutatót, OB-10). |
 | OB-22 | **9. You're ready** | „Settings live behind the gear icon.” A fogaskerék (M-5) a felső sorban kiemelve pulzál. Kapcsoló: *Launch at login* (alapból be). Sor: „Replay this tour any time in Settings › General.” *Done* → késznek jelöl, a notch az első bekapcsolt modullal marad nyitva, amíg az egér el nem hagyja. |
 
+### Első használati tippek
+
+| # | Követelmény |
+|---|---|
+| OB-26 | **Egysoros tipp a modul alján:** egy modul **első megnyitásakor** egyszer megjelenik egy apró, halvány sor (ikon, legfeljebb egy mondat, jobbra ×). Bezárul a ×-re, vagy magától, ha a modult elhagyják; utána soha többé. Egyszerre legfeljebb egy tipp látszik; a bemutató (OB-8) alatt nincs tipp. |
+| OB-27 | **Tippek (kezdő szöveg, megíráskor a tényleges működéshez igazítva):** Calendar – nap választása a sávon, Csatlakozás gomb; Notifications – felfelé pöccintés eltünteti, appok szerint csoportosít; Reminders – Return felvesz, „tomorrow 9” jellegű időpont; Notes – `[ ]` teendőt csinál; Calculator – bárhol kimásolt szám ide nyit; Clipboard – minden másolás ide kerül, kattintásra visszailleszt; Tray – fájlt a notchra ejtve itt marad; Tools – az időzítők a becsukott notch mellett futnak, hoverre vezérlők; AI – Claude/ChatGPT az aktuális app elhagyása nélkül; System / Batteries – a csatlakozó eszközök maguktól megjelennek; Terminal – valódi shell; Weather – hely a *Settings › Calendar*-ban; bármely modul (egyszer, a második megnyitott modulnál) – „Drag the bottom-right corner to resize.” |
+| OB-28 | Állapot: `onboarding.seenTips` (a már látott `FeatureID`-k / tipp-azonosítók). A *Replay tour* (OB-5) ezt is törli. A tippek egy helyen, adatként vannak (`OnboardingTips`), modulonként egy bejegyzés. |
+| OB-29 | **Karbantartás:** minden új modul vagy funkció, illetve egy meglévő viselkedésének (gesztus, gomb, beállítás helye) megváltozása esetén **ugyanabban a változtatásban** frissülni kell a bemutató érintett lépésének (OB-14…OB-22) és a modul tippjének (OB-27) is; új modulhoz új tipp kell. Teszt ellenőrzi, hogy minden `FeatureID`-nak van tippje. |
+
 ### Technika
 
 | # | Követelmény |
@@ -1321,9 +1330,7 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 
 ## 5. Nyitott kérdések
 
-| # | Kérdés |
-|---|---|
-| OB-Q2 | Kell-e a bemutató után néhány napig modulonkénti első-használati tipp (pl. a Tray első megnyitásakor „Drop files here”), vagy elég a bemutató? (Most: nincs.) |
+Jelenleg nincs.
 
 ---
 

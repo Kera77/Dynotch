@@ -36,6 +36,13 @@ resizable automatically, so its view must fill the size it gets (`maxWidth/maxHe
 lists and grids that grow, no fixed panel-wide frames). Side lists scale with
 `Responsive.share(_:of:in:)` and `.readWidth(_:)` (`App/Responsive.swift`). Check it small and large.
 
+## Onboarding stays current
+
+The first-launch tour and the per-module first-use tips (SPEC OB-14…OB-29) must match the app.
+Whenever a module or feature is added, or a gesture, button or setting location changes, update
+the affected tour step and the module's tip in the same change, without being asked (a new
+`FeatureID` needs a new tip; a test checks this). Mention it in the CHANGELOG entry.
+
 ## Privacy
 
 - Never read the Claude Code credentials (keychain) from the shell; only the app reads them.
