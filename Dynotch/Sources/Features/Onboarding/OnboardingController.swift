@@ -7,21 +7,19 @@ import SwiftUI
 @Observable
 final class OnboardingModel {
     var step = OnboardingStep.welcome
-    /// The practice step's move has been done (spec OB-15, OB-16).
-    var practiceDone = false
-    /// Open and close: the notch has opened, now it should close.
-    var practiceOpened = false
     /// Skipped: one line says where to replay it, then it closes (spec OB-3).
     var showsSkipNote = false
+    /// The page's measured height under the notch, for the panel's size (spec OB-36).
+    var contentHeight: CGFloat = 0
 }
 
-/// Runs the first-launch tour in a panel at the notch (spec OB-1…OB-25).
+/// Runs the first-launch tour in the notch, like What's new (spec OB-1…OB-25, OB-36).
 @MainActor
 final class OnboardingController {
     /// While the tour runs, nothing pops up by itself (spec OB-11).
     private(set) static var isRunning = false
-    /// The real notch stays closed under the tour, except while practising (spec OB-10).
-    static var blocksNotch: Bool { isRunning && shared?.model.step.isPractice != true }
+    /// The other notches stay closed while the tour runs (spec OB-36).
+    static var blocksNotch: Bool { isRunning }
     private(set) static var shared: OnboardingController?
 
     let settings: AppSettings
@@ -31,15 +29,14 @@ final class OnboardingController {
     private let notchModels: () -> [NotchViewModel]
     private let collapseNotches: () -> Void
     private let closeSettings: () -> Void
-    private var panel: CardPanel?
-    private var timer: Timer?
-    private var keyMonitor: Any?
-    private var featureAtOpen: FeatureID?
+    /// Shows or hides the tour in the notch (spec OB-36).
+    private let present: (Bool) -> Void
 
     init(
         settings: AppSettings, switcher: SwitcherSettings?,
         notchModels: @escaping () -> [NotchViewModel],
-        collapseNotches: @escaping () -> Void, closeSettings: @escaping () -> Void
+        collapseNotches: @escaping () -> Void, closeSettings: @escaping () -> Void,
+        present: @escaping (Bool) -> Void
     ) {
         self.settings = settings
         self.switcher = switcher
@@ -47,6 +44,7 @@ final class OnboardingController {
         self.notchModels = notchModels
         self.collapseNotches = collapseNotches
         self.closeSettings = closeSettings
+        self.present = present
         Self.shared = self
     }
 
@@ -66,9 +64,10 @@ final class OnboardingController {
         }
     }
 
-    /// The card takes its content's size (spec OB-30).
-    func fit(_ size: CGSize) {
-        panel?.fit(size)
+    /// The panel takes the page's height (spec OB-36).
+    func fit(_ height: CGFloat) {
+        guard height > 1, abs(height - model.contentHeight) > 0.5 else { return }
+        model.contentHeight = height
     }
 
     /// Settings › General › End tour: stops the tour and the first-use tips (spec OB-32).
@@ -96,11 +95,8 @@ final class OnboardingController {
         guard !Self.isRunning else { return }
         Self.isRunning = true
         DiagnosticsLog.append("onboarding", "started at \(step)")
-        let panel = CardPanel(rootView: OnboardingView(controller: self, model: model))
-        panel.anchor = { [weak self] in self?.notchBottom() }
-        self.panel = panel
-        watchKeys()
         go(to: step)
+        present(true)
     }
 
     // MARK: - Moving along
@@ -116,7 +112,7 @@ final class OnboardingController {
     }
 
     func skip() {
-        guard !model.showsSkipNote else { return }
+        guard Self.isRunning, !model.showsSkipNote else { return }
         DiagnosticsLog.append("onboarding", "skipped at \(model.step)")
         progress.complete()
         model.showsSkipNote = true
@@ -132,107 +128,16 @@ final class OnboardingController {
     }
 
     private func go(to step: OnboardingStep) {
-        model.practiceDone = false
-        model.practiceOpened = false
-        featureAtOpen = nil
-        if !step.isPractice { collapseNotches() }
         withAnimation(Motion.spring) { model.step = step }
         progress.save(step)
         DiagnosticsLog.append("onboarding", "step \(step)")
-        panel?.follow()
-        if step.isPractice { startWatchingNotch() } else { stopWatchingNotch() }
     }
 
     private func close() {
-        stopWatchingNotch()
-        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
-        keyMonitor = nil
-        panel?.dismiss()
-        panel = nil
-        model.showsSkipNote = false
+        guard Self.isRunning else { return }
         Self.isRunning = false
-    }
-
-    // MARK: - Practice on the real notch (spec OB-15, OB-16, OB-24)
-
-    private func startWatchingNotch() {
-        guard timer == nil else { return }
-        timer = RepeatingTimer.start(every: 0.15) { [weak self] in self?.watchNotch() }
-    }
-
-    private func stopWatchingNotch() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private func watchNotch() {
-        panel?.follow()
-        guard !model.practiceDone else { return }
-        let open = notchModels().first { $0.isExpanded }
-        switch model.step {
-        case .openClose:
-            if open != nil, !model.practiceOpened {
-                withAnimation(Motion.spring) { model.practiceOpened = true }
-            } else if open == nil, model.practiceOpened {
-                practiceSucceeded()
-            }
-        case .moving:
-            guard let open else { return }
-            guard let first = featureAtOpen else {
-                featureAtOpen = open.currentFeature
-                return
-            }
-            if open.currentFeature != first { practiceSucceeded() }
-        default:
-            break
-        }
-    }
-
-    /// The card's top centre: under the closed notch, or under the open panel and the module
-    /// strip below the Wings (spec OB-34, OB-35).
-    private func notchBottom() -> CGPoint? {
-        guard let screen = CardPanel.screen else { return nil }
-        let models = notchModels()
-        guard let notch = models.first(where: { $0.geometry.screenFrame == screen.frame }) ?? models.first else { return nil }
-        let geometry = notch.geometry
-        var height = geometry.notchSize.height
-        if notch.isExpanded {
-            height = max(notch.openSize.height, height)
-            if notch.isPreview { height += NotchGeometry.stripGap + NotchGeometry.stripIconSize + 4 }
-        }
-        return CGPoint(x: geometry.notchRect.midX, y: geometry.screenFrame.maxY - height - CardPanel.gap)
-    }
-
-    private func practiceSucceeded() {
-        withAnimation(Motion.spring) { model.practiceDone = true }
-        let step = model.step
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            MainActor.assumeIsolated {
-                guard let self, Self.isRunning, self.model.step == step else { return }
-                self.next()
-            }
-        }
-    }
-
-    // MARK: - Keys (spec OB-9)
-
-    private func watchKeys() {
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self else { return event }
-            let handled = MainActor.assumeIsolated { self.handleKey(event) }
-            return handled ? nil : event
-        }
-    }
-
-    private func handleKey(_ event: NSEvent) -> Bool {
-        guard event.window === panel else { return false }
-        switch event.keyCode {
-        case 53: skip()
-        case 123: back()
-        case 124: next()
-        default: return false
-        }
-        return true
+        present(false)
+        model.showsSkipNote = false
     }
 
     // MARK: - Settings shown in the tour

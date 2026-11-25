@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-25
+
+### Changed
+
+- The tour opens from the notch instead of a separate card and keeps it open until it ends; ← → page, Esc skips. Open and close and Move between modules explain the gestures instead of waiting for them (OB-36). Onboarding: the tour steps describe this.
+- First-use tips: every module and every tab of Notifications, Tools, Clipboard and Tray has its own two or three sentences covering all its functions; the rewritten tips show once after the update (OB-37).
+- Settings: the long app lists (App badges › Add an app, Notifications › Apps and Websites) open right away; app icons are read once (SD-17).
+- Settings: every search field looks and works the same, the Weather place search included (SD-16).
+
+### Removed
+
+- Settings › About › Go back to X; going back is `./scripts/install.sh vX.Y.Z` (RF-21).
+
 ## [1.2.0] - 2026-11-25
 
 ### Added

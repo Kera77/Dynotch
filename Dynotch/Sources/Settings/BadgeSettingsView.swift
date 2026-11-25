@@ -56,7 +56,7 @@ struct BadgeSettingsView: View {
         let icon = pendingIcons[app.bundleID] ?? BadgePreset.suggestedIcon(bundleID: app.bundleID, name: app.name)
         return HStack(spacing: 8) {
             SettingsRowLabel(title: app.name) {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable()
+                Image(nsImage: SettingsAppIcons.icon(forFile: app.path)).resizable()
             }
             Spacer()
             BadgeIconPicker(
@@ -132,7 +132,7 @@ func chooseBadgeImage(name: String, then use: (URL) -> Void) {
     if panel.runModal() == .OK, let url = panel.url { use(url) }
 }
 
-/// The search field above the app lists in the settings (spec C-5).
+/// Every search field in the settings: the sidebar, the long lists and the place search (spec C-5, SD-16).
 struct SettingsSearchField: View {
     @Binding var text: String
     let prompt: String

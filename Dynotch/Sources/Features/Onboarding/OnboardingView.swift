@@ -1,32 +1,42 @@
 import SwiftUI
 
-/// The tour's card: a picture, a title and at most two sentences, the step's own controls,
-/// dots and Back / Next / Skip tour (spec OB-9).
+/// The tour's page in the notch: a picture, a title and at most two sentences, the step's own
+/// controls, dots and Back / Next / Skip tour (spec OB-9, OB-36).
 struct OnboardingView: View {
     let controller: OnboardingController
     @Bindable var model: OnboardingModel
+    let notchHeight: CGFloat
+    /// The tallest the panel may be, for the step's scrolling part.
+    let maxHeight: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    static let width: CGFloat = 560
+    /// Title, text, buttons and paddings around the scrolling part.
+    private static let chrome: CGFloat = 230
+
     var body: some View {
-        CardContainer(design: controller.settings.design, onSize: controller.fit) {
-            Group {
-                if model.showsSkipNote {
-                    skipNote
-                } else if model.step.isPractice {
-                    PracticeCard(controller: controller, model: model)
-                } else {
-                    fullCard
-                }
+        Group {
+            if model.showsSkipNote {
+                skipNote
+            } else {
+                fullPage
             }
         }
+        .padding(.top, notchHeight + 12)
+        .padding(.bottom, 14)
+        .frame(width: Self.width)
+        .fixedSize(horizontal: false, vertical: true)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { controller.fit($0) }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .environment(\.colorScheme, .dark)
         .animation(reduceMotion ? .easeInOut(duration: 0.2) : Motion.spring, value: model.step)
     }
 
-    /// Title and buttons stay on screen; only the step's content scrolls (spec OB-30).
-    private var fullCard: some View {
+    /// Title and buttons stay in sight; only the step's content scrolls (spec OB-30, OB-36).
+    private var fullPage: some View {
         VStack(spacing: 12) {
             OnboardingHeader(step: model.step)
-            FittingScroll(maxHeight: min(CardPanel.maxHeight - 250, 600)) {
+            FittingScroll(maxHeight: min(maxHeight - notchHeight - Self.chrome, 600)) {
                 OnboardingStepContent(controller: controller, step: model.step)
             }
             .id(model.step)
@@ -34,9 +44,6 @@ struct OnboardingView: View {
             OnboardingFooter(controller: controller, step: model.step)
         }
         .padding(.horizontal, 20)
-        .padding(.top, 22)
-        .padding(.bottom, 14)
-        .frame(width: 520)
     }
 
     private var skipNote: some View {
@@ -45,9 +52,25 @@ struct OnboardingView: View {
             Text("You can replay the tour in Settings › General.")
                 .font(.callout)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 28)
-        .frame(width: 380)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+    }
+}
+
+/// A scroll area exactly as tall as its content, up to `maxHeight` (spec OB-30).
+struct FittingScroll<Content: View>: View {
+    let maxHeight: CGFloat
+    @ViewBuilder var content: Content
+    @State private var height: CGFloat = 0
+
+    var body: some View {
+        ScrollView {
+            content
+                .fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(height: min(max(height, 1), max(maxHeight, 120)))
     }
 }
 
@@ -118,46 +141,5 @@ struct OnboardingDots: View {
         }
         .accessibilityElement()
         .accessibilityLabel("Step \(step.rawValue + 1) of \(OnboardingStep.allCases.count)")
-    }
-}
-
-/// The small card shown while the real notch is practised on (spec OB-15, OB-16).
-struct PracticeCard: View {
-    let controller: OnboardingController
-    let model: OnboardingModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: model.practiceDone ? "checkmark.circle.fill" : model.step.symbol)
-                    .font(.system(size: 22))
-                    .foregroundStyle(model.practiceDone ? Theme.green : Theme.blue)
-                    .contentTransition(.symbolEffect(.replace))
-                Text(model.practiceDone ? "Nice!" : model.step.title).font(.headline)
-                Spacer()
-                OnboardingDots(step: model.step)
-            }
-            Text(instruction)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Button("Skip tour") { controller.skip() }.buttonStyle(.plain).foregroundStyle(.secondary)
-                Spacer()
-                Button("Back") { controller.back() }
-                Button("Next") { controller.next() }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 20)
-        .padding(.bottom, 14)
-        .frame(width: 380)
-    }
-
-    private var instruction: String {
-        if model.step == .openClose, model.practiceOpened, !model.practiceDone {
-            return "Now move the pointer away: the notch closes by itself."
-        }
-        return model.step.text
     }
 }

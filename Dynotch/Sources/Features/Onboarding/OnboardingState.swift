@@ -12,9 +12,6 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case permissions
     case ready
 
-    /// Steps the user practises on the real notch (spec OB-15, OB-16).
-    var isPractice: Bool { self == .openClose || self == .moving }
-
     var next: OnboardingStep? { OnboardingStep(rawValue: rawValue + 1) }
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }
     var isLast: Bool { next == nil }
@@ -24,7 +21,8 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
 struct OnboardingProgress {
     static let completedKey = "onboarding.completed"
     static let stepKey = "onboarding.step"
-    static let seenTipsKey = "onboarding.seenTips"
+    /// A new list for the rewritten tips, so they show once after the update (spec OB-37).
+    static let seenTipsKey = "onboarding.seenTips2"
     static let tipsOffKey = "onboarding.tipsOff"
 
     let defaults: UserDefaults
@@ -75,14 +73,16 @@ struct OnboardingProgress {
         defaults.set((seenTips.union([tip])).sorted(), forKey: Self.seenTipsKey)
     }
 
-    /// The tip to show when a module opens, marked as seen: its own the first time, then once
-    /// the resize tip on the second module opened (spec OB-26, OB-27).
-    func takeTip(for feature: FeatureID) -> FirstUseTip? {
+    /// The tip to show when a module or one of its tabs opens, marked as seen: its own the first
+    /// time, then once the resize tip on the second one opened (spec OB-26, OB-27, OB-37).
+    func takeTip(for feature: FeatureID, tab: String? = nil) -> FirstUseTip? {
         guard isCompleted, !tipsOff else { return nil }
         let seen = seenTips
-        if !seen.contains(feature.rawValue) {
-            markTipSeen(feature.rawValue)
-            return FirstUseTip(id: feature.rawValue, text: OnboardingTips.text(for: feature))
+        let id = OnboardingTips.id(for: feature, tab: tab)
+        let text = OnboardingTips.text(forID: id)
+        if !seen.contains(id), !text.isEmpty {
+            markTipSeen(id)
+            return FirstUseTip(id: id, text: text)
         }
         let modulesSeen = seen.subtracting([OnboardingTips.resizeID]).count
         guard modulesSeen >= 2, !seen.contains(OnboardingTips.resizeID) else { return nil }

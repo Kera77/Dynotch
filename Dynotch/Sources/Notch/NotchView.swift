@@ -283,7 +283,10 @@ struct NotchView: View {
                 featureContent
                     .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .overlay(alignment: .bottom) {
-                        FirstUseTipView(feature: model.currentFeature, active: model.isExpanded && !model.isPreview)
+                        FirstUseTipView(
+                            feature: model.currentFeature, notificationsTab: model.notificationsTab,
+                            trayFolder: tray.selectedFolder, active: model.isExpanded && !model.isPreview
+                        )
                     }
                     .offset(x: model.bounceOffset)
                     .transition(.opacity)

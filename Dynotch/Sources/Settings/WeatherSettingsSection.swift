@@ -56,7 +56,8 @@ struct WeatherSettingsSection: View {
                 .help("Remove this place")
             }
         }
-        TextField(settings.places.isEmpty ? "Search for a place to save" : "Add a place", text: $search)
+        // The same search field as everywhere in the settings (spec SD-16).
+        SettingsSearchField(text: $search, prompt: settings.places.isEmpty ? "Search for a place to save" : "Add a place")
             .onChange(of: search) { _, text in lookUp(text) }
         ForEach(found) { place in
             Button {

@@ -345,7 +345,8 @@ extension AppDelegate {
             settings: settings, switcher: services.switcher.settings,
             notchModels: { [weak manager] in manager?.notchModels ?? [] },
             collapseNotches: { [weak manager] in manager?.collapseAll() },
-            closeSettings: { [weak self] in self?.settingsWindow.close() }
+            closeSettings: { [weak self] in self?.settingsWindow.close() },
+            present: { [weak manager] in manager?.showTour($0) }
         )
         onboarding.startIfNeeded()
         // After an update: what arrived since the last version, from a notice under the notch (spec WN-6).

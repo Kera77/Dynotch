@@ -1,32 +1,100 @@
 import Foundation
 
-/// The first-use tip of every module, in one place (spec OB-27, OB-29). A new `FeatureID`
-/// needs its line here; a test checks that every module has one.
+/// The first-use tip of every module and of every tab, in one place (spec OB-27, OB-29, OB-37):
+/// two or three short sentences touching each function. A new `FeatureID` or tab needs its tip
+/// here; a test checks that every module and tab has one.
 enum OnboardingTips {
     static let resizeID = "resize"
-    static let resizeText = "Drag the bottom-right corner to resize a module."
+    static let resizeText = "Drag the bottom-right corner to resize a module. The size is kept for next time."
 
-    static func text(for feature: FeatureID) -> String {
-        texts[feature] ?? ""
+    /// The tabs that get a tip of their own (spec OB-37).
+    static let tabs: [FeatureID: [String]] = [
+        .notifications: ["all", "chats", "beeper", "network", "googleChat", "mail"],
+        .tools: ToolsTab.allCases.map(\.rawValue),
+        .clipboard: ClipboardTab.allCases.map(\.rawValue),
+        .tray: ["tray", "screenshots", "folder"]
+    ]
+
+    /// A tip's id: the module's, or the module's and its tab's for modules with tabs.
+    static func id(for feature: FeatureID, tab: String?) -> String {
+        guard tabs[feature] != nil, let tab else { return feature.rawValue }
+        return "\(feature.rawValue).\(tab)"
     }
 
-    private static let texts: [FeatureID: String] = [
-        .home: "Hover the notch any time; swipe with two fingers for the next module.",
-        .calendar: "Click a day in the strip to jump to it; Join opens the meeting link.",
-        .notifications: "Swipe a notification up to dismiss it; they are grouped by app.",
-        .calculator: "Copy a number anywhere and the notch opens here with it.",
-        .notes: "⇧⌘L turns the selected lines into a to-do list.",
-        .reminders: "Type and press Return to add; times like “tomorrow 9” work.",
-        .claudeUsage: "Your Claude usage and when it resets, at a glance.",
-        .claudeChat: "Ask Claude or ChatGPT without leaving the app you are in.",
-        .battery: "Connected devices and their batteries show up here by themselves.",
-        .clipboard: "Everything you copy lands here; click an item to paste it back.",
-        .tray: "Drop files on the notch to keep them here.",
-        .info: "Version, display and notch details, for troubleshooting.",
-        .music: "Controls what Spotify plays; the track also shows beside the notch.",
-        .stats: "CPU, memory, disk and network at a glance.",
-        .terminal: "A real shell in the notch.",
-        .tools: "Timers keep running beside the closed notch; hover them for controls.",
-        .weather: "Pick your current location or a saved place in Settings › Calendar."
+    static func text(forID id: String) -> String {
+        texts[id] ?? ""
+    }
+
+    /// The notifications tab a tip belongs to; every highlighted network shares one.
+    static func tab(_ tab: NotificationsTab) -> String {
+        if case .network = tab { return "network" }
+        return tab.rawValue
+    }
+
+    /// The tray tab a tip belongs to: the tray, the screenshots or an added folder.
+    @MainActor static func trayTab(_ folder: UUID?) -> String {
+        guard let folder else { return "tray" }
+        return folder == TrayStore.screenshotsID ? "screenshots" : "folder"
+    }
+
+    private static let texts: [String: String] = [
+        "home": "A calm first page with the time and date. Swipe sideways with two fingers or click an icon in "
+            + "the top row for another module; the lock there keeps the notch open.",
+        "calendar": "Click a day in the strip or swipe over it to see that day; Join opens the meeting link. "
+            + "The icon at the strip's end opens the month view. Before a meeting a countdown waits beside the "
+            + "closed notch; hover it for the name and Join.",
+        "weather": "Now, the next 24 hours and the next 7 days. Choose your current location or saved places in "
+            + "Settings › Calendar › Weather, where the morning forecast at the first unlock is set too.",
+        "notifications.all": "Everything that arrived, grouped by app and sender; click one to open its app. "
+            + "Swipe a notification up or click × to dismiss it, right-click to snooze it. Swipe over the tab row to "
+            + "switch tabs.",
+        "notifications.chats": "Your unread Beeper and Google Chat conversations as cards. Click a card to read it "
+            + "and reply right here; the tick marks a Beeper chat as read.",
+        "notifications.beeper": "Beeper's chats on the left, the conversation on the right; the sidebar button hides "
+            + "the list. Hover a message to react or reply, drop a file to send it, and use the bell for a reminder.",
+        "notifications.network": "The unread chats of a highlighted Beeper network, with a reply field on each card. "
+            + "Choose which networks get their own tab and badge in Settings › Chats.",
+        "notifications.googleChat": "Unread Google Chat messages, read from their notifications. Click a card to read "
+            + "it and reply; it stays here until you read it in Google Chat.",
+        "notifications.mail": "Unread mail from the inboxes of your Apple Mail accounts, grouped by account. Click a "
+            + "message to open it in Gmail or Mail; pick the accounts in Settings › Chats.",
+        "calculator": "Type a calculation on each line; the result shows on the right, click it to copy. Variables "
+            + "(price = 1200), units (5 km in mi), percentages and total work too.",
+        "notes": "Your Apple Notes: pick a folder and a note on the left, or write a draft and save it to Notes. "
+            + "Edits save by themselves; ⌘B, ⌘I and the Aa menu format text, ⇧⌘L makes a checklist.",
+        "reminders": "Type a reminder and press Return: “tomorrow 9” sets the date, “@List” the list. Click the "
+            + "circle to complete a task, the i for its details; each column's header picks what it shows.",
+        "claudeChat": "Ask Claude or ChatGPT; the header picks the provider, the model and a template. Add the "
+            + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",
+        "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
+            + "the session ring beside the closed notch; above 70% it shows there by itself.",
+        "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
+            + "Options picks what shows beside the closed notch and which warnings you get.",
+        "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "
+            + "A low device shows beside the notch; set the limit per device in Settings › Notifications.",
+        "music": "Controls Spotify: play, skip, shuffle, repeat, and drag the progress bar. Below are Spotify's "
+            + "volume and the Mac's sound output; the eye menu hides the cover beside the notch while paused.",
+        "terminal": "A real shell that keeps running when the notch closes. ⌘T opens a tab, ⌘W closes it, and a "
+            + "dropped file pastes its path. The header button opens the folder in Terminal.",
+        "info": "Version, display and notch details of Wingmate. To report a problem, Settings › About › Copy "
+            + "Diagnostics collects what is needed, without any content.",
+        "tools.timer": "Click a preset, or type a time like 12, 1:30 or 1h 15m and press Return; a name is optional. "
+            + "Up to five timers run at once beside the closed notch; hover one for Pause, +1 min and ×.",
+        "tools.stopwatch": "Start, take laps while it runs, reset when stopped. The fastest lap is green, the slowest "
+            + "red; Copy puts the laps on the clipboard. It also shows beside the closed notch, with controls on hover.",
+        "tools.pomodoro": "Focus and breaks in turns: Start, Skip to the next phase or Reset. The dots show the cycle, "
+            + "below are today's sessions and the week. Lengths and Shortcuts to run are in Settings › Tools.",
+        "tools.toggles": "One click switches Keep Awake, Do Not Disturb, Dark Mode, the microphone, Night Shift and more. "
+            + "Right-click Keep Awake for how long. Choose, reorder and give them shortcuts in Settings › Tools.",
+        "clipboard.history": "Everything you copy, text and images; click an item to paste it, the star saves it. "
+            + "⌥V pastes the last copy, hold it to choose one. Apps to skip are in Settings › Clipboard.",
+        "clipboard.saved": "The items you starred stay here for good; drag to reorder them or add your own text. "
+            + "⌥⇧V opens this list from any app.",
+        "tray.tray": "Drop files on the closed notch to keep them here, or on AirDrop to send them. Drag them out into "
+            + "any app (⌥ moves), press Space for Quick Look. The + adds a folder as its own tab.",
+        "tray.screenshots": "Your latest screenshots; open one to mark it up in the editor, or drag it into any app. "
+            + "Right-click the tab to change its colour.",
+        "tray.folder": "A folder you added with +, always up to date. Drag files in and out, press Space for Quick Look; "
+            + "right-click the tab to change its colour."
     ]
 }

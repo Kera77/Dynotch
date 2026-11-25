@@ -2,7 +2,7 @@
 import Foundation
 import Testing
 
-/// Spec RF-4, RF-6, RF-21, H-8.
+/// Spec RF-4, RF-6, H-8.
 struct RefactorSafetyTests {
     @Test func appleScriptStringsEscapeBackslashesAndQuotes() {
         #expect(AppleScriptRunner.quotedString(#"a "b" \c"#) == #""a \"b\" \\c""#)
@@ -17,22 +17,13 @@ struct RefactorSafetyTests {
         #expect(script.contains(#"do script "cd '/a b' && '/bin/claude' '--resume' 'x; touch /tmp/p'""#))
     }
 
-    @Test func rollbackURLNamesTheTag() {
-        #expect(UpdateLogic.release(version: "0.110.0")?.absoluteString
-            == "https://api.github.com/repos/Kera77/Dynotch/releases/tags/v0.110.0")
-        #expect(UpdateLogic.release(version: "0.1/../x") == nil)
-    }
-
-    @MainActor @Test func rollbackVersionIsKeptAfterAnUpdateOnly() throws {
+    @MainActor @Test func onlyANewerVersionCountsAsAnUpdate() throws {
         let defaults = try #require(UserDefaults(suiteName: "RefactorSafetyTests-\(UUID().uuidString)"))
         let updates = UpdateService(defaults: defaults)
-        _ = updates.versionUpdatedFrom(current: "0.110.0")
-        #expect(updates.rollbackVersion == nil)
-        #expect(updates.versionUpdatedFrom(current: "0.111.0") == "0.110.0")
-        #expect(defaults.string(forKey: "previousVersion") == "0.110.0")
-        // Back on the older one: nothing to go back to.
         #expect(updates.versionUpdatedFrom(current: "0.110.0") == nil)
-        #expect(defaults.string(forKey: "previousVersion") == nil)
+        #expect(updates.versionUpdatedFrom(current: "0.111.0") == "0.110.0")
+        // Back on the older one by hand: not an update.
+        #expect(updates.versionUpdatedFrom(current: "0.110.0") == nil)
     }
 
     @Test func escapeMustBeHeldThreeSeconds() {

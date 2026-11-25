@@ -100,7 +100,11 @@ extension NotchView {
 
     /// The clipboard's items while its shortcut is held, or the drop zone (spec CB-3, FT-1).
     @ViewBuilder var overlayPage: some View {
-        if !model.whatsNew.isEmpty {
+        if model.showsTour, let tour = OnboardingController.shared {
+            OnboardingView(
+                controller: tour, model: tour.model, notchHeight: geometry.notchSize.height, maxHeight: geometry.maxModuleSize.height
+            )
+        } else if !model.whatsNew.isEmpty {
             WhatsNewPage(releases: model.whatsNew, notchHeight: geometry.notchSize.height, done: doneWhatsNew)
         } else if let editor = model.editor {
             ScreenshotEditorView(

@@ -32,6 +32,8 @@ final class NotchViewModel {
     func showWhatsNew(_ releases: [WhatsNewRelease]) {
         whatsNew = releases
     }
+    /// The first-launch tour fills the open panel until it ends (spec OB-36).
+    var showsTour = false
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
     var isPinned = false
     /// The settings keep the panel open until the next click outside it (spec C-6).
@@ -353,12 +355,13 @@ final class NotchViewModel {
 extension NotchViewModel {
     /// Anything that keeps the open panel from closing when the pointer leaves.
     var keepsOpen: Bool {
-        isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil || holdsForTerminal
+        isPinned || isHeldByClick || holdsForPreview || isShowingClipboardPicker || editor != nil || holdsForTerminal || showsTour
     }
 }
 
 extension NotchViewModel {
     var isShowingOverlayPage: Bool {
         (isShowingClipboardPicker && !isClipboardInline) || isShowingDropZone || isShowingSwitcher || editor != nil || !whatsNew.isEmpty
+            || showsTour
     }
 }

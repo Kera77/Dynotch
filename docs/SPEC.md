@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.2 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.3 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1158,6 +1158,8 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-13 | (v0.97) **Screenshots módsorok (SD-10 módosítása):** a sorrendszám („1×”, „Off”) nem látszik; a sorrend a sorok sorrendje, a kapcsoló a sor jobb szélén áll. |
 | SD-14 | (v0.99) **Átrendezés vége (SD-4 javítása):** a beállítások átrendezhető listáiban a húzott sor elengedés után mindig visszakapja a teljes színét, akkor is, ha két sor közé vagy a listán kívül engedik el, és a húzott kép nem repül vissza. |
 | SD-15 | (v0.100) **Utolsó lap:** a beállítások az utoljára megnyitott lapon nyílnak meg (újraindítás után is). |
+| SD-16 | (v1.3) **Egységes keresőmezők:** a beállítások minden keresőmezője ugyanaz az elem: nagyító ikon, szürke, lekerekített háttér, 26 pt magas, rákattintva fókuszt kap, és ha van benne szöveg, jobbra × törli. Így néz ki és működik a sidebar keresője, a lenyíló listák keresője (SD-2) és a *Calendar › Weather › Location* helykeresője (WX-9) is. |
+| SD-17 | (v1.3) **Gyorsan nyíló hosszú listák (SD-2 javítása):** a lenyíló lista (App badges › Add an app, Notifications › Apps és Websites) sorai animáció nélkül jelennek meg, csak a › nyíl fordul el animálva; az appok ikonjait az app egyszer tölti be és megjegyzi, nem minden kirajzoláskor. |
 
 ## 4ő+++++++. Refaktorálás: energia, folyékonyság, biztonság (v0.111)
 
@@ -1183,7 +1185,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | RF-18 | **Közös segédek:** a szintetikus billentyűleütés, az AppleScript-futtatás (háttérsoron, időkorláttal) és a vágólap mentése/visszaállítása egy-egy közös helyen van. |
 | RF-19 | **Tesztek funkció szerint:** a verziószámmal elnevezett tesztfájlok (`V025Tests`…) tartalma a funkciójuk szerinti tesztfájlokba kerül; a `NotchView+Wings2.swift` beszédes nevet kap (`NotchView+WingsParts.swift`). |
 | RF-20 | **Rövidebb CHANGELOG:** a v0.90 előtti bejegyzések a `docs/CHANGELOG-archive.md`-be kerülnek. |
-| RF-21 | **Visszaállás az előző verzióra:** *Settings › About*-ban, frissítés után „**Go back to X**” gomb: letölti és (ugyanazzal az ellenőrzéssel, U-2) telepíti azt a verziót, amelyről az app frissült, és kikapcsolja az automatikus telepítést, hogy ne frissüljön vissza magától. Ha az új verzió el sem indul: `./scripts/install.sh vX.Y.Z`, amely a legfrissebbnél régebbi verzió telepítésekor szintén kikapcsolja az automatikus telepítést. A git-ben a refaktorálás előtti állapot a `v0.110.0` tag. |
+| RF-21 | ~~**Visszaállás az előző verzióra:** *Settings › About* „Go back to X” gomb.~~ v1.3-tól **megszűnt** (a gomb és a kódja törölve). Ha egy új verzió hibás: `./scripts/install.sh vX.Y.Z` telepít egy régebbi verziót, és ilyenkor kikapcsolja az automatikus telepítést, hogy ne frissüljön vissza magától. A git-ben a refaktorálás előtti állapot a `v0.110.0` tag. |
 
 ## 4ő++++++++. Eszközök: időzítő, stopper, pomodoro, gyorskapcsolók, HUD-bejelentések (v0.112)
 
@@ -1345,6 +1347,8 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 | OB-33 | **Hosszabb modulleírások** (felülírja OB-17 kétoszlopos rácsát): a *Choose your modules* lépésben modulonként egy sor ikonnal, névvel és kapcsolóval, alatta **2–3 mondat** a modul funkcióiról. A leírások egy helyen, adatként vannak; teszt ellenőrzi, hogy minden csoportosított modulnak van leírása. |
 | OB-34 | (v1.2) **A notch aljához tapad (felülírja OB-30 helyét, OB-31 mozgathatóságát és OB-10 középre tett kis kártyáját):** a bemutató kártyája mindig a notch alá simul, vízszintesen a notch közepére igazítva (a beépített notchos kijelzőn, ha nincs, a főkijelzőn); nem húzható. A magassága továbbra is a tartalomhoz igazodik (OB-30). |
 | OB-35 | (v1.2) **Lenyíló notch alatt:** a gyakorló lépéseknél (OB-15, OB-16), ha a valódi notch lenyílik (teljesen vagy Wingsben), a kártya a lenyílt panel alja alá csúszik, becsukáskor visszajön a notch aljához. |
+| OB-36 | (v1.3) **A bemutató a notchból nyílik (felülírja OB-8, OB-10, OB-30 helyét, OB-34 és OB-35):** nincs külön ablak; a bemutató a notchos kijelző (ha nincs, a főkijelző) notchából lenyíló panel tartalma, mint a What's new (WN-6), az aktuális design hátterével. A bemutató végéig nyitva marad: az egér elvitele, az Esc vagy egy swipe nem csukja be és nem vált modult; ←/→ lapoz, Esc kihagyja. A magassága a lépés tartalmához igazodik; ami nem fér ki, az a lépésen belül görget, a cím és a gombok látszanak. A többi kijelző notcha a bemutató alatt nem nyílik. **A gyakorló lépések (OB-15, OB-16) magyarázó lépések lettek:** nem várnak mozdulatra, ikonnal és soronként egy mondattal írják le a nyitást, zárást, a lakatot és a modulváltást (kétujjas swipe, felső ikonsor, ⌘1–9). |
+| OB-37 | (v1.3) **Tippek minden modul minden fülén (felülírja OB-26 egysoros tippjét és OB-27 szövegeit):** a tipp **2–3 rövid mondat**, és röviden kitér a modul (fül) minden funkciójára, a hozzá tartozó beállítás helyére is (pl. Tray: fájlok ledobása, kihúzás, Quick Look, mappa felvétele a +-szal). Minden modulnak van tippje, és a füles moduloknál **minden fülnek külön**: Notifications (All, Chats, Beeper, kiemelt hálózat, Google Chat, Mail), Tools (Timer, Stopwatch, Pomodoro, Toggles), Clipboard (Clipboard, Saved), Tray (Tray, Screenshots, csatolt mappa). Egy fül tippje az első megnyitásakor jelenik meg, egyszer. A tipp lekerekített doboz a modul alján, legfeljebb 4 sor, jobbra ×. A látott tippek új listában vannak (`onboarding.seenTips2`), így az átírt tippek frissítés után is egyszer megjelennek. A tippek egy helyen, adatként vannak; teszt ellenőrzi, hogy minden modulnak és minden fülnek van tippje. |
 
 ## 4ő+++++++++++. Újdonságok frissítés után (v1.1)
 
@@ -1405,6 +1409,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.3.0** | A bemutató a notchból nyílik, gyakorlás helyett magyarázó lépések; tippek minden modul minden fülén, 2–3 mondatban; gyorsan nyíló app-listák; egységes keresőmezők; a „Go back to X” gomb megszűnt (OB-36, OB-37, SD-16, SD-17, RF-21) |
 | **v1.2.0** | Bemutató kártyája a notch aljához tapad, gyakorláskor a lenyílt notch alá csúszik (OB-34, OB-35); What's new a notchból nyílik a frissítés-értesítésre hoverelve, csak *Got it* tünteti el (WN-6…WN-8); nagy kijelzőn több adat a Wingsben (PV-75); Tools a Pomodoro méretére (TM-22) |
 | **v1.1.0** | Bemutató: tartalomhoz igazodó, egérrel mozgatható kártya, a gombok mindig a képernyőn; *End tour* gomb a tippekkel együtt; 2–3 mondatos modulleírások (OB-30…OB-33); What's new kártya frissítés után (WN-1…WN-5) |
 | **v1.0.0** | Wingmate név (csak a látható név, WM-1, WM-2); első indításkori bemutató a notchnál gyakorló lépésekkel, modulválasztással, engedélyekkel, *Replay tour* a General lapon; első használati tippek modulonként (OB-1…OB-29) |

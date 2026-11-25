@@ -16,7 +16,7 @@ rm -rf /Applications/Dynotch.app
 ditto "$TMP/app/Dynotch.app" /Applications/Dynotch.app
 xattr -dr com.apple.quarantine /Applications/Dynotch.app 2>/dev/null || true
 
-# An older version than the newest (going back, spec RF-21): no automatic update, or the app
+# An older version than the newest (going back by hand, spec RF-21): no automatic update, or the app
 # would update itself again within a minute. Turn it back on in Settings › About.
 if [[ -n "$TAG" && "$TAG" != "$(gh release view -R Kera77/Dynotch --json tagName -q .tagName)" ]]; then
   defaults write com.peterkereki.Dynotch updatesManual -bool true

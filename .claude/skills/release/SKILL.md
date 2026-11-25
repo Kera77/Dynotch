@@ -26,9 +26,8 @@ e-mails the owner); never install a build whose tests have not all passed.
    step: restart the app (`osascript -e 'quit app "Dynotch"'; open /Applications/Dynotch.app`);
    it finds the release within ~20 s and updates itself (`~/Library/Logs/Dynotch/updates.log`).
    Fallback: `./scripts/install.sh vX.Y.Z`.
-   Going back (spec RF-21): *Settings › About › Go back to X* installs the version it was updated
-   from and turns automatic updates off. If the new build does not even start:
-   `./scripts/install.sh v<previous>`; for an older tag it also turns automatic updates off
+   Going back (spec RF-21): `./scripts/install.sh v<previous>`; for an older tag it also turns
+   automatic updates off
    (`defaults write com.peterkereki.Dynotch updatesManual -bool true`), or the app would update
    itself again. Turn them back on in Settings › About once a fixed version is out.
 6. Check that it keeps running: `pgrep -x Dynotch` after ~30 s, and no new

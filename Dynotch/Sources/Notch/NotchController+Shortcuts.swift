@@ -182,6 +182,34 @@ extension NotchController {
         return true
     }
 
+    /// The tour in this notch, until it ends (spec OB-36).
+    func showTour(_ shown: Bool) {
+        if shown {
+            setHoveredBadge(nil)
+            if !model.isExpanded {
+                expand()
+            } else if model.isPreview {
+                openFully()
+            }
+            withAnimation(Self.animation) { model.showsTour = true }
+        } else if model.showsTour {
+            model.showsTour = false
+            collapse()
+        }
+    }
+
+    /// The tour: ← → page, Esc skips (spec OB-24, OB-36).
+    func handleTourKey(_ event: NSEvent) -> Bool {
+        guard let tour = OnboardingController.shared else { return false }
+        switch Int(event.keyCode) {
+        case kVK_Escape: tour.skip()
+        case kVK_LeftArrow: tour.back()
+        case kVK_RightArrow: tour.next()
+        default: return false
+        }
+        return true
+    }
+
     /// Got it: seen, the notice goes, the notch closes (spec WN-3, WN-6).
     func doneWhatsNew() {
         WhatsNewProgress(defaults: settings.defaults).markSeen(AppInfo.version)
@@ -233,6 +261,7 @@ extension NotchController {
 extension NotchController {
     /// Esc closes, ⌘1–9 picks a module, ← → step through them (not while typing in a field).
     func handleKey(_ event: NSEvent) -> Bool {
+        if model.showsTour { return handleTourKey(event) }
         // The screenshot editor handles its own keys (spec SH-7).
         guard model.isExpanded, model.editor == nil else { return false }
         // The terminal takes every key, Esc and ⌘1–9 too (spec TE-2, TE-4).

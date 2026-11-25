@@ -159,6 +159,14 @@ final class NotchManager {
     var notchModels: [NotchViewModel] { controllers.map(\.model) }
 
     /// Closes every open notch (the tour starts or moves on, spec OB-10).
+    /// The tour opens from the notch of the display with a built-in notch, else the main one (spec OB-36).
+    func showTour(_ shown: Bool) {
+        guard shown else { return controllers.forEach { $0.showTour(false) } }
+        let screen = NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main
+        let controller = controllers.first { $0.model.geometry.screenFrame == screen?.frame } ?? controllers.first
+        controller?.showTour(true)
+    }
+
     func collapseAll() {
         controllers.filter(\.model.isExpanded).forEach { $0.collapse() }
     }

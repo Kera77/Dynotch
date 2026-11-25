@@ -236,6 +236,8 @@ final class NotchController {
     }
 
     func collapse() {
+        // The tour stays until it ends (spec OB-36).
+        if model.showsTour { return }
         stickyZone = nil
         cancelClose()
         stopHoverTimer()

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -15,14 +16,17 @@ struct CollapsibleListSection<Content: View>: View {
 
     var body: some View {
         Section {
+            // The rows appear at once: animating hundreds of them made opening slow; only the
+            // chevron turns (spec SD-17).
             Button {
-                withAnimation(Motion.quick) { isOpen.toggle() }
+                isOpen.toggle()
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isOpen ? 90 : 0))
+                        .animation(Motion.quick, value: isOpen)
                         .frame(width: 14)
                     Text(title).fontWeight(.medium)
                     Spacer()
@@ -45,6 +49,20 @@ struct CollapsibleListSection<Content: View>: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+/// App icons for the settings' lists, each read from disk once (spec SD-17).
+@MainActor
+enum SettingsAppIcons {
+    private static var cache: [String: NSImage] = [:]
+
+    static func icon(forFile path: String) -> NSImage {
+        if let icon = cache[path] { return icon }
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        icon.size = NSSize(width: 36, height: 36)
+        cache[path] = icon
+        return icon
     }
 }
 

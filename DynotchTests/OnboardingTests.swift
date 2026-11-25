@@ -15,7 +15,6 @@ struct OnboardingTests {
         #expect(OnboardingStep.welcome.next == .openClose)
         #expect(OnboardingStep.ready.isLast)
         #expect(OnboardingStep.allCases.count == 9)
-        #expect(OnboardingStep.allCases.filter(\.isPractice) == [.openClose, .moving])
     }
 
     @Test func firstLaunchThenDone() {
@@ -44,17 +43,26 @@ struct OnboardingTests {
         progress.complete()
         #expect(progress.takeTip(for: .calendar)?.id == "calendar")
         #expect(progress.takeTip(for: .calendar) == nil)
-        #expect(progress.takeTip(for: .tray)?.id == "tray")
-        // The second module seen: the resize tip comes once, on the next open.
-        #expect(progress.takeTip(for: .tray)?.id == OnboardingTips.resizeID)
-        #expect(progress.takeTip(for: .tray) == nil)
+        #expect(progress.takeTip(for: .tray, tab: "folder")?.id == "tray.folder")
+        // The second one seen: the resize tip comes once, on the next open.
+        #expect(progress.takeTip(for: .tray, tab: "folder")?.id == OnboardingTips.resizeID)
+        #expect(progress.takeTip(for: .tray, tab: "folder") == nil)
+        // Another tab of the same module has its own tip (spec OB-37).
+        #expect(progress.takeTip(for: .tray, tab: "tray")?.id == "tray.tray")
     }
 
-    /// Every module has a first-use tip and a line on the modules step (spec OB-29).
-    @Test func everyModuleHasATip() {
+    /// Every module, and every tab of a module with tabs, has a first-use tip (spec OB-29, OB-37).
+    @MainActor @Test func everyModuleAndTabHasATip() {
         for feature in FeatureID.allCases {
-            #expect(!OnboardingTips.text(for: feature).isEmpty)
+            let ids = OnboardingTips.tabs[feature].map { $0.map { OnboardingTips.id(for: feature, tab: $0) } } ?? [feature.rawValue]
+            for id in ids {
+                #expect(!OnboardingTips.text(forID: id).isEmpty, "no tip for \(id)")
+            }
         }
+        #expect(OnboardingTips.tab(.network("WhatsApp")) == "network")
+        let shown = NotificationsTab.shown(mail: true).map(OnboardingTips.tab)
+        #expect(Set(shown).isSubset(of: Set(OnboardingTips.tabs[.notifications] ?? [])))
+        #expect(OnboardingTips.trayTab(TrayStore.screenshotsID) == "screenshots")
     }
 
     /// End tour stops the tips; Replay brings them back (spec OB-32).

@@ -79,6 +79,12 @@ extension NotchViewModel {
         }
         if isShowingSwitcher { return switcherSize }
         if editor != nil { return geometry.maxModuleSize }
+        // The tour, as tall as its step (spec OB-36).
+        if showsTour {
+            let measured = OnboardingController.shared?.model.contentHeight ?? 0
+            let height = max(measured, geometry.notchSize.height + 200)
+            return CGSize(width: max(geometry.expandedSize.width, OnboardingView.width), height: min(height, geometry.maxModuleSize.height))
+        }
         if !whatsNew.isEmpty {
             let height = geometry.notchSize.height + WhatsNewPage.height(for: whatsNew)
             return CGSize(width: geometry.expandedSize.width, height: min(height, geometry.maxModuleSize.height))
