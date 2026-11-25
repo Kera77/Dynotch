@@ -63,6 +63,9 @@ struct NotchView: View {
     var backToWings: () -> Void = {}
     /// A module picked in the strip under the closed notch (spec MS-3).
     var openModule: (FeatureID) -> Void = { _ in }
+    /// The quick toggles' top-row button, and their page opened from an indicator (spec QT-6, QT-9).
+    var toggleQuickToggles: () -> Void = {}
+    var openQuickToggles: () -> Void = {}
     /// The notice under the closed notch clicked (spec CN-6).
     var openNotice: () -> Void = {}
     /// Got it on What's new (spec WN-6).
@@ -276,6 +279,14 @@ struct NotchView: View {
                     screenshots: screenshots.settings, battery: battery
                 )
                     .scrollContentBackground(.hidden)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .transition(.opacity)
+            } else if model.isShowingToggles {
+                // Only the tiles, no module under them (spec QT-6).
+                TogglesTabView(toggles: .shared, settings: .shared, isActive: model.isExpanded)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                    .padding(.bottom, 10)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)
             } else {

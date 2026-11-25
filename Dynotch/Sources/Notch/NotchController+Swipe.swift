@@ -33,6 +33,12 @@ extension NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
+            // The quick toggles' page closes, back to the module under it (spec QT-6).
+            if model.isShowingToggles {
+                withAnimation(Self.animation) { model.setShowingToggles(false) }
+                gestureSwitchedFeature = true
+                return true
+            }
             if !gestureSwitchedFeature, stepTabs(direction == .next ? 1 : -1) {
                 Haptics.perform(.featureSwitch, settings: settings)
                 return true

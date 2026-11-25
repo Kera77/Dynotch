@@ -84,8 +84,6 @@ enum OnboardingTips {
             + "red; Copy puts the laps on the clipboard. It also shows beside the closed notch, with controls on hover.",
         "tools.pomodoro": "Focus and breaks in turns: Start, Skip to the next phase or Reset. The dots show the cycle, "
             + "below are today's sessions and the week. Lengths and Shortcuts to run are in Settings › Tools.",
-        "tools.toggles": "One click switches Keep Awake, Do Not Disturb, Dark Mode, the microphone, Night Shift and more. "
-            + "Right-click Keep Awake for how long. Choose, reorder and give them shortcuts in Settings › Tools.",
         "clipboard.history": "Everything you copy, text and images; click an item to paste it, the star saves it. "
             + "⌥V pastes the last copy, hold it to choose one. Apps to skip are in Settings › Clipboard.",
         "clipboard.saved": "The items you starred stay here for good; drag to reorder them or add your own text. "

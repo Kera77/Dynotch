@@ -140,9 +140,12 @@ private struct QuickToggleSettingsSection: View {
             Toggle("Muted microphone beside the notch", isOn: $settings.micBesideNotch)
             Toggle("Keep Awake beside the notch", isOn: $settings.awakeBesideNotch)
         } header: {
-            sectionHeader("Quick toggles", isOn: $settings.togglesOn)
+            sectionHeader("Quick toggles", isOn: Binding(
+                get: { TopRowLayout.shared.isShown(.toggles) }, set: { TopRowLayout.shared.setShown(.toggles, $0) }
+            ))
         } footer: {
-            Text("Drag to reorder. Right-click Keep Awake in the notch for how long. Dark Mode asks once to control System Events.")
+            Text("They open from the switch button right of the notch. Drag to reorder, here or in the notch. Right-click Keep Awake "
+                + "for how long. Dark Mode and Hide Dock ask once to control System Events, Empty Trash the Finder.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .disabled(!settings.togglesOn)

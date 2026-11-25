@@ -17,7 +17,7 @@ extension NotchViewModel {
     /// Keeps the current module's look before it is left; a pick by click or shortcut builds the
     /// new module at once (spec M-20).
     func leavePage(passing isPassing: Bool = false) {
-        if liveCenter == nil, isExpanded, !isShowingSettings, let image = passing.capture() {
+        if liveCenter == nil, isExpanded, !isShowingSettings, !isShowingToggles, let image = passing.capture() {
             passing.snapshots[currentFeature] = image
         }
         if !isPassing, liveCenter != nil {

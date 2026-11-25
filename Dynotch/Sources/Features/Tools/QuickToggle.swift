@@ -2,16 +2,18 @@ import AppKit
 import CoreAudio
 import Foundation
 
-/// The Toggles tab's tiles (spec QT-2).
+/// The quick toggles' tiles (spec QT-2, QT-7).
 enum QuickToggle: String, CaseIterable, Identifiable, Codable, Sendable {
     case keepAwake
     case doNotDisturb
     case darkMode
     case muteMicrophone
     case nightShift
-    case hideDesktopIcons
-    case showHiddenFiles
     case lockScreen
+    case hideDock
+    case displaySleep
+    case emptyTrash
+    case ejectDisks
 
     var id: String { rawValue }
 
@@ -22,9 +24,11 @@ enum QuickToggle: String, CaseIterable, Identifiable, Codable, Sendable {
         case .darkMode: "Dark Mode"
         case .muteMicrophone: "Mute Microphone"
         case .nightShift: "Night Shift"
-        case .hideDesktopIcons: "Hide Desktop Icons"
-        case .showHiddenFiles: "Show Hidden Files"
         case .lockScreen: "Lock Screen"
+        case .hideDock: "Hide Dock"
+        case .displaySleep: "Display Sleep"
+        case .emptyTrash: "Empty Trash"
+        case .ejectDisks: "Eject Disks"
         }
     }
 
@@ -35,9 +39,11 @@ enum QuickToggle: String, CaseIterable, Identifiable, Codable, Sendable {
         case .darkMode: "circle.lefthalf.filled"
         case .muteMicrophone: isOn ? "mic.slash.fill" : "mic.fill"
         case .nightShift: "sun.horizon.fill"
-        case .hideDesktopIcons: isOn ? "eye.slash" : "menubar.dock.rectangle"
-        case .showHiddenFiles: isOn ? "eye" : "eye.slash"
         case .lockScreen: "lock.fill"
+        case .hideDock: "dock.rectangle"
+        case .displaySleep: "display"
+        case .emptyTrash: "trash.fill"
+        case .ejectDisks: "eject.fill"
         }
     }
 
@@ -47,12 +53,15 @@ enum QuickToggle: String, CaseIterable, Identifiable, Codable, Sendable {
         case .muteMicrophone: isOn ? "Microphone muted" : "Microphone on"
         case .keepAwake: isOn ? "Keep Awake on" : "Keep Awake off"
         case .lockScreen: "Locking"
+        case .displaySleep: "Display sleeping"
+        case .emptyTrash: isOn ? "Emptying the Trash" : "Press again to empty the Trash"
+        case .ejectDisks: isOn ? "Ejecting disks" : "No disks to eject"
         default: "\(title) \(isOn ? "on" : "off")"
         }
     }
 
-    /// Lock Screen is an action, not a switch.
-    var isAction: Bool { self == .lockScreen }
+    /// Actions, not switches: no blue "on" state (spec QT-7).
+    var isAction: Bool { [.lockScreen, .displaySleep, .emptyTrash, .ejectDisks].contains(self) }
 
     /// Night Shift needs a private framework that may be missing (spec QT-2).
     @MainActor var isAvailable: Bool {
@@ -189,16 +198,38 @@ enum Microphone {
     }
 }
 
-/// The Finder's own settings behind two tiles (spec QT-2).
-enum FinderSetting {
-    nonisolated static func bool(_ key: String) -> Bool? {
-        CFPreferencesCopyAppValue(key as CFString, "com.apple.finder" as CFString) as? Bool
+/// The Dock's own hiding, read from its settings (spec QT-7).
+enum DockSetting {
+    nonisolated static var hides: Bool {
+        CFPreferencesAppSynchronize("com.apple.dock" as CFString)
+        return CFPreferencesCopyAppValue("autohide" as CFString, "com.apple.dock" as CFString) as? Bool ?? false
+    }
+}
+
+/// The external disks and disk images that can be ejected (spec QT-7).
+enum Disks {
+    nonisolated static func ejectable() -> [URL] {
+        let keys: [URLResourceKey] = [.volumeIsEjectableKey, .volumeIsRemovableKey, .volumeIsInternalKey, .volumeIsLocalKey]
+        let volumes = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
+        return volumes.filter { url in
+            guard url.path != "/", let values = try? url.resourceValues(forKeys: Set(keys)), values.volumeIsLocal != false else {
+                return false
+            }
+            return values.volumeIsEjectable == true || values.volumeIsRemovable == true || values.volumeIsInternal == false
+        }
     }
 
-    /// Writes it and restarts the Finder, which reads it only at launch. Off the main thread.
-    nonisolated static func set(_ key: String, _ value: Bool) {
-        _ = ProcessRunner.run("/usr/bin/defaults", ["write", "com.apple.finder", key, "-bool", value ? "true" : "false"], timeout: 5)
-        _ = ProcessRunner.run("/usr/bin/killall", ["Finder"], timeout: 5)
+    /// Ejects them all; how many there were.
+    @MainActor static func ejectAll() -> Int {
+        let volumes = ejectable()
+        for volume in volumes {
+            Task.detached {
+                do { try NSWorkspace.shared.unmountAndEjectDevice(at: volume) } catch {
+                    DiagnosticsLog.append("tools", "a disk did not eject")
+                }
+            }
+        }
+        return volumes.count
     }
 }
 

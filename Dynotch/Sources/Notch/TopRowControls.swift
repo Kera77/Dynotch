@@ -7,6 +7,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     case followMouse
     case keyboardLock
     case pin
+    case toggles
     case settings
 
     var id: String { rawValue }
@@ -17,6 +18,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         case .followMouse: "Focus follows the mouse"
         case .keyboardLock: "Keyboard lock"
         case .pin: "Pin the notch open"
+        case .toggles: "Quick toggles"
         case .settings: "Settings"
         }
     }
@@ -27,6 +29,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         case .followMouse: "arrow.up.square.fill"
         case .keyboardLock: "keyboard.fill"
         case .pin: "lock.fill"
+        case .toggles: "switch.2"
         case .settings: "gearshape.fill"
         }
     }

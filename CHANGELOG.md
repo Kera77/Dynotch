@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Quick toggles moved out of the Tools module into the top row: the switch button beside Settings shows only the toggle tiles, and a click, a module icon, a swipe or Settings closes them. Switch the button off or move it in Settings › Appearance › Buttons beside the notch; off also stops the toggles' shortcuts and indicators. The muted microphone and Keep Awake indicators open the toggles (QT-6, QT-9, QT-10).
+- Toggle tiles: Hide Desktop Icons and Show Hidden Files are gone; new are Hide Dock, Display Sleep, Empty Trash (a second click within 3 seconds empties it) and Eject Disks (QT-7). Drag a tile in the notch to reorder; the order is the same as in Settings › Tools (QT-8). Onboarding: the Tools module text, the last tour step and the removed Toggles tab tip follow this.
+
 - Every module's tab picker can be swiped: with the pointer over the tabs (Tools, Clipboard, merged modules such as System, the AI header…), a two-finger swipe steps the tabs; at either end, or elsewhere in the module, it switches modules. New modules get this without extra code (S-6). Onboarding: the tour's Swipe sideways step mentions the tab rows.
 
 ### Fixed

@@ -11,7 +11,7 @@ extension NotchView {
         HStack(spacing: 0) {
             FeatureSwitcher(
                 features: settings.listedFeatures,
-                selected: model.isShowingSettings ? nil : settings.hostFeature(of: model.currentFeature),
+                selected: model.isShowingSettings || model.isShowingToggles ? nil : settings.hostFeature(of: model.currentFeature),
                 first: model.switcherFirst,
                 visibleCount: model.switcherVisibleCount
             ) { feature in
@@ -33,8 +33,10 @@ extension NotchView {
                 toggleKeyboardLock: { keyboardLock.toggle() },
                 isPinned: model.isPinned,
                 isShowingSettings: model.isShowingSettings,
+                isShowingToggles: model.isShowingToggles,
                 togglePin: { model.isPinned.toggle() },
-                toggleSettings: toggleSettings
+                toggleSettings: toggleSettings,
+                toggleToggles: toggleQuickToggles
             )
             .padding(.trailing, 14)
                 .frame(width: sideWidth, alignment: .trailing)
@@ -44,10 +46,10 @@ extension NotchView {
 }
 
 /// Lock and gear on the right of the panel's top row (spec C-1, SZ-8).
-/// Sizes of the controls right of the notch: five buttons fit beside even the smallest panel.
+/// Sizes of the controls right of the notch: six buttons fit beside even the smallest panel.
 enum TrailingControlsMetrics {
-    static let buttonWidth: CGFloat = 30
-    static let buttonCount = 5
+    static let buttonWidth: CGFloat = 28
+    static let buttonCount = 6
     static let spacing: CGFloat = 2
     /// The capsule's padding and the margin at the panel's edge.
     static let insets: CGFloat = 2 * 3 + 14
@@ -65,8 +67,10 @@ struct TrailingControls: View {
     let toggleKeyboardLock: () -> Void
     let isPinned: Bool
     let isShowingSettings: Bool
+    let isShowingToggles: Bool
     let togglePin: () -> Void
     let toggleSettings: () -> Void
+    let toggleToggles: () -> Void
 
     private let layout = TopRowLayout.shared
     @State private var dragged: TopRowControl?
@@ -104,19 +108,28 @@ struct TrailingControls: View {
                 .help(isKeyboardLocked ? "Keyboard is locked: click to unlock" : "Lock the keyboard (for cleaning)")
         case .pin:
             PinButton(isPinned: isPinned, action: togglePin)
+        case .toggles:
+            // Only the quick toggles in the notch (spec QT-6).
+            pageButton(control, isShowing: isShowingToggles, action: toggleToggles)
+                .help("Quick toggles (⌘-drag to reorder)")
         case .settings:
-            Button(action: toggleSettings) {
-                Image(systemName: control.symbol)
-                    .font(.notch(size: 12, weight: .semibold))
-                    .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                    .foregroundStyle(isShowingSettings ? Color.white : Color.white.level(0.7))
-                    .background(Capsule(style: .continuous).fill(isShowingSettings ? Color.white.level(0.22) : .clear))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.notch)
-            .help("Settings (⌘-drag to reorder)")
-            .accessibilityLabel("Settings")
+            pageButton(control, isShowing: isShowingSettings, action: toggleSettings)
+                .help("Settings (⌘-drag to reorder)")
         }
+    }
+
+    /// A button that shows a page in place of the module, highlighted while it shows.
+    private func pageButton(_ control: TopRowControl, isShowing: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: control.symbol)
+                .font(.notch(size: 12, weight: .semibold))
+                .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
+                .foregroundStyle(isShowing ? Color.white : Color.white.level(0.7))
+                .background(Capsule(style: .continuous).fill(isShowing ? Color.white.level(0.22) : .clear))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.notch)
+        .accessibilityLabel(control.title)
     }
 
     private func iconButton(_ symbol: String, isOn: Bool, action: @escaping () -> Void) -> some View {

@@ -18,6 +18,20 @@ extension NotchController {
         }
     }
 
+    /// The quick toggles' top-row button: their page on or off (spec QT-6).
+    func togglesButtonPressed() {
+        let showing = !model.isShowingToggles
+        if showing, model.isShowingSettings { model.holdsForSettings = false }
+        withAnimation(Self.animation) { model.setShowingToggles(showing) }
+    }
+
+    /// From the muted microphone's or Keep Awake's hover row: the notch opens on the toggles (spec QT-9).
+    func openToggles() {
+        hideStrip()
+        if model.isPreview { openFully() } else { expand() }
+        withAnimation(Self.animation) { model.setShowingToggles(true) }
+    }
+
     /// A click in another app closes the settings, or a reply being typed, that hold the panel
     /// open (spec C-6, E-21).
     func watchClicksOutsideSettings() {

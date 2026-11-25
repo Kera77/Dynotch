@@ -24,7 +24,8 @@ enum OnboardingModuleTexts {
             + "Click an item to paste it back into the app you are in.",
         .tray: "A shelf for files: drop them on the notch to keep them at hand. "
             + "Drag them out again into any app or folder when you need them.",
-        .tools: "Timers, a stopwatch with laps and a pomodoro, plus quick toggles like Keep Awake or Dark Mode. "
+        .tools: "Timers, a stopwatch with laps and a pomodoro. Quick toggles like Keep Awake sit behind the switch "
+            + "button at the top right. "
             + "Running timers stay beside the closed notch, with controls on hover.",
         .terminal: "A real shell inside the notch. "
             + "Run a quick command without opening a Terminal window.",

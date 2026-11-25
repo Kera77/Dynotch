@@ -2,7 +2,7 @@ import AppKit
 import IOKit.pwr_mgt
 import Observation
 
-/// The Toggles tab's state and actions (spec QT-1…QT-5).
+/// The quick toggles' state and actions (spec QT-1…QT-10).
 @MainActor
 @Observable
 final class QuickToggleService {
@@ -12,6 +12,8 @@ final class QuickToggleService {
     /// Keep Awake's end; nil while it runs without one (spec QT-3).
     private(set) var keepAwakeUntil: Date?
     private(set) var keepAwakeUntilTimerEnds = false
+    /// A short line under a tile for a moment: "Click again", "No disks" (spec QT-7).
+    private(set) var notes: [QuickToggle: String] = [:]
 
     @ObservationIgnored private var assertion: IOPMAssertionID?
     @ObservationIgnored private var expiry: Task<Void, Never>?
@@ -41,8 +43,7 @@ final class QuickToggleService {
                 [
                     .muteMicrophone: Microphone.isMuted(),
                     .doNotDisturb: MacFocus.current() != nil,
-                    .hideDesktopIcons: FinderSetting.bool("CreateDesktop") == false,
-                    .showHiddenFiles: FinderSetting.bool("AppleShowAllFiles") == true
+                    .hideDock: DockSetting.hides
                 ]
             }.value
             for (toggle, value) in read where states[toggle] != value { states[toggle] = value }
@@ -52,6 +53,7 @@ final class QuickToggleService {
     /// A click on the tile, or its shortcut (spec QT-1, QT-4). Returns the new state.
     @discardableResult
     func toggle(_ toggle: QuickToggle) -> Bool {
+        if toggle.isAction { return run(toggle) }
         let wanted = !isOn(toggle)
         switch toggle {
         case .keepAwake:
@@ -67,13 +69,57 @@ final class QuickToggleService {
         case .nightShift:
             NightShift.set(wanted)
             states[.nightShift] = wanted
-        case .hideDesktopIcons, .showHiddenFiles:
-            setFinder(toggle, wanted)
+        case .hideDock:
+            setDockHiding(wanted)
+        case .lockScreen, .displaySleep, .emptyTrash, .ejectDisks:
+            break
+        }
+        return wanted
+    }
+
+    /// The action tiles (spec QT-2, QT-7); true when it did something.
+    private func run(_ toggle: QuickToggle) -> Bool {
+        switch toggle {
         case .lockScreen:
             Task.detached { ScreenLock.lock() }
             return true
+        case .displaySleep:
+            Task.detached { _ = ProcessRunner.run("/usr/bin/pmset", ["displaysleepnow"], timeout: 5) }
+            return true
+        case .emptyTrash:
+            return emptyTrash()
+        case .ejectDisks:
+            let count = Disks.ejectAll()
+            if count == 0 { show("No disks", on: .ejectDisks, for: 2) }
+            return count > 0
+        default:
+            return false
         }
-        return wanted
+    }
+
+    /// Two clicks within 3 seconds: the first only asks (spec QT-7). True when it empties.
+    private func emptyTrash() -> Bool {
+        guard notes[.emptyTrash] == Self.clickAgain else {
+            show(Self.clickAgain, on: .emptyTrash, for: 3)
+            return false
+        }
+        notes[.emptyTrash] = nil
+        Task {
+            _ = await AppleScriptRunner.run(
+                "tell application \"Finder\" to empty trash", log: "tools", what: "empty trash"
+            ) { _ in true }
+        }
+        return true
+    }
+
+    private static let clickAgain = "Click again"
+
+    private func show(_ note: String, on toggle: QuickToggle, for seconds: Double) {
+        notes[toggle] = note
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            if self?.notes[toggle] == note { self?.notes[toggle] = nil }
+        }
     }
 
     /// Do Not Disturb works only with its two Shortcuts chosen (spec QT-2).
@@ -131,9 +177,13 @@ final class QuickToggleService {
         }
     }
 
-    private func setFinder(_ toggle: QuickToggle, _ isOn: Bool) {
-        states[toggle] = isOn
-        let (key, value) = toggle == .hideDesktopIcons ? ("CreateDesktop", !isOn) : ("AppleShowAllFiles", isOn)
-        Task.detached { FinderSetting.set(key, value) }
+    /// System Events hides the Dock without restarting it (spec QT-7).
+    private func setDockHiding(_ hides: Bool) {
+        states[.hideDock] = hides
+        let script = "tell application \"System Events\" to tell dock preferences to set autohide to \(hides)"
+        Task {
+            _ = await AppleScriptRunner.run(script, log: "tools", what: "dock hiding") { _ in true }
+            refresh()
+        }
     }
 }

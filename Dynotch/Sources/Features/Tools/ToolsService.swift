@@ -132,7 +132,7 @@ final class ToolsService {
         case .timer: clock?.timerID.map(pauseOrResume)
         case .stopwatch: startOrPauseStopwatch()
         case .pomodoro: startOrPausePomodoro()
-        case .toggles, nil: break
+        case nil: break
         }
     }
 

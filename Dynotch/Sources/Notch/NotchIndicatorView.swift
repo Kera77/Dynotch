@@ -32,7 +32,7 @@ struct NotchIndicatorView: View {
     /// Opens the System module from its warning (spec SY-10).
     var openStats: () -> Void = {}
     /// Opens the Tools module on a tab from the hover controls (spec TM-19).
-    var openTools: (ToolsTab) -> Void = { _ in }
+    var openTools: (ToolsTab?) -> Void = { _ in }
     /// A device's battery history, drawn small in its hover label (spec BT-6).
     var batterySamples: (String) -> [BatterySample] = { _ in [] }
     /// The tasks under the counter's drop-down, and checking one off (spec R-12).

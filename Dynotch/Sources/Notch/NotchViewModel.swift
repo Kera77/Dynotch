@@ -10,6 +10,8 @@ final class NotchViewModel {
     private(set) var isLarge = false { didSet { onLargeChange(isLarge) } }
     /// True while the panel shows the settings instead of the features (spec C-2).
     private(set) var isShowingSettings = false
+    /// Only the quick toggles, from their top-row button (spec QT-6).
+    private(set) var isShowingToggles = false
     /// The Claude chat has a conversation to show, so the panel is taller (spec CC-3).
     private(set) var isChatTall = false
     /// The open panel only shows a preview of the current feature (spec PV-1).
@@ -247,8 +249,8 @@ final class NotchViewModel {
         notifications = expanded ? presented : []
         notificationsCanReply = expanded && !presented.isEmpty && canReply
         notificationsHeight = expanded ? stackHeight : nil
-        if !expanded, isShowingSettings { isShowingSettings = false }
         if !expanded {
+            leavePages()
             if settings.visitingFeature != nil { settings.visitingFeature = nil }
             holdsForSettings = false
             holdsForTyping = false
@@ -288,6 +290,22 @@ final class NotchViewModel {
         guard isExpanded, showing != isShowingSettings else { return }
         if isPreview { isPreview = false }
         isShowingSettings = showing
+        if showing, isShowingToggles { isShowingToggles = false }
+        updateLarge()
+    }
+
+    /// A closed notch opens on its module again, not on the settings or the toggles.
+    private func leavePages() {
+        if isShowingSettings { isShowingSettings = false }
+        if isShowingToggles { isShowingToggles = false }
+    }
+
+    /// The quick toggles' page on or off; it leaves the settings (spec QT-6).
+    func setShowingToggles(_ showing: Bool) {
+        guard isExpanded, showing != isShowingToggles else { return }
+        if isPreview { isPreview = false }
+        if showing, isShowingSettings { isShowingSettings = false }
+        isShowingToggles = showing
         updateLarge()
     }
 
@@ -297,6 +315,7 @@ final class NotchViewModel {
     func select(_ requested: FeatureID, remember: Bool = true, exact: Bool = false) {
         // Picking a feature (even the current one) leaves the settings and the preview.
         if isShowingSettings { isShowingSettings = false }
+        if isShowingToggles { isShowingToggles = false }
         holdsForSettings = false
         if isPreview { isPreview = false }
         let feature = exact ? requested : lastTab(of: requested)
@@ -317,6 +336,7 @@ final class NotchViewModel {
         guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
         let target = min(max(index + steps, 0), features.count - 1)
         guard target != index else { return bounce(steps > 0 ? .next : .previous) }
+        if isShowingToggles { isShowingToggles = false }
         leavePage(passing: isPassing)
         Signposts.moduleSwitch(to: features[target])
         currentFeature = lastTab(of: features[target])
@@ -337,7 +357,7 @@ final class NotchViewModel {
     }
 
     private func updateLarge() {
-        let large = isExpanded && !isShowingNotifications && !isShowingSettings
+        let large = isExpanded && !isShowingNotifications && !isShowingSettings && !isShowingToggles
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
         revealCurrentFeature()

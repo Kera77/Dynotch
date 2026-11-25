@@ -5,7 +5,6 @@ enum ToolsTab: String, CaseIterable, Identifiable, Codable, Sendable {
     case timer
     case stopwatch
     case pomodoro
-    case toggles
 
     var id: String { rawValue }
 
@@ -14,7 +13,6 @@ enum ToolsTab: String, CaseIterable, Identifiable, Codable, Sendable {
         case .timer: "Timer"
         case .stopwatch: "Stopwatch"
         case .pomodoro: "Pomodoro"
-        case .toggles: "Toggles"
         }
     }
 
@@ -23,7 +21,6 @@ enum ToolsTab: String, CaseIterable, Identifiable, Codable, Sendable {
         case .timer: "hourglass"
         case .stopwatch: "stopwatch"
         case .pomodoro: "circle.circle"
-        case .toggles: "switch.2"
         }
     }
 }

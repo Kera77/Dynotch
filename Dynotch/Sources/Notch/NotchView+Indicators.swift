@@ -101,7 +101,9 @@ extension NotchView {
     }
 
     /// From the Tools' hover controls: the module on the shown tab (spec TM-19).
-    func openTools(_ tab: ToolsTab) {
+    /// The muted microphone and Keep Awake open the quick toggles instead (spec QT-9).
+    func openTools(_ tab: ToolsTab?) {
+        guard let tab else { return openQuickToggles() }
         ToolsSettings.shared.tab = tab
         openModule(.tools)
     }

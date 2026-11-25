@@ -7,7 +7,8 @@ import Testing
 struct TopRowTests {
     @Test func topRowOrderKeepsStoredAndAddsNewControls() {
         #expect(TopRowLayout.normalized([]) == TopRowControl.allCases)
-        #expect(TopRowLayout.normalized(["settings", "pin", "bogus", "pin"]) == [.tablet, .followMouse, .keyboardLock, .settings, .pin])
+        let expected: [TopRowControl] = [.tablet, .followMouse, .keyboardLock, .settings, .pin, .toggles]
+        #expect(TopRowLayout.normalized(["settings", "pin", "bogus", "pin"]) == expected)
     }
 
     @MainActor @Test func topRowMovesAndHidesButNeverSettings() throws {

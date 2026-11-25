@@ -66,12 +66,11 @@ struct ToolsGlance: Equatable, Sendable {
         case .timer: return [clock.isPaused ? .resume : .pause, .addMinute, .cancel]
         case .stopwatch: return clock.isPaused ? [.start, .reset] : [.pause, .lap, .reset]
         case .pomodoro: return [clock.isPaused ? .start : .pause, .next, .reset]
-        case .toggles: return []
         }
     }
 
-    /// The tab its hover opens (spec TM-3, QT-5).
-    var tab: ToolsTab { clock?.tab ?? .toggles }
+    /// The tab its hover opens (spec TM-3); nil: the quick toggles (spec QT-9).
+    var tab: ToolsTab? { clock?.tab }
 
     /// The soonest running countdown first, then a paused one, then the stopwatch (spec TM-4).
     nonisolated static func pick(countdowns: [Clock], stopwatch: Clock?) -> (Clock?, Int) {

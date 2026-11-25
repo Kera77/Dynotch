@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Tools module (spec TM-1): Timer | Stopwatch | Pomodoro | Toggles, the tabs that are on.
+/// The Tools module (spec TM-1, QT-6): Timer | Stopwatch | Pomodoro, the tabs that are on.
 struct ToolsFeatureView: View {
     let service = ToolsService.shared
     let settings = ToolsSettings.shared
@@ -18,7 +18,6 @@ struct ToolsFeatureView: View {
                 case .timer: TimerTabView(service: service, settings: settings)
                 case .stopwatch: StopwatchTabView(service: service)
                 case .pomodoro: PomodoroTabView(service: service, settings: settings)
-                case .toggles: TogglesTabView(toggles: .shared, settings: settings, isActive: isActive)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

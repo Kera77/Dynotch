@@ -6,7 +6,7 @@ extension NotchViewModel {
     /// The open module can be resized: the setting is on, and a resizable module shows by itself
     /// (not the settings, a notification, the preview or a drop zone).
     var canResize: Bool {
-        settings.resizableModules && isExpanded && !isPreview && !isShowingSettings && !isShowingNotifications
+        settings.resizableModules && isExpanded && !isPreview && !isShowingSettings && !isShowingToggles && !isShowingNotifications
             && !isShowingOverlayPage && ModuleSizes.resizable.contains(currentFeature)
     }
 
@@ -98,6 +98,8 @@ extension NotchViewModel {
         // Settings first: over the wide chat tabs they got that lower panel and pushed the top row
         // out of sight (spec C-11).
         if isShowingSettings { return geometry.settingsSize }
+        // The quick toggles alone: the usual module size (spec QT-6).
+        if isShowingToggles { return geometry.expandedSize }
         // One size for the whole module: the largest its tabs need (spec RS-7).
         let tabs = settings.mergedTabs(for: currentFeature) ?? [currentFeature]
         return tabs.map(tabSize).reduce(CGSize.zero) { CGSize(width: max($0.width, $1.width), height: max($0.height, $1.height)) }

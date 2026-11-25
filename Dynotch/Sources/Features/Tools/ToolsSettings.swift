@@ -36,7 +36,8 @@ final class ToolsSettings {
     var timerOn: Bool { didSet { defaults.set(timerOn, forKey: "toolsTimerOn") } }
     var stopwatchOn: Bool { didSet { defaults.set(stopwatchOn, forKey: "toolsStopwatchOn") } }
     var pomodoroOn: Bool { didSet { defaults.set(pomodoroOn, forKey: "toolsPomodoroOn") } }
-    var togglesOn: Bool { didSet { defaults.set(togglesOn, forKey: "toolsTogglesOn") } }
+    /// The quick toggles live behind their top-row button: shown means on (spec QT-6).
+    var togglesOn: Bool { TopRowLayout.shared.isShown(.toggles) }
     var announcementsOn: Bool { didSet { defaults.set(announcementsOn, forKey: "toolsAnnouncementsOn") } }
 
     /// The tab picked last (spec TM-1).
@@ -95,7 +96,6 @@ final class ToolsSettings {
         timerOn = bool("toolsTimerOn", true)
         stopwatchOn = bool("toolsStopwatchOn", true)
         pomodoroOn = bool("toolsPomodoroOn", true)
-        togglesOn = bool("toolsTogglesOn", true)
         announcementsOn = bool("toolsAnnouncementsOn", true)
         tab = ToolsTab(rawValue: text("toolsTab")) ?? .timer
         let storedPresets = (defaults.array(forKey: "toolsTimerPresets") as? [Int])?.filter { (1...1440).contains($0) }
@@ -146,7 +146,6 @@ final class ToolsSettings {
         case .timer: timerOn
         case .stopwatch: stopwatchOn
         case .pomodoro: pomodoroOn
-        case .toggles: togglesOn
         }
     }
 
@@ -155,7 +154,6 @@ final class ToolsSettings {
         case .timer: timerOn = isOn
         case .stopwatch: stopwatchOn = isOn
         case .pomodoro: pomodoroOn = isOn
-        case .toggles: togglesOn = isOn
         }
     }
 
@@ -166,6 +164,16 @@ final class ToolsSettings {
     /// The tiles shown, in order (spec QT-4).
     var shownToggles: [QuickToggle] {
         toggleOrder.filter { !hiddenToggles.contains($0) && $0.isAvailable }
+    }
+
+    /// A tile dragged onto another one takes its place, in the notch and in the settings (spec QT-8).
+    func moveToggle(_ toggle: QuickToggle, onto target: QuickToggle) {
+        guard toggle != target, let from = toggleOrder.firstIndex(of: toggle),
+              let index = toggleOrder.firstIndex(of: target) else { return }
+        var order = toggleOrder
+        order.remove(at: from)
+        order.insert(toggle, at: index)
+        toggleOrder = order
     }
 
     /// Sets a toggle's shortcut; the same keys leave any other toggle (spec QT-4).
