@@ -44,6 +44,7 @@ struct CapsulePicker<Item: Hashable>: View {
     var badge: (Item) -> Int? = { _ in nil }
     @Namespace private var namespace
     @State private var hoverID = UUID()
+    @State private var isHovered = false
 
     var body: some View {
         HStack(spacing: 2) {
@@ -84,9 +85,14 @@ struct CapsulePicker<Item: Hashable>: View {
         // Over the picker a swipe steps its tabs, in every module (spec S-6).
         .contentShape(Capsule())
         .onHover { inside in
+            isHovered = inside
             if inside { HoveredTabs.shared.enter(hoverID, step: step) } else { HoveredTabs.shared.leave(hoverID) }
         }
-        .onDisappear { HoveredTabs.shared.leave(hoverID) }
+        // A binding built from a captured value goes stale: hand over the current one after each
+        // step, so the next swipe goes on from the tab now shown (spec S-7).
+        .onChange(of: selection) { if isHovered { HoveredTabs.shared.enter(hoverID, step: step) } }
+        .onChange(of: items) { if isHovered { HoveredTabs.shared.enter(hoverID, step: step) } }
+        .onDisappear { isHovered = false; HoveredTabs.shared.leave(hoverID) }
     }
 
     /// The tab `offset` away, without wrapping around; false at either end.

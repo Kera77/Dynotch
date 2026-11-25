@@ -22,6 +22,9 @@ final class HoveredTabs {
         stepper = nil
     }
 
+    /// A tab picker is under the pointer: a swipe there is for its tabs (spec S-7).
+    var isHovering: Bool { stepper != nil }
+
     /// Steps the hovered picker by `offset`; false when none is hovered or it is at its end.
     func step(by offset: Int) -> Bool {
         stepper?(offset) ?? false

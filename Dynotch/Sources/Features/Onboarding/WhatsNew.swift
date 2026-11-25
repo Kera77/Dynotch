@@ -16,6 +16,12 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.6.1", items: [
+            WhatsNewItem(symbol: "hand.draw", title: "Swipe through every tab",
+                         text: "Over any tab picker, Calendar | Weather and Tools included, each swipe moves one tab on."),
+            WhatsNewItem(symbol: "trash", title: "Steady toggle tiles",
+                         text: "A note under a tile no longer pushes the row down; Empty Trash asks again in red.")
+        ]),
         WhatsNewRelease(version: "1.6.0", items: [
             WhatsNewItem(symbol: "person.2", title: "Usage of two Claude accounts",
                          text: "Add the desktop app's account in Settings › General; AI Usage shows the one in use, "

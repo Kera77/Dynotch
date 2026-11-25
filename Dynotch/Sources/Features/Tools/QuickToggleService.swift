@@ -12,7 +12,7 @@ final class QuickToggleService {
     /// Keep Awake's end; nil while it runs without one (spec QT-3).
     private(set) var keepAwakeUntil: Date?
     private(set) var keepAwakeUntilTimerEnds = false
-    /// A short line under a tile for a moment: "Click again", "No disks" (spec QT-7).
+    /// A short line under a tile for a moment: "Click again to empty", "No disks" (spec QT-7, QT-11).
     private(set) var notes: [QuickToggle: String] = [:]
 
     @ObservationIgnored private var assertion: IOPMAssertionID?
@@ -112,7 +112,7 @@ final class QuickToggleService {
         return true
     }
 
-    private static let clickAgain = "Click again"
+    static let clickAgain = "Click again to empty"
 
     private func show(_ note: String, on toggle: QuickToggle, for seconds: Double) {
         notes[toggle] = note

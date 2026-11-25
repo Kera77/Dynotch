@@ -14,7 +14,7 @@ struct TogglesTabView: View {
 
     var body: some View {
         ScrollView(.vertical) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 86, maximum: 140), spacing: 10)], spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 86, maximum: 140), spacing: 10, alignment: .top)], spacing: 10) {
                 ForEach(settings.shownToggles) { toggle in
                     tile(toggle)
                         .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.space)) } action: { frames[toggle] = $0 }
@@ -47,11 +47,12 @@ struct TogglesTabView: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-            if let detail = detail(toggle, needsSetup: needsSetup) {
-                Text(detail)
-                    .font(.notch(size: 9))
-                    .foregroundStyle(.white.opacity(0.45))
-            }
+            // A fixed line for the note, so showing one does not push the row down (spec QT-11).
+            Text(detail(toggle, needsSetup: needsSetup) ?? " ")
+                .font(.notch(size: 9, weight: isConfirming(toggle) ? .semibold : .regular))
+                .foregroundStyle(isConfirming(toggle) ? Theme.red : .white.opacity(0.45))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
@@ -83,6 +84,11 @@ struct TogglesTabView: View {
                 withAnimation(Motion.quick) { settings.moveToggle(toggle, onto: target) }
             }
             .onEnded { _ in dragged = nil }
+    }
+
+    /// Empty Trash waits for its second click: the note is red (spec QT-11).
+    private func isConfirming(_ toggle: QuickToggle) -> Bool {
+        toggle == .emptyTrash && toggles.notes[toggle] == QuickToggleService.clickAgain
     }
 
     private func detail(_ toggle: QuickToggle, needsSetup: Bool) -> String? {

@@ -96,6 +96,7 @@
 | S-4 | A függőleges görgetést megkapja a funkció tartalma, például egy lista. |
 | S-5 | **Váltási animáció:** a következő funkcióra váltva az aktuális balra csúszik ki, az új jobbról úszik be; az előzőre váltva fordítva. A kettő együtt mozog, mint egy lapozó. Ugyanez érvényes a menüsor ikonjaira kattintva. |
 | S-6 | (v1.5.0, általánosítja UM-8d-t és FT-4d-t) **Minden modul fülválasztója swipe-olható:** ha egy modulban (vagy összevont modul fejlécében, MG-2) kapszulás fülválasztó van, és az egér rajta áll, a vízszintes swipe a füleket lépteti (a választóval egyező sorrendben, körbefordulás nélkül); a választó szélén, illetve máshol a modulban a swipe modult vált (S-1). Új modul vagy új fülsor esetén ez külön kód nélkül érvényes: a közös `CapsulePicker` jelenti a hovert. |
+| S-7 | (v1.6.1, S-6 javítása) **Minden fülválasztó úgy lép, mint a Notificationsé:** egy swipe egy fület lép a választó *aktuális* fülétől, így a Tools három-négy fülén is végig lehet menni (eddig csak az első kettő között váltott). A Naptárban a *Calendar \| Weather* választó fölött a swipe a füleket lépteti, nem a napokat (K-4); a napsáv máshol változatlan. |
 
 ### 1.4 Utolsó funkció megjegyzése
 
@@ -1264,6 +1265,7 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 | QT-8 | (v1.5.0) **Sorrend húzással a notchban:** a csempék a kapcsolók oldalán **drag and droppal** átrendezhetők; a sorrend ugyanaz, mint a *Settings › Tools › Quick toggles* listájáé (QT-4), egyik helyen átrendezve a másikon is látszik. |
 | QT-9 | (v1.5.0, QT-5 és TM-19 módosítása) A némított mikrofon vagy a Keep Awake jelzőjének hover-sorában a kis nyíl a kapcsolók oldalát nyitja (QT-6), nem a Tools modult. |
 | QT-10 | (v1.5.0) A Tools régi „Toggles” fülére emlékező beállítás az első bekapcsolt fülre (Timer) esik vissza; a régi Hide Desktop Icons / Show Hidden Files sorrend- és gyorsbillentyű-bejegyzések elvesznek, a többi megmarad. |
+| QT-11 | (v1.6.1, QT-7 módosítása) **A csempék alatti felirat nem mozdít el semmit:** minden csempén van egy állandó helyű sor a felirat („Click again to empty”, „No disks”, „Until 14:30”, „Set up in Settings”) számára, így megjelenéskor a sor csempéi nem csúsznak lejjebb. Az Empty Trash megerősítő felirata **piros**: „Click again to empty”. |
 
 ### HUD-bejelentések
 

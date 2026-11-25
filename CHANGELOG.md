@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Swiping over a tab picker steps from the tab now shown, so Tools goes through all its tabs instead of flipping between two; over the Calendar | Weather picker a swipe switches the tabs instead of the days (S-7).
+- Quick toggle tiles keep a fixed line for their note, so "Click again to empty", "No disks" or a Keep Awake end no longer push the row down; the Empty Trash confirmation is red (QT-11). Onboarding: tour and tips unchanged (no gesture or setting moved).
+
 ## [1.6.0] - 2026-11-25
 
 ### Added
