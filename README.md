@@ -1,6 +1,6 @@
-# Dynotch
+# Wingmate (Dynotch)
 
-Natív macOS alkalmazás (SwiftUI, macOS 14+).
+Natív macOS notch-alkalmazás (SwiftUI, macOS 14+). A látható neve 1.0-tól **Wingmate**; a repó, a bundle azonosító, a kiadási fájlok és a mappák neve Dynotch maradt.
 
 - [Telepítés](#telepítés)
 - [Fejlesztés](#fejlesztés)

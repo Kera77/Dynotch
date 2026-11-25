@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-25
+
 ### Added
 
 - First-launch tour in the notch: nine short steps that practise opening, closing and switching on the real notch, pick the modules, show what appears beside the closed notch, the power moves, the look and the permissions the chosen modules need. Skip it any time; a tour left half way continues at the next launch (OB-1…OB-25).

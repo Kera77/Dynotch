@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v0.113 elfogadva** · Utolsó módosítás: 2026-11-24
+> Állapot: **v1.0 elfogadva** · Utolsó módosítás: 2026-11-25
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1306,7 +1306,7 @@ Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a
 
 | # | Lépés | Tartalom |
 |---|---|---|
-| OB-14 | **1. Welcome** | „Your notch, now useful.” Egy mondat arról, mi a Dynotch (naptár, értesítések, eszközök, AI a notchban), és hogy a bemutató kb. 2 perc. Gombok: *Start tour*, *Skip tour*. |
+| OB-14 | **1. Welcome** | „Your notch, now useful.” Egy mondat arról, mi a Wingmate (naptár, értesítések, eszközök, AI a notchban), és hogy a bemutató kb. 2 perc. Gombok: *Start tour*, *Skip tour*. |
 | OB-15 | **2. Open and close ●** | Kis kártya a kijelző közepén: „Move the pointer up to the notch to open it. Move away and it closes.” Ha a notch kinyílt: „Now move the pointer away…”; ha be is csukódott: „Nice!”, és ~1 mp múlva jön a következő lépés. |
 | OB-16 | **3. Move between modules ●** | Kis kártya: „Open the notch, then swipe with two fingers or click an icon in its top row.” Ha a nyitott notchban modul váltódik: „Nice!”, majd a következő lépés (a notch becsukódik). Egy bekapcsolt modulnál a *Next* lép tovább. A ⌘1–⌘9, a rögzítés és az átméretezés a 6. lépésben szerepel. |
 | OB-17 | **4. Choose your modules** | „Pick what lives in your notch…” A modulok kétoszlopos rácsban, csoportosítva (*Everyday:* Calendar, Weather, Notifications, Reminders, Notes, Calculator; *Work:* Clipboard, Tray, Tools, Terminal; *AI:* AI, AI Usage; *Mac:* System, Batteries, Music, Home); csempénként ikon, név, pár szavas leírás és kapcsoló, a jelenlegi állapottal. Ugyanaz a beállítás, mint a *Settings › Modules* kapcsolója (G-4). |
@@ -1379,6 +1379,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.0.0** | Wingmate név (csak a látható név, WM-1, WM-2); első indításkori bemutató a notchnál gyakorló lépésekkel, modulválasztással, engedélyekkel, *Replay tour* a General lapon; első használati tippek modulonként (OB-1…OB-29) |
 | **v0.113.0** | Tools: hoverre vezérlők a notch melletti jelzőn (lefelé, Wingsben oldalra), stopper alapból a notch mellett, magasabb Tools modul; fülekkel bíró modulok egy közös mérete a legnagyobb fül szerint; időjárás: jelenlegi hely vagy mentett helyek, helymeghatározás entitlement javítás (TM-18…TM-21, RS-7, WX-9, WX-10) |
 | **v0.112.0** | Tools modul: időzítő, stopper, pomodoro, gyorskapcsolók (TM-1…TM-17, QT-1…QT-5); HUD-bejelentések (HA-1…HA-4); Weather fül a Naptárban és reggeli előrejelzés (WX-1…WX-8) |
 | **v0.111.0** | Refaktorálás: haptika a trackpad motorján minden swipe-ra (H-8), célzott újrarajzolás `@Observable`-lel, takarékos háttérfigyelés (csak bekapcsolt funkció, szünet alvás/zárolás alatt, ×3 akkun és energiatakarékos módban, Mission Control figyelő ritkábban), billentyűzár vészkijárat, átmeneti vágólap, idézett Terminál-parancsok, visszaállás az előző verzióra, rögzített CI-actionök (RF-1…RF-21) |
