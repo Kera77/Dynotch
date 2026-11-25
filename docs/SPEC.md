@@ -171,7 +171,7 @@
 
 | Szakasz | Elemek |
 |---|---|
-| **Általános** | Indítás bejelentkezéskor · HUD · Hívások (Telefon app a Dockban, P-5) · Haptika · AI usage · Claude-jelzések · Bezárási késleltetés (0–3 s) |
+| **Általános** | Indítás bejelentkezéskor · Bemutató újraindítása (OB-5) · HUD · Hívások (Telefon app a Dockban, P-5) · Haptika · AI usage · Claude-jelzések · Bezárási késleltetés (0–3 s) |
 | **Megjelenés** (v0.39) | Design (D-1) · Beállítások megnyitása (a notchban / külön ablakban) · Lekerekített notch (N-11), csak a tartalmas oldal (N-13) · Rejtés teljes képernyős appoknál (N-12) · Előnézet hoverre (PV) |
 | **Funkciók** | Bekapcsolt funkciók listája, sorrendjük húzással állítható |
 | **Értesítések** | Állapot és Teljes lemezelérés · Eltűnési idő (2–30 mp) · Appok ki/be · Útmutató a natív szalagcímek kikapcsolásához |
@@ -1268,9 +1268,63 @@ Négy kis funkció egy helyen: egy új **Tools** modul (*Timer | Stopwatch | Pom
 | WX-9 | **Helyszín-választó (WX-2 módosítása, v0.113):** *Settings › Calendar › Weather › Location*: **Current location** (Helymeghatározás) vagy **Saved place**. Mentett helyek listája (legfeljebb 5, városkereséssel felvéve, egyenként törölhető), közülük egy a kiválasztott. *Current location* módban, ha a hely nem érhető el (nincs engedély vagy nincs pozíció), a kiválasztott mentett hely látszik. |
 | WX-10 | **Hiba javítása:** a Hardened Runtime miatt a helymeghatározáshoz a `com.apple.security.personal-information.location` entitlement kell; nélküle a macOS nem kérdez és nem ad helyet, így az időjárás nem töltött be. Ha nincs hely, a fül a beállításra mutat, és nem marad végtelen töltésben. |
 
+## 4ő++++++++++. Bemutató első indításkor (onboarding) (tervezett)
+
+Cél: első indításkor kb. **2 perc** alatt megmutatni, hogyan kell a notch-csal bánni, és hogy mi mindent tud az app, anélkül, hogy minden beállítást végigvennénk. A bemutató **gyakoroltat** (az igazi notch-csal), a modulokat **kiválasztatja**, a többit csak megmutatja, és megmondja, hol találhatók.
+
+### Indulás, megszakítás, újraindítás
+
+| # | Követelmény |
+|---|---|
+| OB-1 | **Első indításkor** magától elindul: a notch (a beépített kijelzőé, ha nincs, a főkijelzőé) indulás után ~1 mp-cel magától lenyílik a bemutatóval, hover nélkül. Első indítás = a `onboarding.completed` kulcs nincs a `UserDefaults`-ban. |
+| OB-2 | **Meglévő telepítés** frissítésekor nem indul el magától: ha az app már futott korábban (van mentett beállítás, pl. utolsó modul vagy modulsorrend), a bemutató késznek számít. |
+| OB-3 | **Kihagyás bármikor:** minden lépésen *Skip tour* (és Esc). Kihagyáskor egy sor jelenik meg: „You can replay the tour in Settings › General.”, majd a notch becsukódik. A kihagyás is késznek jelöli. |
+| OB-4 | **Félbehagyás:** ha az app a bemutató közben kilép vagy összeomlik, a következő indításkor a félbehagyott lépésnél folytatódik (`onboarding.step`). |
+| OB-5 | **Újraindítás a Beállításokból:** *Settings › General › Onboarding › Replay tour* gomb. Kattintásra a beállítások bezárulnak (külön ablakban is, C-2), és a bemutató **azonnal** elindul az első lépéstől, az app újraindítása nélkül. Kereséssel is megtalálható (C-9: „onboarding”, „tour”, „welcome”, „intro”). |
+| OB-6 | **Visszaállítás nem nyúl a beállításokhoz:** az újraindított bemutató a **jelenlegi** állapotot mutatja (bekapcsolt modulok, design, engedélyek), nem az alapértékeket; semmi nem változik, amit a felhasználó a bemutatóban nem állít át. |
+| OB-7 | **Közvetlen mentés:** a bemutatóban állított minden beállítás ugyanaz a beállítás, mint a Beállításokban, és **azonnal** érvényes; a bemutató kihagyása vagy félbehagyása nem vonja vissza. |
+
+### Megjelenés és viselkedés
+
+| # | Követelmény |
+|---|---|
+| OB-8 | **A notchban jelenik meg** (nem külön ablakban), a beállítások méretében (C-2, 520 × 440 pt tartalom), az aktuális designnal (D-1). Nem átméretezhető (RS nem vonatkozik rá), nem modul (nincs `FeatureID`-ja). Notch nélküli kijelzőn a virtuális notch / pill alól nyílik (N-9, D-7). |
+| OB-9 | **Lépéskártyák:** felül egy kis illusztráció (SwiftUI-ban rajzolt, ismétlődő mini-animáció: notch, egérmutató, ujjak; nincs képernyőkép vagy videó a repóban), alatta cím és **legfeljebb két mondat**, alul pöttyös haladásjelző, *Back*, *Next* (az utolsón *Done*) és *Skip tour*. ←/→ is lapoz (ha nem gépelünk). Lapozáskor a kártyák a modulváltás animációjával csúsznak (S-5). |
+| OB-10 | **Nyitva tartás:** a bemutató alatt a notch nyitva marad, akkor is, ha az egér elhagyja (mint C-6, de kattintásra sem csukódik be), kivéve a gyakorló lépéseket (OB-14), ahol szándékosan becsukódik. |
+| OB-11 | **Csend közben:** a bemutató alatt nincs lelógó értesítés, eszköz-értesítés, környezetfüggő nyitás (SO), reggeli előrejelzés és Claude-jelzés; ezek a végén a szokásos módon megjelennek (a sorban állók közül csak a 5 percnél frissebbek). A HUD (hangerő/fényerő) működik. |
+| OB-12 | **Nem zavar:** képernyőmegosztás alatt (N-21), teljes képernyős appnál (N-12) és Mission Control alatt (N-19) az első indításkori bemutató nem nyílik le, hanem kivár, amíg ezek véget érnek. |
+| OB-13 | **Akadálymentesség:** minden gombnak és illusztrációnak VoiceOver-címkéje van; *Reduce Motion* mellett az illusztrációk állóképek, a lapozás áttűnés. |
+
+### A lépések
+
+Kilenc lépés; a gyakorlók (●) addig nem engednek tovább magától, amíg a mozdulat nem sikerült, de a *Next* mindig megnyomható („Skip this step”).
+
+| # | Lépés | Tartalom |
+|---|---|---|
+| OB-14 | **1. Welcome** | „Your notch, now useful.” Egy mondat arról, mi a Dynotch (naptár, értesítések, eszközök, AI a notchban), és hogy a bemutató kb. 2 perc. Gombok: *Start tour*, *Skip tour*. |
+| OB-15 | **2. Open and close ●** | „Move the pointer to the notch to open it. Move away to close.” A notch becsukódik, a notch alatt pulzáló nyíl mutat rá; hoverre a notch kinyílik, és a kártya: „Nice!”; az egér eltávolítására bezárul, majd újra lenyílik a következő lépéssel. Mellékmondat: a bezárási késleltetés a *Settings › General*-ban állítható (N-5). |
+| OB-16 | **3. Move between modules ●** | „Swipe with two fingers, or click an icon in the top row.” A notch két példamodullal (Home és Calendar, ha be van kapcsolva, különben az első két bekapcsolt) nyílik; egy sikeres kétujjas swipe vagy ikonkattintás után „Nice!”. Alatta egy sor apró betűvel: ⌘1–⌘9 a modulokat nyitja, Esc becsuk, a lakat nyitva tartja (SZ-8), a modul a jobb alsó sarkából átméretezhető (RS-1). |
+| OB-17 | **4. Choose your modules** | „Pick what lives in your notch. You can change this any time.” A modulok rácsban, csoportosítva (*Everyday:* Calendar + Weather, Notifications, Reminders, Notes, Calculator; *Work:* Clipboard, Tray, Tools, Terminal; *AI:* AI, AI Usage; *Mac:* System + Batteries, Music); csempénként ikon, név, **egy rövid sor** arról, mit tud, és kapcsoló. Az alapértékek (vagy újraindításnál a jelenlegiek) előre bejelölve. Ugyanaz a beállítás, mint a *Settings › Modules* kapcsolója (G-4). |
+| OB-18 | **5. Beside the closed notch** | „The closed notch shows what matters.” Animált mini-notch körbe: jobbra-balra lelógó **értesítés** (E), app-**jelvények** (B), **hangerő/fényerő HUD** (H), **jelzők** (meeting-visszaszámlálás, időzítő, Claude befejezte), **bejövő hívás**. Egy-egy sor mindegyikhez. Egy kapcsoló: *Replace the macOS volume and brightness HUD* (H-1…, jelenlegi értékkel). Ha az egér a notch **alsó szélén** megáll, lecsúszik a **modul-ikonsor** (MS-1): ezt egy kis animáció mutatja. |
+| OB-19 | **6. Power moves** | Négy rövid sor ikonnal, mindegyik mellett kapcsoló, ahol be/ki kapcsolható: **Three-finger swipe up** – modulválasztó (QS-1), mellette a Mission Control ütközés megjegyzése és gombja (QS-9); **App switcher** (AS); **Smart opening** – a notch azt nyitja, ami épp fontos (SO-1); **Keyboard shortcuts** – modulonként (SC-1), link a *Settings › Modules*-ra. |
+| OB-20 | **7. Make it yours** | Design-választó három előnézeti csempével: *Black*, *Liquid glass*, *Black to glass* (D-1); választásra a bemutató panelje is azonnal átvált. Alatta: *Open settings in the notch / in a window* (C-2). |
+| OB-21 | **8. Permissions** | „Dynotch only asks for what your modules need.” Csak a **4. lépésben bekapcsolt** modulok által igényelt engedélyek, az egységes hozzáférés-sorral (SD-8): ikon, név, **egy mondat, mire kell**, jobbra „Allowed” vagy *Grant…* (C-8b). Az Accessibility mindig szerepel (HUD, gesztusok, Mission Control). Ha minden megvan: „All set.” Semmi nem kötelező; alul: „You can grant these later in Settings › Permissions.” A *Grant…* után visszatérve a notchba a sor frissül (a Rendszerbeállítások megnyitása nem zárja le a bemutatót, OB-10). |
+| OB-22 | **9. You're ready** | „Settings live behind the gear icon.” A fogaskerék (M-5) a felső sorban kiemelve pulzál. Kapcsoló: *Launch at login* (alapból be). Sor: „Replay this tour any time in Settings › General.” *Done* → késznek jelöl, a notch az első bekapcsolt modullal marad nyitva, amíg az egér el nem hagyja. |
+
+### Technika
+
+| # | Követelmény |
+|---|---|
+| OB-23 | Állapot `UserDefaults`-ban: `onboarding.completed` (Bool), `onboarding.step` (Int, félbehagyáshoz). A *Replay tour* törli mindkettőt és indítja a bemutatót. Az állapotgép (lépések, előre/hátra, kihagyás, folytatás, OB-2 észlelése) UI nélkül, unit-tesztelhetően készül. |
+| OB-24 | A gyakorló lépések (OB-15, OB-16) a meglévő hover- és swipe-eseményekből értesülnek (`NotchController`), külön eseményfigyelő nélkül. |
+| OB-25 | Napló: `onboarding.log` – indulás, elért lépés, kihagyás, befejezés, időbélyeggel; beállításértéket és személyes adatot nem naplóz. A *Copy Diagnostics* (C-7) tartalmazza, kész-e a bemutató. |
+
 ## 5. Nyitott kérdések
 
-Jelenleg nincs.
+| # | Kérdés |
+|---|---|
+| OB-Q1 | Meglévő telepítésnél (OB-2) egyszeri kis jelzés legyen-e („New: take the tour” a beállítások General lapján), vagy semmi? |
+| OB-Q2 | Kell-e a bemutató után néhány napig modulonkénti első-használati tipp (pl. a Tray első megnyitásakor „Drop files here”), vagy elég a bemutató? (Most: nincs.) |
 
 ---
 
