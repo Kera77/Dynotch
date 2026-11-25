@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Finder, Spotlight and Launchpad show the app as Wingmate instead of Dynotch: the plain Info.plist name now matches the file name Dynotch.app, so macOS uses the localized name (WM-3). Onboarding: no tour step or tip names the app file, so none changed.
+
 ## [1.4.0] - 2026-11-25
 
 ### Changed

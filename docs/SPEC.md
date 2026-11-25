@@ -1283,6 +1283,7 @@ Cél: első indításkor kb. **2 perc** alatt megmutatni, hogyan kell a notch-cs
 |---|---|
 | WM-1 | **Új név: Wingmate** (a „szárnysegéd”, a Wings módhoz illik). Csak a **látható** név változik: Finder, Spotlight, Rendszerbeállítások (`CFBundleDisplayName`, `CFBundleName`, `LSHasLocalizedDisplayName` + `en.lproj/InfoPlist.strings`), az engedélykérő szövegek, a Szolgáltatások menü („New Wingmate Note”), a beállítások ablakcíme, a Névjegy, a jelzések és minden felületi szöveg. |
 | WM-2 | **Ami marad Dynotch:** a bundle azonosító (`com.peterkereki.Dynotch`, így az engedélyek és a beállítások megmaradnak), az `.app` fájlneve és a futtatható fájl, a kiadási fájlok neve (a régi verziók frissítője ezeket keresi), a GitHub-repó és a Homebrew tap, a naplók (`~/Library/Logs/Dynotch`) és az adatmappák. |
+| WM-3 | **A Finder is Wingmate-et mutat:** az Info.plist nem lokalizált `CFBundleDisplayName` és `CFBundleName` értéke `Dynotch`, egyezik az `.app` fájlnevével; a látható `Wingmate` név csak az `en.lproj/InfoPlist.strings`-ben van. Ha a kettő eltér, a macOS a felhasználó általi átnevezésnek veszi, és a fájlnevet mutatja. |
 
 ### Indulás, megszakítás, újraindítás
 

@@ -32,9 +32,10 @@ targets:
     info:
       path: Dynotch/Resources/Info.plist
       properties:
-        CFBundleDisplayName: Wingmate
-        CFBundleName: Wingmate
-        # Finder, Spotlight and the Privacy lists show Wingmate, while the bundle, its id and folders stay Dynotch.
+        # These must match the file name Dynotch.app, or Finder takes the app for renamed by the user and
+        # ignores the localized name. en.lproj/InfoPlist.strings gives the visible name Wingmate (WM-3).
+        CFBundleDisplayName: Dynotch
+        CFBundleName: Dynotch
         LSHasLocalizedDisplayName: true
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
