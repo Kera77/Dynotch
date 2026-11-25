@@ -191,7 +191,7 @@ struct HomeTilesTests {
         calendar.timeZone = try #require(TimeZone(identifier: "UTC"))
         // 1 November 2026 is a Sunday: six empty cells before it when weeks start on Monday.
         let november = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 1)))
-        let cells = MonthGridView.cells(of: november, calendar: calendar)
+        let cells = HomeMonthGrid.cells(of: november, calendar: calendar)
         #expect(cells.prefix(6).allSatisfy { $0 == nil })
         #expect(cells.count == 6 + 30)
     }

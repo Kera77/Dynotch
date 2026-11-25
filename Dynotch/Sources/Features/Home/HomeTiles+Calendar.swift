@@ -15,7 +15,7 @@ struct CalendarTileContent: View {
         case .today:
             TodayTileContent(services: services)
         case .month:
-            MonthGridView(calendar: services.calendar, pager: .shared, compact: true)
+            HomeMonthGrid(calendar: services.calendar, pager: .shared, compact: true)
         case .nextEvent, .nextEventWide:
             NextEventTileContent(calendar: services.calendar, isWide: tile == .nextEventWide)
         case .week:
@@ -178,12 +178,12 @@ private struct CalendarLargeTileContent: View {
     var body: some View {
         if isWide {
             HStack(alignment: .top, spacing: 10) {
-                MonthGridView(calendar: calendar, pager: .shared, compact: false)
+                HomeMonthGrid(calendar: calendar, pager: .shared, compact: false)
                 AgendaTileContent(calendar: calendar, lines: 6)
             }
         } else {
             VStack(alignment: .leading, spacing: 8) {
-                MonthGridView(calendar: calendar, pager: .shared, compact: false)
+                HomeMonthGrid(calendar: calendar, pager: .shared, compact: false)
                 AgendaTileContent(calendar: calendar, lines: 4)
             }
         }
@@ -191,7 +191,7 @@ private struct CalendarLargeTileContent: View {
 }
 
 /// A month: today in blue, a dot under days with events; a swipe over it pages the months (spec HT-18).
-struct MonthGridView: View {
+struct HomeMonthGrid: View {
     var calendar: CalendarService
     var pager: MonthTilePager
     let compact: Bool

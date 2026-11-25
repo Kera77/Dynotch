@@ -203,7 +203,8 @@ private struct TogglesTileContent: View {
     private static let skipped: Set<QuickToggle> = [.emptyTrash, .ejectDisks, .lockScreen]
 
     var body: some View {
-        let shown: [QuickToggle] = onlyKeepAwake ? [.keepAwake] : settings.shownToggles.filter { !Self.skipped.contains($0) }.prefix(5).map { $0 }
+        let allowed = settings.shownToggles.filter { !Self.skipped.contains($0) }
+        let shown: [QuickToggle] = onlyKeepAwake ? [.keepAwake] : Array(allowed.prefix(5))
         VStack(alignment: .leading, spacing: 4) {
             Text(onlyKeepAwake ? "Keep Awake" : "Quick toggles").font(.notch(size: 10, weight: .medium)).foregroundStyle(.secondary)
             HStack(spacing: 6) {

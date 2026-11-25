@@ -67,9 +67,10 @@ struct HomeFeatureView: View {
         let step = cell + HomeLayout.gap
         return ZStack(alignment: .topLeading) {
             ForEach(placements, id: \.tile) { placement in
-                HomeTileCard(tile: placement.tile, viewportSpace: Self.space, open: { open($0, nil, $1) }) {
-                    HomeTileContent(tile: placement.tile, services: services, size: placement.size)
-                }
+                HomeTileCard(
+                    tile: placement.tile, viewportSpace: Self.space, open: { open($0, nil, $1) },
+                    content: { HomeTileContent(tile: placement.tile, services: services, size: placement.size) }
+                )
                 .frame(
                     width: step * CGFloat(placement.size.columns) - HomeLayout.gap,
                     height: step * CGFloat(placement.size.rows) - HomeLayout.gap
