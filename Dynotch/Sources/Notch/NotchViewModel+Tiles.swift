@@ -17,6 +17,7 @@ extension NotchViewModel {
         guard isExpanded, currentFeature == .home, feature != .home else { return }
         if !settings.isSwitchedOn(feature) { settings.visitingFeature = settings.hostFeature(of: feature) }
         tileOpening = TileOpening(tile: tile, feature: feature, anchor: anchor)
+        DiagnosticsLog.append("home", "opened tile \(tile.rawValue) → \(feature.rawValue)")
         // Not remembered: the next opening follows the usual rules (spec HT-13).
         select(feature, remember: false, exact: true)
     }

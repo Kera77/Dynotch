@@ -31,10 +31,13 @@ private struct RevealAnchor: NSViewRepresentable {
         }
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
+    /// A row already open when the settings appear (spec SD-19) does not scroll to itself.
+    func makeCoordinator() -> Coordinator { Coordinator(wasOpen: isOpen) }
 
     final class Coordinator {
-        var wasOpen = false
+        var wasOpen: Bool
+
+        init(wasOpen: Bool) { self.wasOpen = wasOpen }
     }
 }
 

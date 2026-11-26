@@ -203,6 +203,7 @@ extension NotchView {
         if let opening = model.tileOpening {
             VStack(alignment: .leading, spacing: 4) {
                 Button {
+                    DiagnosticsLog.append("home", "back to Home: button")
                     withAnimation(Motion.spring) { model.backToHome() }
                 } label: {
                     Label("Home", systemImage: "chevron.left")

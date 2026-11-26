@@ -1173,6 +1173,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-16 | (v1.3) **Egységes keresőmezők:** a beállítások minden keresőmezője ugyanaz az elem: nagyító ikon, szürke, lekerekített háttér, 26 pt magas, rákattintva fókuszt kap, és ha van benne szöveg, jobbra × törli. Így néz ki és működik a sidebar keresője, a lenyíló listák keresője (SD-2) és a *Calendar › Weather › Location* helykeresője (WX-9) is. |
 | SD-17 | (v1.3) **Gyorsan nyíló hosszú listák (SD-2 javítása):** a lenyíló lista (App badges › Add an app, Notifications › Apps és Websites) sorai animáció nélkül jelennek meg, csak a › nyíl fordul el animálva; az appok ikonjait az app egyszer tölti be és megjegyzi, nem minden kirajzoláskor. |
 | SD-18 | (v1.3.1) **Modules oldal sorrendje:** a *Settings › Modules* oldalon a **Swipe up** (modulváltó, QS) szakaszai a **Module strip** szakasz **előtt** állnak. |
+| SD-19 | (v1.7.1) **Nyitott modulsorok megmaradnak:** a *Settings › Modules* listájában a › gombbal kinyitott modulsorokat a Dynotch megjegyzi; a beállítások újbóli megnyitásakor ugyanazok vannak nyitva. A *Modules* fejléc jobb szélén **Collapse all** gomb mindet becsukja (csak akkor látszik, ha van nyitott sor). |
 
 ## 4ő+++++++. Refaktorálás: energia, folyékonyság, biztonság (v0.111)
 
@@ -1412,7 +1413,7 @@ Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfonto
 | # | Követelmény |
 |---|---|
 | HT-11 | **Kattintásra kinagyul:** a csempére kattintva a csempe rugós animációval a panel méretére nő, és átúszik a saját modulja teljes nézetébe (a csempe helyéről indulva). A felső menüsorban a modul lesz kijelölve; a modul a saját megjegyzett méretén nyílik (RS-3). |
-| HT-12 | **Vissza a Home-ra mozdulattal, választhatóan** (*Settings › Modules › Home › Back gesture*): **Pinch** (két ujjas összecsípés a trackpaden, alapból) vagy **Swipe down** (két ujjas lefelé húzás a modul felső sávja fölött: a felső menüsor és a „‹ Home” sora; lejjebb a függőleges görgetés a modul listáié). A modul a csempe helyére zsugorodik vissza, és újra a Home látszik, ugyanazon a görgetési helyen. Haptika, mint a modulváltásnál (H-7). A vízszintes swipe változatlanul modult vált (S-1), és kilép a csempés állapotból. |
+| HT-12 | **Vissza a Home-ra mozdulattal** (v1.7.1-től mindkettő mindig működik, nincs választó): **Pinch** (két ujjas összecsípés a trackpaden, a csempéből nyitott modul fölött) és **Swipe down** (két ujjas lefelé húzás a modul felső sávja fölött: a felső menüsor és a „‹ Home” sora; lejjebb a függőleges görgetés a modul listáié). A pinch akkor is célba ér, ha nem a Dynotch az aktív app (HT-36). A modul a csempe helyére zsugorodik vissza, és újra a Home látszik, ugyanazon a görgetési helyen. Haptika, mint a modulváltásnál (H-7). A vízszintes swipe változatlanul modult vált (S-1), és kilép a csempés állapotból. |
 | HT-13 | **Látható vissza-gomb is:** csempéből nyitott modul fejlécében bal felül kis „‹ Home” kapszula; kattintásra ugyanaz, mint HT-12. A notch becsukásakor a csempés állapot megszűnik; a következő nyitás a szokásos szabályok szerint (1.4). |
 
 ### Csempekatalógus (modulonként)
@@ -1429,7 +1430,7 @@ Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfonto
 
 | # | Követelmény |
 |---|---|
-| HT-20 | **Helye:** *Settings › Modules › Home* (a Home sor › opciói), két részből: balra a **katalógus**, jobbra a **Home előnézete** (a rács kicsinyítve, 4 oszloppal, csempénként a modul ikonjával és a csempe nevével). Felül a *Back to Home* választó (HT-12). |
+| HT-20 | **Helye:** *Settings › Modules › Home* (a Home sor › opciói), két részből: balra a **katalógus**, jobbra a **Home előnézete** (a rács kicsinyítve, 4 oszloppal, csempénként a modul ikonjával és a csempe nevével). A szerkesztő a beállítások teljes szélességét kapja (HT-30). |
 | HT-21 | **Katalógus modulonként:** a modulok a *Settings › Modules* sorrendjében, mindegyik fejléce ikon + név, alatta a modul csempéi kis előnézettel és méretjelzéssel (1×1 / 1×2). A már felvett csempe halvány, pipával. |
 | HT-22 | **Drag and drop:** csempe húzása a katalógusból az előnézetbe felveszi (oda, ahová ejtettük; a többi rugósan arrébb csúszik); az előnézeten belül húzással átrendezhető; az előnézetből kihúzva vagy a hoverre megjelenő × gombbal levehető. Dupla kattintás a katalógusban a végére veszi fel. |
 | HT-23 | **Mentés:** azonnal, `home.tiles` kulcson (az azonosítók rendezett listája, HT-15). Ismeretlen (megszűnt) azonosító csendben kimarad. *Reset to default* gomb (HT-17). |
@@ -1445,6 +1446,13 @@ Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfonto
 | HT-29 | **Csempe beállításai:** néhány csempének saját beállítása van (*World clock*: időzóna; *Run*: név és parancs, amelyet a ▶ a Terminálba gépel és lefuttat). Ezek a *Settings › Modules › Home* katalógusa alatt jelennek meg, amíg a csempe a Home-on van. |
 | HT-24 | **Onboarding:** a megvalósítással együtt frissül a Home első használati tippje és leírása (`OnboardingModuleTexts`, OB-14…OB-29: „Click a tile to open its module, pinch to come back. Choose tiles in Settings › Modules › Home.”), és a *What's new* bejegyzés (WN-4). |
 | HT-25 | Napló: a `home.log`-ba kerül a csempék száma és a megnyitott csempe azonosítója; tartalmat nem naplóz. |
+| HT-30 | (v1.7.1) **Teljes szélességű szerkesztő:** a *Settings › Modules › Home* csempeszerkesztője nem a modul opcióinak behúzásában ül, hanem a beállítások teljes szélességében. Felül a Home előnézete (4 oszlop, a cellák a szélességhez nőnek), alatta a katalógus. |
+| HT-31 | (v1.7.1) **Kihúzás = eltávolítás, látszik is:** amíg egy előnézetbeli csempét húzunk, és a mutató az előnézeten kívül van, a csempe helyén piros mínusz jel látszik, a katalógus pedig piros „Drop to remove” sávot mutat. Az előnézeten kívül bárhová (a szerkesztőn belül) ejtve a csempe lekerül a Home-ról. |
+| HT-32 | (v1.7.1) **Plusz gomb a katalógusban:** minden még fel nem vett csempe jobb szélén szürke ⊕ gomb; hoverre zöld lesz, kattintásra a csempe a Home végére kerül. A már felvett csempénél a helyén pipa áll. |
+| HT-33 | (v1.7.1) **Görgetés: az előnézet látva marad.** Az „On the Home” felirat, az előnézet és a katalógus együtt egy, a beállítások látható magasságával egyező blokk. Lefelé görgetve a beállítások addig gördülnek, amíg a blokk teljesen be nem fér (az „On the Home” felirat a tetején); ott a beállítások megállnak, és csak a katalógus görög, amíg a végére nem ér; utána gördülnek tovább a beállítások. Felfelé fordítva: előbb a katalógus az elejéig, aztán a beállítások. |
+| HT-34 | (v1.7.1) **Becsukható modulsorok a katalógusban:** a katalógus modulonkénti csoportjai (Home, Calendar, Info…) a fejlécükre kattintva becsukhatók; alapból mind nyitva. A becsukott csoportokat a Dynotch megjegyzi. |
+| HT-35 | (v1.7.1) **Napló:** a `home.log` a csempés megnyitást (a csempe azonosítója) és a visszalépés módját (pinch, swipe down, gomb) írja; tartalmat nem. |
+| HT-36 | (v1.7.1) **Pinch inaktív appnál is:** ha nem a Dynotch az aktív app, a trackpad pinch eseménye a másik apphoz megy; a Dynotch ezt is figyeli (globális figyelő), és ha a mutató a csempéből nyitott modul fölött van, visszalép a Home-ra. |
 
 ## 5. Nyitott kérdések
 

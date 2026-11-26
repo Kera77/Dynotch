@@ -43,27 +43,41 @@ struct TileBackGesture {
 }
 
 extension NotchController {
-    /// A pinch over the module opened from a tile (spec HT-12).
+    /// A pinch over the module opened from a tile (spec HT-12). Also called by the global monitor:
+    /// while another app is active the pinch goes to it, so the pointer must be over the panel (spec HT-36).
     func handleTilePinch(_ event: NSEvent) -> Bool {
-        guard model.isExpanded, model.tileOpening != nil, HomeTileSettings.shared.backGesture == .pinch else { return false }
-        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) { goBackHome() }
+        guard model.isExpanded, model.tileOpening != nil,
+              model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
+        else { return false }
+        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) { goBackHome(by: "pinch") }
         return true
     }
 
     /// A downward swipe over the top of the module opened from a tile; nil: not this gesture's place (spec HT-12).
     func handleTileSwipeDown(_ event: NSEvent) -> Bool? {
-        guard model.isExpanded, model.tileOpening != nil, HomeTileSettings.shared.backGesture == .swipeDown,
-              tileTopZone.contains(NSEvent.mouseLocation)
+        guard model.isExpanded, model.tileOpening != nil, tileTopZone.contains(NSEvent.mouseLocation)
         else { return nil }
         let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
         let fingerSideways = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
         guard event.momentumPhase.isEmpty else { return true }
         if tileBack.swipe(phase: Self.phase(of: event), fingerDown: fingerDown, fingerSideways: fingerSideways) {
-            goBackHome()
+            goBackHome(by: "swipe down")
             return true
         }
         // Sideways it still switches modules (spec S-1).
         return abs(event.scrollingDeltaY) >= abs(event.scrollingDeltaX) ? true : nil
+    }
+
+    /// While another app is active the pinch goes to that app, so a global monitor watches it too (spec HT-36).
+    func startTilePinchMonitor() {
+        magnifyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.magnify]) { [weak self] event in
+            MainActor.assumeIsolated { _ = self?.handleTilePinch(event) }
+        }
+    }
+
+    func stopTilePinchMonitor() {
+        if let magnifyMonitor { NSEvent.removeMonitor(magnifyMonitor) }
+        magnifyMonitor = nil
     }
 
     /// The top row and the ‹ Home row under it.
@@ -74,7 +88,8 @@ extension NotchController {
         return CGRect(x: panel.minX, y: panel.maxY - height, width: panel.width, height: height + NotchGeometry.topEdgeTolerance)
     }
 
-    private func goBackHome() {
+    private func goBackHome(by gesture: String) {
+        DiagnosticsLog.append("home", "back to Home: \(gesture)")
         withAnimation(Motion.spring) { model.backToHome() }
         Haptics.perform(.featureSwitch, settings: settings)
     }

@@ -1,37 +1,20 @@
 import Foundation
 import Observation
 
-/// The tiles on the Home and how to get back to it (spec HT-12, HT-23).
+/// The tiles on the Home and their own settings (spec HT-23, HT-29).
 @MainActor
 @Observable
 final class HomeTileSettings {
     static let shared = HomeTileSettings()
 
-    /// How a module opened from a tile goes back to the Home (spec HT-12).
-    enum BackGesture: String, CaseIterable, Identifiable, Sendable {
-        case pinch
-        case swipeDown
-
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .pinch: "Pinch"
-            case .swipeDown: "Swipe down"
-            }
-        }
-    }
-
     private enum Key {
         static let tiles = "home.tiles"
-        static let backGesture = "home.backGesture"
         static let worldClockZone = "home.worldClockZone"
         static let runCommand = "home.runCommand"
         static let runName = "home.runName"
     }
 
     private(set) var tiles: [HomeTile] { didSet { defaults.set(tiles.map(\.rawValue), forKey: Key.tiles) } }
-    var backGesture: BackGesture { didSet { defaults.set(backGesture.rawValue, forKey: Key.backGesture) } }
 
     /// The World clock tile's time zone, an IANA name (spec HT-29).
     var worldClockZone: String { didSet { defaults.set(worldClockZone, forKey: Key.worldClockZone) } }
@@ -44,7 +27,6 @@ final class HomeTileSettings {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         tiles = defaults.stringArray(forKey: Key.tiles).map(HomeTile.decode) ?? HomeTile.defaults
-        backGesture = defaults.string(forKey: Key.backGesture).flatMap(BackGesture.init(rawValue:)) ?? .pinch
         worldClockZone = defaults.string(forKey: Key.worldClockZone) ?? "America/New_York"
         runCommand = defaults.string(forKey: Key.runCommand) ?? ""
         runName = defaults.string(forKey: Key.runName) ?? ""

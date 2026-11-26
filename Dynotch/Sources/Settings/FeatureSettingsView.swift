@@ -11,19 +11,40 @@ struct FeatureSettingsView: View {
 
     /// The row being dragged to a new place (spec M-3, SD-4).
     @State private var dragged: FeatureID?
+    /// The rows opened with ›, kept for the next time the settings open (spec SD-19).
+    @AppStorage("settings.openModules") private var openRaw = ""
+
+    private var openRows: Set<String> { Set(openRaw.split(separator: ",").map(String.init)) }
+
+    private func isOpen(_ feature: FeatureID) -> Binding<Bool> {
+        Binding(get: { openRows.contains(feature.rawValue) }, set: { open in
+            var rows = openRows
+            if open { rows.insert(feature.rawValue) } else { rows.remove(feature.rawValue) }
+            openRaw = rows.sorted().joined(separator: ",")
+        })
+    }
 
     var body: some View {
         Form {
             Section {
                 // Batteries and AI Usage are always tabs of System and AI: not listed (spec MG-9).
                 ForEach(settings.featureOrder.filter { $0.mergeHost == nil }, id: \.self) { feature in
-                    FeatureRow(feature: feature, settings: settings, shortcuts: shortcuts) { musicOptions }
+                    FeatureRow(feature: feature, settings: settings, shortcuts: shortcuts, isOpen: isOpen(feature)) { musicOptions }
                         .reorderable(feature, in: settings.featureOrder, dragged: $dragged, id: feature.rawValue) {
                             settings.moveFeatures(from: $0, to: $1)
                         }
                 }
             } header: {
-                Text("Modules")
+                HStack {
+                    Text("Modules")
+                    Spacer()
+                    if !openRows.isEmpty {
+                        Button("Collapse all") { withAnimation(Motion.quick) { openRaw = "" } }
+                            .buttonStyle(.borderless)
+                            .font(.caption)
+                            .help("Close every module's options")
+                    }
+                }
             } footer: {
                 Text("Drag a row to reorder. At least one module must stay on. › shows a module's shortcut and options: "
                     + "\"Menu bar\" also adds an icon to the menu bar. "
@@ -64,9 +85,8 @@ private struct FeatureRow<Music: View>: View {
     let feature: FeatureID
     @Bindable var settings: AppSettings
     var shortcuts: ShortcutStore
+    @Binding var isOpen: Bool
     @ViewBuilder let musicOptions: () -> Music
-
-    @State private var isOpen = false
 
     private var isOn: Bool { settings.isSwitchedOn(feature) }
 
@@ -104,6 +124,8 @@ private struct FeatureRow<Music: View>: View {
                 .accessibilityLabel("Shortcut and options for \(feature.title)")
             }
             if isOpen { options }
+            // The Home's tiles, the full settings width (spec HT-20, HT-30).
+            if isOpen, feature == .home { HomeTilesEditor(tiles: .shared, order: settings.featureOrder) }
         }
         .revealWhenOpened(isOpen)
     }
@@ -133,8 +155,6 @@ private struct FeatureRow<Music: View>: View {
                 .disabled(!isOn)
             }
             if feature == .music { musicOptions() }
-            // The Home's tiles (spec HT-20).
-            if feature == .home { HomeTilesEditor(tiles: .shared, order: settings.featureOrder) }
         }
         .font(.callout)
         .padding(.leading, 34)

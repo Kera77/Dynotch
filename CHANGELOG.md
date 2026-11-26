@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Going back from a module opened from a Home tile: pinch and swipe down over the top row both work now, the pinch also while another app is active; the Back to Home choice is gone. `home.log` notes the opened tile and the way back (HT-12, HT-35, HT-36).
+
+### Changed
+
+- Settings › Modules › Home: the tile editor spans the full settings width; a tile dragged out of the Home shows a red minus and comes off wherever it is dropped; each catalog tile has a grey + (green on hover) that adds it; the module groups fold and stay folded. Scrolling stops when the Home preview reaches the top and scrolls the catalog to its end first, then the settings go on (HT-30…HT-34).
+- Settings › Modules remembers which rows are open; Collapse all in the Modules header closes them (SD-19). Onboarding: the Home tip names both back gestures and the + button.
+
 ## [1.7.0] - 2026-11-25
 
 ### Added

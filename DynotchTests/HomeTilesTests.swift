@@ -73,11 +73,9 @@ struct HomeTilesTests {
         settings.place(.disk, at: 2)
         #expect(settings.tiles.firstIndex(of: .disk) == settings.tiles.firstIndex(of: third).map { $0 - 1 })
         settings.remove(.cpu)
-        settings.backGesture = .swipeDown
         let reloaded = HomeTileSettings(defaults: defaults)
         #expect(reloaded.tiles == settings.tiles)
         #expect(!reloaded.contains(.cpu))
-        #expect(reloaded.backGesture == .swipeDown)
         reloaded.reset()
         #expect(reloaded.tiles == HomeTile.defaults)
     }

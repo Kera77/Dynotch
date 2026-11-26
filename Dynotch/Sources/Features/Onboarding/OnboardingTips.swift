@@ -38,8 +38,8 @@ enum OnboardingTips {
     }
 
     private static let texts: [String: String] = [
-        "home": "Click a tile to open its module; pinch with two fingers (or swipe down, as set) to come back. "
-            + "Choose and arrange the tiles in Settings › Modules › Home.",
+        "home": "Click a tile to open its module; pinch with two fingers, or swipe down over the top, to come back. "
+            + "In Settings › Modules › Home drag tiles in or click +, and drag them out to remove.",
         "calendar": "Click a day in the strip or swipe over it to see that day; Join opens the meeting link. "
             + "The icon at the strip's end opens the month view. Before a meeting a countdown waits beside the "
             + "closed notch; hover it for the name and Join.",
