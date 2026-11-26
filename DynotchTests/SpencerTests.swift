@@ -76,3 +76,24 @@ struct SpencerTests {
         #expect(!notices.isShown(spencer))
     }
 }
+
+/// Layouts by their displays, from Spencer's database (spec SL-7…SL-9).
+struct SpencerLayoutDisplayTests {
+    @Test func layoutsAreGreyedOrMatchedByTheirDisplays() {
+        let output = "Mac+iPad\t37d8832a\nMac+iPad\tB545\nMacBook\t37D8832A\n2 Monitors\tAAA\n2 Monitors\tBBB\nbroken line\n"
+        let found = SpencerLayoutDisplays.parse(output)
+        #expect(found.displays["Mac+iPad"] == ["37D8832A", "B545"])
+        let order = ["2 Monitors", "Mac+iPad", "MacBook"]
+        #expect(found.matching(["37D8832A", "B545"], order: order) == "Mac+iPad")
+        #expect(found.matching(["37D8832A"], order: order) == "MacBook")
+        #expect(found.matching(["37D8832A", "CCC"], order: order) == nil)
+        #expect(found.isAvailable("MacBook", connected: ["37D8832A", "B545"]))
+        #expect(!found.isAvailable("2 Monitors", connected: ["37D8832A", "AAA"]))
+        #expect(found.isAvailable("Unknown", connected: []))
+    }
+
+    @Test func aDisplaySetupKeepsTheUUIDs() {
+        let builtin = DisplayInfo(vendor: 1, model: 2, serial: 0, name: "Built-in", isBuiltin: true, uuid: "abc")
+        #expect(DisplaySetup.make([builtin]).uuids == ["ABC"])
+    }
+}

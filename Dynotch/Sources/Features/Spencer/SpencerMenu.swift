@@ -7,17 +7,23 @@ struct SpencerMenu: View {
     var service: SpencerService
     @State private var anchor = MenuAnchor()
 
-    static let symbol = "rectangle.3.group"
+    /// For the settings list and the notice; the button shows Spencer's own icon (spec SL-7).
+    static let symbol = "bell"
+    /// Spencer's menu bar icon (a bell), read from the app itself.
+    static let icon: NSImage? = {
+        let image = Bundle(path: SpencerService.appPath)?.image(forResource: "bar_menu_icon")
+        image?.isTemplate = true
+        return image
+    }()
 
     var body: some View {
         Button {
             service.refresh()
             SpencerMenuBuilder(service: service).popUp(below: anchor.view)
         } label: {
-            Image(systemName: Self.symbol)
-                .font(.notch(size: 12, weight: .semibold))
+            icon
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .foregroundStyle(service.autoSwitch ? ClaudeUsageView.blue : Color.white.level(0.45))
+                .foregroundStyle(Color.white.level(0.45))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.notch)
@@ -25,9 +31,18 @@ struct SpencerMenu: View {
         .help("Spencer window layouts")
         .accessibilityLabel("Spencer window layouts")
     }
+
+    @ViewBuilder private var icon: some View {
+        if let image = Self.icon {
+            Image(nsImage: image).renderingMode(.template).resizable().interpolation(.high).frame(width: 15, height: 15)
+        } else {
+            Image(systemName: Self.symbol).font(.notch(size: 12, weight: .semibold))
+        }
+    }
 }
 
-/// Layouts, this display setup, Switch automatically, Update current layout, Open Spencer (spec SL-2).
+/// Layouts (greyed when their displays are missing), this display setup, Update current layout,
+/// Switch automatically, Open Spencer (spec SL-2, SL-7).
 @MainActor
 private final class SpencerMenuBuilder: NSObject {
     private let service: SpencerService
@@ -43,7 +58,8 @@ private final class SpencerMenuBuilder: NSObject {
         menu.addItem(.sectionHeader(title: "Layouts"))
         if service.layouts.isEmpty { disabled("No layouts in Spencer yet", in: menu) }
         for layout in service.layouts {
-            item(layout, isOn: layout == service.assigned, in: menu) { [service] in service.choose(layout) }
+            let item = item(layout, isOn: layout == service.assigned, in: menu) { [service] in service.choose(layout) }
+            item.isEnabled = service.isAvailable(layout)
         }
         if let setup = service.setup {
             menu.addItem(.separator())
@@ -51,13 +67,11 @@ private final class SpencerMenuBuilder: NSObject {
             disabled(setup.title, in: menu)
             if service.assigned != nil {
                 item("Forget this display setup", isOn: false, in: menu) { [service] in service.forgetSetup() }
-            } else {
-                disabled("Pick a layout above to use it here", in: menu)
             }
         }
         menu.addItem(.separator())
-        item("Switch automatically", isOn: service.autoSwitch, in: menu) { [service] in service.autoSwitch.toggle() }
         item("Update current layout", isOn: false, in: menu) { [service] in service.updateCurrent() }
+        item("Switch automatically", isOn: service.autoSwitch, in: menu) { [service] in service.autoSwitch.toggle() }
         item("Open Spencer", isOn: false, in: menu) { [service] in service.openSpencer() }
         if let failure = service.failure {
             menu.addItem(.separator())
@@ -73,13 +87,15 @@ private final class SpencerMenuBuilder: NSObject {
         menu.addItem(item)
     }
 
-    private func item(_ title: String, isOn: Bool, in menu: NSMenu, action: @escaping () -> Void) {
+    @discardableResult
+    private func item(_ title: String, isOn: Bool, in menu: NSMenu, action: @escaping () -> Void) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: #selector(choose(_:)), keyEquivalent: "")
         item.target = self
         item.tag = actions.count
         item.state = isOn ? .on : .off
         actions.append(action)
         menu.addItem(item)
+        return item
     }
 
     @objc private func choose(_ sender: NSMenuItem) {

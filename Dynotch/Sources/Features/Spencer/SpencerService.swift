@@ -23,6 +23,8 @@ final class SpencerService {
     private(set) var setup: DisplaySetup?
     /// Display setup key → layout name (spec SL-2, SL-5).
     private(set) var assignments: [String: String]
+    /// The displays each layout was made for, from Spencer's database (spec SL-8).
+    private(set) var layoutDisplays = SpencerLayoutDisplays()
 
     /// Switches by itself when the displays change (spec SL-5).
     var autoSwitch: Bool {
@@ -34,6 +36,14 @@ final class SpencerService {
     @ObservationIgnored private var settling: Task<Void, Never>?
     @ObservationIgnored private var pending: (notice: StickyNotice, task: Task<Void, Never>)?
     @ObservationIgnored private let defaults: UserDefaults
+    /// The last restore, so a display flicker right after it does not offer the same layout again.
+    @ObservationIgnored private var lastRestore: Restore?
+
+    private struct Restore {
+        let layout: String
+        let setupKey: String?
+        let date: Date
+    }
 
     nonisolated static let autoSwitchKey = "spencer.autoSwitch"
     nonisolated static let assignmentsKey = "spencer.assignments"
@@ -46,6 +56,11 @@ final class SpencerService {
 
     /// The layout remembered for the displays connected now.
     var assigned: String? { setup.flatMap { assignments[$0.key] } }
+
+    /// Greyed in the menu when its displays are not all connected (spec SL-7).
+    func isAvailable(_ layout: String) -> Bool {
+        layoutDisplays.isAvailable(layout, connected: setup?.uuids ?? [])
+    }
 
     /// Notes the displays at launch, without switching (spec SL-3), and watches them from then on.
     func start(notices: NoticeService) {
@@ -85,11 +100,31 @@ final class SpencerService {
         guard now.key != setup?.key else { return }
         setup = now
         cancelPending()
-        let layout = assignments[now.key]
-        DiagnosticsLog.append("spencer", "display setup changed: \(now.count) display(s), layout assigned=\(layout != nil)")
         isInstalled = FileManager.default.isExecutableFile(atPath: Self.toolPath)
-        guard autoSwitch, isInstalled, let layout else { return }
+        Task {
+            await loadLayoutDisplays()
+            decide(for: now)
+        }
+    }
+
+    /// The remembered layout, or else the one made for exactly these displays (spec SL-9).
+    private func decide(for now: DisplaySetup) {
+        guard setup?.key == now.key else { return }
+        let assigned = assignments[now.key]
+        let matched = assigned == nil ? layoutDisplays.matching(now.uuids, order: layouts) : nil
+        let source = assigned != nil ? "assigned" : matched != nil ? "matched" : "none"
+        DiagnosticsLog.append("spencer", "display setup changed: \(now.count) display(s), layout=\(source)")
+        guard autoSwitch, isInstalled, let layout = assigned ?? matched else { return }
+        if let last = lastRestore, last.layout == layout, last.setupKey == now.key, Date().timeIntervalSince(last.date) < 60 {
+            DiagnosticsLog.append("spencer", "skipped: just restored")
+            return
+        }
         startCountdown(to: layout, setup: now)
+    }
+
+    private func loadLayoutDisplays() async {
+        guard let found = await Task.detached(operation: { SpencerLayoutDisplays.load() }).value else { return }
+        if found != layoutDisplays { layoutDisplays = found }
     }
 
     private func startCountdown(to layout: String, setup: DisplaySetup) {
@@ -97,7 +132,7 @@ final class SpencerService {
         let start = Date()
         let notice = StickyNotice(
             title: "Switching to \(layout)", detail: setup.title, date: start,
-            symbol: "rectangle.3.group", sourceName: "Spencer",
+            symbol: SpencerMenu.symbol, sourceName: "Spencer",
             countdown: DateInterval(start: start, duration: Self.countdown)
         )
         notices.show(notice)
@@ -151,6 +186,7 @@ final class SpencerService {
         isInstalled = FileManager.default.isExecutableFile(atPath: Self.toolPath)
         setup = DisplaySetup.current()
         guard isInstalled else { return }
+        Task { await loadLayoutDisplays() }
         Task {
             guard let result = await execute(["--list"]) else { return }
             let found = Self.layouts(from: String(bytes: result.output, encoding: .utf8) ?? "")
@@ -159,6 +195,7 @@ final class SpencerService {
     }
 
     func restore(_ layout: String) {
+        lastRestore = Restore(layout: layout, setupKey: setup?.key, date: Date())
         Task {
             guard let result = await execute(["--restore", layout], timeout: Self.restoreTimeout) else { return }
             DiagnosticsLog.append("spencer", "restored: ok=\(result.succeeded)")

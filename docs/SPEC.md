@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.9 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.7.10 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1505,6 +1505,8 @@ Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfonto
 | HT-51 | **Onboarding, What's new:** a Home tippje és leírása említi a *Notepad* csempét; a *What's new* felsorolja az újakat (SY-14, N-29, HT-46…HT-50). |
 | HT-52 | **Month csempe 1×2 (HT-49 módosítása):** a *Calendar › Month* csempe egy sor magas, két oszlop széles (fekvő); a 2×2-es csempén sok volt az üres rész. A havi rács kompakt, a mentett csempe a helyén marad. |
 | HT-53 | **Notepad csempe 1×2, eltűnő minta (HT-47 módosítása):** a *Calculator › Notepad* csempe egy sor magas, két oszlop széles (fekvő). A „Type a calculation…” minta a csempén, a modulban és a menüsor-panelen is az első leütéssel teljesen eltűnik; eddig a maradéka az eredmény alatt maradt. |
+| HT-54 | **Calendar csempe a helyén (HT-14 javítása):** a *Calendar* 2×3 és 3×2 csempe tartalma nem lóg ki a csempéből, nem csúszik rá a szomszédokra; a köz ugyanakkora, mint a többi csempe között. Ha a havi rács nem fér el, kompakt rácsra vált. |
+| HT-55 | **Görgethető események:** a *Calendar* és *Agenda* csempe a nap összes hátralévő eseményét mutatja, a lista a csempén belül görgethető (a „Today” fejléc marad). Ha a lista az aljára (tetejére) ért, a további görgetés a Home-ot görgeti tovább (HT-5). |
 
 ## 4ő+++++++++++++. Microsoft Teams a notchban, API nélkül (v1.7.5)
 
@@ -1528,7 +1530,7 @@ A forrás – mint a Google Chatnél (GW-1…GW-3) – a **bejelentkezett webes 
 
 ## 4ő++++++++++++++. Spencer-elrendezések és automatikus váltás kijelzők szerint
 
-A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszközt hoz (`/Applications/Spencer.app/Contents/MacOS/SpencerCLI`: `--list`, `--restore "név"`, `--update-active`). A Wingmate ezt futtatja; a Spencer adatbázisát nem olvassa.
+A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszközt hoz (`/Applications/Spencer.app/Contents/MacOS/SpencerCLI`: `--list`, `--restore "név"`, `--update-active`). A Wingmate ezt futtatja; a Spencer adatbázisából (`~/Library/Application Support/Spencer/WindowsManager.sqlite`) csak olvasva azt nézi, melyik elrendezés mely kijelzőkre készült (SL-8).
 
 | # | Követelmény |
 |---|-------------|
@@ -1538,6 +1540,10 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | SL-4 | **Automatikus váltás visszaszámlálással:** ha bekapcsolt *Switch automatically* mellett az összeállítás megváltozik, és az újhoz van elrendezés rendelve, a notch alatt jelzés jelenik meg: Spencer ikon, „Switching to <elrendezés>”, a kijelzők neve, jobbra egy **Cancel** pill. A pill körül vékony keret **10 mp alatt az óramutató járásával ellentétesen fogy el**; ha addig nem nyomnak Cancelt (vagy nem söprik el / zárják be a jelzést), a Wingmate átvált (`--restore`, az appokat is indítja). A Cancel, az X (*Beside the notch* módban) és a felfelé swipe megszakítja. Újabb kijelzőváltás a visszaszámlálás alatt újraindítja a döntést. Hozzárendelés nélküli összeállításnál nem történik semmi. |
 | SL-5 | **Kapcsolható:** *Switch automatically* a Spencer menüben (alap: be); a hozzárendelések és a kapcsoló a beállításokban maradnak (`spencer.autoSwitch`, `spencer.assignments`). |
 | SL-6 | **Onboarding, napló:** a bemutató utolsó lépése (Ready) említi a Spencer gombot; a *What's new* bejegyzés (WN-4). `spencer.log`: a kijelző-összeállítás változása (a kijelzők száma), a visszaszámlálás indulása, megszakítása, a visszaállítás eredménye, CLI-hibák. |
+| SL-7 | **Menü, mint a Spencer menüsor-ikonjánál (SL-2 módosítása):** a gomb ikonja a Spencer saját menüsor-ikonja (csengő), a Spencer appból töltve (ha nem tölthető: `bell`), **ugyanolyan szürke, mint a többi gomb** (a kék automatikus-váltás jelzés megszűnik). A *Layouts* alatt azok az elrendezések, amelyeknek a kijelzői nincsenek mind csatlakoztatva, **szürkék és nem választhatók**. A „Pick a layout above…” sor elmarad. Sorrend: *Update current layout*, *Switch automatically*, *Open Spencer*. |
+| SL-8 | **Elrendezés kijelzői:** a Wingmate a Spencer adatbázisából csak olvasva (`sqlite3 -readonly`) kiolvassa, melyik elrendezés mely kijelzőkre (CoreGraphics kijelző-UUID) készült; minden menünyitáskor és kijelzőváltáskor frissül. Ha nem olvasható, minden elrendezés választható marad. |
+| SL-9 | **Automatikus váltás hozzárendelés nélkül is (SL-4 javítása):** kijelzőváltáskor, ha az összeállításhoz nincs megjegyzett elrendezés, az az elrendezés jön (visszaszámlálással), amelynek a kijelzői pontosan a most csatlakoztatottak (pl. iPad csatlakozásakor *Mac+iPad*, lecsatlakozáskor *MacBook*). A megjegyzett elrendezés elsőbbséget élvez. Ha nincs ilyen, nem történik semmi. |
+| SL-10 | **Napló:** `spencer.log` a kijelzőváltásnál azt is írja, honnan jön az elrendezés (`assigned` / `matched` / `none`). |
 
 ## 5. Nyitott kérdések
 
@@ -1585,6 +1591,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.10** | Teszt build: Spencer menü a Spencer menüsor-ikonja szerint (csengő, szürke, nem elérhető elrendezések szürkén), automatikus váltás hozzárendelés nélkül is a kijelzők szerint, Calendar csempe a helyén, görgethető események a csempén (SL-7…SL-10, HT-54, HT-55) |
 | **v1.7.9** | Teszt build: Spencer-elrendezések kijelzők szerint, visszaszámlálással és Cancellel, fekete értesítések kapcsoló, két jelzés egymás alatt, egy haptic pinch-nyitáskor, nincs fókuszváltás a notch alatt, mai nap középen és halványan, ha nem kiválasztott, hely a vonal alatt, 1×2 Month és Notepad csempe (SL-1…SL-6, D-27, D-28, E-30, N-30, F-19, K-20, K-21, HT-52, HT-53) |
 | **v1.7.8** | Teszt build: top 5 app a rendszer-figyelmeztetés alatt, pinch vissza a lenyílóra, fekete a menüsor magasságáig, napsáv swipe és középre igazítás javítva, Days csempe 5 nappal és Join gombbal, Notepad csempe, Weekly javítva, Month 2×2, modulszínek a csempéken (SY-14, N-29, D-26, K-18, K-19, HT-46…HT-51) |
 | **v1.7.7** | Teszt build: elválasztó, mint az üveg széle, a színpanel a notch előtt, a középső szín helye csúszkával (E-29, MB-16, MB-17) |

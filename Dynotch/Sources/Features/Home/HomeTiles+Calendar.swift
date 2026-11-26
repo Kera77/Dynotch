@@ -22,7 +22,7 @@ struct CalendarTileContent: View {
         case .week:
             WeekTileContent(calendar: services.calendar)
         case .agendaTall, .agenda:
-            AgendaTileContent(calendar: services.calendar, lines: size.lines)
+            AgendaTileContent(calendar: services.calendar)
         case .days:
             DaysTileContent(calendar: services.calendar)
         default:
@@ -145,10 +145,10 @@ private struct WeekTileContent: View {
     }
 }
 
-/// The rest of today's events.
+/// The rest of today's events, all of them: the list scrolls in the tile, and at its end the
+/// Home scrolls on (spec HT-55).
 struct AgendaTileContent: View {
     var calendar: CalendarService
-    let lines: Int
 
     var body: some View {
         TimelineView(.everyMinute) { context in
@@ -160,12 +160,21 @@ struct AgendaTileContent: View {
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Today").font(.notch(size: 10, weight: .medium)).foregroundStyle(.secondary)
-                    ForEach(events.prefix(lines)) { event in
-                        TileRow(text: event.title, note: event.isAllDay ? nil : event.start.formatted(date: .omitted, time: .shortened)) {
-                            Capsule().fill(event.color.color).frame(width: 3, height: 12)
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(events) { event in
+                                TileRow(
+                                    text: event.title,
+                                    note: event.isAllDay ? nil : event.start.formatted(date: .omitted, time: .shortened)
+                                ) {
+                                    Capsule().fill(event.color.color).frame(width: 3, height: 12)
+                                }
+                            }
                         }
+                        .scrollHandoff()
                     }
-                    Spacer(minLength: 0)
+                    .scrollIndicators(.never)
+                    .scrollBounceBehavior(.basedOnSize)
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             }
@@ -173,23 +182,36 @@ struct AgendaTileContent: View {
     }
 }
 
-/// The month and today's events: 2×3 side by side, 3×2 one above the other (spec HT-14).
+/// The month and today's events: 2×3 side by side, 3×2 one above the other (spec HT-14). It stays
+/// inside its tile: a compact month when the full one does not fit (spec HT-54).
 private struct CalendarLargeTileContent: View {
     var calendar: CalendarService
     let isWide: Bool
 
     var body: some View {
-        if isWide {
-            HStack(alignment: .top, spacing: 10) {
-                HomeMonthGrid(calendar: calendar, pager: .shared, compact: false)
-                AgendaTileContent(calendar: calendar, lines: 6)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 8) {
-                HomeMonthGrid(calendar: calendar, pager: .shared, compact: false)
-                AgendaTileContent(calendar: calendar, lines: 4)
+        Group {
+            if isWide {
+                HStack(alignment: .top, spacing: 10) {
+                    month
+                    AgendaTileContent(calendar: calendar)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    month
+                    AgendaTileContent(calendar: calendar)
+                }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .clipped()
+    }
+
+    private var month: some View {
+        ViewThatFits(in: .vertical) {
+            HomeMonthGrid(calendar: calendar, pager: .shared, compact: false)
+            HomeMonthGrid(calendar: calendar, pager: .shared, compact: true)
+        }
+        .layoutPriority(1)
     }
 }
 

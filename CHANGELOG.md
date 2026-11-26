@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [1.7.10] - 2026-11-26
+
+### Changed
+- Spencer button: Spencer's own menu bar bell, grey like the other buttons; layouts whose displays
+  are not all connected are greyed out (read-only from Spencer's database); no "Pick a layout"
+  line; Update current layout comes before Switch automatically (SL-7, SL-8). The tour's text
+  still fits.
+
+### Fixed
+- Switch automatically works without a remembered layout: when the displays change, the layout
+  made for exactly these displays is offered with the countdown (e.g. Mac+iPad on connecting the
+  iPad, MacBook on disconnecting). No second offer for a layout restored in the last minute
+  (SL-9, SL-10).
+- The Calendar tile stays inside its tile, with the same gap as the others; a compact month when
+  the full one does not fit (HT-54).
+- Calendar and Agenda tiles list all of today's remaining events and scroll inside the tile; at
+  the end the Home scrolls on (HT-55).
+
 ## [1.7.9] - 2026-11-26
 
 ### Added

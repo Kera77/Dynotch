@@ -8,6 +8,8 @@ struct DisplayInfo: Equatable, Sendable {
     let serial: UInt32
     let name: String
     let isBuiltin: Bool
+    /// The window server's display UUID, as Spencer keeps it (spec SL-8).
+    var uuid: String = ""
 }
 
 /// The connected displays, recognised again whatever their resolution, arrangement or main
@@ -19,13 +21,16 @@ struct DisplaySetup: Equatable, Sendable {
     /// For the menu and the notice, e.g. "Built-in + DELL U2720Q + iPad".
     let title: String
     let count: Int
+    /// The displays' UUIDs, upper case, to match Spencer's layouts (spec SL-8).
+    var uuids: Set<String> = []
 
     static func make(_ displays: [DisplayInfo]) -> DisplaySetup {
         let ordered = displays.sorted { (rank(of: $0), $0.name) < (rank(of: $1), $1.name) }
         return DisplaySetup(
             key: displays.map(part(of:)).sorted().joined(separator: "+"),
             title: ordered.map { $0.isBuiltin ? "Built-in" : $0.name }.joined(separator: " + "),
-            count: displays.count
+            count: displays.count,
+            uuids: Set(displays.map { $0.uuid.uppercased() }.filter { !$0.isEmpty })
         )
     }
 
@@ -55,8 +60,15 @@ struct DisplaySetup: Equatable, Sendable {
             let id = CGDirectDisplayID(number.uint32Value)
             return DisplayInfo(
                 vendor: CGDisplayVendorNumber(id), model: CGDisplayModelNumber(id), serial: CGDisplaySerialNumber(id),
-                name: screen.localizedName, isBuiltin: CGDisplayIsBuiltin(id) != 0
+                name: screen.localizedName, isBuiltin: CGDisplayIsBuiltin(id) != 0, uuid: uuid(of: id)
             )
         })
+    }
+
+    private static func uuid(of id: CGDirectDisplayID) -> String {
+        guard let uuid = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue(),
+              let text = CFUUIDCreateString(nil, uuid)
+        else { return "" }
+        return text as String
     }
 }
