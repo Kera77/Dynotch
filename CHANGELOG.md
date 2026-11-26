@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-11-26
+
 ### Added
 - Cleaner module (TT-1…TT-7): Leftovers lists files of removed apps in `~/Library` (named by an app
   identifier, no app of that vendor on the Mac, never `com.apple.*`), Caches lists app, developer

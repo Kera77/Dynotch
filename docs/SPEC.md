@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.8.1 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.8.2 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1626,6 +1626,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.8.2** | Teszt build: Cleaner modul (törölt appok maradványai, gyorsítótárak, app törlése a fájljaival, minden a Kukába), az értesítések csak a notch szélességével nyílnak, ha beleférnek (TT-1…TT-7, E-31) |
 | **v1.8.1** | Teszt build: Claude Code munkamenetek az AI modul Sessions fülén, válasz a notchból (kérdés gombjai, Allow / Deny), tesztlista a Settings › Testing oldalon (CQ-5…CQ-7, CS-1…CS-5, TL-1…TL-4) |
 | **v1.8.0** | Publikus kiadás: az 1.7.3…1.7.10 tesztverziók összes újdonsága, plusz kompakt egysoros eszköz-felugró (DV-15), Spencer Active workspace (Restore / Update Workspace, SL-11), a Telefon app nem akad be (P-6), modulonként lapozható What's new Skip gombbal (WN-9, WN-10), frissített bemutató. |
 | **v1.7.10** | Teszt build: Spencer menü a Spencer menüsor-ikonja szerint (csengő, szürke, nem elérhető elrendezések szürkén), automatikus váltás hozzárendelés nélkül is a kijelzők szerint, Calendar csempe a helyén, görgethető események a csempén (SL-7…SL-10, HT-54, HT-55) |
