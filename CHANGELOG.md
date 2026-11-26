@@ -2,32 +2,9 @@
 
 ## [Unreleased]
 
-### Changed
-- Device notices (Apple Watch, monitor, AirPods…) under the notch are one row, the size of
-  "Claude finished"; only wider when batteries or quick buttons need the room (DV-15).
-- Spencer menu starts with Active workspace like Spencer's own menu, with its icons: Restore
-  Workspace and Update Workspace › All Spaces / Current Space Only. "Update current layout" moved there;
-  "Forget this display setup" is gone (SL-11). The tour's Spencer text still fits.
+## [1.8.0] - 2026-11-26
 
-## [1.7.10] - 2026-11-26
-
-### Changed
-- Spencer button: Spencer's own menu bar bell, grey like the other buttons; layouts whose displays
-  are not all connected are greyed out (read-only from Spencer's database); no "Pick a layout"
-  line; Update current layout comes before Switch automatically (SL-7, SL-8). The tour's text
-  still fits.
-
-### Fixed
-- Switch automatically works without a remembered layout: when the displays change, the layout
-  made for exactly these displays is offered with the countdown (e.g. Mac+iPad on connecting the
-  iPad, MacBook on disconnecting). No second offer for a layout restored in the last minute
-  (SL-9, SL-10).
-- The Calendar tile stays inside its tile, with the same gap as the others; a compact month when
-  the full one does not fit (HT-54).
-- Calendar and Agenda tiles list all of today's remaining events and scroll inside the tile; at
-  the end the Home scrolls on (HT-55).
-
-## [1.7.9] - 2026-11-26
+Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Added
 - Spencer button beside the notch (shown while Spencer is installed): its menu lists Spencer's
@@ -38,25 +15,6 @@
   `spencer.log` (SL-1…SL-6). The tour's last step mentions the button.
 - Appearance › Black notifications under the notch: notifications and device notices stay plain
   black whatever the design (D-28).
-
-### Changed
-- Month and Notepad tiles are 1×2 (one row, two columns) (HT-52, HT-53).
-- The day strip's today is large and bright only while picked; otherwise blue but dim (K-21).
-- Buttons beside the notch are 24 pt wide so seven fit (SL-1).
-
-### Fixed
-- Two sticky notices (e.g. What's new and Claude finished) stand one under the other; the new
-  one no longer covers the earlier one (E-30).
-- A pinch out that opens the notch gives one haptic tap, not two (N-30).
-- Focus follows the mouse no longer switches to the window behind the notch while the pointer is
-  on it (F-19).
-- The day strip centres the picked day on the first opening too (K-20).
-- Black over glass: module tab pickers no longer touch the line (D-27).
-- The Notepad's hint disappears completely with the first keystroke (HT-53).
-
-## [1.7.8] - 2026-11-26
-
-### Added
 - A system warning's drop-down beside the notch (low memory, swap, full disk, heat) lists the five
   apps using the most, by memory (by CPU for heat), each with an X that turns into Quit (SY-14).
 - Pinching a panel that opened from a drop-down or badge beside the notch brings that drop-down
@@ -64,38 +22,9 @@
 - Calculator › Notepad tile (2×2): the module's notepad on the Home, type, see results, click to
   copy (HT-47). The Home tip and description mention it.
 - Join button for online meetings on the Days tile (HT-46).
-
-### Changed
-- Days tile: five days (today ±2) and the day's first three events with the calendar colour (HT-46).
-- Month tile is 2×2 (HT-49).
-- Tiles take their module's colours: AI usage blue/orange/red, memory pressure, network ↓ blue ↑
-  green, disk, battery green/red, pomodoro, music progress, reminder list colours (HT-50).
-- Black over glass: the black is exactly the menu bar's height, the line right under it (D-26).
-
-### Fixed
-- Swiping over the calendar's day strip steps the days again (in the merged Calendar | Weather
-  module the strip sat below its fixed zone) (K-18).
-- The shown day is always in the middle of the day strip, also right after opening the notch (K-19).
-- The Weekly and Limits tiles show the weekly usage again (HT-48).
-
-## [1.7.7] - 2026-11-26
-
-### Added
 - Middle at slider for the Center menu bar gradient (MB-17): sets where the middle colour stands
   (10–90 %); the bar shows the gradient, small marks at the thirds and the half pull the knob onto
   them with a light tap.
-
-### Changed
-- The line between two notifications under the notch runs full width like the glass rim, brightest
-  at its ends, so it melts into the panel's edge (E-29).
-
-### Fixed
-- The Custom… colour panel of the menu bar colour opened behind the notch and the tint; it is now
-  in front (MB-16).
-
-## [1.7.6] - 2026-11-26
-
-### Added
 - Black over glass design (D-24): the top row is black, the glass starts under it at a sharp line
   with a one-pixel light edge and a short soft shadow. Pickable in Settings › Appearance and in the
   tour's look step.
@@ -105,19 +34,6 @@
   Hovering a row opens that row's card. The tour's notifications line mentions it.
 - Microsoft Teams (web) badge (B-15): Settings › Badges lists it first; counted from the Teams
   tab's "(N)" title or the unread chats; a click brings the Teams tab forward.
-
-### Changed
-- Notifications and device notices hanging under the notch take the chosen design, their top
-  black like the notch (D-25).
-- Settings search fields start at the left and fill the row; the hint goes once you click in (SD-20).
-
-### Fixed
-- Teams in a background tab showed "No browser window shows Teams" (MT-13): now "Teams is in a
-  background tab", with a Move Teams to its own window button; the Teams tab's tip says so.
-
-## [1.7.5] - 2026-11-26
-
-### Added
 - Pinch out (N-28): spreading two fingers opens what the pointer is on, like a click: a drop-down
   beside the closed notch opens its module, a badge its notifications, a peek its card, a Home tile
   its module. Pinching in goes back (N-27, HT-40); one gesture moves only one way. The Home tip and
@@ -129,10 +45,6 @@
   camera, hand, share and Leave (asks once more). Settings › Chats › Teams: on/off, a global mute
   shortcut, and a warning when you talk while muted (microphone level only). `teams.log`. The Teams
   tab has its first-use tip; What's new lists it.
-
-## [1.7.4] - 2026-11-26
-
-### Added
 - Pinch back to the notch's edge (N-27): a panel opened from the closed notch's edge (a drop-down,
   a badge, a badge list row, a notification peek) closes with a two-finger pinch over it.
 - Home tiles (HT-42…HT-45): *Calculator* (2×2) counts on the tile with its own keypad; *Days*
@@ -141,26 +53,76 @@
   will land.
 - Settings › Modules: an eye button beside each switch shows or hides the module among the modules
   without opening the row (M-23).
+- Test builds and public releases (U-6…U-10): versions `1.x.y` with y > 0 are test builds,
+  published as GitHub prereleases that only apps with *Settings › About › Beta updates* install;
+  `1.x.0` goes out to everyone. About shows "test build" next to such a version.
+  `scripts/install.sh` turns beta updates on when it installs a test build. Onboarding unchanged
+  (no tour step or tip covers updates).
 
 ### Changed
+- Device notices (Apple Watch, monitor, AirPods…) under the notch are one row, the size of
+  "Claude finished"; only wider when batteries or quick buttons need the room (DV-15).
+- Spencer menu starts with Active workspace like Spencer's own menu, with its icons: Restore
+  Workspace and Update Workspace › All Spaces / Current Space Only. "Update current layout" moved there;
+  "Forget this display setup" is gone (SL-11).
+- What's new of a public release goes module by module: one page each with Back, Next, Got it
+  on the last page and Skip to leave the rest; it sums up the test builds before it, so 1.8.0
+  shows everything since 1.7.2 once (WN-9, WN-10).
+- Tour brought up to date: Spread and pinch on the Move between modules step, devices and system
+  warnings among the indicators, Teams meeting controls, black notifications under Appearance,
+  Teams among the notification sources, Spencer's workspace actions on the last step.
+- Spencer button: Spencer's own menu bar bell, grey like the other buttons; layouts whose displays
+  are not all connected are greyed out (read-only from Spencer's database); no "Pick a layout"
+  line; Update current layout comes before Switch automatically (SL-7, SL-8). The tour's text
+  still fits.
+- Month and Notepad tiles are 1×2 (one row, two columns) (HT-52, HT-53).
+- The day strip's today is large and bright only while picked; otherwise blue but dim (K-21).
+- Buttons beside the notch are 24 pt wide so seven fit (SL-1).
+- Days tile: five days (today ±2) and the day's first three events with the calendar colour (HT-46).
+- Month tile is 2×2 (HT-49).
+- Tiles take their module's colours: AI usage blue/orange/red, memory pressure, network ↓ blue ↑
+  green, disk, battery green/red, pomodoro, music progress, reminder list colours (HT-50).
+- Black over glass: the black is exactly the menu bar's height, the line right under it (D-26).
+- The line between two notifications under the notch runs full width like the glass rim, brightest
+  at its ends, so it melts into the panel's edge (E-29).
+- Notifications and device notices hanging under the notch take the chosen design, their top
+  black like the notch (D-25).
+- Settings search fields start at the left and fill the row; the hint goes once you click in (SD-20).
 - Tasks in the notch: no quick add field; both columns line up side by side, New task adds, the
   options moved to a ••• menu in the bottom bar (R-22). Every due date is white text in a filled
   bubble, Today / Tomorrow / overdue keep their colour in the fill (R-21).
 - Onboarding: the Home and Tasks tips and module texts mention dragging tiles and New task.
 
 ### Fixed
+- The Phone app no longer gets stuck "not responding" after calls: Wingmate hides it at most
+  twice a call instead of every second, and no longer walks its windows every second (P-6).
+- Switch automatically works without a remembered layout: when the displays change, the layout
+  made for exactly these displays is offered with the countdown (e.g. Mac+iPad on connecting the
+  iPad, MacBook on disconnecting). No second offer for a layout restored in the last minute
+  (SL-9, SL-10).
+- The Calendar tile stays inside its tile, with the same gap as the others; a compact month when
+  the full one does not fit (HT-54).
+- Calendar and Agenda tiles list all of today's remaining events and scroll inside the tile; at
+  the end the Home scrolls on (HT-55).
+- Two sticky notices (e.g. What's new and Claude finished) stand one under the other; the new
+  one no longer covers the earlier one (E-30).
+- A pinch out that opens the notch gives one haptic tap, not two (N-30).
+- Focus follows the mouse no longer switches to the window behind the notch while the pointer is
+  on it (F-19).
+- The day strip centres the picked day on the first opening too (K-20).
+- Black over glass: module tab pickers no longer touch the line (D-27).
+- The Notepad's hint disappears completely with the first keystroke (HT-53).
+- Swiping over the calendar's day strip steps the days again (in the merged Calendar | Weather
+  module the strip sat below its fixed zone) (K-18).
+- The shown day is always in the middle of the day strip, also right after opening the notch (K-19).
+- The Weekly and Limits tiles show the weekly usage again (HT-48).
+- The Custom… colour panel of the menu bar colour opened behind the notch and the tint; it is now
+  in front (MB-16).
+- Teams in a background tab showed "No browser window shows Teams" (MT-13): now "Teams is in a
+  background tab", with a Move Teams to its own window button; the Teams tab's tip says so.
 - Beeper: an answered unread card stays open, with my replies, until another card opens or the
   notch closes (BP-21).
 - Google Chat: messages in a group conversation show their sender before the line (GW-32).
-
-## [1.7.3] - 2026-11-26
-
-### Added
-- Test builds and public releases (U-6…U-10): versions `1.x.y` with y > 0 are test builds,
-  published as GitHub prereleases that only apps with *Settings › About › Beta updates* install;
-  `1.x.0` goes out to everyone. About shows "test build" next to such a version.
-  `scripts/install.sh` turns beta updates on when it installs a test build. Onboarding unchanged
-  (no tour step or tip covers updates).
 
 ## [1.7.2] - 2026-11-26
 

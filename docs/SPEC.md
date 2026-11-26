@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.10 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.8.0 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1596,6 +1596,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.8.0** | Publikus kiadás: az 1.7.3…1.7.10 tesztverziók összes újdonsága, plusz kompakt egysoros eszköz-felugró (DV-15), Spencer Active workspace (Restore / Update Workspace, SL-11), a Telefon app nem akad be (P-6), modulonként lapozható What's new Skip gombbal (WN-9, WN-10), frissített bemutató. |
 | **v1.7.10** | Teszt build: Spencer menü a Spencer menüsor-ikonja szerint (csengő, szürke, nem elérhető elrendezések szürkén), automatikus váltás hozzárendelés nélkül is a kijelzők szerint, Calendar csempe a helyén, görgethető események a csempén (SL-7…SL-10, HT-54, HT-55) |
 | **v1.7.9** | Teszt build: Spencer-elrendezések kijelzők szerint, visszaszámlálással és Cancellel, fekete értesítések kapcsoló, két jelzés egymás alatt, egy haptic pinch-nyitáskor, nincs fókuszváltás a notch alatt, mai nap középen és halványan, ha nem kiválasztott, hely a vonal alatt, 1×2 Month és Notepad csempe (SL-1…SL-6, D-27, D-28, E-30, N-30, F-19, K-20, K-21, HT-52, HT-53) |
 | **v1.7.8** | Teszt build: top 5 app a rendszer-figyelmeztetés alatt, pinch vissza a lenyílóra, fekete a menüsor magasságáig, napsáv swipe és középre igazítás javítva, Days csempe 5 nappal és Join gombbal, Notepad csempe, Weekly javítva, Month 2×2, modulszínek a csempéken (SY-14, N-29, D-26, K-18, K-19, HT-46…HT-51) |
