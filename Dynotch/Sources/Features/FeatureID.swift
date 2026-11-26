@@ -10,6 +10,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case reminders
     case claudeUsage
     case claudeChat
+    case claudeSessions
     case battery
     case clipboard
     case tray
@@ -32,6 +33,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .reminders: "Reminders"
         case .claudeUsage: "AI Usage"
         case .claudeChat: "AI"
+        case .claudeSessions: "Claude Code sessions"
         case .battery: "Batteries"
         case .clipboard: "Clipboard"
         case .tray: "Tray"
@@ -54,6 +56,7 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .reminders: "checklist"
         case .claudeUsage: "gauge.with.dots.needle.67percent"
         case .claudeChat: "sparkles"
+        case .claudeSessions: "terminal"
         case .battery: "battery.75percent"
         case .clipboard: "doc.on.clipboard"
         case .tray: "tray.full"
@@ -73,6 +76,7 @@ extension FeatureID {
         switch self {
         case .battery: .stats
         case .claudeUsage: .claudeChat
+        case .claudeSessions: .claudeChat
         // A tab of the calendar (spec WX-1).
         case .weather: .calendar
         default: nil
@@ -84,6 +88,7 @@ extension FeatureID {
         switch self {
         case .claudeChat: "Chat"
         case .claudeUsage: "Usage"
+        case .claudeSessions: "Sessions"
         default: title
         }
     }

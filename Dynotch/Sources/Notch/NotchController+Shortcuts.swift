@@ -116,7 +116,8 @@ extension NotchController {
 
     /// Hovering a question of Claude Code brings the app it runs in forward, once (spec CQ-3).
     func bringsAskerForward(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard let notice = notices.notice, notice.isQuestion, let app = notice.appIdentifier,
+        // With buttons the hover leaves the app alone, or the answer would go there (spec CQ-7).
+        guard let notice = notices.notice, notice.isQuestion, notice.reply == nil, let app = notice.appIdentifier,
               model.hoveredIndicator == nil, calendar.announcement == nil, noticeArea(for: layout).contains(point)
         else { return false }
         guard activatedQuestion != notice.date else { return true }
@@ -132,6 +133,12 @@ extension NotchController {
         if openWhatsNew() { return }
         if notice.opensChat {
             showAnswerIfReady()
+            return
+        }
+        if notice.opensTestList {
+            notices.dismiss()
+            collapse()
+            notices.openTesting?()
             return
         }
         // A timer's or the weather's notice opens its module (spec TM-5, WX-7).

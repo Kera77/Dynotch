@@ -111,12 +111,12 @@ extension AppSettings {
         isMerged(feature) ? feature.mergeHost ?? feature : feature
     }
 
-    /// The host and its merged module, as the tabs of the host's page; nil when nothing is merged into it.
+    /// The host and its merged modules, as the tabs of the host's page (AI: Chat, Usage,
+    /// Sessions, spec CS-1); nil when nothing is merged into it.
     func mergedTabs(for feature: FeatureID) -> [FeatureID]? {
         let host = hostFeature(of: feature)
-        guard let guest = FeatureID.allCases.first(where: { $0.mergeHost == host && isMerged($0) && isGuestShown($0) })
-        else { return nil }
-        return [host, guest]
+        let guests = FeatureID.allCases.filter { $0.mergeHost == host && isMerged($0) && isGuestShown($0) }
+        return guests.isEmpty ? nil : [host] + guests
     }
 
     /// A tab with a switch of its own: the calendar's Weather (spec WX-1); the Tools go with

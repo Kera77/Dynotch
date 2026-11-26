@@ -73,6 +73,8 @@ enum OnboardingTips {
         "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
             + "the session ring beside the closed notch; above 70% it shows there by itself. With a second account "
             + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one.",
+        "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished and how long. Click one to "
+            + "bring its window forward; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Options picks what shows beside the closed notch and which warnings you get; "
             + "a warning's drop-down lists the five apps using the most, each with its own quit.",

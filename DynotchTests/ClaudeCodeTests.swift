@@ -108,7 +108,7 @@ struct ClaudeCodeTests {
 
     @Test func answeredLinksAndOtherLinks() throws {
         let answered = try #require(URL(string: "dynotch://claude-answered"))
-        #expect(ClaudeQuestionHook.event(from: answered, now: Date()) == .answered)
+        #expect(ClaudeQuestionHook.event(from: answered, now: Date()) == .answered(session: nil))
         let finished = try #require(URL(string: "dynotch://claude-finished?project=x"))
         #expect(ClaudeQuestionHook.event(from: finished, now: Date()) == nil)
         let missing = try #require(URL(string: "dynotch://claude-asks?info=dynotch-ask.none"))
@@ -124,7 +124,9 @@ struct ClaudeCodeTests {
         let preToolUse = hooks["PreToolUse"] as? [[String: Any]] ?? []
         #expect(preToolUse.count == 2)
         #expect(preToolUse.last?["matcher"] as? String == "AskUserQuestion")
-        #expect(Set(hooks.keys) == ["PreToolUse", "Notification", "PostToolUse", "UserPromptSubmit", "Stop"])
+        #expect(Set(hooks.keys) == [
+            "PreToolUse", "PermissionRequest", "Notification", "PostToolUse", "UserPromptSubmit", "Stop", "SessionStart", "SessionEnd"
+        ])
 
         let removed = ClaudeQuestionHook.settings(installed, installed: false)
         #expect(!ClaudeQuestionHook.isInstalled(in: removed))

@@ -140,6 +140,8 @@ extension NotchView {
             let forecast = WeatherService.shared.forecast
             detail = forecast.map { "\(WeatherService.degrees($0.now.temperature)) · \(WeatherCode.text($0.now.code))" }
                 ?? "No weather loaded"
+        case .claudeSessions:
+            detail = ClaudeSessionsWing.right(notices.sessions.sessions)
         case .home, .info:
             detail = "Click or swipe down to open"
         }

@@ -31,6 +31,8 @@ enum OnboardingModuleTexts {
             + "Run a quick command without opening a Terminal window.",
         .claudeChat: "Ask Claude or ChatGPT without leaving the app you are in. "
             + "The Usage tab shows how much of your Claude limits is left and when they reset.",
+        .claudeSessions: "Every Claude Code session in Terminal, VS Code or the Claude app, with what it is doing now. "
+            + "A tab of the AI module; click a session to jump to its window.",
         .claudeUsage: "Your Claude usage and when the limits reset, at a glance. "
             + "It lives as the Usage tab of the AI module, and a ring beside the notch warns when you run low. "
             + "Add a second account, like the desktop app's, in Settings › General.",

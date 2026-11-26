@@ -90,6 +90,8 @@ struct SettingsView: View {
             MenuBarSettingsView(spacers: MenuBarSpacerService.shared)
         case .permissions:
             PermissionsSettingsView(notifications: notifications, settings: settings)
+        case .testing:
+            TestingSettingsView()
         case .about:
             AboutSettingsView(updates: updates, settings: settings, notifications: notifications)
         }
@@ -218,8 +220,9 @@ private struct GeneralSettingsView: View {
                 }
             } footer: {
                 Text("Adds hooks to ~/.claude/settings.json (a backup is kept), in the terminal and in VS Code alike. "
-                    + "\"Finished\" stays under the notch until you swipe it up; a question or permission request goes once "
-                    + "answered, and hovering it brings the app forward.")
+                    + "\"Finished\" stays under the notch until you swipe it up. While you are in another app, a question's "
+                    + "options and a permission's Allow / Deny show as buttons; the X answers in Claude Code instead. "
+                    + "The question hooks also fill AI › Sessions.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -171,7 +171,7 @@ struct HomeTileContent: View {
             InboxTileContent(tile: tile, services: services, size: size)
         case .notes, .calculator, .clipboard:
             TextTileContent(tile: tile, services: services, size: size)
-        case .claudeUsage, .claudeChat, .battery:
+        case .claudeUsage, .claudeChat, .claudeSessions, .battery:
             AITileContent(tile: tile, services: services, size: size)
         case .tray, .music:
             MediaTileContent(tile: tile, services: services, size: size)

@@ -8,7 +8,7 @@ struct OnboardingModulesStep: View {
     static let groups: [(String, [FeatureID])] = [
         ("Everyday", [.calendar, .weather, .notifications, .reminders, .notes, .calculator]),
         ("Work", [.clipboard, .tray, .tools, .terminal]),
-        ("AI", [.claudeChat, .claudeUsage]),
+        ("AI", [.claudeChat, .claudeUsage, .claudeSessions]),
         ("Mac", [.stats, .battery, .music, .home])
     ]
 

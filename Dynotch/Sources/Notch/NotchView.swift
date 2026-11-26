@@ -52,6 +52,8 @@ struct NotchView: View {
     let toggleSettings: () -> Void
     /// Closes the notification card (spec E-12).
     var closeNotifications: () -> Void = {}
+    /// A row of the Sessions tab: its app comes forward (spec CS-2).
+    var openClaudeSession: (ClaudeSession) -> Void = { _ in }
     /// Clears every notification and closes the card (spec E-12).
     var clearNotifications: () -> Void = {}
     /// A right click on an app badge: its unopened notifications (spec B-6).

@@ -29,6 +29,10 @@ extension NotchController {
             rootView.openQuickToggles = { [weak self] in self?.openToggles() }
             rootView.joinedMeeting = { [weak self] in self?.joinFromRow($0) }
             rootView.openNotice = { [weak self] in self?.openNoticeApp() }
+            rootView.openClaudeSession = { [weak self] session in
+                if let app = session.app { NoticeApp.bringForward(app, project: session.project) }
+                self?.collapse()
+            }
             rootView.doneWhatsNew = { [weak self] in self?.doneWhatsNew() }
             rootView.dismissNotice = { [weak self] in self?.dismissPeek() }
             rootView.keepInTray = { [weak self] in self?.keepInTray($0) }

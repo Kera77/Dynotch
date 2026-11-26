@@ -120,7 +120,7 @@ extension NotchViewModel {
             let own = isLarge ? geometry.largeSize : geometry.notificationsModuleSize
             guard beeperListOpen else { return own }
             return CGSize(width: max(own.width, geometry.chatPanelSize.width), height: max(own.height, geometry.chatPanelSize.height))
-        case .claudeUsage: return mergedAIWidth(geometry.usageSize)
+        case .claudeUsage, .claudeSessions: return mergedAIWidth(geometry.usageSize)
         case .claudeChat: return isChatTall ? geometry.chatSize : mergedAIWidth(geometry.expandedSize)
         case .notes where isLarge, .reminders where isLarge: return geometry.mediumSize
         // The stats' tiles and process list need the room (spec SY-1).

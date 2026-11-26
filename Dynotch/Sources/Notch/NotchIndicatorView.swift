@@ -31,6 +31,8 @@ struct NotchIndicatorView: View {
     /// Closes the notice under the notch (spec CN-5b).
     var dismissNotice: () -> Void = {}
     var openNotice: () -> Void = {}
+    /// A button of Claude Code's question or permission (spec CQ-5).
+    var answerNotice: (String) -> Void = { _ in }
     /// Opens the System module from its warning (spec SY-10).
     var openStats: () -> Void = {}
     /// Opens the Tools module on a tab from the hover controls (spec TM-19).

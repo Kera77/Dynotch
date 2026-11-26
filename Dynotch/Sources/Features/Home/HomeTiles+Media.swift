@@ -20,6 +20,7 @@ struct AITileContent: View {
                 services.chat.send()
                 openPart(.ask, .claudeChat)
             }
+        case .claudeSessions: sessions
         case .batteryMac: macBattery
         default: devices
         }
@@ -92,6 +93,27 @@ struct AITileContent: View {
                 .font(.notch(size: 10))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
+        }
+    }
+
+    /// The two latest Claude Code sessions and their state (spec CS-1).
+    private var sessions: some View {
+        let shown = services.sessions.sessions.prefix(2)
+        return VStack(alignment: .leading, spacing: 3) {
+            if shown.isEmpty {
+                TileEmptyView(title: "Sessions", text: "No Claude Code sessions")
+            } else {
+                ForEach(Array(shown)) { session in
+                    HStack(spacing: 6) {
+                        Text(session.project).font(.notch(size: 11, weight: .semibold)).lineLimit(1)
+                        Spacer(minLength: 4)
+                        Text(session.state.title)
+                            .font(.notch(size: 10, weight: .medium))
+                            .foregroundStyle([.working, .asks, .needsYou].contains(session.state) ? Color.orange
+                                : session.state == .finished ? Theme.green : .secondary)
+                    }
+                }
+            }
         }
     }
 

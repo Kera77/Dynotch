@@ -18,7 +18,7 @@ struct MergedModulesTests {
         #expect(!settings.listedFeatures.contains(.battery))
         #expect(!settings.listedFeatures.contains(.claudeUsage))
         #expect(settings.mergedTabs(for: .stats) == [.stats, .battery])
-        #expect(settings.mergedTabs(for: .claudeUsage) == [.claudeChat, .claudeUsage])
+        #expect(settings.mergedTabs(for: .claudeUsage) == [.claudeChat, .claudeUsage, .claudeSessions])
         #expect(settings.hostFeature(of: .claudeUsage) == .claudeChat)
         #expect(!settings.isMerged(.calendar))
     }

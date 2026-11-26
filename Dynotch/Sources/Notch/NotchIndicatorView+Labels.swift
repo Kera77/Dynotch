@@ -36,6 +36,12 @@ extension NotchIndicatorView {
                 .foregroundStyle(Color.white.level(0.6))
                 .lineLimit(1)
             Spacer(minLength: 8)
+            // Claude Code's options, or Allow and Deny (spec CQ-5).
+            if let reply = notice.reply {
+                ForEach(reply.choices, id: \.self) { choice in
+                    NoticeChoiceButton(title: choice, isFirst: choice == reply.choices.first) { answerNotice(choice) }
+                }
+            }
             // The small X like everywhere else; a swipe up still works too (spec CN-5b).
             // What's new has none: it goes with its Got it (spec WN-7). A countdown has Cancel (spec SL-4).
             if let countdown = notice.countdown {
@@ -316,5 +322,28 @@ extension NotchIndicatorView {
         }
         .frame(width: item.slotWidth, alignment: .leading)
         .transition(.opacity)
+    }
+}
+
+/// One answer under the notch: a small capsule, the first one brighter (spec CQ-5).
+struct NoticeChoiceButton: View {
+    let title: String
+    let isFirst: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title.count > 18 ? title.prefix(17) + "…" : title)
+                .font(.notch(size: 11, weight: .semibold))
+                .lineLimit(1)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 3)
+                .foregroundStyle(isFirst ? Color.black : .white)
+                .background(Capsule().fill(isFirst ? Color.white.level(0.9) : Color.white.level(0.18)))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.notch)
+        .help(title)
+        .accessibilityLabel(title)
     }
 }

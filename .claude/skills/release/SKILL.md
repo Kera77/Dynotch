@@ -12,7 +12,9 @@ e-mails the owner); never install a build whose tests have not all passed.
 
 - **Test build** – the default for "deploy" and for a plain "mehet": only the owner gets it. Bump the **last** number
   (1.7.2 → 1.7.3). The tag makes `release.yml` publish a GitHub *prerelease*; only apps with
-  *Settings › About › Beta updates* on install it. Give it its own `WhatsNew` entry.
+  *Settings › About › Beta updates* on install it. Give it its own `WhatsNew` entry and its
+  `TestPlan.plans` entry (`Features/Updates/TestPlan.swift`, spec TL-1): what to test, grouped by
+  feature, each with its log; a test fails without it. A public `1.x.0` has no test list.
 - **Publish to everyone** – only when the owner explicitly says "mehet publikussá" (or otherwise
   clearly says to publish to everyone); a plain "mehet" is never this. Bump the **middle** number, last becomes 0 (1.7.4 → 1.8.0), from the approved
   commit with no code changes besides the release bookkeeping. Merge the `WhatsNew` entries of the
@@ -49,8 +51,9 @@ The steps below are the same for both.
    0.42.1 fixed it). A build that crashes at launch cannot update itself: install the fix with
    `./scripts/install.sh`.
 7. Tell the owner it is installed (for a test build: "only you have it"; when published: "everyone
-   gets it within 6 hours"), with a list of what to test in this version (from the
-   CHANGELOG, grouped by feature, with the log to send if something fails).
+   gets it within 6 hours"), with a list of what to test in this version (for a test build the
+   same items as its `TestPlan` entry, grouped by feature, with the log to send if something
+   fails), and mention Settings › Testing › Copy report.
 
 Homebrew cask: `Packaging/Homebrew/Casks/dynotch.rb`, copied to the tap repo
 `Kera77/homebrew-dynotch` (Homebrew 7 needs `brew trust kera77/dynotch`).

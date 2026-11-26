@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+- AI › Sessions tab (new module, merged into AI): every Claude Code session in Terminal, VS Code or
+  the Claude app, newest on top, with its state (Working, Asks, Needs you, Background task,
+  Finished, Ready), how long and the prompt's first line; a click brings its window forward,
+  right-click Remove, Clear finished. A Sessions Home tile; Wings text. Fed by new `SessionStart`,
+  `UserPromptSubmit`, `Stop`, `SessionEnd` hooks installed with "Tell me when Claude Code asks a
+  question" (CS-1…CS-5). The module has a tour description and a first-use tip.
+- Answers from the notch: while you are in another app, Claude Code's single question shows its
+  options (up to 4) as buttons, and a permission request shows the command with Allow and Deny.
+  The hooks wait up to 120 s for the answer; the X, the app coming forward or a timeout lets
+  Claude Code ask as usual. With buttons, hovering no longer brings the app forward. New
+  `PermissionRequest` hook; `claude-hook.log` notes the kind of answer only (CQ-5…CQ-7).
+- Test list for test builds: Settings › Testing shows the version's checklist (Works / Broken, a
+  note), Copy report puts it on the clipboard with the last 40 lines of each broken item's log;
+  a "Test 1.x.y" notice after What's new opens it. The release skill writes the list into
+  `TestPlan` (TL-1…TL-4).
+
 ## [1.8.0] - 2026-11-26
 
 Public release: everything from the 1.7.3…1.7.10 test builds.

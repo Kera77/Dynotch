@@ -17,6 +17,12 @@ final class SettingsWindowController {
         window?.orderOut(nil)
     }
 
+    /// Opens on one page, e.g. Testing from its notice (spec TL-4).
+    func show(tab: SettingsTab) {
+        UserDefaults.standard.set(tab.rawValue, forKey: "settingsLastTab")
+        show()
+    }
+
     func show() {
         let window = window ?? makeWindow()
         self.window = window

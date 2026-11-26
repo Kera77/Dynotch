@@ -58,6 +58,7 @@ extension NotchView {
         row.recordingHovered = isRecordingHovered
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
         row.openNotice = { openNotice() }
+        row.answerNotice = { choice in withAnimation(Self.quickAnimation) { notices.answer(choice) } }
         row.openTools = openTools
         row.music = music
         row.showsMusicPlayer = model.hoveredIndicator != nil

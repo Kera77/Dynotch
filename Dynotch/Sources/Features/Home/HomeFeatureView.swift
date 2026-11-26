@@ -12,6 +12,7 @@ struct HomeTileServices {
     let calculator: CalculatorStore
     let usage: ClaudeUsageService
     let chat: ClaudeChatService
+    let sessions: ClaudeSessionService
     let battery: BatteryService
     let clipboard: ClipboardStore
     let tray: TrayStore
