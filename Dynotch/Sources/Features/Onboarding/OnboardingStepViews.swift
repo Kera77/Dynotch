@@ -59,7 +59,10 @@ struct OnboardingBesideStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             OnboardingRow(symbol: "bell.badge", title: "Notifications", text: "New messages drop down under the notch.")
-            OnboardingRow(symbol: "app.badge", title: "App badges", text: "Unread counts of your apps, next to the notch.")
+            OnboardingRow(
+                symbol: "app.badge", title: "App badges",
+                text: "Unread counts of your apps, next to the notch; click or spread two fingers to open."
+            )
             OnboardingRow(symbol: "timer", title: "Indicators", text: "Meeting countdown, timers, “Claude finished”.")
             OnboardingRow(symbol: "phone.fill", title: "Calls", text: "Incoming calls with answer and text back.")
             OnboardingRow(symbol: "square.grid.3x1.below.line.grid.1x2", title: "Module strip",

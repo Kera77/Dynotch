@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Pinch out (N-28): spreading two fingers opens what the pointer is on, like a click: a drop-down
+  beside the closed notch opens its module, a badge its notifications, a peek its card, a Home tile
+  its module. Pinching in goes back (N-27, HT-40); one gesture moves only one way. The Home tip and
+  the tour's badge line mention it.
+- SPEC: Microsoft Teams in the notch, draft (MT-1…MT-12).
+
 ## [1.7.4] - 2026-11-26
 
 ### Added

@@ -134,14 +134,21 @@ struct HomeTilesTests {
     @Test func aPinchInFiresOncePerGesture() {
         var gesture = TileBackGesture()
         var fired = gesture.pinch(phase: .began, magnification: -0.1)
-        #expect(!fired)
+        #expect(fired == nil)
         fired = gesture.pinch(phase: .changed, magnification: -0.1)
-        #expect(fired)
+        #expect(fired == .inward)
         fired = gesture.pinch(phase: .changed, magnification: -0.3)
-        #expect(!fired)
-        // Pinching out never goes back.
+        #expect(fired == nil)
+        // Pinching out is the other direction (spec N-28).
         fired = gesture.pinch(phase: .began, magnification: 0.5)
-        #expect(!fired)
+        #expect(fired == .outward)
+    }
+
+    @Test func oneGestureFiresOnlyOneWay() {
+        var gesture = TileBackGesture()
+        #expect(gesture.pinch(phase: .began, magnification: 0.2) == .outward)
+        // Pinching back in within the same gesture does not close what it just opened.
+        #expect(gesture.pinch(phase: .changed, magnification: -0.6) == nil)
     }
 
     @Test func aSwipeDownFiresOnlyWhenMostlyDown() {

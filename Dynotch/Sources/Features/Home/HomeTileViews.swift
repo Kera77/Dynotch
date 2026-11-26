@@ -26,7 +26,7 @@ struct HomeTileCard<Content: View>: View {
                 .fill(isHovered ? Theme.selectedFill : Theme.fill)
         )
         .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous))
-        .onHover { hovering in withAnimation(Motion.hover) { isHovered = hovering } }
+        .onContinuousHover(coordinateSpace: .named(viewportSpace)) { phase in hoverChanged(phase) }
         .modifier(TileTap(isOn: !HomeTile.withFields.contains(tile), space: viewportSpace) { location in
             let anchor = UnitPoint(x: location.x / max(viewport.width, 1), y: location.y / max(viewport.height, 1))
             open(tile, anchor)
@@ -35,6 +35,19 @@ struct HomeTileCard<Content: View>: View {
         .accessibilityLabel(tile.title)
         .accessibilityAction { open(tile, .center) }
         .help(tile.feature == .home ? tile.title : "Open \(tile.feature.title)")
+    }
+
+    /// The highlight, and the tile a pinch out would open (spec N-28).
+    private func hoverChanged(_ phase: HoverPhase) {
+        switch phase {
+        case .active(let location):
+            if !isHovered { withAnimation(Motion.hover) { isHovered = true } }
+            let anchor = UnitPoint(x: location.x / max(viewport.width, 1), y: location.y / max(viewport.height, 1))
+            HomeTileHover.current = (tile, anchor)
+        case .ended:
+            withAnimation(Motion.hover) { isHovered = false }
+            if HomeTileHover.current?.tile == tile { HomeTileHover.current = nil }
+        }
     }
 }
 

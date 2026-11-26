@@ -1,9 +1,11 @@
 import AppKit
 import SwiftUI
 
-/// Counts a pinch in or a swipe down with two fingers, once per gesture (spec HT-12, HT-40).
+/// Counts a pinch (in or out) or a swipe down with two fingers, once per gesture (spec HT-12, HT-40, N-28).
 struct TileBackGesture {
-    /// How far the fingers pinch in (magnification adds up below zero).
+    enum Pinch: Equatable { case inward, outward }
+
+    /// How far the fingers pinch in or out (magnification adds up below or above zero).
     static let pinchDistance: CGFloat = 0.18
     /// How far the fingers move down, in points.
     static let swipeDistance: CGFloat = 40
@@ -15,11 +17,13 @@ struct TileBackGesture {
     /// A swipe that went back: its remaining events neither scroll the Home nor switch modules.
     private var swallowsSwipe = false
 
-    /// True once, when a pinch in goes far enough.
-    mutating func pinch(phase: SwipeDetector.Phase, magnification: CGFloat) -> Bool {
+    /// The direction once per gesture, when the fingers pinch in or out far enough.
+    mutating func pinch(phase: SwipeDetector.Phase, magnification: CGFloat) -> Pinch? {
         if phase == .began { reset() }
         pinch += magnification
-        return fire(when: -pinch >= Self.pinchDistance)
+        if fire(when: -pinch >= Self.pinchDistance) { return .inward }
+        if fire(when: pinch >= Self.pinchDistance) { return .outward }
+        return nil
     }
 
     /// True once, when the fingers move far enough down and more down than sideways.
@@ -56,11 +60,11 @@ extension NotchController {
     /// A pinch over the module opened from a tile, when Pinch is the way back (spec HT-40). The
     /// event tap hands it over whichever app is active, so the pointer must be over the panel.
     func handleTilePinch(_ event: NSEvent) -> Bool {
-        if handleEdgePinch(event) { return true }
+        if handleEdgePinch(event) || handlePinchOut(event) { return true }
         guard model.isExpanded, model.tileOpening != nil, HomeTileSettings.shared.backGesture == .pinch,
               model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
         else { return false }
-        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) { goBackHome(by: "pinch") }
+        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) == .inward { goBackHome(by: "pinch") }
         return true
     }
 
@@ -69,7 +73,7 @@ extension NotchController {
         guard model.isExpanded, model.openedFromEdge, model.tileOpening == nil, !model.isPinned,
               model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
         else { return false }
-        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) {
+        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) == .inward {
             DiagnosticsLog.append("notch", "closed by pinch (opened from the edge)")
             collapse()
             Haptics.perform(.featureSwitch, settings: settings)
