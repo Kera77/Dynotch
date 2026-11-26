@@ -248,6 +248,7 @@ struct NotchView: View {
         .animation(NotchController.animation, value: badgeFit.hidden)
         .animation(NotchController.animation, value: labelIndex)
         .animation(NotchController.animation, value: notifications.peek?.id)
+        .animation(NotchController.animation, value: notifications.secondPeek?.id)
         .animation(NotchController.animation, value: devices.current?.id)
         .animation(NotchController.animation, value: screenshots.peek?.id)
         .animation(Self.quickAnimation, value: screenshots.choosing)

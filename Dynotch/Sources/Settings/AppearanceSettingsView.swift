@@ -113,7 +113,8 @@ struct AppearanceSettingsView: View {
             + "hardware notch. On external displays the notch can also float below the top edge as a pill."
         note += " The open panel has a soft rim light and shadow, a black that deepens towards the bottom, glass tinted "
             + "to the wallpaper, and an even black-to-glass fade."
-        note += " Liquid glass is the glass of Black to glass all over."
+        note += " Liquid glass is the glass of Black to glass all over; Black over glass parts the black top row "
+            + "from the glass with a sharp line. Notifications under the notch keep a black top in every design."
         note += " Crisp look (trial): a stronger blur, lighter grey fills, brighter text."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note

@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [1.7.6] - 2026-11-26
+
+### Added
+- Black over glass design (D-24): the top row is black, the glass starts under it at a sharp line
+  with a one-pixel light edge and a short soft shadow. Pickable in Settings › Appearance and in the
+  tour's look step.
+- Two notifications under the notch (E-28): a new sender's notification goes on top, the earlier
+  one stays in a compact row under it with its own time; at most two rows. A sticky notice (Claude
+  finished, download, What's new) stands in that row instead of hiding under the notification.
+  Hovering a row opens that row's card. The tour's notifications line mentions it.
+- Microsoft Teams (web) badge (B-15): Settings › Badges lists it first; counted from the Teams
+  tab's "(N)" title or the unread chats; a click brings the Teams tab forward.
+
+### Changed
+- Notifications and device notices hanging under the notch take the chosen design, their top
+  black like the notch (D-25).
+- Settings search fields start at the left and fill the row; the hint goes once you click in (SD-20).
+
+### Fixed
+- Teams in a background tab showed "No browser window shows Teams" (MT-13): now "Teams is in a
+  background tab", with a Move Teams to its own window button; the Teams tab's tip says so.
+
 ## [1.7.5] - 2026-11-26
 
 ### Added

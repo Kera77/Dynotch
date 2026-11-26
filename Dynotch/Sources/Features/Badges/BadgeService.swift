@@ -30,6 +30,8 @@ final class BadgeService {
     /// The highlighted Beeper networks (spec BP-13) and one network's unread count (spec BP-14).
     @ObservationIgnored var beeperNetworks: () -> [String] = { [] }
     @ObservationIgnored var beeperNetworkUnread: (String) -> Int = { _ in 0 }
+    /// The web Teams' unread chats while it is read, when its tab's title has no number (spec B-15).
+    @ObservationIgnored var teamsWebUnread: () -> Int? = { nil }
     @ObservationIgnored var removeBeeperNetwork: (String) -> Void = { _ in }
     /// Reading the Dock needs Accessibility access.
     private(set) var isTrusted = true
@@ -160,7 +162,12 @@ final class BadgeService {
         // An open Gmail or Google Chat tab in the default browser knows better than a web app's Dock badge,
         // which stays on the last number once the web app quits (spec B-2b).
         for app in apps where app.isEnabled && BeeperNetworkBadge.network(fromBadgeID: app.bundleID) == nil {
-            guard let site = BrowserTabBadges.site(forBadgeName: app.name), let count = tabCounts[site] else { continue }
+            guard let site = BrowserTabBadges.site(forBadgeName: app.name) else { continue }
+            // The web Teams: its tab's "(N)", else its unread chats (spec B-15).
+            let count = site == BrowserTabBadges.teamsSite
+                ? (tabCounts[site].flatMap { $0 > 0 ? $0 : nil } ?? teamsWebUnread())
+                : tabCounts[site]
+            guard let count else { continue }
             result[app.bundleID] = count > 0 ? String(count) : nil
         }
         // Highlighted Beeper networks count their own chats, and Beeper's badge the rest (spec BP-14).
@@ -282,6 +289,11 @@ final class BadgeService {
 
     /// Clicking a badge opens its app (spec B-6).
     func open(_ app: BadgeApp) {
+        // The web Teams' tab comes forward (spec B-15).
+        if app.bundleID == TeamsWebBadge.id {
+            Task { await TeamsTabs.bringForward() }
+            return
+        }
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.bundleID) else { return }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
     }

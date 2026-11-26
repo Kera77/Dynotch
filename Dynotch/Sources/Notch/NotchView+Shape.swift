@@ -67,7 +67,15 @@ extension NotchView {
         // The screenshot chooser and pop-up too (spec SH-16).
         // A badge's list too (spec B-14).
         (model.isExpanded && !model.isPreview) || showsTasksDropDown || (!model.isExpanded && showsScreenshotPeek)
-            || (!model.isExpanded && labelIndex == nil && hoveredBadgeHeight != nil)
+            || (!model.isExpanded && labelIndex == nil && hoveredBadgeHeight != nil) || showsPeekDesign
+    }
+
+    /// A notification or a device notice hanging under the closed notch takes the design too, its
+    /// top black like the notch (spec D-25). Beside the notch, the HUD and a call stay black.
+    var showsPeekDesign: Bool {
+        guard !model.isExpanded, !model.isScreenShared, !settings.noticesBeside, hud.display == nil, calls.call == nil
+        else { return false }
+        return notifications.peek != nil || devices.current != nil
     }
 
     /// The tasks counter's drop-down is open under the closed notch (spec R-17).
@@ -129,9 +137,13 @@ extension NotchView {
 
     private var designFill: some View {
         DesignBackground(
-            design: settings.design, shape: shape, isOpen: showsDesign, layer: layer, openOpacity: settings.panelOpacity,
-            topRow: geometry.menuBarHeight, glassTint: wallpaperTone.tint(for: geometry.screenFrame),
-            glassAccent: settings.glassAccent, accentStrength: settings.glassAccentStrength, refined: true
+            design: settings.design, shape: shape, isOpen: showsDesign, layer: layer,
+            // The panel's opacity is for the open panel only (spec D-25).
+            openOpacity: showsPeekDesign ? 1 : settings.panelOpacity,
+            topRow: showsPeekDesign ? geometry.notchSize.height : geometry.menuBarHeight,
+            glassTint: wallpaperTone.tint(for: geometry.screenFrame),
+            glassAccent: settings.glassAccent, accentStrength: settings.glassAccentStrength, refined: true,
+            isPeek: showsPeekDesign
         )
     }
 

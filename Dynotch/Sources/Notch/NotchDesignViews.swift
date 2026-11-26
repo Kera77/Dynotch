@@ -130,6 +130,8 @@ struct DesignBackground<S: Shape>: View {
     /// The notch panel's look (spec D-14, D-14e): rim light and a deepening black. The menu bar
     /// panels leave it off.
     var refined = false
+    /// A small notice hanging under the closed notch: its top stays black (spec D-25).
+    var isPeek = false
     /// The trial crisp look (spec D-18), read here so the panel follows the switch at once.
     @AppStorage(AppleStyle.crispKey) private var crisp = true
     /// The accent colour set in macOS, followed live (spec D-17b).
@@ -137,9 +139,31 @@ struct DesignBackground<S: Shape>: View {
 
     /// Refined black to glass: black over the top row, then an eased fade over 80 pt (spec D-14d).
     static func refinedBlendStops(height: CGFloat, topRow: CGFloat) -> [Gradient.Stop] {
+        blackTopStops(height: height, topRow: topRow, fade: 80)
+    }
+
+    /// How far below the top row the black fades into the glass; 0: a sharp line; nil: no black
+    /// top. A small notice under the notch keeps its top black in every glass design (spec D-24, D-25).
+    nonisolated static func topFade(design: NotchDesign, isPeek: Bool) -> CGFloat? {
+        switch design {
+        case .black: nil
+        case .glass: isPeek ? 12 : nil
+        case .blend: isPeek ? 20 : 80
+        case .split: 0
+        }
+    }
+
+    /// Black over the top row, then an eased fade over `fade` points, or a sharp edge at 0.
+    static func blackTopStops(height: CGFloat, topRow: CGFloat, fade: CGFloat) -> [Gradient.Stop] {
         guard height > 0 else { return [.init(color: .black, location: 0)] }
         let start = min(topRow / height, 1)
-        let span = 80 / height
+        guard fade > 0 else {
+            return [
+                .init(color: .black, location: 0), .init(color: .black, location: start),
+                .init(color: .clear, location: start), .init(color: .clear, location: 1)
+            ]
+        }
+        let span = fade / height
         return (0...8).map { step in
             let part = Double(step) / 8
             let eased = part * part * (3 - 2 * part)
@@ -189,9 +213,13 @@ struct DesignBackground<S: Shape>: View {
                     shape.fill(LinearGradient(colors: [.clear, .white.level(0.045)], startPoint: .top, endPoint: .bottom))
                         .opacity(isOpen ? open : 0)
                 }
-                if design == .blend {
+                if let fade = Self.topFade(design: design, isPeek: isPeek) {
                     shape.fill(solid)
-                        .mask { blendMask }
+                        .mask { blackTopMask(fade: fade) }
+                        .opacity(glass ? open : 0)
+                }
+                if design == .split {
+                    SplitLine(topRow: topRow)
                         .opacity(glass ? open : 0)
                 }
                 if refined {
@@ -204,13 +232,30 @@ struct DesignBackground<S: Shape>: View {
 }
 
 extension DesignBackground {
-    fileprivate var blendMask: some View {
+    fileprivate func blackTopMask(fade: CGFloat) -> some View {
         GeometryReader { proxy in
             LinearGradient(
-                stops: Self.refinedBlendStops(height: proxy.size.height, topRow: topRow),
+                stops: Self.blackTopStops(height: proxy.size.height, topRow: topRow, fade: fade),
                 startPoint: .top, endPoint: .bottom
             )
         }
+    }
+}
+
+/// Black over glass: a one-pixel light edge where the black top row meets the glass, and a short
+/// soft shadow under it, as if the black lay on the glass (spec D-24).
+struct SplitLine: View {
+    let topRow: CGFloat
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Color.clear.frame(height: max(topRow, 0))
+            Rectangle().fill(Color.white.opacity(0.18)).frame(height: 0.5)
+            LinearGradient(colors: [.black.opacity(0.28), .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 6)
+            Spacer(minLength: 0)
+        }
+        .allowsHitTesting(false)
     }
 }
 

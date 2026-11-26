@@ -24,3 +24,15 @@ extension NotchController {
         }
     }
 }
+
+// MARK: - Two notifications under the notch (spec E-28)
+
+extension NotchController {
+    /// The peek whose card a hover opens: of two rows the one under the pointer, none over the
+    /// sticky notice; the top one when the pointer is elsewhere (a shortcut, a click).
+    var peekUnderPointer: AppNotification? {
+        let point = NSEvent.mouseLocation
+        guard hoverZone.contains(point) else { return notifications.peek }
+        return notifications.hoveredPeek(depth: model.geometry.notchRect.maxY - point.y, in: model.geometry)
+    }
+}

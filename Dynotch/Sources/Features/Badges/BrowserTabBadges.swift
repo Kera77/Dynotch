@@ -19,6 +19,8 @@ enum BrowserTabBadges {
     }
     static let gmailSite = "mail.google.com"
     static let chatSite = "chat.google.com"
+    /// The web Teams (spec B-15).
+    static let teamsSite = "teams"
 
     struct Tab: Equatable, Sendable {
         let url: String
@@ -30,6 +32,7 @@ enum BrowserTabBadges {
         let lowered = name.lowercased()
         if lowered.contains("gmail") { return gmailSite }
         if lowered.contains("google chat") { return chatSite }
+        if lowered == TeamsWebBadge.name.lowercased() { return teamsSite }
         return nil
     }
 
@@ -52,6 +55,7 @@ enum BrowserTabBadges {
         let lowered = url.lowercased()
         if lowered.contains("chat.google.com") || lowered.contains("mail.google.com/chat") { return chatSite }
         if lowered.contains("mail.google.com/mail") { return gmailSite }
+        if TeamsPage.isTeamsHost(URL(string: url)?.host) { return teamsSite }
         return nil
     }
 
@@ -104,7 +108,7 @@ enum BrowserTabBadges {
         set windowTitles to item i of theTitles
         repeat with j from 1 to count of windowURLs
             set theURL to item j of windowURLs as text
-            if theURL contains "mail.google.com" or theURL contains "chat.google.com" then
+            if theURL contains "mail.google.com" or theURL contains "chat.google.com" or theURL contains "teams." then
                 set out to out & theURL & (character id 9) & (item j of windowTitles as text) & (character id 10)
             end if
         end repeat

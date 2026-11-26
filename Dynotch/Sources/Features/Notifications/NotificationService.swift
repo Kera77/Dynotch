@@ -18,7 +18,10 @@ final class NotificationService {
     /// Notifications received since launch, newest first.
     var recent: [AppNotification] = []
     /// Notification currently peeking out of the closed notch.
-    private(set) var peek: AppNotification?
+    /// Set only through showPeek and clearPeek (NotificationService+Peek).
+    var peek: AppNotification?
+    /// The earlier notification from another sender, in a row under the peek (spec E-28).
+    var secondPeek: AppNotification?
     /// Arrived since the user last looked (hover card or Notifications feature), oldest first
     /// (spec E-4).
     var unseen: [AppNotification] = []
@@ -53,7 +56,12 @@ final class NotificationService {
     @ObservationIgnored private var pollCount = 0
     @ObservationIgnored var isPolling = false
     @ObservationIgnored var pollAgain = false
-    @ObservationIgnored private var peekTask: Task<Void, Never>?
+    @ObservationIgnored var peekTask: Task<Void, Never>?
+    /// When the peek and the row under it go, each after its own time (spec E-28).
+    @ObservationIgnored var peekDeadline: Date?
+    @ObservationIgnored var secondDeadline: Date?
+    /// The sticky notice under the closed notch, set by the app (spec E-28).
+    @ObservationIgnored var stickyNotice: () -> StickyNotice? = { nil }
     /// The notch panels whose pointer rests on the peek beside the notch (spec PV-39).
     @ObservationIgnored var peekHolders: Set<ObjectIdentifier> = []
     /// A newer notification that waits until the pointer leaves the shown one (spec PV-39).
@@ -130,13 +138,6 @@ final class NotificationService {
     @ObservationIgnored var chatSkippedLogged = ""
     /// The web app was read once since launch: unread conversations found later pop up.
     @ObservationIgnored var chatWebPrimed = false
-
-    func clearPeek() {
-        peekTask?.cancel()
-        peekTask = nil
-        heldPeek = nil
-        if peek != nil { peek = nil }
-    }
 
     func clearHistory() {
         recent = []
@@ -217,6 +218,7 @@ final class NotificationService {
         unseen = unseen.map(swap)
         if let notifications = focus?.notifications { focus?.notifications = notifications.map(swap) }
         if let current = peek, current.id == id { peek = current.with(id: newID) }
+        if let second = secondPeek, second.id == id { secondPeek = second.with(id: newID) }
     }
 
     private func openDatabaseIfDue() {
@@ -295,30 +297,6 @@ final class NotificationService {
         showPeek(notification)
     }
 
-    func showPeek(_ notification: AppNotification) {
-        // During a Focus, or while the screen is shared, it is listed without popping up (spec E-20d, N-21).
-        guard popsUp(notification), !isScreenShared else { return }
-        // The pointer rests on the one beside the notch: the newer one waits (spec PV-39).
-        if !peekHolders.isEmpty, peek != nil {
-            heldPeek = notification
-            return
-        }
-        peekTask?.cancel()
-        heldPeek = nil
-        peek = notification
-        let duration = settings.notificationDuration
-        peekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
-            // It stays while the pointer is on it (spec PV-39).
-            while !Task.isCancelled, self?.peekHolders.isEmpty == false {
-                try? await Task.sleep(for: .milliseconds(250))
-            }
-            guard !Task.isCancelled, let self else { return }
-            self.peekTask = nil
-            // A newer peek or a re-keyed one (spec E-13c) cancels or keeps this task.
-            self.peek = nil
-        }
-    }
 }
 
 extension NotificationService {
@@ -352,6 +330,7 @@ extension NotificationService {
         recent.removeAll { ids.contains($0.id) }
         unseen.removeAll { ids.contains($0.id) }
         if let peek, ids.contains(peek.id) { clearPeek() }
+        if let second = secondPeek, ids.contains(second.id) { dropSecondPeek() }
     }
 
     /// A snoozed notification comes back: listed, new, popping up.
@@ -379,6 +358,7 @@ extension NotificationService {
         unseen.removeAll { $0.id == notification.id }
         focus?.notifications.removeAll { $0.id == notification.id }
         if peek?.id == notification.id { clearPeek() }
+        if secondPeek?.id == notification.id { dropSecondPeek() }
     }
 
     /// Removes every notification (spec E-12).

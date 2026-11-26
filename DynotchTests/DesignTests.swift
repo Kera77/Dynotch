@@ -20,7 +20,7 @@ struct DesignTests {
         #expect(settings.keepsPhoneInDock)
         settings.design = .blend
         #expect(AppSettings(defaults: defaults).design == .blend)
-        #expect(NotchDesign.allCases.map(\.title) == ["Black", "Liquid glass", "Black to glass"])
+        #expect(NotchDesign.allCases.map(\.title) == ["Black", "Liquid glass", "Black to glass", "Black over glass"])
     }
 
     @Test func blurFollowsTheDesign() {

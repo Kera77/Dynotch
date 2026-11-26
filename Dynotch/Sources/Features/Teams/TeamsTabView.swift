@@ -39,6 +39,7 @@ struct TeamsTabView: View {
         case .off: "Reading Teams is off (Settings › Chats › Teams)."
         case .noAccess: "Teams needs Accessibility access (Settings › Chats)."
         case .notFound, .reading: "Open Teams in a browser window of its own to read and answer chats here."
+        case .backgroundTab: "Teams is in a background tab: Settings › Chats › Teams can move it to a window of its own."
         }
     }
 

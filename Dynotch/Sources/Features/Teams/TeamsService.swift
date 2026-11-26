@@ -10,10 +10,14 @@ final class TeamsService {
 
     enum State: Equatable {
         case off, noAccess, notFound, reading
+        /// Teams is open, but in a tab behind another one (spec MT-13).
+        case backgroundTab
     }
 
     private(set) var state: State = .off
     private(set) var snapshot: TeamsSnapshot?
+    /// The Teams tab found behind another one, to move to a window of its own (spec MT-13).
+    var backgroundTab: TeamsTabs.Tab?
     /// The web Teams was readable at least once since launch: its tab is shown (spec MT-3).
     private(set) var wasSeen = false
     /// When the meeting was first seen (spec MT-6).
@@ -105,8 +109,10 @@ final class TeamsService {
                 guard let page = TeamsWebReader.findPage() else { return nil }
                 return TeamsWebReader.snapshot(page)
             }.value
-            isReading = false
             apply(read)
+            // Not readable: perhaps in a background tab (spec MT-13).
+            if read == nil { await findBackgroundTab() }
+            isReading = false
         }
     }
 
@@ -114,6 +120,7 @@ final class TeamsService {
         guard isEnabled else { return }
         snapshot = read
         if let read {
+            backgroundTab = nil
             wasSeen = true
             setState(.reading, detail: read.browser)
         } else {
@@ -136,7 +143,7 @@ final class TeamsService {
         updateMicWatch()
     }
 
-    private func setState(_ new: State, detail: String = "") {
+    func setState(_ new: State, detail: String = "") {
         state = new
         let line = "state: \(new)" + (detail.isEmpty ? "" : " (\(detail))")
         guard line != lastLogged else { return }

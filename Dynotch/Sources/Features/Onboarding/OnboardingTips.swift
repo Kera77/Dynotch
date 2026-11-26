@@ -57,7 +57,8 @@ enum OnboardingTips {
         "notifications.googleChat": "Unread Google Chat messages, read from their notifications. Click a card to read "
             + "it and reply; it stays here until you read it in Google Chat.",
         "notifications.teams": "Unread Teams chats from Teams open in a browser window of its own; @mentions come first. "
-            + "Click a chat to read it and reply. During a meeting the mic and the controls sit beside the notch.",
+            + "Click a chat to read it and reply. During a meeting the mic and the controls sit beside the notch. "
+            + "Teams in a background tab? Settings › Chats › Teams moves it to its own window.",
         "notifications.mail": "Unread mail from the inboxes of your Apple Mail accounts, grouped by account. Click a "
             + "message to open it in Gmail or Mail; pick the accounts in Settings › Chats.",
         "calculator": "Type a calculation on each line; the result shows on the right, click it to copy. Variables "

@@ -11,6 +11,10 @@ struct TeamsSettingsSection: View {
                 LabeledContent("Status") {
                     Text(status).foregroundStyle(teams.state == .reading ? .green : .secondary)
                 }
+                // Teams behind another tab cannot be read (spec MT-13).
+                if teams.state == .backgroundTab {
+                    Button("Move Teams to its own window") { teams.moveToOwnWindow() }
+                }
                 LabeledContent("Mute shortcut") {
                     ShortcutRecorder(shortcut: teams.muteShortcut) { teams.muteShortcut = $0 }
                 }
@@ -32,6 +36,7 @@ struct TeamsSettingsSection: View {
         case .off: "Off"
         case .noAccess: "Needs Accessibility access"
         case .notFound: "No browser window shows Teams"
+        case .backgroundTab: "Teams is in a background tab"
         case .reading:
             "Reading · \(teams.snapshot?.unread.count ?? 0) unread" + (teams.meeting != nil ? " · in a meeting" : "")
         }

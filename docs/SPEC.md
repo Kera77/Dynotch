@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.5 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.7.6 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -320,6 +320,7 @@
 | E-25 | (v0.69) **A Dynotch saját értesítései** fajtánként kapcsolhatók: *Settings › Notifications › Dynotch alerts*: **System** (swap-határ, SY-9, és a többi rendszer-figyelmeztetés), **AI usage** (keret közelében, session reset), **Batteries** (feltöltődött), **Dynotch updated** (U-5). Alapból mind be. Kikapcsolva az adott fajta **nem ugrik fel a notchban** és nem kerül az Értesítések listába. A notch melletti piros pötty (SY-8) ettől független, azt továbbra is SY-9 szabályozza. |
 | E-26 | (v0.90) **Monokróm ikonok:** az értesítések (kártya, lista, a notch alatti és a szárnyakon megjelenő értesítés) és a notch melletti jelzések (pl. kész letöltés, AI-kérdés jelzése) app-ikonjai **fekete-fehérek** (szürkeárnyalatosak), mint a jelvények (B-12). |
 | E-27 | (v0.104) **Gépelés kattintás nélkül:** ha egy értesítésre kattintva lenyílik a válaszmező (Értesítések modul kártyája, Chats / Beeper olvasatlan kártya), a mező azonnal fókuszt kap, és a notch átveszi a billentyűzetet: egyből lehet gépelni, akkor is, ha a panel hoverre nyílt. A notch alatt nyíló kártyán (E-4) egy üzenetre kattintva ugyanígy a válaszmezőbe kerül a gépelés; a sorra válaszolás nyila (E-17) is. Az így kapott fókusz még nem számít a mezőbe kattintásnak: a csevegés csak az első leütéskor lesz olvasott / nyílik meg a háttérben (UM-3b, GW-8). Hoverre nyitva továbbra sem veszi el a billentyűzetet. |
+| E-28 | (v1.7.6) **Két kis értesítés egymás alatt** (*Drop down* módban, PV-66): ha lelógó értesítés látszik, és **más küldőtől** (beszélgetésből) új jön, az új kerül **felülre**, a korábbi egy kompakt sorba alá (ikon, küldő, app), és megtartja a saját idejét: lejártakor eltűnik, a felső lejártakor felcsúszik. Legfeljebb **két sor**; egy harmadik küldőnél a legrégebbi kiesik a sorból (a listában megmarad, a „+N” számolja). Azonos küldő új üzenete a felső sort frissíti. Ha nincs második értesítés, de van **ragadós jelzés** (CN-1: Claude/Codex kész, kérdés, letöltés, What's new), az áll a második sorban, így nem tűnik el az értesítés alatt. Hoverre a felső soron a felső, az alsón az alsó értesítés kártyája nyílik (E-4); a ragadós jelzés során a panel a szokásos módon. A két sor egy felület, köztük halvány elválasztó; a design a D-25 szerinti. *Beside the notch* módban változatlan (a legújabb a notch mellett, „+N”). |
 
 ## 4c. Számológép (v0.6)
 
@@ -483,6 +484,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-12 | (v0.90) **Monokróm jelvények:** a notch melletti jelvények és a jelvénylista ikonjai (az app saját ikonja, a Beeper-hálózatok ikonja, a feltöltött kép) **fekete-fehérek** (szürkeárnyalatosak); a jelek (B-3) eddig is fehérek voltak. A Beállításokban az ikonválasztó színes marad. |
 | B-13 | (v0.97) **Hozzáadás beállítással:** az *Add an app* listában minden app sorában ikonválasztó (SD-11) van a javasolt kezdő ikonnal; az *Add* a kiválasztott ikonnal veszi fel az appot. A *Choose image…* azonnal fel is veszi az appot a feltöltött képpel. |
 | B-14 | (v1.7.2) **A jelvénylista designja (R-17 mintájára):** a notch melletti jelvény lenyíló listája a notch választott designját kapja (*Liquid glass*, *Black to glass*, D-1), mint a feladatszámláló lenyílója. |
+| B-15 | (v1.7.6) **Teams (web) jelvény:** a *Settings › Badges › Add an app* lista elején **Microsoft Teams (web)**, saját azonosítóval (mint BP-14), mert a böngészőben futó Teamsnek nincs Dock-ikonja. A szám a Teams-fül címében álló „(N)” az alapértelmezett böngésző füleiből (B-2c); ha a címben nincs szám, a Teams olvasatlan csevegéseinek száma (MT-3), amíg a Teams olvasható; 0-nál nincs jelvény. Bal kattintás a Teams-fület hozza előre a böngészőben (ha nincs, megnyitja a webes Teamst), jobb kattintás a Notifications Teams fülét nyitja. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -735,6 +737,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-21 | (v0.101) **Még gyorsabb alaptempó (D-19 módosítása):** a nyitás/zárás/átméretezés tempója 0,32 helyett 0,27 mp, a rövid tempó 0,18 helyett 0,15 mp; a hover marad 0,12 mp. A D-19 kivételei változatlanok. |
 | D-22 | (v0.102) **Még gyorsabb tempó (D-21 módosítása):** a nyitás/zárás/átméretezés 0,27 helyett 0,23 mp (kicsit feszesebb rugóval), a rövid tempó 0,15 helyett 0,13 mp; a hover marad 0,12 mp. |
 | D-23 | (v1.7.2) **Pill lenyílók (D-7 módosítása):** *Pill* módban a becsukott notch alá lenyíló részek (jelvénylista, feladatszámláló, értesítés, eszköz, hívás…) **ugyanúgy nyílnak le, mint *Notch* módban**: nem kapszula alakúak, nem vágják le a tartalom szélét. Kapszula csak a nyugalmi, egysoros pill. Lenyílva és kinyitva a pill **felső sarkai ugyanúgy kerekek, mint az alsók** (azonos sugár). |
+| D-24 | (v1.7.6) **Black over glass (D-1 bővítése):** negyedik design, *Black over glass*: a panel felső sora (a kijelző menüsor-magassága, a notch alja) tiszta fekete, alatta **átmenet nélkül** üveg (ugyanaz az üveg és accent, mint a Black to glassnál, D-14f, D-17d, D-17e). A határon a panel teljes szélességében 1 pixeles (0,5 pt), ~18%-os fehér él, alatta ~6 pt lágy árnyék, amely lefelé eltűnik (a fekete mintha az üvegen feküdne). Lenyitáskor a fekete–üveg váltással együtt jelenik meg. A lenyílók (R-17, B-14) és a menüsor-panelek is ezt kapják. |
+| D-25 | (v1.7.6) **Lelógó értesítések a designban (D-3 módosítása):** a notch alatt lelógó értesítés (E-3, E-24, E-28) és az eszköz-értesítés (DV-1) is a választott designt kapja. A teteje (a notch sora) mindig fekete, egybeolvad a hardveres notch-csal; alatta: *Black* – fekete; *Liquid glass* – ~12 pt átmenettel üveg; *Black to glass* – ~20 pt átmenettel üveg; *Black over glass* – éles vonal és árnyék (D-24). Az *Open panel opacity* (D-13) itt nem hat. Az előnézet, a notch mellett (*Beside the notch*, PV-66) álló kis értesítések, a HUD és a menüsor-buborékok (D-12) feketék maradnak. |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -1189,6 +1193,7 @@ Az alkalmazásváltó (4ö) mintájára, de a gyorsbillentyűs modulok között.
 | SD-17 | (v1.3) **Gyorsan nyíló hosszú listák (SD-2 javítása):** a lenyíló lista (App badges › Add an app, Notifications › Apps és Websites) sorai animáció nélkül jelennek meg, csak a › nyíl fordul el animálva; az appok ikonjait az app egyszer tölti be és megjegyzi, nem minden kirajzoláskor. |
 | SD-18 | (v1.3.1) **Modules oldal sorrendje:** a *Settings › Modules* oldalon a **Swipe up** (modulváltó, QS) szakaszai a **Module strip** szakasz **előtt** állnak. |
 | SD-19 | (v1.7.1) **Nyitott modulsorok megmaradnak:** a *Settings › Modules* listájában a › gombbal kinyitott modulsorokat a Dynotch megjegyzi; a beállítások újbóli megnyitásakor ugyanazok vannak nyitva. A *Modules* fejléc jobb szélén **Collapse all** gomb mindet becsukja (csak akkor látszik, ha van nyitott sor). |
+| SD-20 | (v1.7.6) **Keresőmezők balra:** a beállítások keresőiben (*Notifications › Apps*, *Badges › Add an app*, oldalsáv, időjárás, vágólap) a beviteli mező a nagyító után, a sor elején kezdődik, és a sor teljes szélességét kitölti (a Form nem teszi címkének balra, mezőnek jobbra). A helykitöltő („Search apps”) a mezőben áll, és amint a mezőbe kattintasz (fókusz), eltűnik. |
 
 ## 4ő+++++++. Refaktorálás: energia, folyékonyság, biztonság (v0.111)
 
@@ -1496,6 +1501,7 @@ A forrás – mint a Google Chatnél (GW-1…GW-3) – a **bejelentkezett webes 
 | MT-10 | (v1.7.5) **Képernyőmegosztás:** megosztás alatt a notch rejtve marad (N-21); a megbeszélés-jelző sem látszik a megosztott képen. |
 | MT-11 | (v1.7.5) **Tipp és újdonság:** a Teams fül tippje (OB) és a *What's new* bejegyzés (WN-4). |
 | MT-12 | (v1.7.5) **Napló:** `teams.log`: az állapot (nem fut, nem olvasható, olvasható; böngésző), a megbeszélés kezdete/vége, a műveletek típusa (válasz elküldve vagy hiba, mikrofon, kamera, kilépés, gyorsbillentyű, figyelmeztetés); nevek és üzenetek nélkül. |
+| MT-13 | (v1.7.6) **Teams háttérfülben (MT-1 javítása):** ha a Teams nem aktív, hanem háttérfül az alapértelmezett böngészőben (a fülek címe és URL-je AppleScripttel, mint B-2c), az állapot „Teams is in a background tab” (nem „No browser window shows Teams”), és a *Settings › Chats › Teams* alatt **Move Teams to its own window** gomb: a Dynotch a fül címével új ablakot nyit ugyanabban a böngészőben, és bezárja a háttérfület (több Teams-fülnél az elsőt), így a Teams olvasható lesz. Fület csak gombnyomásra rendez át. A naplóba csak az állapot kerül. |
 
 ## 5. Nyitott kérdések
 
@@ -1543,6 +1549,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.6** | Teszt build: Black over glass design éles vonallal, lelógó értesítések a designban, két kis értesítés egymás alatt, webes Teams jelvény, Teams háttérfülből saját ablakba, keresőmezők balra (D-24, D-25, E-28, B-15, MT-13, SD-20) |
 | **v1.7.5** | Teszt build: pinch kifelé nyit (jelvény, lenyíló, peek, Home-csempe; N-28), Microsoft Teams a webes Teamsből: Teams fül olvasatlan csevegésekkel és válasszal, megbeszélés-jelző vezérlőkkel, némító gyorsbillentyű, „You're muted” figyelmeztetés (MT-1…MT-12) |
 | **v1.7.4** | Teszt build: pinch a notch széléről nyitott panelre (N-27), Számológép (2×2) és Napok (5×1) csempe, csempék húzása a notchban (HT-42…HT-45), szem gomb a modulsorban (M-23), Feladatok beviteli mező nélkül, határidő-buborék (R-21, R-22), Beeper-kártya nyitva marad (BP-21), Google Chat csoportban a feladó (GW-32) |
 | **v1.7.3** | Első teszt build (prerelease): Beta updates kapcsoló, „test build” jelzés az About-ban, a kiadás a tagből dönti el a csatornát (U-6…U-10) |

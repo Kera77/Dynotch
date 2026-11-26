@@ -226,7 +226,7 @@ final class NotchController {
         calendar.panelDidOpen()
         Haptics.perform(.open, settings: settings)
         // Opened from a notification peek: that sender's new messages (spec E-4).
-        let stack = notifications.peek.map(notifications.related(to:)) ?? []
+        let stack = peekUnderPointer.map(notifications.related(to:)) ?? []
         let canReply = stack.last.map(notifications.canReply(to:)) ?? false
         // A Google Chat card without a notification reads its messages from the web app (spec GW-5c).
         notifications.cardOpened(stack)

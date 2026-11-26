@@ -53,8 +53,15 @@ extension NotificationService {
         related(to: notification).map { content(for: $0).detail }
     }
 
-    /// The pop-up's size: the small one, or as tall as its messages need.
+    /// The pop-up's size with the row under it, if any (spec E-28).
     func peekSize(in geometry: NotchGeometry) -> CGSize {
+        let top = topPeekSize(in: geometry)
+        guard peekSecondRow != nil else { return top }
+        return CGSize(width: top.width, height: top.height + Self.secondRowHeight)
+    }
+
+    /// The top pop-up's size: the small one, or as tall as its messages need.
+    func topPeekSize(in geometry: NotchGeometry) -> CGSize {
         guard let peek, peekShowsMessage(peek) else { return geometry.peekSize }
         let height = NotificationTextLayout.peekHeight(
             texts: peekTexts(for: peek), notchHeight: geometry.notchSize.height, maxLines: preferences.peekLines

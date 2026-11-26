@@ -16,12 +16,15 @@ enum NotchDesign: String, CaseIterable, Sendable {
     case glass
     /// Black at the top, turning into glass downwards.
     case blend
+    /// Black top row, glass below it, split by a sharp line (spec D-24).
+    case split
 
     var title: String {
         switch self {
         case .black: "Black"
         case .glass: "Liquid glass"
         case .blend: "Black to glass"
+        case .split: "Black over glass"
         }
     }
 }

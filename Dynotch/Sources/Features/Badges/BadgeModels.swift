@@ -25,12 +25,21 @@ struct BadgeApp: Codable, Identifiable, Equatable, Sendable {
     static func chatTab(for app: BadgeApp) -> NotificationsTab? {
         // A highlighted Beeper network opens its own tab (spec BP-15).
         if let network = BeeperNetworkBadge.network(fromBadgeID: app.bundleID) { return .network(network) }
+        if app.bundleID == TeamsWebBadge.id { return .teams }
         let identifier = app.bundleID.lowercased()
         let name = app.name.lowercased()
         if identifier.contains("beeper") { return .beeper }
         if name.contains("google chat") || (name == "chat" && identifier.contains("webapp")) { return .googleChat }
         return nil
     }
+}
+
+/// The web Teams has no Dock icon: a badge app with an identifier of its own, counted from its
+/// tab's title or its unread chats (spec B-15).
+enum TeamsWebBadge {
+    static let id = "dynotch.web.teams"
+    static let name = "Microsoft Teams (web)"
+    static let app = InstalledApp(bundleID: id, name: name, path: "")
 }
 
 /// A highlighted Beeper network stands beside the notch like an app (spec BP-14): a badge app
@@ -114,6 +123,7 @@ struct BadgePreset: Identifiable, Equatable, Sendable {
         if words.contains("beeper") { return .symbol(BrandGlyph.beeper.rawValue) }
         if words.contains("google chat") { return .symbol(BrandGlyph.googleChat.rawValue) }
         if words.contains("gmail") { return .symbol(BrandGlyph.gmail.rawValue) }
+        if bundleID == TeamsWebBadge.id { return .symbol("person.2.fill") }
         if mailWords.contains(where: words.contains) { return .symbol("envelope.fill") }
         if chatWords.contains(where: words.contains) { return .symbol("bubble.left.fill") }
         return .app

@@ -145,15 +145,37 @@ extension NotchView {
     }
 
     private func standardPeek(_ notification: AppNotification, width: CGFloat, size peekSize: CGSize) -> some View {
-        NotificationPeekView(
-            app: notifications.catalog.app(for: notification.appIdentifier),
-            content: notifications.content(for: notification),
-            notchHeight: geometry.notchSize.height,
-            newCount: notifications.unseen.count,
-            messages: notifications.peekShowsMessage(notification) ? notifications.peekTexts(for: notification) : [],
-            lines: notifications.preferences.peekLines
-        )
-        .frame(width: max(width, peekSize.width), height: peekSize.height)
+        let second = notifications.peekSecondRow
+        let top = notifications.topPeekSize(in: geometry)
+        // The row under it counts as shown: "+N" counts only the others (spec E-28).
+        let shown = second.map { if case .notification = $0 { 2 } else { 1 } } ?? 1
+        return VStack(spacing: 0) {
+            NotificationPeekView(
+                app: notifications.catalog.app(for: notification.appIdentifier),
+                content: notifications.content(for: notification),
+                notchHeight: geometry.notchSize.height,
+                newCount: max(notifications.unseen.count - (shown - 1), 1),
+                messages: notifications.peekShowsMessage(notification) ? notifications.peekTexts(for: notification) : [],
+                lines: notifications.preferences.peekLines
+            )
+            .frame(height: top.height)
+            if let second {
+                PeekSecondRowView(row: second, app: secondApp(second), content: secondContent(second))
+                    .frame(height: NotificationService.secondRowHeight)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .frame(width: max(width, peekSize.width), height: peekSize.height, alignment: .top)
+    }
+
+    private func secondApp(_ row: PeekSecondRow) -> NotificationApp? {
+        guard case .notification(let item) = row else { return nil }
+        return notifications.catalog.app(for: item.appIdentifier)
+    }
+
+    private func secondContent(_ row: PeekSecondRow) -> NotificationContent? {
+        guard case .notification(let item) = row else { return nil }
+        return notifications.content(for: item)
     }
 }
 

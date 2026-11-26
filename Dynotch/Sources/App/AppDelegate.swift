@@ -68,6 +68,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Sleep, lock and power pause or slow every background look (spec RF-9, RF-10).
         PowerMonitor.shared.start()
         services.calendar.start()
+        // The sticky notice stands under a notification instead of hiding behind it (spec E-28).
+        services.notifications.stickyNotice = { [weak notices = services.notices] in notices?.notice }
         services.notifications.start()
         // Loads the open count for the menu bar icon if access was granted before; never prompts.
         services.reminders.start()
@@ -309,6 +311,7 @@ extension AppDelegate {
         }
         services.badges.beeperNetworks = { [weak beeper = services.beeper] in beeper?.highlightedNetworks ?? [] }
         services.badges.beeperNetworkUnread = { [weak beeper = services.beeper] in beeper?.unreadTotal(network: $0) ?? 0 }
+        services.badges.teamsWebUnread = { TeamsService.shared.snapshot?.unread.count }
         services.badges.removeBeeperNetwork = { [weak beeper = services.beeper] in beeper?.setHighlighted($0, false) }
         services.badges.start()
     }

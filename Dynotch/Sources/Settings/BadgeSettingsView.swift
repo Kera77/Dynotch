@@ -12,9 +12,10 @@ struct BadgeSettingsView: View {
     /// The icon chosen for an app before adding it (spec B-13).
     @State private var pendingIcons: [String: BadgeIcon] = [:]
 
+    /// The web Teams first: it has no app to find (spec B-15).
     private var candidates: [InstalledApp] {
         let chosen = Set(service.apps.map(\.bundleID))
-        return installed.filter { !chosen.contains($0.bundleID) }
+        return ([TeamsWebBadge.app] + installed).filter { !chosen.contains($0.bundleID) }
     }
 
     var body: some View {
@@ -56,7 +57,11 @@ struct BadgeSettingsView: View {
         let icon = pendingIcons[app.bundleID] ?? BadgePreset.suggestedIcon(bundleID: app.bundleID, name: app.name)
         return HStack(spacing: 8) {
             SettingsRowLabel(title: app.name) {
-                Image(nsImage: SettingsAppIcons.icon(forFile: app.path)).resizable()
+                if app.path.isEmpty {
+                    Image(systemName: "person.2.fill").resizable().scaledToFit().padding(2)
+                } else {
+                    Image(nsImage: SettingsAppIcons.icon(forFile: app.path)).resizable()
+                }
             }
             Spacer()
             BadgeIconPicker(
@@ -133,17 +138,31 @@ func chooseBadgeImage(name: String, then use: (URL) -> Void) {
 }
 
 /// Every search field in the settings: the sidebar, the long lists and the place search (spec C-5, SD-16).
+/// The field starts right after the magnifier and fills the row; in a Form a titled TextField
+/// stood as a label on the left with the field on the right. The prompt goes once the field is
+/// clicked into (spec SD-20).
 struct SettingsSearchField: View {
     @Binding var text: String
     let prompt: String
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField(prompt, text: $text)
+            TextField("", text: $text)
+                .labelsHidden()
+                .accessibilityLabel(prompt)
                 .textFieldStyle(.plain)
-                .focusOnClick()
+                .focused($isFocused)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .leading) {
+                    if text.isEmpty, !isFocused {
+                        Text(prompt).foregroundStyle(.tertiary).allowsHitTesting(false)
+                    }
+                }
+                .contentShape(Rectangle())
+                .simultaneousGesture(TapGesture().onEnded { isFocused = true })
             if !text.isEmpty {
                 Button {
                     text = ""
