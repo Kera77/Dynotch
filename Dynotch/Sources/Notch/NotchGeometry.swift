@@ -108,9 +108,18 @@ struct NotchGeometry: Equatable, Sendable {
         CGSize(width: max(notchSize.width + 140, 320), height: notchSize.height + 30)
     }
 
-    /// A device notice under the notch (spec DV-1, DV-9): name, state and batteries in room.
-    var devicePeekSize: CGSize {
-        CGSize(width: max(notchSize.width + 200, 420), height: notchSize.height + 66)
+    /// A device notice under the notch: one row like "Claude finished", only wider when the
+    /// batteries or quick buttons need it (spec DV-9, DV-15).
+    func devicePeekSize(levels: Int, actions: Int) -> CGSize {
+        let extra = (levels > 0 ? 80 : 0) + CGFloat(actions) * 70
+        return CGSize(
+            width: max(notchSize.width + 140, IndicatorLayout.labelWidth + extra),
+            height: notchSize.height + IndicatorLayout.labelHeight
+        )
+    }
+
+    func devicePeekSize(for event: DeviceEvent?) -> CGSize {
+        devicePeekSize(levels: event?.levels.count ?? 0, actions: event?.actions.count ?? 0)
     }
 
     /// The closed notch opened for an incoming call (spec P-1), taller with the message field.

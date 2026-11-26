@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+- Device notices (Apple Watch, monitor, AirPods…) under the notch are one row, the size of
+  "Claude finished"; only wider when batteries or quick buttons need the room (DV-15).
+- Spencer menu starts with Active workspace like Spencer's own menu, with its icons: Restore
+  Focused Window (Spencer's own item, pressed through Accessibility), Restore Workspace, and
+  Update Workspace › All Spaces / Current Space Only. "Update current layout" moved there;
+  "Forget this display setup" is gone (SL-11). The tour's Spencer text still fits.
+
 ## [1.7.10] - 2026-11-26
 
 ### Changed

@@ -350,7 +350,7 @@ extension NotchView {
             let row = indicatorLayout.isEmpty ? 0 : indicatorLayout.size(notch: geometry.notchSize, labelHeight: nil).width
             return CGSize(width: max(peek.width, row), height: peek.height)
         }
-        if devices.current != nil { return geometry.devicePeekSize }
+        if let event = devices.current { return geometry.devicePeekSize(for: event) }
         if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
             ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight + secondNoticeHeight)

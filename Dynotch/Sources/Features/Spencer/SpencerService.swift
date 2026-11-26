@@ -175,12 +175,6 @@ final class SpencerService {
         restore(layout)
     }
 
-    func forgetSetup() {
-        guard let setup else { return }
-        assignments[setup.key] = nil
-        saveAssignments()
-    }
-
     /// The layouts, read again each time the menu opens.
     func refresh() {
         isInstalled = FileManager.default.isExecutableFile(atPath: Self.toolPath)
@@ -202,10 +196,30 @@ final class SpencerService {
         }
     }
 
-    func updateCurrent() {
+    // MARK: - Active workspace (spec SL-11)
+
+    /// Restore Workspace: the most recently used layout again.
+    func restoreActive() {
         Task {
-            guard let result = await execute(["--update-active"]) else { return }
-            DiagnosticsLog.append("spencer", "updated the active layout: ok=\(result.succeeded)")
+            guard let result = await execute(["--restore-active"], timeout: Self.restoreTimeout) else { return }
+            DiagnosticsLog.append("spencer", "restored the active layout: ok=\(result.succeeded)")
+        }
+    }
+
+    /// Update Workspace › All Spaces, or › Current Space Only.
+    func updateActive(currentSpaceOnly: Bool) {
+        Task {
+            guard let result = await execute([currentSpaceOnly ? "--update-active-desktop" : "--update-active"]) else { return }
+            DiagnosticsLog.append("spencer", "updated the active layout (space only: \(currentSpaceOnly)): ok=\(result.succeeded)")
+        }
+    }
+
+    /// Restore Focused Window: Spencer's own menu item, as the tool cannot do it.
+    func restoreFocusedWindow() {
+        Task {
+            let pressed = await Task.detached { SpencerMenuItem.press("Restore Focused Window") }.value
+            failure = pressed ? nil : "Spencer must be running, and Wingmate needs Accessibility."
+            DiagnosticsLog.append("spencer", "restore focused window: pressed=\(pressed)")
         }
     }
 

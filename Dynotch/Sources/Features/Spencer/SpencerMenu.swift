@@ -41,8 +41,8 @@ struct SpencerMenu: View {
     }
 }
 
-/// Layouts (greyed when their displays are missing), this display setup, Update current layout,
-/// Switch automatically, Open Spencer (spec SL-2, SL-7).
+/// Active workspace (Spencer's own items and icons), layouts (greyed when their displays are
+/// missing), this display setup, Switch automatically, Open Spencer (spec SL-2, SL-7, SL-11).
 @MainActor
 private final class SpencerMenuBuilder: NSObject {
     private let service: SpencerService
@@ -55,6 +55,8 @@ private final class SpencerMenuBuilder: NSObject {
     func popUp(below view: NSView?) {
         let menu = NSMenu()
         menu.autoenablesItems = false
+        addActiveWorkspace(to: menu)
+        menu.addItem(.separator())
         menu.addItem(.sectionHeader(title: "Layouts"))
         if service.layouts.isEmpty { disabled("No layouts in Spencer yet", in: menu) }
         for layout in service.layouts {
@@ -65,12 +67,8 @@ private final class SpencerMenuBuilder: NSObject {
             menu.addItem(.separator())
             menu.addItem(.sectionHeader(title: "This display setup"))
             disabled(setup.title, in: menu)
-            if service.assigned != nil {
-                item("Forget this display setup", isOn: false, in: menu) { [service] in service.forgetSetup() }
-            }
         }
         menu.addItem(.separator())
-        item("Update current layout", isOn: false, in: menu) { [service] in service.updateCurrent() }
         item("Switch automatically", isOn: service.autoSwitch, in: menu) { [service] in service.autoSwitch.toggle() }
         item("Open Spencer", isOn: false, in: menu) { [service] in service.openSpencer() }
         if let failure = service.failure {
@@ -79,6 +77,29 @@ private final class SpencerMenuBuilder: NSObject {
         }
         menu.popUp(positioning: nil, at: MenuAnchor.point(below: view, menuWidth: menu.size.width), in: nil)
         withExtendedLifetime(self) {}
+    }
+
+    /// As at the top of Spencer's own menu, with its icons (spec SL-11).
+    private func addActiveWorkspace(to menu: NSMenu) {
+        menu.addItem(.sectionHeader(title: "Active workspace"))
+        item("Restore Focused Window", symbol: "macwindow", in: menu) { [service] in service.restoreFocusedWindow() }
+        item("Restore Workspace", symbol: "arrow.counterclockwise", in: menu) { [service] in service.restoreActive() }
+        let update = NSMenuItem(title: "Update Workspace", action: nil, keyEquivalent: "")
+        update.image = Self.image("arrow.triangle.2.circlepath")
+        let submenu = NSMenu()
+        submenu.autoenablesItems = false
+        item("All Spaces", isOn: false, in: submenu) { [service] in service.updateActive(currentSpaceOnly: false) }
+        item("Current Space Only", isOn: false, in: submenu) { [service] in service.updateActive(currentSpaceOnly: true) }
+        update.submenu = submenu
+        menu.addItem(update)
+    }
+
+    private func item(_ title: String, symbol: String, in menu: NSMenu, action: @escaping () -> Void) {
+        item(title, isOn: false, in: menu, action: action).image = Self.image(symbol)
+    }
+
+    private static func image(_ symbol: String) -> NSImage? {
+        NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
     }
 
     private func disabled(_ title: String, in menu: NSMenu) {

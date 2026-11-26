@@ -81,7 +81,9 @@ struct BluetoothBannerTests {
             screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
             auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5, menuBarHeight: 32
         )
-        #expect(geometry.devicePeekSize.height >= geometry.notchSize.height + 60)
-        #expect(geometry.devicePeekSize.width >= 420)
+        // One row like "Claude finished", wider only for batteries and buttons (spec DV-15).
+        #expect(geometry.devicePeekSize(levels: 0, actions: 0).height == geometry.notchSize.height + IndicatorLayout.labelHeight)
+        #expect(geometry.devicePeekSize(levels: 0, actions: 0).width == max(geometry.notchSize.width + 140, IndicatorLayout.labelWidth))
+        #expect(geometry.devicePeekSize(levels: 3, actions: 1).width > geometry.devicePeekSize(levels: 0, actions: 0).width)
     }
 }

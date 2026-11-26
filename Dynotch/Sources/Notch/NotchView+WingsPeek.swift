@@ -42,7 +42,7 @@ extension NotchView {
             wingsPeekView(.device(event)).transition(.wingsSpreadIn)
         } else {
             DevicePeekView(event: event, notchHeight: geometry.notchSize.height) { devices.perform($0) }
-                .frame(width: geometry.devicePeekSize.width, height: geometry.devicePeekSize.height)
+                .frame(width: geometry.devicePeekSize(for: event).width, height: geometry.devicePeekSize(for: event).height)
                 .transition(.opacity)
         }
     }
@@ -269,7 +269,7 @@ extension NotchController {
 
     /// Where a device notice stands: beside the notch in Wings mode, else under it.
     var devicePeekZone: CGRect {
-        settings.noticesBeside ? wingsPeekZone : model.geometry.keepOpenZone(for: model.geometry.devicePeekSize)
+        settings.noticesBeside ? wingsPeekZone : model.geometry.keepOpenZone(for: model.geometry.devicePeekSize(for: devices.current))
     }
 
     /// The pointer on a notice beside the notch: a notification stays while it is there, and its
