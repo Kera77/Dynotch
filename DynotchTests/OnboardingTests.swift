@@ -98,6 +98,24 @@ struct WhatsNewTests {
         }
     }
 
+    /// Every public release from 1.8.0 on is paged by module, and sums up the test builds before
+    /// it (spec WN-9, WN-10).
+    @MainActor @Test func publicReleasesArePagedByModule() {
+        let publics = WhatsNew.releases.filter { $0.version.hasSuffix(".0") && UpdateLogic.isNewer($0.version, than: "1.7.99") }
+        for release in publics {
+            #expect(release.isPaged, "\(release.version) needs sections")
+            #expect(release.sections.allSatisfy { !$0.items.isEmpty })
+        }
+        #expect(WhatsNew.due(last: "1.7.2", current: "1.8.0", tourDone: true).map(\.version) == ["1.8.0"])
+        #expect(WhatsNew.due(last: "1.7.10", current: "1.8.0", tourDone: true).map(\.version) == ["1.8.0"])
+        #expect(WhatsNewPagedView.shortVersion("1.8.0") == "1.8")
+        let paged = WhatsNew.releases.filter { $0.version == "1.8.0" }
+        let longest = paged.first?.sections.map(\.items.count).max() ?? 0
+        let flat = WhatsNewRelease(version: "1.8.0", items: paged.first?.items ?? [])
+        #expect(WhatsNewPage.height(for: paged) < WhatsNewPage.height(for: [flat]))
+        #expect(longest <= 4)
+    }
+
     /// A first install gets the tour; an update gets what came since (spec WN-1…WN-3).
     @Test func dueReleases() {
         #expect(WhatsNew.due(last: nil, current: "1.1.0", tourDone: false).isEmpty)

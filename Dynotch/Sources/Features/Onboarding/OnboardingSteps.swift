@@ -37,7 +37,7 @@ extension OnboardingStep {
         case .ready:
             "Settings live behind the gear icon at the right of the notch's top row; the switch beside it holds "
                 + "quick toggles like Keep Awake. With Spencer installed, its button there switches your window "
-                + "layouts, and can do it by itself when your displays change."
+                + "layouts, restores or updates the workspace, and switches by itself when your displays change."
         }
     }
 
@@ -103,6 +103,10 @@ struct OnboardingStepContent: View {
                 symbol: "square.grid.2x2", title: "Click an icon", text: "The top row of the open notch has an icon for every module."
             )
             OnboardingRow(symbol: "command", title: "Use the keyboard", text: "⌘1–9 picks a module, ← and → step through them.")
+            OnboardingRow(
+                symbol: "hand.pinch", title: "Spread and pinch",
+                text: "Spread two fingers over a tile, badge or drop-down to open it; pinch to go back."
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 30)

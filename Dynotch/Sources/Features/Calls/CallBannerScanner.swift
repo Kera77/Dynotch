@@ -11,7 +11,9 @@ enum CallBannerScanner {
 
     /// Processes that show call banners; they are looked at for as long as they have a window on
     /// screen. Notification Center draws its banners in one screen-sized transparent window.
-    static let bannerHosts: Set<String> = ["Notification Center", "NotificationCenter", "FaceTime", "Phone"]
+    /// Not the Phone or FaceTime app: walking their windows every second kept them busy, so they
+    /// are looked at only when a new window of theirs appears (spec P-6).
+    static let bannerHosts: Set<String> = ["Notification Center", "NotificationCenter"]
 
     /// A window above the normal level: where banners live.
     struct TopWindow: Hashable, Sendable {

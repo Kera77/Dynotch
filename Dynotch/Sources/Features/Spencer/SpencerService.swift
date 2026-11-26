@@ -214,15 +214,6 @@ final class SpencerService {
         }
     }
 
-    /// Restore Focused Window: Spencer's own menu item, as the tool cannot do it.
-    func restoreFocusedWindow() {
-        Task {
-            let pressed = await Task.detached { SpencerMenuItem.press("Restore Focused Window") }.value
-            failure = pressed ? nil : "Spencer must be running, and Wingmate needs Accessibility."
-            DiagnosticsLog.append("spencer", "restore focused window: pressed=\(pressed)")
-        }
-    }
-
     func openSpencer() {
         NSWorkspace.shared.open(URL(fileURLWithPath: Self.appPath))
     }

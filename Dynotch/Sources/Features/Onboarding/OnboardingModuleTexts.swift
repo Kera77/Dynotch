@@ -12,7 +12,7 @@ enum OnboardingModuleTexts {
             + "Meetings get a Join button and a countdown beside the closed notch before they start.",
         .weather: "Now, the next 24 hours and 7 days, as a tab of the Calendar. "
             + "Use your current location or a saved place; a morning forecast can greet you at the first unlock.",
-        .notifications: "Your messages and alerts in one place, grouped by app, also from Beeper, Google Chat and Mail. "
+        .notifications: "Your messages and alerts in one place, grouped by app, also from Beeper, Google Chat, Teams and Mail. "
             + "New ones drop down under the notch, and you can reply or dismiss them right there.",
         .reminders: "Your Apple Reminders as a quick to-do list. "
             + "Add one with New task at the end of a list; times like “tomorrow 9” set the due date.",

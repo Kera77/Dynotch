@@ -82,7 +82,6 @@ private final class SpencerMenuBuilder: NSObject {
     /// As at the top of Spencer's own menu, with its icons (spec SL-11).
     private func addActiveWorkspace(to menu: NSMenu) {
         menu.addItem(.sectionHeader(title: "Active workspace"))
-        item("Restore Focused Window", symbol: "macwindow", in: menu) { [service] in service.restoreFocusedWindow() }
         item("Restore Workspace", symbol: "arrow.counterclockwise", in: menu) { [service] in service.restoreActive() }
         let update = NSMenuItem(title: "Update Workspace", action: nil, keyEquivalent: "")
         update.image = Self.image("arrow.triangle.2.circlepath")

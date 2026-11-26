@@ -7,21 +7,40 @@ struct WhatsNewItem: Sendable, Hashable {
     let text: String
 }
 
+/// One module's news in a public release: a page of its own in What's new (spec WN-9).
+struct WhatsNewSection: Sendable, Hashable {
+    let title: String
+    let symbol: String
+    let items: [WhatsNewItem]
+}
+
 struct WhatsNewRelease: Sendable, Hashable {
     let version: String
     let items: [WhatsNewItem]
+    /// A public release (x.y.0) groups its news by module, one page each (spec WN-9, WN-10).
+    let sections: [WhatsNewSection]
+
+    init(version: String, items: [WhatsNewItem]) {
+        self.version = version
+        self.items = items
+        sections = []
+    }
+
+    init(version: String, sections: [WhatsNewSection]) {
+        self.version = version
+        items = sections.flatMap(\.items)
+        self.sections = sections
+    }
+
+    /// Shown page by page with Back, Next and Skip (spec WN-9).
+    var isPaged: Bool { !sections.isEmpty }
 }
 
 /// What each version brought, newest first (spec WN-4). Every user-visible feature or change
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
-        WhatsNewRelease(version: "1.7.11", items: [
-            WhatsNewItem(symbol: "macwindow", title: "Spencer's workspace actions",
-                         text: "Restore Focused Window, Restore Workspace and Update Workspace at the top of the Spencer menu."),
-            WhatsNewItem(symbol: "applewatch", title: "Smaller device notices",
-                         text: "A connected watch, monitor or headphones shows as one slim row under the notch.")
-        ]),
+        WhatsNewRelease(version: "1.8.0", sections: publicSections),
         WhatsNewRelease(version: "1.7.10", items: [
             WhatsNewItem(symbol: "bell", title: "Spencer like its own menu",
                          text: "Spencer's bell beside the notch, layouts for missing displays greyed out, "
@@ -198,9 +217,12 @@ enum WhatsNew {
         guard tourDone else { return [] }
         // Updated from 1.0, before this was kept: only the current version (spec WN-3).
         guard let last else { return releases.filter { $0.version == current } }
-        return releases.filter {
+        let due = releases.filter {
             UpdateLogic.isNewer($0.version, than: last) && !UpdateLogic.isNewer($0.version, than: current)
         }
+        // A public release already sums up the test builds before it (spec WN-9).
+        guard let paged = due.firstIndex(where: \.isPaged) else { return due }
+        return Array(due[...paged])
     }
 }
 

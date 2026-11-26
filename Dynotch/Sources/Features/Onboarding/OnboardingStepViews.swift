@@ -66,8 +66,10 @@ struct OnboardingBesideStep: View {
                 symbol: "app.badge", title: "App badges",
                 text: "Unread counts of your apps, next to the notch; click or spread two fingers to open."
             )
-            OnboardingRow(symbol: "timer", title: "Indicators", text: "Meeting countdown, timers, “Claude finished”.")
-            OnboardingRow(symbol: "phone.fill", title: "Calls", text: "Incoming calls with answer and text back.")
+            OnboardingRow(symbol: "timer", title: "Indicators",
+                          text: "Meeting countdown, timers, “Claude finished”, devices, system warnings.")
+            OnboardingRow(symbol: "phone.fill", title: "Calls",
+                          text: "Incoming calls with answer and text back; Teams meeting controls.")
             OnboardingRow(symbol: "square.grid.3x1.below.line.grid.1x2", title: "Module strip",
                           text: "Rest the pointer on the notch's bottom edge: module icons slide out.")
             OnboardingRow(symbol: "speaker.wave.2.fill", title: "Volume and brightness",
@@ -127,7 +129,7 @@ struct OnboardingLookStep: View {
                 Text("In a window").tag(SettingsPresentation.window)
             }
             .pickerStyle(.segmented)
-            Text("More in Settings › Appearance: rounded notch, opacity, the look on displays without a notch.")
+            Text("More in Settings › Appearance: black notifications, rounded notch, opacity, the look on displays without a notch.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

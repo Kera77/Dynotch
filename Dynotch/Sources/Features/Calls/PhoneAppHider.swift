@@ -1,13 +1,16 @@
 import AppKit
-import CoreAudio
 
 /// Keeps the Phone or FaceTime app in the Dock while a call rings and lasts, instead of letting
 /// it jump to the front (spec P-5). A click in another app (e.g. on its Dock icon) lets it show.
+/// Only when it comes forward, at most twice a call, never on every scan: hiding it over and over
+/// left the Phone app not responding (spec P-6).
 @MainActor
 final class PhoneAppHider {
     static let identifiers: Set<String> = ["com.apple.FaceTime", "com.apple.mobilephone"]
-    /// After the ringing stops, a call that was answered needs a moment to take the microphone.
+    /// After the ringing stops, an answered call brings the app forward once more.
     private static let grace: TimeInterval = 5
+    /// Hides per call: the app is never fought over (spec P-6).
+    static let maxHides = 2
     /// A click this recent in another app means the user brought the app forward.
     private static let clickWindow: TimeInterval = 1
 
@@ -19,6 +22,7 @@ final class PhoneAppHider {
     private var userShown = false
     private var isRinging = false
     private var hidesUntil: Date?
+    private var hides = 0
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -31,21 +35,16 @@ final class PhoneAppHider {
 
     /// The call banner appeared or went (called with every scan).
     func update(isRinging ringing: Bool) {
-        if ringing, !isRinging {
+        let started = ringing && !isRinging
+        if started {
             userShown = false
+            hides = 0
             start()
         }
         if !ringing, isRinging { hidesUntil = Date().addingTimeInterval(Self.grace) }
         isRinging = ringing
-        // While the microphone is in use the call goes on.
-        if !ringing, hidesUntil != nil, Self.microphoneInUse() {
-            hidesUntil = Date().addingTimeInterval(Self.grace)
-        }
-        if isHiding {
-            hideRunningPhoneApps()
-        } else if !ringing, hidesUntil.map({ $0 <= Date() }) ?? false {
-            stop()
-        }
+        if started { hideRunningPhoneApps() }
+        if !ringing, hidesUntil.map({ $0 <= Date() }) ?? false { stop() }
     }
 
     private func start() {
@@ -81,28 +80,12 @@ final class PhoneAppHider {
     }
 
     private func hideRunningPhoneApps() {
+        guard isHiding, hides < Self.maxHides else { return }
         for app in NSWorkspace.shared.runningApplications
-        where Self.identifiers.contains(app.bundleIdentifier ?? "") && !app.isHidden {
+        where Self.identifiers.contains(app.bundleIdentifier ?? "") && !app.isHidden && !app.isTerminated {
+            hides += 1
             app.hide()
+            DiagnosticsLog.append("calls", "phone app hidden (\(hides) of \(Self.maxHides))")
         }
-    }
-
-    /// Whether any app records from the default input device.
-    static func microphoneInUse() -> Bool {
-        var device = AudioObjectID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioObjectID>.size)
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultInputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device) == noErr,
-              device != kAudioObjectUnknown
-        else { return false }
-        var running: UInt32 = 0
-        size = UInt32(MemoryLayout<UInt32>.size)
-        address.mSelector = kAudioDevicePropertyDeviceIsRunningSomewhere
-        guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &running) == noErr else { return false }
-        return running != 0
     }
 }
