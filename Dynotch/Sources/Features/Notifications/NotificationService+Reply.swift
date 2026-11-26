@@ -62,11 +62,18 @@ extension NotificationService {
 
     /// The top pop-up's size: the small one, or as tall as its messages need.
     func topPeekSize(in geometry: NotchGeometry) -> CGSize {
-        guard let peek, peekShowsMessage(peek) else { return geometry.peekSize }
+        guard let peek else { return geometry.peekSize }
+        // As wide as the closed notch when the content fits, wider only as far as needed (spec E-31).
+        let content = peekContentWidth(peek)
+        guard peekShowsMessage(peek) else {
+            let width = geometry.fittedPeekWidth(content: content, upTo: geometry.peekSize.width)
+            return CGSize(width: width, height: geometry.peekSize.height)
+        }
         let height = NotificationTextLayout.peekHeight(
             texts: peekTexts(for: peek), notchHeight: geometry.notchSize.height, maxLines: preferences.peekLines
         )
-        return CGSize(width: max(geometry.peekSize.width, NotificationTextLayout.peekWidth), height: height)
+        let widest = max(geometry.peekSize.width, NotificationTextLayout.peekWidth)
+        return CGSize(width: geometry.fittedPeekWidth(content: content, upTo: widest), height: height)
     }
 
     /// The hovered card's height for these messages, every text in full (spec E-23).

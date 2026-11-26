@@ -13,6 +13,28 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.2": [
+            TestPlanItem(
+                id: "narrow-notification", group: "Slimmer notifications",
+                text: "A short notification (and a device notice) hangs under the notch only as wide as the notch; a long one is wider.",
+                log: "notifications"
+            ),
+            TestPlanItem(
+                id: "cleaner-scan", group: "Cleaner",
+                text: "Cleaner scans by itself on first open; Leftovers shows only apps you removed, Caches lists sizes.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-clean", group: "Cleaner",
+                text: "Clean asks first, moves the ticked items to the Trash and shows Freed …; they can be put back.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-uninstall", group: "Cleaner",
+                text: "Apps › pick a test app: its files are listed; Uninstall moves the app and the ticked files to the Trash.",
+                log: "cleaner"
+            )
+        ],
         "1.8.1": [
             TestPlanItem(
                 id: "sessions-list", group: "Sessions tab",

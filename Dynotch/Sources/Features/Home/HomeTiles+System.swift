@@ -110,6 +110,7 @@ struct ToolTileContent: View {
         case .timer, .stopwatch, .pomodoro: ClockToolTileContent(tile: tile, tools: .shared)
         case .quickToggles: TogglesTileContent(toggles: .shared, settings: .shared, onlyKeepAwake: false)
         case .keepAwake: TogglesTileContent(toggles: .shared, settings: .shared, onlyKeepAwake: true)
+        case .cleaner: CleanerTileContent(service: .shared)
         default: TileValueView(title: "Wingmate", value: AppInfo.version, detail: "Version")
         }
     }

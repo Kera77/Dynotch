@@ -34,6 +34,27 @@ struct DevicePeekView: View {
         }
     }
 
+    /// What the row needs side to side: icon, name, state, batteries and buttons (spec E-31).
+    static func contentWidth(_ event: DeviceEvent) -> CGFloat {
+        let state = event.detail ?? (event.isConnected ? "Connected" : "Disconnected")
+        let status = (event.detail == nil ? 14 : 0) + PeekText.width(state, size: 11, weight: .medium)
+        var width = 12 + 16 + 7 + PeekText.width(event.name, size: 12, weight: .semibold) + 7 + status
+        width += CGFloat(event.levels.count) * (7 + 14 + 3 + PeekText.width("100%", size: 11, weight: .medium))
+        width += 8
+        for action in event.actions { width += 7 + 18 + PeekText.width(title(of: action), size: 10.5, weight: .semibold) }
+        return width + 12
+    }
+
+    private static func title(of action: DeviceEvent.Action) -> String {
+        switch action {
+        case .open: "Open"
+        case .eject: "Eject"
+        case .useForAudio: "Use for audio"
+        case .displaySettings: "Displays…"
+        case .bluetoothButton(let title, _): title
+        }
+    }
+
     /// "Connected" with a tick, "Disconnected", or the device's own detail (drive size…).
     var statusLine: some View {
         HStack(spacing: 4) {

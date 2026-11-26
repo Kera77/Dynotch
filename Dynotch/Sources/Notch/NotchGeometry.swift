@@ -118,8 +118,17 @@ struct NotchGeometry: Equatable, Sendable {
         )
     }
 
+    /// As wide as the closed notch when the device's row fits, wider up to its old width (spec E-31).
     func devicePeekSize(for event: DeviceEvent?) -> CGSize {
-        devicePeekSize(levels: event?.levels.count ?? 0, actions: event?.actions.count ?? 0)
+        let widest = devicePeekSize(levels: event?.levels.count ?? 0, actions: event?.actions.count ?? 0)
+        guard let event else { return widest }
+        return CGSize(width: fittedPeekWidth(content: DevicePeekView.contentWidth(event), upTo: widest.width), height: widest.height)
+    }
+
+    /// The closed notch's width when `content` fits in it, else what it needs, at most `widest`
+    /// (spec E-31).
+    func fittedPeekWidth(content: CGFloat, upTo widest: CGFloat) -> CGFloat {
+        min(max(notchSize.width, ceil(content)), max(widest, notchSize.width))
     }
 
     /// The closed notch opened for an incoming call (spec P-1), taller with the message field.

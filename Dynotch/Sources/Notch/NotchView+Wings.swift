@@ -13,6 +13,7 @@ extension NotchView {
         case .reminders: remindersWingLeftV2
         case .claudeUsage: aiWingLeft
         case .claudeSessions: WingLabel(symbol: "terminal", text: ClaudeSessionsWing.left(notices.sessions.sessions))
+        case .cleaner: WingLabel(symbol: "externaldrive.badge.minus", text: "Cleaner")
         case .claudeChat: WingLabel(symbol: "sparkles", text: chat.isWorking ? "Working…" : chat.selected?.title ?? "Claude")
         case .battery: batteryWingLeft
         case .clipboard: clipboardWingLeftV2
@@ -37,6 +38,7 @@ extension NotchView {
         case .reminders: remindersWingRightV2
         case .claudeUsage: usageSessionWing
         case .claudeSessions: WingText(ClaudeSessionsWing.right(notices.sessions.sessions), dim: true)
+        case .cleaner: WingText(CleanerWing.right(.shared), dim: true)
         case .claudeChat: WingText(FeaturePreview.line(of: lastAnswer, fallback: "Ask Claude anything"), dim: true)
         case .battery: batteryWingRight
         case .clipboard: clipboardWingRightV2

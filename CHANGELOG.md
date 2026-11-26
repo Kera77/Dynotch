@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+- Cleaner module (TT-1…TT-7): Leftovers lists files of removed apps in `~/Library` (named by an app
+  identifier, no app of that vendor on the Mac, never `com.apple.*`), Caches lists app, developer
+  (DerivedData, Homebrew, npm, pip) and log caches by size, Apps removes an app with its files
+  (Quit first if it runs). Everything goes to the Trash after a confirmation; "Freed …" afterwards.
+  Full Disk Access hint, `cleaner.log` with counts only. Home tile, Wings text, onboarding module
+  text and first-use tip, What's new and test list for 1.8.2.
+
+### Fixed
+- Notifications (with their second row) and device notices open only as wide as the closed notch
+  when their content fits, and only as much wider as needed (E-31).
+
 ## [1.8.1] - 2026-11-26
 
 ### Added
