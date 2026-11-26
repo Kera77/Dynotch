@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-11-26
+
 ### Added
 - AI › Sessions tab (new module, merged into AI): every Claude Code session in Terminal, VS Code or
   the Claude app, newest on top, with its state (Working, Asks, Needs you, Background task,
