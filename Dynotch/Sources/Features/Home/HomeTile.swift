@@ -11,6 +11,8 @@ struct TileSize: Hashable, Sendable {
     static let large = TileSize(rows: 2, columns: 2)
     static let wideLarge = TileSize(rows: 2, columns: 3)
     static let tallLarge = TileSize(rows: 3, columns: 2)
+    /// One row across the five columns (spec HT-43).
+    static let strip = TileSize(rows: 1, columns: 5)
 
     var label: String { "\(rows)×\(columns)" }
 }
@@ -29,6 +31,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
     case agenda = "calendar.agenda"
     case calendarWide = "calendar.calendarWide"
     case calendarTall = "calendar.calendarTall"
+    case days = "calendar.days"
     case weatherNow = "weather.now"
     case hourly = "weather.hourly"
     case fiveDays = "weather.fiveDays"
@@ -44,6 +47,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
     case todos = "notes.todos"
     case quickNote = "notes.quickNote"
     case lastResult = "calculator.lastResult"
+    case keypad = "calculator.keypad"
     case fiveHour = "claudeUsage.fiveHour"
     case weekly = "claudeUsage.weekly"
     case limits = "claudeUsage.limits"
@@ -96,6 +100,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
         .agenda: Info(feature: .calendar, title: "Agenda", size: .large),
         .calendarWide: Info(feature: .calendar, title: "Calendar", size: .wideLarge),
         .calendarTall: Info(feature: .calendar, title: "Calendar", size: .tallLarge),
+        .days: Info(feature: .calendar, title: "Days", size: .strip),
         .weatherNow: Info(feature: .weather, title: "Now", size: .small),
         .hourly: Info(feature: .weather, title: "Hourly", size: .wide),
         .fiveDays: Info(feature: .weather, title: "5 days", size: .large),
@@ -111,6 +116,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
         .todos: Info(feature: .notes, title: "To-dos", size: .tall),
         .quickNote: Info(feature: .notes, title: "Quick note", size: .wide),
         .lastResult: Info(feature: .calculator, title: "Last result", size: .small),
+        .keypad: Info(feature: .calculator, title: "Calculator", size: .large),
         .fiveHour: Info(feature: .claudeUsage, title: "5-hour", size: .small),
         .weekly: Info(feature: .claudeUsage, title: "Weekly", size: .small),
         .limits: Info(feature: .claudeUsage, title: "Limits", size: .wide),

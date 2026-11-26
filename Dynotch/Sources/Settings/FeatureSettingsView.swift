@@ -94,22 +94,15 @@ private struct FeatureRow<Music: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 DragHandle()
-                Toggle(isOn: Binding(get: { isOn }, set: { settings.setEnabled(feature, $0) })) {
-                    HStack(spacing: 8) {
-                        SettingsRowLabel(title: feature.title, detail: shortcuts.shortcuts[feature]?.display) {
-                            Image(systemName: feature.symbolName).foregroundStyle(.secondary)
-                        }
-                        // Left of the switch, so the switches stay in one column (spec M-19).
-                        if !settings.isListed(feature) {
-                            Spacer(minLength: 0)
-                            Image(systemName: "eye.slash")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .help("Not among the modules: opens with its shortcut or the swipe-up row")
-                                .accessibilityLabel("Hidden from the modules")
-                        }
-                    }
+                SettingsRowLabel(title: feature.title, detail: shortcuts.shortcuts[feature]?.display) {
+                    Image(systemName: feature.symbolName).foregroundStyle(.secondary)
                 }
+                Spacer(minLength: 0)
+                // Left of the switch, so the switches stay in one column (spec M-19, M-23).
+                listedButton
+                Toggle(feature.title, isOn: Binding(get: { isOn }, set: { settings.setEnabled(feature, $0) }))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
                 Button {
                     withAnimation(Motion.quick) { isOpen.toggle() }
                 } label: {
@@ -128,6 +121,26 @@ private struct FeatureRow<Music: View>: View {
             if isOpen, feature == .home { HomeTilesEditor(tiles: .shared, order: settings.featureOrder) }
         }
         .revealWhenOpened(isOpen)
+    }
+
+    /// The eye: among the modules or not, one click away (spec M-18, M-23).
+    private var listedButton: some View {
+        let listed = settings.isListed(feature)
+        return Button {
+            settings.setListed(feature, !listed)
+        } label: {
+            Image(systemName: listed ? "eye" : "eye.slash")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .disabled(!isOn)
+        .opacity(isOn ? 1 : 0.4)
+        .help(listed ? "Among the modules; click to hide it (it still opens with its shortcut or the swipe-up row)"
+            : "Not among the modules: opens with its shortcut or the swipe-up row; click to show it")
+        .accessibilityLabel(listed ? "Hide \(feature.title) from the modules" : "Show \(feature.title) among the modules")
     }
 
     private var options: some View {

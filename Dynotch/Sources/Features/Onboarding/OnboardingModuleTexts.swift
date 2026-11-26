@@ -15,7 +15,7 @@ enum OnboardingModuleTexts {
         .notifications: "Your messages and alerts in one place, grouped by app, also from Beeper, Google Chat and Mail. "
             + "New ones drop down under the notch, and you can reply or dismiss them right there.",
         .reminders: "Your Apple Reminders as a quick to-do list. "
-            + "Type and press Return to add one; times like “tomorrow 9” set the due date.",
+            + "Add one with New task at the end of a list; times like “tomorrow 9” set the due date.",
         .notes: "Apple Notes in the notch, with formatting and to-do lists. "
             + "Jot something down without switching apps; ⇧⌘L turns lines into a checklist.",
         .calculator: "A calculator that is always one hover away. "
@@ -41,7 +41,7 @@ enum OnboardingModuleTexts {
         .music: "Play, pause and skip what Spotify plays, with the cover and the track. "
             + "The current track also shows beside the closed notch.",
         .home: "Tiles with what matters from your modules: the next event, the clock, CPU and more. "
-            + "Click a tile to open its module; choose the tiles in Settings › Modules › Home.",
+            + "Click a tile to open its module, drag it to move it; choose the tiles in Settings › Modules › Home.",
         .info: "Version, display and notch details of Wingmate. "
             + "Useful for troubleshooting."
     ]

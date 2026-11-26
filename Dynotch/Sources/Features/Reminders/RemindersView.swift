@@ -71,14 +71,12 @@ struct RemindersView: View {
             }
         case .split:
             VStack(spacing: 8) {
+                // No quick add field: the two columns side by side, New task adds (spec R-22).
                 HStack(alignment: .top, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        QuickAddField(store: store)
-                        // Each column shows what is picked in its header (spec R-15).
-                        ScrollView(.vertical) { ReminderColumn(store: store, side: .left) }
-                            .scrollIndicators(.never)
-                    }
-                    .frame(maxWidth: .infinity)
+                    // Each column shows what is picked in its header (spec R-15).
+                    ScrollView(.vertical) { ReminderColumn(store: store, side: .left) }
+                        .scrollIndicators(.never)
+                        .frame(maxWidth: .infinity)
                     ScrollView(.vertical) { ReminderColumn(store: store, side: .right) }
                         .scrollIndicators(.never)
                         .frame(maxWidth: .infinity)
@@ -99,6 +97,8 @@ struct RemindersView: View {
             }
             .buttonStyle(.notch)
             .help(store.showCompleted ? "Hide completed" : "Show tasks completed in the last 7 days")
+            // The quick add's options, in the notch without its field (spec R-22).
+            if layout == .split { optionsMenu }
 
             Spacer()
             Text(store.errorMessage ?? "\(store.openCount) open")
@@ -121,6 +121,22 @@ struct RemindersView: View {
             .help("Open in Reminders")
             .accessibilityLabel("Open in Reminders")
         }
+    }
+
+    private var optionsMenu: some View {
+        Menu {
+            Toggle("Auto suggest today as date", isOn: $store.autoToday)
+            Toggle("Remove parsed date from title", isOn: $store.removeParsedDate)
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .font(.notch(size: 15))
+                .foregroundStyle(Color.white.level(0.6))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.notch)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Options for new tasks: dates like \"tomorrow 2pm\" are recognised")
     }
 
     private func prompt(_ text: String, button: String, action: @escaping () -> Void) -> some View {

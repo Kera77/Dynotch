@@ -205,7 +205,7 @@ extension NotchController {
     /// A click on Beeper's or Google Chat's badge: the notch opens on its tab instead of the app.
     func openChatTab(_ tab: NotificationsTab) {
         setHoveredBadge(nil)
-        if !model.isExpanded { expand() }
+        if !model.isExpanded { expand(fromEdge: true) }
         withAnimation(Self.animation) {
             model.notificationsTab = tab
             model.select(.notifications)

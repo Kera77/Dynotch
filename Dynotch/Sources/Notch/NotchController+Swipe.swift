@@ -19,11 +19,8 @@ extension NotchController {
         let isMomentum = !event.momentumPhase.isEmpty
         if phase == .began { gestureSwitchedFeature = false }
 
-        // Over the calendar's day strip a horizontal swipe steps through the days (spec K-4) —
-        // but not the rest of a swipe that just switched to the calendar: that needs a new one.
-        // Over the Calendar | Weather picker it steps the tabs instead (spec S-7).
-        if model.currentFeature == .calendar, !model.isLarge, !HoveredTabs.shared.isHovering,
-           model.geometry.dayStripZone(panel: model.openSize).contains(NSEvent.mouseLocation) {
+        if isOverDayStrip {
+            // Not the rest of a swipe that just switched to the calendar: that needs a new one.
             if gestureSwitchedFeature { return true }
             return stepDays(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY)
         }
@@ -52,6 +49,15 @@ extension NotchController {
             }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
+    }
+
+    /// Over the calendar's day strip a horizontal swipe steps through the days (spec K-4), and
+    /// over the Days tile's on the Home (spec HT-43). Over the Calendar | Weather picker it steps
+    /// the tabs instead (spec S-7).
+    private var isOverDayStrip: Bool {
+        if model.currentFeature == .home { return model.tileOpening == nil && MonthTilePager.shared.isOverDays }
+        return model.currentFeature == .calendar && !model.isLarge && !HoveredTabs.shared.isHovering
+            && model.geometry.dayStripZone(panel: model.openSize).contains(NSEvent.mouseLocation)
     }
 
     /// Over a tab row a swipe steps its tabs before the modules; false when not over one or at its end.

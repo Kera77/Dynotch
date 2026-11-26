@@ -124,4 +124,14 @@ struct GoogleChatWebTests {
         #expect(GoogleChatJump.conversationName(from: "Kovács Anna") == "Kovács Anna")
         #expect(GoogleChatJump.conversationName(from: "Anna ()") == "Anna ()")
     }
+
+    /// In a group each line shows who wrote it; in a direct message the title says it (spec GW-32).
+    @Test func groupLinesNameTheirSender() {
+        let line = ChatWebMessage(id: "1", text: "hi", sender: "Gergő")
+        let group = NotificationContent(sender: "Csapat", detail: "hi", lines: [line])
+        #expect(group.shownSender(of: line) == "Gergő")
+        let direct = NotificationContent(sender: "Gergő", detail: "hi", lines: [line])
+        #expect(direct.shownSender(of: line) == nil)
+        #expect(group.shownSender(of: ChatWebMessage(id: "2", text: "x")) == nil)
+    }
 }

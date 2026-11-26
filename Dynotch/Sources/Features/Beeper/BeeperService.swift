@@ -18,6 +18,8 @@ final class BeeperService {
     private(set) var chats: [BeeperChatInfo] = []
     /// An unread chat picked in a badge's drop-down, to open ready to answer (spec B-10f).
     var cardRequest: CardOpenRequest?
+    /// The card being answered: it stays after it was read, until another card opens or the notch closes (spec BP-21).
+    var answeringChatID: String?
     /// The networks of the accounts in Beeper, so a quiet one can be highlighted too (spec BP-17).
     private(set) var accountNetworks: [String] = []
     @ObservationIgnored private var accountsLoadedAt: Date?

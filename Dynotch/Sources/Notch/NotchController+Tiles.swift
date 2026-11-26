@@ -56,10 +56,24 @@ extension NotchController {
     /// A pinch over the module opened from a tile, when Pinch is the way back (spec HT-40). The
     /// event tap hands it over whichever app is active, so the pointer must be over the panel.
     func handleTilePinch(_ event: NSEvent) -> Bool {
+        if handleEdgePinch(event) { return true }
         guard model.isExpanded, model.tileOpening != nil, HomeTileSettings.shared.backGesture == .pinch,
               model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
         else { return false }
         if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) { goBackHome(by: "pinch") }
+        return true
+    }
+
+    /// A pinch over a panel opened from the closed notch's edge closes it, back to the edge (spec N-27).
+    private func handleEdgePinch(_ event: NSEvent) -> Bool {
+        guard model.isExpanded, model.openedFromEdge, model.tileOpening == nil, !model.isPinned,
+              model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
+        else { return false }
+        if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) {
+            DiagnosticsLog.append("notch", "closed by pinch (opened from the edge)")
+            collapse()
+            Haptics.perform(.featureSwitch, settings: settings)
+        }
         return true
     }
 

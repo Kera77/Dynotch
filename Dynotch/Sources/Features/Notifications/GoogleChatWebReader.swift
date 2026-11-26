@@ -35,6 +35,8 @@ struct ChatWebMessage: Equatable, Sendable {
     let text: String
     /// Written by the owner: the web app heads the group "Ön"/"You" (spec GW-20).
     var isMine = false
+    /// Who wrote it, from the group's sender heading; nil for the owner's own (spec GW-32).
+    var sender: String?
 }
 
 /// What the Google Chat web app shows: its sidebar and the open conversation (spec GW-4).
@@ -251,6 +253,8 @@ enum GoogleChatWebReader {
         var stopAtHome = false
         /// Whether the last sender heading was the owner's: the messages under it are theirs.
         private var ownGroup = false
+        /// The last sender heading's name: who wrote the messages under it (spec GW-32).
+        private var groupSender: String?
         private var visited = 0
 
         /// Depth first, in page order, without recursion: the page is deeper than a background
@@ -289,7 +293,7 @@ enum GoogleChatWebReader {
             if domID.hasSuffix(GoogleChatWebReader.messageSuffix) {
                 let text = AXRead.texts(in: element).joined(separator: " ")
                 let id = String(domID.dropLast(GoogleChatWebReader.messageSuffix.count))
-                messages.append(ChatWebMessage(id: id, text: text, isMine: ownGroup))
+                messages.append(ChatWebMessage(id: id, text: text, isMine: ownGroup, sender: ownGroup ? nil : groupSender))
                 return false
             }
             if role == "AXHeading" { readHeading(element) }
@@ -307,6 +311,7 @@ enum GoogleChatWebReader {
             let name = (AXRead.string(heading, kAXTitleAttribute) ?? AXRead.texts(in: heading).first ?? "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             ownGroup = GoogleChatWebReader.isOwnHeading(name: name, classes: classes)
+            groupSender = name.isEmpty ? nil : name
         }
 
         /// The sidebar's Home: a link to …/app/home, or a link or button titled Home.

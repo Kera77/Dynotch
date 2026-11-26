@@ -22,10 +22,15 @@ struct BeeperUnreadCard: View {
     /// Focused by itself after a click on the card: read only once typing starts (spec E-27, UM-3b).
     @State private var focusedBySelf = false
 
-    /// The unread messages from the others, the newest last.
+    /// The unread messages from the others, the newest last; while the card is being answered,
+    /// from the first of them on, my replies included (spec BP-21).
     private var unread: [BeeperFullMessage] {
-        let others = (beeper.messages[chat.id] ?? []).filter { !$0.mine && $0.isDeleted != true }
-        return Array(others.suffix(max(chat.unread, 1)))
+        let all = (beeper.messages[chat.id] ?? []).filter { $0.isDeleted != true }
+        let others = Array(all.filter { !$0.mine }.suffix(max(chat.unread, 1)))
+        guard beeper.answeringChatID == chat.id, let first = others.first,
+              let start = all.firstIndex(where: { $0.id == first.id })
+        else { return others }
+        return Array(all[start...].suffix(8))
     }
 
     var body: some View {
@@ -77,12 +82,14 @@ struct BeeperUnreadCard: View {
                         .font(.notch(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                    Text("\(chat.unread)")
-                        .font(.notch(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 1)
-                        .background(Capsule().fill(BeeperStyle.blue))
+                    if chat.unread > 0 {
+                        Text("\(chat.unread)")
+                            .font(.notch(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(BeeperStyle.blue))
+                    }
                     Spacer(minLength: 8)
                     Text(subtitle)
                         .font(.notch(size: 10))
@@ -117,7 +124,9 @@ struct BeeperUnreadCard: View {
     private func line(_ message: BeeperFullMessage) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                if chat.isGroup, let sender = message.senderName {
+                if message.mine {
+                    Text("You").font(.notch(size: 10, weight: .semibold)).foregroundStyle(BeeperStyle.blue)
+                } else if chat.isGroup, let sender = message.senderName {
                     Text(sender).font(.notch(size: 10, weight: .semibold)).foregroundStyle(Color.white.level(0.55))
                 }
                 Text(Self.text(of: message))
@@ -211,6 +220,8 @@ struct BeeperUnreadCard: View {
         let message = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !message.isEmpty, !isSending else { return }
         isSending = true
+        // Answered: the card stays open for the next message (spec BP-21).
+        beeper.answeringChatID = chat.id
         let replyTo = quote?.id
         Task {
             let sent = await beeper.send(message, to: chat.id, replyTo: replyTo)
@@ -236,7 +247,7 @@ struct BeeperUnreadCards: View {
     @State private var focusToken = 0
 
     private var chats: [BeeperChatInfo] {
-        Array((network.map(beeper.unreadChats(network:)) ?? beeper.unreadChats).prefix(12))
+        Array(beeper.cardChats(network: network).prefix(12))
     }
 
     var body: some View {
@@ -246,7 +257,7 @@ struct BeeperUnreadCards: View {
                 beeper: beeper,
                 chat: chat,
                 isExpanded: expanded == chat.id || chats.count == 1,
-                toggle: { withAnimation(Motion.quick) { expanded = expanded == chat.id ? nil : chat.id } },
+                toggle: { toggle(chat) },
                 openInTab: { open(chat) },
                 focusRequest: focusedChat == chat.id ? focusToken : 0
             )
@@ -255,11 +266,19 @@ struct BeeperUnreadCards: View {
         .onChange(of: beeper.cardRequest) { _, _ in openRequested() }
     }
 
+    /// Opening another card lets the answered one go (spec BP-21).
+    private func toggle(_ chat: BeeperChatInfo) {
+        let opens = expanded != chat.id
+        if opens, beeper.answeringChatID != chat.id { beeper.answeringChatID = nil }
+        withAnimation(Motion.quick) { expanded = opens ? chat.id : nil }
+    }
+
     /// Opens the chat asked for from a badge's drop-down, its reply field ready (spec B-10f).
     private func openRequested() {
         guard let request = beeper.cardRequest, let chat = chats.first(where: { request.matches($0.name) }) else { return }
         DispatchQueue.main.async {
             beeper.cardRequest = nil
+            if beeper.answeringChatID != chat.id { beeper.answeringChatID = nil }
             withAnimation(Motion.quick) { expanded = chat.id }
             focusedChat = chat.id
             focusToken += 1
@@ -276,7 +295,7 @@ struct BeeperNetworkTab: View {
     var body: some View {
         if beeper.state != .ready {
             EmptyStateView(symbol: "bubble.left.and.bubble.right", text: "Beeper is not connected.")
-        } else if beeper.unreadChats(network: network).isEmpty {
+        } else if beeper.cardChats(network: network).isEmpty {
             EmptyStateView(symbol: "checkmark.bubble", text: "No unread \(network) chats.")
         } else {
             ScrollView(.vertical) {
@@ -287,5 +306,19 @@ struct BeeperNetworkTab: View {
             }
             .scrollIndicators(.never)
         }
+    }
+}
+
+extension BeeperService {
+    /// The unread chats as cards, with the one being answered kept even once it was read (spec BP-21).
+    /// - Parameter network: a highlighted network's tab (spec BP-15); nil: the chats Beeper stands for together.
+    func cardChats(network: String? = nil) -> [BeeperChatInfo] {
+        var list = network.map(unreadChats(network:)) ?? unreadChats
+        guard let id = answeringChatID, !list.contains(where: { $0.id == id }),
+              let chat = chats.first(where: { $0.id == id })
+        else { return list }
+        let belongs = network.map { chat.network == $0 } ?? !highlightedNetworks.contains(chat.network ?? "")
+        if belongs { list.insert(chat, at: 0) }
+        return list
     }
 }

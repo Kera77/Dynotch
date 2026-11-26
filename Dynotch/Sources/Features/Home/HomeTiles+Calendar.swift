@@ -22,6 +22,8 @@ struct CalendarTileContent: View {
             WeekTileContent(calendar: services.calendar)
         case .agendaTall, .agenda:
             AgendaTileContent(calendar: services.calendar, lines: size.lines)
+        case .days:
+            DaysTileContent(calendar: services.calendar)
         default:
             CalendarLargeTileContent(calendar: services.calendar, isWide: tile == .calendarWide)
         }

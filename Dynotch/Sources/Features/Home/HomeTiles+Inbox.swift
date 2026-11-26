@@ -210,6 +210,7 @@ struct TextTileContent: View {
         case .todos: todos
         case .quickNote: QuickFieldTile(title: "Quick note", placeholder: "Add to the scratchpad…") { services.notes.addToScratchpad($0) }
         case .lastResult: lastResult
+        case .keypad: CalculatorKeypadTile()
         case .lastCopied: lastCopied
         default: recentClips
         }

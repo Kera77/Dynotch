@@ -170,9 +170,21 @@ struct HomeTilesTests {
         #expect(FeatureID.allCases.allSatisfy { withTiles.contains($0) })
     }
 
+    /// A tile dragged in the notch lands in the saved grid, shifted back and kept inside (spec HT-44).
+    @Test func dropInTheNotchMapsBackToTheGrid() {
+        let slots = [HomeSlot(tile: .clock, row: 2, column: 3)]
+        // Shown: the empty rows above are left out, the one tile centred in three columns.
+        let shown = HomeLayout.shown(slots)
+        #expect(shown.placements.first?.row == 0)
+        let back = HomeLayout.dropCell(of: .clock, shownRow: 0, shownColumn: shown.placements[0].column, in: slots)
+        #expect(back == GridCell(row: 2, column: 3))
+        let wide = HomeLayout.dropCell(of: .days, shownRow: 0, shownColumn: 4, in: slots)
+        #expect(wide.column == 0)
+    }
+
     @Test func everySizeIsUsedAndFitsTheGrid() {
         let sizes = Set(HomeTile.allCases.map(\.size))
-        #expect(sizes == [.small, .wide, .tall, .large, .wideLarge, .tallLarge])
+        #expect(sizes == [.small, .wide, .tall, .large, .wideLarge, .tallLarge, .strip])
         let placements = HomeLayout.placements(HomeLayout.slots(from: HomeTile.allCases))
         #expect(placements.count == HomeTile.allCases.count)
         #expect(placements.allSatisfy { $0.column + $0.size.columns <= HomeLayout.columns })

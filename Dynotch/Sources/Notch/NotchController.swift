@@ -216,7 +216,9 @@ final class NotchController {
 
     /// - Parameter preview: show only the small preview first (spec PV-1).
     ///   - smart: opened by hover: the module may follow what is going on (spec SO-1).
-    func expand(preview: Bool = false, smart: Bool = false, animation: Animation = NotchController.animation) {
+    ///   - fromEdge: opened from the closed notch's edge; a pinch closes it again (spec N-27).
+    func expand(preview: Bool = false, smart: Bool = false, fromEdge: Bool = false, animation: Animation = NotchController.animation) {
+        let edge = fromEdge || notifications.peek != nil || model.hoveredIndicator != nil || model.hoveredBadge != nil
         cancelClose()
         graceUntil = nil
         if model.hidesGlass { model.hidesGlass = false } // Hidden only around the switcher (spec AS-18).
@@ -231,6 +233,7 @@ final class NotchController {
         if smart, stack.isEmpty, notices.notice?.opensChat != true, !OnboardingController.isRunning { applySmartOpening() }
         let stackHeight = stack.isEmpty ? nil : notifications.stackHeight(for: stack, notchHeight: model.geometry.notchSize.height)
         Signposts.animate("open", animation) { model.setExpanded(true, presenting: stack, canReply: canReply, stackHeight: stackHeight) }
+        model.openedFromEdge = edge && !preview
         notifications.clearPeek()
         startHoverTimer()
         if preview, stack.isEmpty, notices.notice?.opensChat != true { startPreview() }
@@ -249,6 +252,8 @@ final class NotchController {
         if model.isShowingNotifications { notifications.markSeen(model.notifications) }
         // Google Chat cards closed without a reply go back to unread (spec GW-17).
         if model.isExpanded { notifications.allCardsClosed() }
+        // The answered Beeper card goes with the notch (spec BP-21).
+        if model.isExpanded { beeper.answeringChatID = nil }
         // Only an open panel ends the filter; the closed panels of other displays leave it.
         if model.isExpanded { notifications.clearFocus() }
         OpenMenus.closeAll()

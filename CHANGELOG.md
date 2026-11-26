@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-11-26
+
+### Added
+- Pinch back to the notch's edge (N-27): a panel opened from the closed notch's edge (a drop-down,
+  a badge, a badge list row, a notification peek) closes with a two-finger pinch over it.
+- Home tiles (HT-42…HT-45): *Calculator* (2×2) counts on the tile with its own keypad; *Days*
+  (5×1) shows the Calendar's day strip and the picked day's first events, a swipe over it steps the
+  days. Tiles can be dragged to another place in the notch's Home, with a dashed frame where they
+  will land.
+- Settings › Modules: an eye button beside each switch shows or hides the module among the modules
+  without opening the row (M-23).
+
+### Changed
+- Tasks in the notch: no quick add field; both columns line up side by side, New task adds, the
+  options moved to a ••• menu in the bottom bar (R-22). Every due date is white text in a filled
+  bubble, Today / Tomorrow / overdue keep their colour in the fill (R-21).
+- Onboarding: the Home and Tasks tips and module texts mention dragging tiles and New task.
+
+### Fixed
+- Beeper: an answered unread card stays open, with my replies, until another card opens or the
+  notch closes (BP-21).
+- Google Chat: messages in a group conversation show their sender before the line (GW-32).
+
 ## [1.7.3] - 2026-11-26
 
 ### Added

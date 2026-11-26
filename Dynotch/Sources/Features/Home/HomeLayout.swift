@@ -24,6 +24,13 @@ struct HomeSlot: Hashable, Sendable {
     }
 }
 
+/// How the notch moves the saved grid (spec HT-39): rows left out above, columns shifted, its width.
+struct ShownOrigin: Equatable, Sendable {
+    let top: Int
+    let shift: Int
+    let columns: Int
+}
+
 /// A cell of the Home's grid.
 struct GridCell: Hashable, Sendable {
     var row: Int
@@ -85,14 +92,30 @@ enum HomeLayout {
     /// widest row sets the width, at least three columns, a narrower set centred (spec HT-39).
     static func shown(_ slots: [HomeSlot]) -> (placements: [TilePlacement], columns: Int) {
         let placed = placements(slots)
+        guard let origin = shownOrigin(placed) else { return ([], minimumColumns) }
+        let moved = placed.map {
+            TilePlacement(tile: $0.tile, row: $0.row - origin.top, column: $0.column + origin.shift, size: $0.size)
+        }
+        return (moved, origin.columns)
+    }
+
+    /// How the notch moves the grid: rows left out above, columns shifted, and its width (spec HT-39).
+    static func shownOrigin(_ placed: [TilePlacement]) -> ShownOrigin? {
         guard let top = placed.map(\.row).min(), let left = placed.map(\.column).min(),
               let right = placed.map({ $0.column + $0.size.columns }).max()
-        else { return ([], minimumColumns) }
+        else { return nil }
         let used = right - left
         let width = max(used, minimumColumns)
-        let shift = (width - used) / 2 - left
-        let moved = placed.map { TilePlacement(tile: $0.tile, row: $0.row - top, column: $0.column + shift, size: $0.size) }
-        return (moved, width)
+        return ShownOrigin(top: top, shift: (width - used) / 2 - left, columns: width)
+    }
+
+    /// Where a tile dragged in the notch lands in the five columns: its shown cell back to the
+    /// saved grid, kept inside it (spec HT-44).
+    static func dropCell(of tile: HomeTile, shownRow: Int, shownColumn: Int, in slots: [HomeSlot]) -> GridCell {
+        let origin = shownOrigin(placements(slots)) ?? ShownOrigin(top: 0, shift: 0, columns: columns)
+        let width = min(tile.size.columns, columns)
+        let column = min(max(shownColumn - origin.shift, 0), columns - width)
+        return GridCell(row: max(shownRow + origin.top, 0), column: column)
     }
 
     /// The tiles in reading order: by row, then column.

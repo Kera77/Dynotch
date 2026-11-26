@@ -16,6 +16,18 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.7.4", items: [
+            WhatsNewItem(symbol: "hand.pinch", title: "Pinch back to the edge",
+                         text: "Opened the notch from a task, a badge or a notification? Pinch to close it again."),
+            WhatsNewItem(symbol: "square.grid.3x3", title: "New tiles, moved in place",
+                         text: "A Calculator tile that counts, a Days tile with the day strip; drag tiles to move them in the notch."),
+            WhatsNewItem(symbol: "bubble.left.and.bubble.right", title: "Chats stay open",
+                         text: "A Beeper card stays open after you answer; Google Chat groups show who wrote."),
+            WhatsNewItem(symbol: "checklist", title: "Tasks side by side",
+                         text: "No quick add field: both lists line up; every due date sits in a readable bubble."),
+            WhatsNewItem(symbol: "eye", title: "One click to hide",
+                         text: "Settings › Modules: the eye beside a module shows or hides it among the modules.")
+        ]),
         WhatsNewRelease(version: "1.7.3", items: [
             WhatsNewItem(symbol: "testtube.2", title: "Beta updates",
                          text: "Settings › About: turn it on to get test builds before everyone else.")

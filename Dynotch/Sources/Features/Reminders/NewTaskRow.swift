@@ -46,22 +46,23 @@ struct DuePill: View {
     let urgency: DueUrgency?
     var isDone = false
 
-    private var colour: Color {
-        guard !isDone else { return .white.level(0.4) }
+    /// Always white text on a filled bubble; the urgency stays in the fill (spec R-21).
+    private var fill: Color {
+        guard !isDone else { return .white.opacity(0.08) }
         switch urgency {
-        case .overdue: return Theme.red
-        case .today: return .orange
-        case .tomorrow: return Theme.blue
-        case .later, nil: return .white.level(0.55)
+        case .overdue: return Theme.red.opacity(0.55)
+        case .today: return Color.orange.opacity(0.55)
+        case .tomorrow: return Theme.blue.opacity(0.55)
+        case .later, nil: return .white.opacity(0.14)
         }
     }
 
     var body: some View {
         Text(text)
             .font(.notch(size: 10, weight: .semibold))
-            .foregroundStyle(colour)
+            .foregroundStyle(isDone ? Color.white.level(0.45) : .white)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
-            .background(Capsule().fill(colour.opacity(0.16)))
+            .background(Capsule().fill(fill))
     }
 }

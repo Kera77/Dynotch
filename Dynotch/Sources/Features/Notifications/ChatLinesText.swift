@@ -9,6 +9,15 @@ extension NotificationContent {
     }
 
     private func line(_ message: ChatWebMessage) -> Text {
-        message.isMine ? Text(message.text).foregroundStyle(Theme.blue) : Text(message.text)
+        if message.isMine { return Text(message.text).foregroundStyle(Theme.blue) }
+        guard let name = shownSender(of: message) else { return Text(message.text) }
+        return Text("\(Text("\(name): ").fontWeight(.semibold))\(message.text)")
+    }
+
+    /// In a group the sender stands before the line; in a direct message the card's title is
+    /// the sender already (spec GW-32).
+    func shownSender(of message: ChatWebMessage) -> String? {
+        guard let name = message.sender, !name.isEmpty, !sender.hasPrefix(name) else { return nil }
+        return name
     }
 }

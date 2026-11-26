@@ -137,7 +137,7 @@ extension NotchController {
         guard settings.isEnabled(feature) else { return }
         setHoveredIndicator(nil)
         setHoveredBadge(nil)
-        expand()
+        expand(fromEdge: true)
         withAnimation(Self.animation) { model.select(feature, remember: false, exact: true) }
     }
 
@@ -238,7 +238,7 @@ extension NotchController {
     func stepDayOnce() {
         let step = dayQueue.next()
         guard step != 0 else { return }
-        guard model.isExpanded, model.currentFeature == .calendar else { return dayQueue.reset() }
+        guard model.isExpanded, model.currentFeature == .calendar || model.currentFeature == .home else { return dayQueue.reset() }
         let calendarService = calendar
         guard let day = Calendar.current.date(byAdding: .day, value: step, to: calendarService.selectedDay) else { return }
         // Two weeks each way is the wall (spec K-15): the rest of the flick stops there.
@@ -364,7 +364,7 @@ extension NotchController {
         setHoveredBadge(nil)
         // The filter is in place before the panel and the list appear.
         notifications.setFocus(bundleID: badge.app.bundleID, name: badge.app.name, count: BadgeTracker.count(badge.label))
-        expand()
+        expand(fromEdge: true)
         model.notificationsTab = .all
         model.select(.notifications)
     }

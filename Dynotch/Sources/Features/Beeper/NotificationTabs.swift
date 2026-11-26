@@ -165,7 +165,7 @@ struct NotificationsTabsView: View {
 
     /// Beeper's unread chats stand as cards (spec UM-9, PV-52).
     private var showsBeeperCards: Bool {
-        beeper.keepsUnread && beeper.state == .ready && !beeper.unreadChats.isEmpty
+        beeper.keepsUnread && beeper.state == .ready && !beeper.cardChats().isEmpty
     }
 
     @ViewBuilder private func allLeading(mail showsMail: Bool, cards: Bool) -> some View {

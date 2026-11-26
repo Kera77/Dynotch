@@ -39,7 +39,7 @@ enum OnboardingTips {
 
     private static let texts: [String: String] = [
         "home": "Click a tile to open its module; pinch with two fingers to come back (or swipe down, "
-            + "Settings › Modules › Home › Back to Home). There, drop tiles where you want them, or click +.",
+            + "Settings › Modules › Home › Back to Home). Drag a tile to move it, here or in Settings › Modules › Home.",
         "calendar": "Click a day in the strip or swipe over it to see that day; Join opens the meeting link. "
             + "The icon at the strip's end opens the month view. Before a meeting a countdown waits beside the "
             + "closed notch; hover it for the name and Join.",
@@ -62,7 +62,7 @@ enum OnboardingTips {
             + "(price = 1200), units (5 km in mi), percentages and total work too.",
         "notes": "Your Apple Notes: pick a folder and a note on the left, or write a draft and save it to Notes. "
             + "Edits save by themselves; ⌘B, ⌘I and the Aa menu format text, ⇧⌘L makes a checklist.",
-        "reminders": "Type a reminder and press Return: “tomorrow 9” sets the date, “@List” the list. Click the "
+        "reminders": "Click New task at the end of a list and type: “tomorrow 9” sets the date. Click the "
             + "circle to complete a task, the i for its details; each column's header picks what it shows.",
         "claudeChat": "Ask Claude or ChatGPT; the header picks the provider, the model and a template. Add the "
             + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",

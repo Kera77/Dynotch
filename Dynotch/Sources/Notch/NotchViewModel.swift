@@ -8,6 +8,8 @@ final class NotchViewModel {
     private(set) var currentFeature: FeatureID { didSet { noteOpened(); leaveTileIfMoved() } }
     /// The module opened from a Home tile, until it goes back or away (spec HT-11).
     var tileOpening: TileOpening?
+    /// Opened from the closed notch's edge (a drop-down, a badge, a peek): a pinch closes it (spec N-27).
+    var openedFromEdge = false
     /// True while the panel shows the full calendar and uses the large size.
     private(set) var isLarge = false { didSet { onLargeChange(isLarge) } }
     /// True while the panel shows the settings instead of the features (spec C-2).
@@ -255,6 +257,7 @@ final class NotchViewModel {
         if !expanded {
             leavePages()
             tileOpening = nil
+            openedFromEdge = false
             if settings.visitingFeature != nil { settings.visitingFeature = nil }
             holdsForSettings = false
             holdsForTyping = false

@@ -29,6 +29,10 @@ struct HomeFeatureView: View {
 
     private static let space = "homeViewport"
 
+    /// The tile being dragged to another place, and how far (spec HT-44).
+    @State private var dragged: HomeTile?
+    @State private var dragOffset = CGSize.zero
+
     var body: some View {
         if tiles.tiles.isEmpty {
             HomeClockView(showsHint: true)
@@ -67,7 +71,18 @@ struct HomeFeatureView: View {
         let rows = HomeLayout.rows(of: placements)
         let step = cell + HomeLayout.gap
         return ZStack(alignment: .topLeading) {
+            if let target = dropTarget(placements: placements, step: step) {
+                // Where the dragged tile would land (spec HT-44).
+                RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
+                    .strokeBorder(Color.white.level(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                    .frame(
+                        width: step * CGFloat(target.size.columns) - HomeLayout.gap,
+                        height: step * CGFloat(target.size.rows) - HomeLayout.gap
+                    )
+                    .offset(x: step * CGFloat(target.column), y: step * CGFloat(target.row))
+            }
             ForEach(placements, id: \.tile) { placement in
+                let isDragged = dragged == placement.tile
                 HomeTileCard(
                     tile: placement.tile, viewportSpace: Self.space, open: { open($0, nil, $1) },
                     content: { HomeTileContent(tile: placement.tile, services: services, size: placement.size) }
@@ -77,10 +92,54 @@ struct HomeFeatureView: View {
                     height: step * CGFloat(placement.size.rows) - HomeLayout.gap
                 )
                 .offset(x: step * CGFloat(placement.column), y: step * CGFloat(placement.row))
+                .offset(isDragged ? dragOffset : .zero)
+                .scaleEffect(isDragged ? 1.03 : 1)
+                .shadow(color: .black.opacity(isDragged ? 0.35 : 0), radius: 8, y: 3)
+                .zIndex(isDragged ? 1 : 0)
+                .gesture(moveGesture(placement, step: step))
             }
         }
         .frame(width: width, height: max(step * CGFloat(rows) - HomeLayout.gap, 0), alignment: .topLeading)
         .animation(Motion.spring, value: placements)
+    }
+}
+
+// MARK: - Moving a tile in the notch (spec HT-44)
+
+extension HomeFeatureView {
+    private func moveGesture(_ placement: TilePlacement, step: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 6)
+            .onChanged { value in
+                if dragged != placement.tile { dragged = placement.tile }
+                dragOffset = value.translation
+            }
+            .onEnded { value in
+                let cell = shownCell(placement, translation: value.translation, step: step)
+                let spot = HomeLayout.dropCell(of: placement.tile, shownRow: cell.row, shownColumn: cell.column, in: tiles.slots)
+                withAnimation(Motion.spring) {
+                    tiles.put(placement.tile, row: spot.row, column: spot.column)
+                    dragged = nil
+                    dragOffset = .zero
+                }
+                DiagnosticsLog.append("home", "moved tile \(placement.tile.rawValue) to \(spot.row),\(spot.column)")
+            }
+    }
+
+    /// The shown cell under the dragged tile's top left corner.
+    private func shownCell(_ placement: TilePlacement, translation: CGSize, step: CGFloat) -> GridCell {
+        let column = Int((CGFloat(placement.column) + translation.width / max(step, 1)).rounded())
+        let row = Int((CGFloat(placement.row) + translation.height / max(step, 1)).rounded())
+        return GridCell(row: row, column: column)
+    }
+
+    /// The dragged tile's landing place, in the shown grid.
+    private func dropTarget(placements: [TilePlacement], step: CGFloat) -> TilePlacement? {
+        guard let dragged, let placement = placements.first(where: { $0.tile == dragged }),
+              let origin = HomeLayout.shownOrigin(HomeLayout.placements(tiles.slots))
+        else { return nil }
+        let cell = shownCell(placement, translation: dragOffset, step: step)
+        let spot = HomeLayout.dropCell(of: dragged, shownRow: cell.row, shownColumn: cell.column, in: tiles.slots)
+        return TilePlacement(tile: dragged, row: spot.row - origin.top, column: spot.column + origin.shift, size: placement.size)
     }
 }
 
@@ -119,6 +178,8 @@ final class MonthTilePager {
     private(set) var offset = 0
     /// The pointer is over a Month or Calendar tile: a sideways swipe pages it, not the modules.
     var isHovered = false
+    /// The pointer is over the Days tile's strip: a sideways swipe steps the days (spec HT-43).
+    var isOverDays = false
 
     /// One month on or back; false when the pointer is not over the tile.
     func step(by months: Int) -> Bool {

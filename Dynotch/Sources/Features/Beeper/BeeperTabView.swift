@@ -188,7 +188,7 @@ struct BeeperTabView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 12)
             .frame(height: 34)
-            if service.unreadChats.isEmpty {
+            if service.cardChats().isEmpty {
                 note("No unread chats", symbol: "checkmark.bubble")
             } else {
                 ScrollView(.vertical) {
