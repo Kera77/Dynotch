@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.0 elfogadva** · Utolsó módosítás: 2026-11-25
+> Állapot: **v1.7.1 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1500,6 +1500,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.1** | Vissza a Home-ra csípéssel és lefelé swipe-pal is (inaktív appnál is); teljes szélességű csempeszerkesztő ⊕ gombbal, piros mínusszal kihúzáskor, becsukható modulsorokkal és láncolt görgetéssel; a Modules nyitott sorai megmaradnak, Collapse all (HT-30…HT-36, SD-19) |
 | **v1.7.0** | Kezdőlap csempékkel: 57 csempe minden modulból hat méretben (1×1…3×2), kattintásra a modul a csempéből nyílik, vissza csípéssel vagy lefelé swipe-pal, hónaplapozás swipe-pal, gombok és mezők a csempéken, összeállítás drag and droppal a *Settings › Modules › Home* alatt (HT-1…HT-29) |
 | **v1.6.1** | Fülválasztók swipe-ja az aktuális fültől lép (Tools minden fülén végig), a Naptár Calendar \| Weather választóján a füleket lépteti; a gyorskapcsoló-csempék felirata nem tolja le a sort, az Empty Trash megerősítése piros (S-7, QT-11) |
 | **v1.6.0** | AI usage több Claude-fiókkal: fiók hozzáadása böngészős bejelentkezéssel, Auto (amelyik fogy) vagy kézi választás, a notch-kör hoverje fióknévvel (CL-8…CL-15) |

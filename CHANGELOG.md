@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-11-26
+
 ### Fixed
 
 - Going back from a module opened from a Home tile: pinch and swipe down over the top row both work now, the pinch also while another app is active; the Back to Home choice is gone. `home.log` notes the opened tile and the way back (HT-12, HT-35, HT-36).
