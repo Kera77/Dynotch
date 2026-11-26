@@ -36,12 +36,38 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
     var sameInBoth = true
     /// 0.1…0.8: the menu bar's titles and icons show through the tint (spec MB-9).
     var opacity: Double = 0.5
+    /// Where the middle colour stands in Center, 0.1…0.9 (spec MB-17); missing in older settings.
+    var middleStop: Double?
     /// The old Middle color switch (spec MB-7b): only read, a saved "on" loads as Center (spec MB-15).
     var usesMiddle: Bool?
 
     static let defaultMiddle = "#FFFFFF"
 
     static let opacityRange = 0.1...0.8
+    static let middleStopRange = 0.1...0.9
+    /// The marks the middle stop snaps to, and how near it has to come (spec MB-17).
+    static let middleMarks: [Double] = [1.0 / 3, 0.5, 2.0 / 3]
+    static let snapDistance = 0.03
+
+    var middleLocation: Double {
+        min(max(middleStop ?? 0.5, Self.middleStopRange.lowerBound), Self.middleStopRange.upperBound)
+    }
+
+    /// A value near a mark lands on it; elsewhere it stays, inside the range (spec MB-17).
+    static func snapped(_ value: Double) -> Double {
+        let clamped = min(max(value, middleStopRange.lowerBound), middleStopRange.upperBound)
+        return middleMarks.first { abs($0 - clamped) <= snapDistance } ?? clamped
+    }
+
+    /// The gradient's stops: the middle colour at its place in Center, else evenly (spec MB-17).
+    func stops(dark isDark: Bool) -> [Gradient.Stop] {
+        let colors = colors(dark: isDark).map(TintColor.color)
+        guard colors.count == 3 else {
+            return colors.enumerated().map { .init(color: $1, location: Double($0) / Double(max(colors.count - 1, 1))) }
+        }
+        return [.init(color: colors[0], location: 0), .init(color: colors[1], location: middleLocation),
+                .init(color: colors[2], location: 1)]
+    }
 
     func pair(dark isDark: Bool) -> Pair { isDark && !sameInBoth ? dark : light }
 
@@ -246,7 +272,7 @@ struct MenuBarTintView: View {
         let style = service.style
         let vertical = style.direction.isVertical
         return LinearGradient(
-            colors: style.colors(dark: colorScheme == .dark).map(TintColor.color),
+            stops: style.stops(dark: colorScheme == .dark),
             startPoint: vertical ? .top : .leading, endPoint: vertical ? .bottom : .trailing
         )
         .opacity(min(max(style.opacity, MenuBarTintStyle.opacityRange.lowerBound), MenuBarTintStyle.opacityRange.upperBound))

@@ -77,6 +77,8 @@ final class ColorPanelBridge: NSObject {
         panel.setTarget(self)
         panel.setAction(#selector(colorChanged(_:)))
         panel.isContinuous = true
+        // Over the notch and the menu bar's tint, which stand above floating windows (spec MB-16).
+        panel.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 4)
         NSApp.activate()
         panel.orderFrontRegardless()
         panel.makeKey()

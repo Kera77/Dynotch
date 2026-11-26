@@ -65,3 +65,24 @@ struct MenuBarTintTests {
         #expect(middle.migrated().colors(dark: false).count == 3)
     }
 }
+
+@Suite struct MiddleStopTests {
+    @Test func snapsNearTheMarks() {
+        #expect(MenuBarTintStyle.snapped(0.52) == 0.5)
+        #expect(MenuBarTintStyle.snapped(0.31) == 1.0 / 3)
+        #expect(MenuBarTintStyle.snapped(0.69) == 2.0 / 3)
+        #expect(MenuBarTintStyle.snapped(0.42) == 0.42)
+        #expect(MenuBarTintStyle.snapped(0.02) == 0.1)
+    }
+
+    @Test func middleStandsWhereSet() {
+        var style = MenuBarTintStyle()
+        style.kind = .gradient
+        style.direction = .center
+        #expect(style.stops(dark: false).map(\.location) == [0, 0.5, 1])
+        style.middleStop = 0.25
+        #expect(style.stops(dark: false).map(\.location) == [0, 0.25, 1])
+        style.direction = .horizontal
+        #expect(style.stops(dark: false).map(\.location) == [0, 1])
+    }
+}

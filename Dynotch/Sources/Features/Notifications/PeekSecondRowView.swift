@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The compact row under the notification hanging below the notch: an earlier sender's
-/// notification, or the sticky notice (spec E-28). A hairline parts it from the one above.
+/// notification, or the sticky notice (spec E-28). A line of light like the panel's rim parts it
+/// from the one above (spec E-29).
 struct PeekSecondRowView: View {
     let row: PeekSecondRow
     let app: NotificationApp?
@@ -9,10 +10,7 @@ struct PeekSecondRowView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Rectangle()
-                .fill(Color.white.level(0.1))
-                .frame(height: 0.5)
-                .padding(.horizontal, 12)
+            PeekDivider()
             HStack(spacing: 6) {
                 icon
                 Text(title)
@@ -60,5 +58,22 @@ struct PeekSecondRowView: View {
             return [notice.detail, notice.date.formatted(date: .omitted, time: .shortened)]
                 .filter { !$0.isEmpty }.joined(separator: " · ")
         }
+    }
+}
+
+/// Full width and brightest at its ends, where it meets the rim light (spec D-14a, E-29).
+struct PeekDivider: View {
+    var body: some View {
+        LinearGradient(
+            stops: [
+                .init(color: .white.opacity(0.16), location: 0),
+                .init(color: .white.opacity(0.06), location: 0.3),
+                .init(color: .white.opacity(0.06), location: 0.7),
+                .init(color: .white.opacity(0.16), location: 1)
+            ],
+            startPoint: .leading, endPoint: .trailing
+        )
+        .frame(height: 0.75)
+        .allowsHitTesting(false)
     }
 }

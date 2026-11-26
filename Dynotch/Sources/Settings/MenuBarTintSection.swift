@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings › Menu bar › Color (spec MB-7, MB-8, MB-11, MB-12, MB-15).
+/// Settings › Menu bar › Color (spec MB-7, MB-8, MB-11, MB-12, MB-15, MB-17).
 struct MenuBarTintSection: View {
     @Bindable var tint: MenuBarTintService
 
@@ -20,6 +20,17 @@ struct MenuBarTintSection: View {
                 Toggle("Same in Light and Dark", isOn: $tint.style.sameInBoth)
                 colorRow(tint.style.sameInBoth ? "Colors" : "Light", pair: $tint.style.light)
                 if !tint.style.sameInBoth { colorRow("Dark", pair: $tint.style.dark) }
+                if tint.style.kind == .gradient, tint.style.direction == .center {
+                    LabeledContent("Middle at") {
+                        HStack(spacing: 8) {
+                            MiddleStopSlider(style: $tint.style).frame(width: 160)
+                            Text("\(Int((tint.style.middleLocation * 100).rounded())) %")
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                                .frame(width: 56, alignment: .trailing)
+                        }
+                    }
+                }
                 SettingsSlider(title: "Opacity", value: $tint.style.opacity, range: MenuBarTintStyle.opacityRange) {
                     "\(Int(($0 * 100).rounded())) %"
                 }

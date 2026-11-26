@@ -16,6 +16,12 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.7.7", items: [
+            WhatsNewItem(symbol: "slider.horizontal.3", title: "Middle color where you want it",
+                         text: "In a Center menu bar gradient, a slider sets where the middle color stands."),
+            WhatsNewItem(symbol: "minus", title: "A softer line between notifications",
+                         text: "Two notifications under the notch are parted by a line of light like the glass edge.")
+        ]),
         WhatsNewRelease(version: "1.7.6", items: [
             WhatsNewItem(symbol: "rectangle.tophalf.filled", title: "Black over glass",
                          text: "A new design: a black top row over the glass, parted by a sharp line."),

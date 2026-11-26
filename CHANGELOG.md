@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.7.7] - 2026-11-26
+
+### Added
+- Middle at slider for the Center menu bar gradient (MB-17): sets where the middle colour stands
+  (10–90 %); the bar shows the gradient, small marks at the thirds and the half pull the knob onto
+  them with a light tap.
+
+### Changed
+- The line between two notifications under the notch runs full width like the glass rim, brightest
+  at its ends, so it melts into the panel's edge (E-29).
+
+### Fixed
+- The Custom… colour panel of the menu bar colour opened behind the notch and the tint; it is now
+  in front (MB-16).
+
 ## [1.7.6] - 2026-11-26
 
 ### Added

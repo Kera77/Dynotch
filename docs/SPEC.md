@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.6 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.7.7 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -321,6 +321,7 @@
 | E-26 | (v0.90) **Monokróm ikonok:** az értesítések (kártya, lista, a notch alatti és a szárnyakon megjelenő értesítés) és a notch melletti jelzések (pl. kész letöltés, AI-kérdés jelzése) app-ikonjai **fekete-fehérek** (szürkeárnyalatosak), mint a jelvények (B-12). |
 | E-27 | (v0.104) **Gépelés kattintás nélkül:** ha egy értesítésre kattintva lenyílik a válaszmező (Értesítések modul kártyája, Chats / Beeper olvasatlan kártya), a mező azonnal fókuszt kap, és a notch átveszi a billentyűzetet: egyből lehet gépelni, akkor is, ha a panel hoverre nyílt. A notch alatt nyíló kártyán (E-4) egy üzenetre kattintva ugyanígy a válaszmezőbe kerül a gépelés; a sorra válaszolás nyila (E-17) is. Az így kapott fókusz még nem számít a mezőbe kattintásnak: a csevegés csak az első leütéskor lesz olvasott / nyílik meg a háttérben (UM-3b, GW-8). Hoverre nyitva továbbra sem veszi el a billentyűzetet. |
 | E-28 | (v1.7.6) **Két kis értesítés egymás alatt** (*Drop down* módban, PV-66): ha lelógó értesítés látszik, és **más küldőtől** (beszélgetésből) új jön, az új kerül **felülre**, a korábbi egy kompakt sorba alá (ikon, küldő, app), és megtartja a saját idejét: lejártakor eltűnik, a felső lejártakor felcsúszik. Legfeljebb **két sor**; egy harmadik küldőnél a legrégebbi kiesik a sorból (a listában megmarad, a „+N” számolja). Azonos küldő új üzenete a felső sort frissíti. Ha nincs második értesítés, de van **ragadós jelzés** (CN-1: Claude/Codex kész, kérdés, letöltés, What's new), az áll a második sorban, így nem tűnik el az értesítés alatt. Hoverre a felső soron a felső, az alsón az alsó értesítés kártyája nyílik (E-4); a ragadós jelzés során a panel a szokásos módon. A két sor egy felület, köztük halvány elválasztó; a design a D-25 szerinti. *Beside the notch* módban változatlan (a legújabb a notch mellett, „+N”). |
+| E-29 | (v1.7.7) **Elválasztó, mint az üveg széle (E-28 módosítása):** a két kis értesítés közti vonal a panel teljes szélességében fut, és olyan, mint a notch fényes széle (D-14a): vékony (~0,75 pt) fehér fény, a két szélén a legerősebb (~16%), középen halványabb (~6%), így a széleken beleolvad a panel peremébe. |
 
 ## 4c. Számológép (v0.6)
 
@@ -1093,6 +1094,8 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MB-13 | (v0.100) **Több hézagstílus (MB-1, MB-4 kiegészítése):** *Empty*, *Line*, *Dot* (kis pont), *Dots* (három pont egymás alatt) és *Double line* (két vékony vonal). |
 | MB-14 | (v0.100) **Elrejtés, ha nincs mellette ikon:** hézagonként *Hide when nothing is left of it* (hézag menüje és *Settings › Menu bar*, alapból ki). Bekapcsolva a hézag nem látszik (0 szélesség), ha tőle balra nincs más menüsor-ikon (a saját hézagokat nem számítva); amint megjelenik egy, a hézag is megjelenik. ~2 mp-enként ellenőrzi. |
 | MB-15 | (v1.7.2) **Irány a közép színnel (MB-7, MB-7b módosítása):** a *Middle color* kapcsoló megszűnik. A *Gradient* iránya: **Left to right**, **Right to left**, **Top to bottom**, **Bottom to top** és **Center** (vízszintesen: a kezdő szín a bal szélen, a középső szín középen, a záró szín a jobb szélen). A középső színválasztó csak *Center* irányban látszik (világos és sötét megjelenéshez külön is, MB-8). A korábban bekapcsolt *Middle color* *Center* irányként töltődik be. |
+| MB-16 | (v1.7.7, hiba) **A színválasztó a notch előtt:** a *Custom…* színpanel (és a menüsor színezése közben bármely színválasztó) a notch és a menüsor-színréteg **fölött** jelenik meg, nem takarja el a notch. |
+| MB-17 | (v1.7.7) **A középső szín helye (MB-15 kiegészítése):** *Center* irányban a színválasztók alatt egy csúszka (*Middle at*) állítja, hol áll a középső szín (10–90%, alapból 50%): a sávja a választott átmenetet mutatja, a gomb a középső szín helye. A sáv alatt apró jelölők a **harmadoknál és a felénél**; a jelölő közelében (~3%) a csúszka **odaragad** (érezhető kis koppanással), így pontosan oda áll. Világos és sötét megjelenésben közös; újraindítás után megmarad, a régi beállítás 50%-kal töltődik be. |
 
 ## 4ő++. Modulok összevonása (v0.66)
 
@@ -1549,6 +1552,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.7** | Teszt build: elválasztó, mint az üveg széle, a színpanel a notch előtt, a középső szín helye csúszkával (E-29, MB-16, MB-17) |
 | **v1.7.6** | Teszt build: Black over glass design éles vonallal, lelógó értesítések a designban, két kis értesítés egymás alatt, webes Teams jelvény, Teams háttérfülből saját ablakba, keresőmezők balra (D-24, D-25, E-28, B-15, MT-13, SD-20) |
 | **v1.7.5** | Teszt build: pinch kifelé nyit (jelvény, lenyíló, peek, Home-csempe; N-28), Microsoft Teams a webes Teamsből: Teams fül olvasatlan csevegésekkel és válasszal, megbeszélés-jelző vezérlőkkel, némító gyorsbillentyű, „You're muted” figyelmeztetés (MT-1…MT-12) |
 | **v1.7.4** | Teszt build: pinch a notch széléről nyitott panelre (N-27), Számológép (2×2) és Napok (5×1) csempe, csempék húzása a notchban (HT-42…HT-45), szem gomb a modulsorban (M-23), Feladatok beviteli mező nélkül, határidő-buborék (R-21, R-22), Beeper-kártya nyitva marad (BP-21), Google Chat csoportban a feladó (GW-32) |
