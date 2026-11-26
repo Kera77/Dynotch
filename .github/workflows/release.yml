@@ -105,6 +105,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # 1.x.y with y > 0 is a test build: a prerelease, not "latest" (spec U-6, U-8).
+          if [[ "${VERSION##*.}" != "0" ]]; then
+            CHANNEL=(--prerelease --latest=false); TITLE="Dynotch $VERSION (test)"
+          else
+            CHANNEL=(--latest); TITLE="Dynotch $VERSION"
+          fi
           gh release create "$GITHUB_REF_NAME" dist/* \
-            --title "Dynotch $VERSION" \
-            --generate-notes
+            --title "$TITLE" \
+            --generate-notes "${CHANNEL[@]}"

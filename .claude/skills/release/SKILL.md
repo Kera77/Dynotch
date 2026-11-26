@@ -8,6 +8,19 @@ description: Dynotch's release order (version bump, CHANGELOG, SPEC, preflight, 
 Deploy only when the owner has approved it. Never push untested code to `main` (failed CI
 e-mails the owner); never install a build whose tests have not all passed.
 
+## Two kinds of release (spec U-6…U-10)
+
+- **Test build** – the default for "deploy": only the owner gets it. Bump the **last** number
+  (1.7.2 → 1.7.3). The tag makes `release.yml` publish a GitHub *prerelease*; only apps with
+  *Settings › About › Beta updates* on install it. Give it its own `WhatsNew` entry.
+- **Publish to everyone** – only when the owner says a tested version is good ("mehet
+  mindenkinek"). Bump the **middle** number, last becomes 0 (1.7.4 → 1.8.0), from the approved
+  commit with no code changes besides the release bookkeeping. Merge the `WhatsNew` entries of the
+  cycle's test builds into one `1.8.0` entry (drop the test entries), and the CHANGELOG sections
+  of the cycle into `[1.8.0]`. Add one row to the SPEC version table for 1.8.0.
+
+The steps below are the same for both.
+
 1. `./scripts/check.sh` passes (`CHECK lint=pass tests=pass`).
 2. Bump `MARKETING_VERSION` in `project.yml`. In `CHANGELOG.md` turn `[Unreleased]` into
    `[X.Y.Z] - YYYY-MM-DD` (keep an empty `[Unreleased]` above it). In `docs/SPEC.md` update the
@@ -35,7 +48,8 @@ e-mails the owner); never install a build whose tests have not all passed.
    privacy-sensitive API means a missing `NS…UsageDescription` in `project.yml` (0.42 did this;
    0.42.1 fixed it). A build that crashes at launch cannot update itself: install the fix with
    `./scripts/install.sh`.
-7. Tell the owner it is installed, with a list of what to test in this version (from the
+7. Tell the owner it is installed (for a test build: "only you have it"; when published: "everyone
+   gets it within 6 hours"), with a list of what to test in this version (from the
    CHANGELOG, grouped by feature, with the log to send if something fails).
 
 Homebrew cask: `Packaging/Homebrew/Casks/dynotch.rb`, copied to the tap repo

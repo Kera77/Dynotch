@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Test builds and public releases (U-6…U-10): versions `1.x.y` with y > 0 are test builds,
+  published as GitHub prereleases that only apps with *Settings › About › Beta updates* install;
+  `1.x.0` goes out to everyone. About shows "test build" next to such a version.
+  `scripts/install.sh` turns beta updates on when it installs a test build. Onboarding unchanged
+  (no tour step or tip covers updates).
+
 ## [1.7.2] - 2026-11-26
 
 ### Changed

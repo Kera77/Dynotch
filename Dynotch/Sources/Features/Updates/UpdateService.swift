@@ -25,7 +25,13 @@ final class UpdateService {
         didSet { defaults.set(!installsAutomatically, forKey: Self.manualKey) }
     }
 
+    /// Test builds (prereleases) too, not only full releases (spec U-7).
+    var betaChannel: Bool {
+        didSet { defaults.set(betaChannel, forKey: Self.betaKey) }
+    }
+
     private static let manualKey = "updatesManual"
+    private static let betaKey = "updatesBeta"
     private static let versionKey = "lastRunVersion"
     private static let interval: TimeInterval = 6 * 3600
 
@@ -36,6 +42,7 @@ final class UpdateService {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         installsAutomatically = !defaults.bool(forKey: Self.manualKey)
+        betaChannel = defaults.bool(forKey: Self.betaKey)
         // Left over from the removed "Go back to" button (spec RF-21).
         defaults.removeObject(forKey: "previousVersion")
     }
@@ -67,7 +74,9 @@ final class UpdateService {
 
     /// Looks for a newer release; installs it if that is automatic or the user asked for it.
     func check(installIfFound: Bool? = nil) {
-        guard state != .checking, !isInstalling, let url = UpdateLogic.latestRelease else { return }
+        let beta = betaChannel
+        guard state != .checking, !isInstalling,
+              let url = beta ? UpdateLogic.recentReleases : UpdateLogic.latestRelease else { return }
         state = .checking
         let install = installIfFound ?? installsAutomatically
         Task { [weak self] in
@@ -75,7 +84,8 @@ final class UpdateService {
                 let data = try await Self.fetch(url)
                 guard let self else { return }
                 self.lastChecked = Date()
-                guard let release = UpdateLogic.release(fromJSON: data) else { throw Failure(message: "No release found.") }
+                let candidate = beta ? UpdateLogic.newestRelease(fromListJSON: data) : UpdateLogic.release(fromJSON: data)
+                guard let release = candidate else { throw Failure(message: "No release found.") }
                 guard UpdateLogic.isNewer(release.version, than: AppInfo.version) else {
                     self.state = .upToDate
                     return

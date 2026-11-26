@@ -15,7 +15,7 @@ struct AboutSettingsView: View {
                 .frame(width: 72, height: 72)
             Text("Wingmate")
                 .font(.title2.bold())
-            Text("Version \(AppInfo.version) (\(AppInfo.build))")
+            Text("Version \(AppInfo.version) (\(AppInfo.build))\(UpdateLogic.isTestBuild(AppInfo.version) ? " · test build" : "")")
                 .foregroundStyle(.secondary)
             if let url = AppInfo.repositoryURL {
                 Link("GitHub", destination: url)
@@ -23,6 +23,11 @@ struct AboutSettingsView: View {
 
             VStack(spacing: 8) {
                 Toggle("Install updates automatically", isOn: $updates.installsAutomatically)
+                Toggle("Beta updates", isOn: $updates.betaChannel)
+                    .help("Also install test builds before they go out to everyone")
+                    .onChange(of: updates.betaChannel) { _, isOn in
+                        if isOn { updates.check(installIfFound: false) }
+                    }
                 HStack(spacing: 8) {
                     Text(statusText)
                         .font(.caption)

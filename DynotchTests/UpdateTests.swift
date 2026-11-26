@@ -31,6 +31,30 @@ struct UpdateTests {
         #expect(UpdateLogic.release(fromJSON: Data(noArchive.utf8)) == nil)
     }
 
+    @Test func theBetaChannelTakesTheNewestReleaseTestBuildsIncluded() throws {
+        func entry(_ version: String, prerelease: Bool, draft: Bool = false) -> String {
+            """
+            {"tag_name":"v\(version)","draft":\(draft),"prerelease":\(prerelease),"assets":[
+              {"name":"Dynotch-\(version).zip","browser_download_url":"https://x/Dynotch-\(version).zip"}]}
+            """
+        }
+        let list = "[" + [entry("1.7.2", prerelease: false), entry("1.7.4", prerelease: true),
+                          entry("1.7.3", prerelease: true), entry("1.7.5", prerelease: true, draft: true)]
+            .joined(separator: ",") + "]"
+        let newest = try #require(UpdateLogic.newestRelease(fromListJSON: Data(list.utf8)))
+        #expect(newest.version == "1.7.4")
+        // Everyone else never gets a test build (spec U-1, U-8).
+        #expect(UpdateLogic.release(fromJSON: Data(entry("1.7.4", prerelease: true).utf8)) == nil)
+        #expect(UpdateLogic.newestRelease(fromListJSON: Data("[]".utf8)) == nil)
+    }
+
+    @Test func testBuildsAreTheOnesWithANonZeroLastNumber() {
+        #expect(UpdateLogic.isTestBuild("1.7.3"))
+        #expect(UpdateLogic.isTestBuild("v1.8.1"))
+        #expect(!UpdateLogic.isTestBuild("1.8.0"))
+        #expect(!UpdateLogic.isTestBuild("1.8"))
+    }
+
     @Test func checksumsAreLookedUpByFileName() {
         let sums = """
         aaa111  ./Dynotch-0.27.0.dmg
