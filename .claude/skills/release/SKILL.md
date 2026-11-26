@@ -10,11 +10,11 @@ e-mails the owner); never install a build whose tests have not all passed.
 
 ## Two kinds of release (spec U-6…U-10)
 
-- **Test build** – the default for "deploy": only the owner gets it. Bump the **last** number
+- **Test build** – the default for "deploy" and for a plain "mehet": only the owner gets it. Bump the **last** number
   (1.7.2 → 1.7.3). The tag makes `release.yml` publish a GitHub *prerelease*; only apps with
   *Settings › About › Beta updates* on install it. Give it its own `WhatsNew` entry.
-- **Publish to everyone** – only when the owner says a tested version is good ("mehet
-  mindenkinek"). Bump the **middle** number, last becomes 0 (1.7.4 → 1.8.0), from the approved
+- **Publish to everyone** – only when the owner explicitly says "mehet publikussá" (or otherwise
+  clearly says to publish to everyone); a plain "mehet" is never this. Bump the **middle** number, last becomes 0 (1.7.4 → 1.8.0), from the approved
   commit with no code changes besides the release bookkeeping. Merge the `WhatsNew` entries of the
   cycle's test builds into one `1.8.0` entry (drop the test entries), and the CHANGELOG sections
   of the cycle into `[1.8.0]`. Add one row to the SPEC version table for 1.8.0.

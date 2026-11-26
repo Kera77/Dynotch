@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.2 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.7.3 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1513,6 +1513,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.3** | Első teszt build (prerelease): Beta updates kapcsoló, „test build” jelzés az About-ban, a kiadás a tagből dönti el a csatornát (U-6…U-10) |
 | **v1.7.2** | Csempék a választott helyre 5 oszlopos rácsban, a Home szélessége a legszélesebb sorból; piros mínusz a mutatón kihúzáskor; újra Pinch / Swipe down választó, működő pinch, egységes vissza-animáció; Pill lenyílók és badge-design javítása; menüsor-átmenet irányai Centerrel |
 | **v1.7.1** | Vissza a Home-ra csípéssel és lefelé swipe-pal is (inaktív appnál is); teljes szélességű csempeszerkesztő ⊕ gombbal, piros mínusszal kihúzáskor, becsukható modulsorokkal és láncolt görgetéssel; a Modules nyitott sorai megmaradnak, Collapse all (HT-30…HT-36, SD-19) |
 | **v1.7.0** | Kezdőlap csempékkel: 57 csempe minden modulból hat méretben (1×1…3×2), kattintásra a modul a csempéből nyílik, vissza csípéssel vagy lefelé swipe-pal, hónaplapozás swipe-pal, gombok és mezők a csempéken, összeállítás drag and droppal a *Settings › Modules › Home* alatt (HT-1…HT-29) |

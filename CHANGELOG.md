@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-11-26
+
 ### Added
 - Test builds and public releases (U-6…U-10): versions `1.x.y` with y > 0 are test builds,
   published as GitHub prereleases that only apps with *Settings › About › Beta updates* install;
