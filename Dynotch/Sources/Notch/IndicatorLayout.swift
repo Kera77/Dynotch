@@ -114,7 +114,9 @@ enum IndicatorItem: Identifiable, Equatable {
         case .meeting(_, true), .battery(_, true): 0
         // The Tools' controls drop down, or widen beside the notch (spec TM-19).
         case .tools(let glance): glance.unfolded ? 0 : IndicatorLayout.labelHeight
-        case .meeting, .working, .battery, .stats, .teams: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .teams: IndicatorLayout.labelHeight
+        // Shown only with a warning: the warning and the five busiest apps (spec SY-10, SY-14).
+        case .stats: IndicatorLayout.labelHeight + IndicatorLayout.warningProcessRows * StatsProcessRow.height + 4
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
         case .recording: 0
         case .music: IndicatorLayout.musicDropdownHeight
@@ -199,6 +201,8 @@ struct IndicatorLayout: Equatable {
     static let padding: CGFloat = 8
     /// Height of a meeting's hover label (spec K-8d).
     static let labelHeight: CGFloat = 26
+    /// The busiest apps under a stats warning (spec SY-14).
+    static let warningProcessRows: CGFloat = 5
     /// Tasks listed in the counter's drop-down at most; Open shows the rest.
     static let taskRows = 6
     static let taskRowHeight: CGFloat = 22

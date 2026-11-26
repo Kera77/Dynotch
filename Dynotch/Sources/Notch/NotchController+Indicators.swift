@@ -36,7 +36,8 @@ extension NotchController {
 
     func updateHoveredIndicator() {
         // A menu opened from a drop-down keeps it (spec N-22).
-        guard !OpenMenus.isOpen else { return }
+        // Brought back by a pinch, a drop-down stays until the pointer moves (spec N-29).
+        guard !OpenMenus.isOpen, !holdsRestoredHover() else { return }
         let row = collapsedRow()
         let (layout, fit, items) = (row.layout, row.fit, row.items)
         let shownBadges = fit.shown
@@ -135,6 +136,7 @@ extension NotchController {
 
     private func openFromIndicator(_ feature: FeatureID) {
         guard settings.isEnabled(feature) else { return }
+        noteEdgeOrigin()
         setHoveredIndicator(nil)
         setHoveredBadge(nil)
         expand(fromEdge: true)
@@ -218,34 +220,6 @@ extension NotchController {
         } else {
             stopHoverTimer()
         }
-    }
-}
-
-// MARK: - Day strip swipe (spec K-4)
-
-extension NotchController {
-    /// Moves the selected day while swiping over the day strip; the strip scrolls with it.
-    func stepDays(phase: SwipeDetector.Phase, isMomentum: Bool, fingerDeltaX: CGFloat, deltaY: CGFloat) -> Bool {
-        if phase == .began { dayQueue.reset() }
-        let steps = dayStepper.handle(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: deltaY)
-        guard steps != 0 else { return dayStepper.isHorizontal }
-        // One day at a time, faster while more are waiting (spec K-17).
-        dayQueue.add(steps)
-        drainSteps()
-        return true
-    }
-
-    func stepDayOnce() {
-        let step = dayQueue.next()
-        guard step != 0 else { return }
-        guard model.isExpanded, model.currentFeature == .calendar || model.currentFeature == .home else { return dayQueue.reset() }
-        let calendarService = calendar
-        guard let day = Calendar.current.date(byAdding: .day, value: step, to: calendarService.selectedDay) else { return }
-        // Two weeks each way is the wall (spec K-15): the rest of the flick stops there.
-        let clamped = DayStripView.clamped(Calendar.current.startOfDay(for: day), around: calendarService.today)
-        guard clamped != calendarService.selectedDay else { return dayQueue.reset() }
-        calendarService.selectedDay = clamped
-        Haptics.perform(.dayStep, settings: settings)
     }
 }
 
@@ -351,6 +325,7 @@ extension NotchController {
             badges.open(badge.app)
             return
         }
+        noteEdgeOrigin(badge: badge.id)
         if let tab = BadgeApp.chatTab(for: badge.app) {
             openChatTab(tab)
             return

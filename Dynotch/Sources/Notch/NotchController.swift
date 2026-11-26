@@ -218,7 +218,7 @@ final class NotchController {
     ///   - smart: opened by hover: the module may follow what is going on (spec SO-1).
     ///   - fromEdge: opened from the closed notch's edge; a pinch closes it again (spec N-27).
     func expand(preview: Bool = false, smart: Bool = false, fromEdge: Bool = false, animation: Animation = NotchController.animation) {
-        let edge = fromEdge || notifications.peek != nil || model.hoveredIndicator != nil || model.hoveredBadge != nil
+        let edge = noteEdgeOrigin(opening: true) || fromEdge || notifications.peek != nil
         cancelClose()
         graceUntil = nil
         if model.hidesGlass { model.hidesGlass = false } // Hidden only around the switcher (spec AS-18).

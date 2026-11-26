@@ -106,20 +106,37 @@ struct CalculatorKeypadTile: View {
     }
 }
 
-/// The Days tile: the module's day strip, and the picked day's first events (spec HT-43).
+/// The Calculator's notepad on a tile: the same editor as the module, the same text; a click on
+/// a result copies it (spec HT-47).
+struct CalculatorNotepadTile: View {
+    @Bindable var store: CalculatorStore
+
+    var body: some View {
+        CalculatorEditor(text: $store.text, isActive: false)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous))
+    }
+}
+
+/// The Days tile: five days of the module's day strip, and the picked day's first three events
+/// with Join for online meetings (spec HT-43, HT-46).
 struct DaysTileContent: View {
     @Bindable var calendar: CalendarService
+
+    /// Today and two days each side (spec HT-46).
+    static let span = 2
 
     var body: some View {
         if calendar.access != .granted {
             TileEmptyView(title: "Calendar", text: "Needs access")
         } else {
             HStack(alignment: .center, spacing: 12) {
-                DayStripView(selectedDay: $calendar.selectedDay, today: calendar.today, counts: calendar.dayCounts)
-                    .frame(maxWidth: .infinity)
+                DayStripView(selectedDay: $calendar.selectedDay, today: calendar.today, counts: calendar.dayCounts, span: Self.span)
+                    .frame(width: DayCell.width * CGFloat(2 * Self.span + 1))
+                    .id(calendar.opens)
                     .onHover { MonthTilePager.shared.isOverDays = $0 }
                 events
-                    .frame(width: 170, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .onDisappear { MonthTilePager.shared.isOverDays = false }
         }
@@ -132,22 +149,43 @@ struct DaysTileContent: View {
                 .font(.notch(size: 11))
                 .foregroundStyle(.secondary)
         } else {
-            VStack(alignment: .leading, spacing: 3) {
-                ForEach(events.prefix(2)) { event in
-                    HStack(spacing: 6) {
-                        Text(event.isAllDay ? "All day" : event.start.formatted(date: .omitted, time: .shortened))
-                            .font(.notch(size: 10, weight: .semibold))
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                        Text(event.title)
-                            .font(.notch(size: 11, weight: .medium))
-                            .lineLimit(1)
-                    }
-                }
-                if events.count > 2 {
-                    Text("+\(events.count - 2) more").font(.notch(size: 9)).foregroundStyle(.tertiary)
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(events.prefix(3)) { event in eventRow(event) }
+            }
+            .overlay(alignment: .topTrailing) {
+                if events.count > 3 {
+                    Text("+\(events.count - 3)").font(.notch(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
+                        .offset(y: -12)
                 }
             }
         }
+    }
+
+    private func eventRow(_ event: CalendarEvent) -> some View {
+        HStack(spacing: 6) {
+            Capsule().fill(event.color.color).frame(width: 3, height: 12)
+            Text(event.isAllDay ? "All day" : event.start.formatted(date: .omitted, time: .shortened))
+                .font(.notch(size: 10, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            Text(event.title)
+                .font(.notch(size: 11, weight: .medium))
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            if event.meetingURL != nil {
+                Button { calendar.join(event) } label: {
+                    Label("Join", systemImage: "video.fill")
+                        .font(.notch(size: 10, weight: .semibold))
+                        .padding(.horizontal, 7)
+                        .frame(height: 17)
+                        .background(Capsule().fill(Theme.blue))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.white)
+                .help("Join \(event.title)")
+            }
+        }
+        .frame(height: 18)
     }
 }

@@ -1,6 +1,14 @@
 import AppKit
 import SwiftUI
 
+/// What each display's panel opened from beside the closed notch ("i" + indicator id, "b" + badge
+/// id), and the drop-down a pinch brought back, held until the pointer moves (spec N-29).
+@MainActor
+enum EdgeReturn {
+    static var origins: [ObjectIdentifier: (id: String, at: Date)] = [:]
+    static var hold: (point: CGPoint, until: Date)?
+}
+
 /// The Home tile under the pointer, for a pinch out (spec N-28). Only one pointer, so one tile.
 @MainActor
 enum HomeTileHover {
@@ -53,6 +61,7 @@ extension NotchController {
     }
 
     private func openPinched(_ feature: FeatureID) {
+        noteEdgeOrigin()
         setHoveredIndicator(nil)
         setHoveredBadge(nil)
         expand(fromEdge: true)
@@ -60,6 +69,53 @@ extension NotchController {
             if feature == .notifications { model.notificationsTab = .teams }
             model.select(feature, remember: false, exact: true)
         }
+    }
+
+    /// Remembers the drop-down or badge under the pointer, for the pinch back (spec N-29). While
+    /// opening, one noted just before (its caller cleared the hover first) stays; else it is forgotten.
+    /// True when the pointer is on a badge or a drop-down.
+    @discardableResult
+    func noteEdgeOrigin(opening: Bool = false, badge: String? = nil) -> Bool {
+        let key = ObjectIdentifier(self)
+        var found = badge.map { "b" + $0 } ?? model.hoveredBadge.map { "b" + $0 }
+        if found == nil, let index = model.hoveredIndicator {
+            let items = collapsedRow().items
+            if items.indices.contains(index) { found = "i" + items[index].id }
+        }
+        if let found {
+            EdgeReturn.origins[key] = (found, Date())
+        } else if opening, let noted = EdgeReturn.origins[key], Date().timeIntervalSince(noted.at) > 0.5 {
+            EdgeReturn.origins[key] = nil
+        }
+        return model.hoveredIndicator != nil || model.hoveredBadge != nil
+    }
+
+    /// After the pinch closed the panel: the drop-down it opened from drops down again, as if
+    /// the pointer were on it, until the pointer moves (spec N-29). The origin, nil: nothing to bring back.
+    func restoreEdgeHover() -> String? {
+        guard let origin = EdgeReturn.origins.removeValue(forKey: ObjectIdentifier(self))?.id else { return nil }
+        let id = String(origin.dropFirst())
+        let row = collapsedRow()
+        if origin.hasPrefix("b") {
+            guard row.fit.shown.contains(where: { $0.id == id }) else { return nil }
+            setHoveredBadge(id)
+        } else {
+            guard let index = row.items.firstIndex(where: { $0.id == id }) else { return nil }
+            // The stats without a warning have no drop-down: hovering them opens the module (spec SY-7).
+            if row.items[index].opensModule != nil, stats.indicator.warnings.isEmpty { return nil }
+            setHoveredIndicator(index)
+        }
+        EdgeReturn.hold = (NSEvent.mouseLocation, Date().addingTimeInterval(1.5))
+        return origin
+    }
+
+    /// Brought back by a pinch, the drop-down stays until the pointer moves (spec N-29).
+    func holdsRestoredHover() -> Bool {
+        guard let hold = EdgeReturn.hold else { return false }
+        let point = NSEvent.mouseLocation
+        if Date() < hold.until || hypot(point.x - hold.point.x, point.y - hold.point.y) < 4 { return true }
+        EdgeReturn.hold = nil
+        return false
     }
 
     /// The module a drop-down beside the notch grows into.

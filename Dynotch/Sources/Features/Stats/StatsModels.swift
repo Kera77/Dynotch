@@ -59,6 +59,7 @@ struct StatsSnapshot: Equatable, Sendable {
 enum StatsWarnings {
     static let lowDisk: Int64 = 10_000_000_000
     static let gigabyte: UInt64 = 1_073_741_824
+    static let heat = "The Mac is slowing down to cool off"
 
     struct Reading: Sendable {
         var memoryPressure: Int?
@@ -80,7 +81,7 @@ enum StatsWarnings {
             found.append("The disk is almost full")
         }
         if !off.contains(.heat), reading.thermal == .serious || reading.thermal == .critical {
-            found.append("The Mac is slowing down to cool off")
+            found.append(heat)
         }
         if !off.contains(.swap), isOverSwap(reading) {
             found.append("Swap is above \(reading.swapLimit ?? 0) GB")

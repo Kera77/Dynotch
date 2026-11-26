@@ -23,6 +23,11 @@ struct CalendarCompactView: View {
                     today: service.today,
                     counts: service.dayCounts
                 )
+                // The strip says where it is: a swipe over it steps the days, wherever the tab
+                // picker above has pushed it (spec K-18).
+                .id(service.opens)
+                .onHover { MonthTilePager.shared.isOverDays = $0 }
+                .onDisappear { MonthTilePager.shared.isOverDays = false }
                 if service.selectedDay != service.today {
                     // Back to today, only when away from it (spec K-15).
                     Button {

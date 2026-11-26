@@ -248,5 +248,16 @@ struct HomeTilesTests {
             UsageLimit(id: "seven_day", title: "Weekly", utilization: 25, resetsAt: nil)
         ]
         #expect(AITileContent.weekly(in: limits)?.utilization == 25)
+        // The current response: ids from kind and group, the weekly one known by its title (spec HT-48).
+        let current = [
+            UsageLimit(id: "session:all", title: "Session (5 hr)", utilization: 40, resetsAt: nil),
+            UsageLimit(id: "scoped:opus", title: "Opus limit", utilization: 10, resetsAt: nil),
+            UsageLimit(id: "weekly:all", title: "Weekly (7 day)", utilization: 33, resetsAt: nil)
+        ]
+        #expect(AITileContent.weekly(in: current)?.utilization == 33)
+        // Only the heat ranks the warning's apps by CPU (spec SY-14).
+        #expect(StatsService.ranksByMemory([StatsWarnings.heat]) == false)
+        #expect(StatsService.ranksByMemory(["Swap is above 4 GB"]))
+        #expect(StatsService.ranksByMemory(["Memory is running low", StatsWarnings.heat]))
     }
 }

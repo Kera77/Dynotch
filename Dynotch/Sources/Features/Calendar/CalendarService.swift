@@ -121,6 +121,9 @@ final class CalendarService {
     }
 
     /// Called when a panel opens: show today and make sure the data is fresh.
+    /// Counts the panel's openings: the day strips are built anew with each (spec K-19).
+    private(set) var opens = 0
+
     func panelDidOpen() {
         if let lastFetch, Date().timeIntervalSince(lastFetch) < 60 {
             tick()
@@ -128,6 +131,10 @@ final class CalendarService {
             fetch()
         }
         if selectedDay != today { selectedDay = today }
+        // A new strip each time, centred on the shown day from its first frame (spec K-19).
+        opens += 1
+        // No hover-out came while the panel let the mouse through (spec K-18).
+        MonthTilePager.shared.isOverDays = false
     }
 
     /// Makes sure events of the given month are loaded (full calendar navigation).

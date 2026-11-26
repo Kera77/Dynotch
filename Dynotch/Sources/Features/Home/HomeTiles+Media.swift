@@ -27,7 +27,9 @@ struct AITileContent: View {
 
     /// The weekly limit among the usage limits (its id starts with "seven_day").
     nonisolated static func weekly(in limits: [UsageLimit]) -> UsageLimit? {
-        limits.first { $0.id == "seven_day" } ?? limits.first { $0.id.hasPrefix("seven_day") }
+        // The current response names it by its title only, "Weekly (7 day)" (spec HT-48).
+        limits.first { $0.id == "seven_day" } ?? limits.first { $0.title.hasPrefix("Weekly") }
+            ?? limits.first { $0.id.hasPrefix("seven_day") }
     }
 
     private func ring(_ limit: UsageLimit?, title: String) -> some View {
@@ -37,7 +39,7 @@ struct AITileContent: View {
                 Circle().stroke(Color.white.opacity(0.15), lineWidth: 5)
                 Circle()
                     .trim(from: 0, to: min(max(share, 0), 1))
-                    .stroke(StatsSlot.color(for: share), style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                    .stroke(Self.color(limit), style: StrokeStyle(lineWidth: 5, lineCap: .round))
                     .rotationEffect(.degrees(-90))
             }
             .frame(width: 34, height: 34)
@@ -63,11 +65,16 @@ struct AITileContent: View {
                 Spacer()
                 Text(limit.map { "\(Int($0.utilization.rounded()))%" } ?? "—").font(.notch(size: 11, weight: .semibold)).monospacedDigit()
             }
-            StatsBar(fraction: share, color: StatsSlot.color(for: share))
+            StatsBar(fraction: share, color: Self.color(limit))
             if let reset = limit?.resetsAt {
                 Text("Resets " + Self.resetText(reset)).font(.notch(size: 9)).foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// Blue, orange from 70 %, red from 90 %, as in the module (spec HT-50).
+    static func color(_ limit: UsageLimit?) -> Color {
+        NotchIndicatorView.color(for: limit?.level ?? .normal)
     }
 
     static func resetText(_ date: Date) -> String {
@@ -93,7 +100,7 @@ struct AITileContent: View {
         return TileValueView(
             title: "Mac", value: mac.map { "\($0.level)%" } ?? "—",
             detail: mac.map { $0.isCharging ? "Charging" : "On battery" } ?? "No battery",
-            color: (mac?.isLow ?? false) ? Theme.red : .white
+            color: (mac?.isLow ?? false) ? Theme.red : (mac?.isCharging ?? false) ? Theme.green : .white
         )
     }
 
@@ -169,7 +176,7 @@ struct MediaTileContent: View {
                 MusicArtwork(image: music.artwork, cornerRadius: Theme.Radius.large).frame(width: 92, height: 92)
                 titles(playing)
                 TimelineView(.periodic(from: .now, by: 1)) { context in
-                    StatsBar(fraction: music.progress(at: context.date), color: .white)
+                    StatsBar(fraction: music.progress(at: context.date), color: music.tint.color)
                 }
                 controls(playing)
             }

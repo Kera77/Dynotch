@@ -23,6 +23,8 @@ struct NotchGeometry: Equatable, Sendable {
     let screenFrame: CGRect
     let notchSize: CGSize
     let hasPhysicalNotch: Bool
+    /// The display's own menu bar, from the top of the screen to the top of its visible frame (spec D-26).
+    var systemMenuBarHeight: CGFloat = 0
 
     /// - Parameters:
     ///   - safeAreaTop: `NSScreen.safeAreaInsets.top` (0 on screens without a notch).
@@ -41,14 +43,16 @@ struct NotchGeometry: Equatable, Sendable {
                 return NotchGeometry(
                     screenFrame: screenFrame,
                     notchSize: CGSize(width: width, height: safeAreaTop),
-                    hasPhysicalNotch: true
+                    hasPhysicalNotch: true,
+                    systemMenuBarHeight: menuBarHeight
                 )
             }
         }
         return NotchGeometry(
             screenFrame: screenFrame,
             notchSize: CGSize(width: virtualNotchWidth, height: max(menuBarHeight, minimumVirtualNotchHeight)),
-            hasPhysicalNotch: false
+            hasPhysicalNotch: false,
+            systemMenuBarHeight: menuBarHeight
         )
     }
 
@@ -60,6 +64,12 @@ struct NotchGeometry: Equatable, Sendable {
     /// Height of the panel's top row (feature switcher beside the notch).
     var menuBarHeight: CGFloat {
         max(notchSize.height, Self.minimumMenuBarHeight)
+    }
+
+    /// The black of Black over glass: exactly the display's menu bar, the line right under it;
+    /// a hidden menu bar (0) leaves the top row (spec D-26).
+    var blackRowHeight: CGFloat {
+        systemMenuBarHeight > 0 ? min(systemMenuBarHeight, menuBarHeight + 16) : menuBarHeight
     }
 
     /// Normal size of the opened panel.

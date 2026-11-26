@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [1.7.8] - 2026-11-26
+
+### Added
+- A system warning's drop-down beside the notch (low memory, swap, full disk, heat) lists the five
+  apps using the most, by memory (by CPU for heat), each with an X that turns into Quit (SY-14).
+- Pinching a panel that opened from a drop-down or badge beside the notch brings that drop-down
+  back (e.g. the small task list), held until the pointer moves (N-29).
+- Calculator › Notepad tile (2×2): the module's notepad on the Home, type, see results, click to
+  copy (HT-47). The Home tip and description mention it.
+- Join button for online meetings on the Days tile (HT-46).
+
+### Changed
+- Days tile: five days (today ±2) and the day's first three events with the calendar colour (HT-46).
+- Month tile is 2×2 (HT-49).
+- Tiles take their module's colours: AI usage blue/orange/red, memory pressure, network ↓ blue ↑
+  green, disk, battery green/red, pomodoro, music progress, reminder list colours (HT-50).
+- Black over glass: the black is exactly the menu bar's height, the line right under it (D-26).
+
+### Fixed
+- Swiping over the calendar's day strip steps the days again (in the merged Calendar | Weather
+  module the strip sat below its fixed zone) (K-18).
+- The shown day is always in the middle of the day strip, also right after opening the notch (K-19).
+- The Weekly and Limits tiles show the weekly usage again (HT-48).
+
 ## [1.7.7] - 2026-11-26
 
 ### Added

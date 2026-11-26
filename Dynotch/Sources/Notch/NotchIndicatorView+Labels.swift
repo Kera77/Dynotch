@@ -106,26 +106,58 @@ extension NotchIndicatorView {
         }
     }
 
-    /// The stats' warnings, Open and the X that hides them until they clear (spec SY-10).
+    /// The stats' warnings, Open and the X that hides them until they clear (spec SY-10); under
+    /// them the five apps using the most, each with its own Quit (spec SY-14).
     func statsLabel(_ item: IndicatorItem) -> some View {
-        HStack(spacing: 7) {
-            Image(systemName: "exclamationmark.triangle.fill").font(.notch(size: 11, weight: .semibold)).foregroundStyle(Theme.red)
-            Text((stats?.indicator.warnings ?? []).joined(separator: " · "))
-                .font(.notch(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Button("Open", action: openStats)
-                .buttonStyle(.notch)
-                .font(.notch(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 9)
-                .frame(height: 18)
-                .background(Capsule().fill(Color.white.level(0.16)))
-            dismissButton(for: item, help: "Hide until it clears")
+        VStack(spacing: 0) {
+            HStack(spacing: 7) {
+                Image(systemName: "exclamationmark.triangle.fill").font(.notch(size: 11, weight: .semibold)).foregroundStyle(Theme.red)
+                Text((stats?.indicator.warnings ?? []).joined(separator: " · "))
+                    .font(.notch(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Button("Open", action: openStats)
+                    .buttonStyle(.notch)
+                    .font(.notch(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 9)
+                    .frame(height: 18)
+                    .background(Capsule().fill(Color.white.level(0.16)))
+                dismissButton(for: item, help: "Hide until it clears")
+            }
+            .frame(height: IndicatorLayout.labelHeight - 4)
+            if let stats { WarningProcesses(service: stats) }
         }
         .padding(.horizontal, 12)
-        .frame(height: IndicatorLayout.labelHeight - 4)
+        .frame(height: item.labelHeight - 4, alignment: .top)
+        .onAppear { stats?.setWarningVisible(true) }
+        .onDisappear { stats?.setWarningVisible(false) }
+    }
+}
+
+/// The top five apps under a stats warning; the X asks once more, then quits (spec SY-14).
+private struct WarningProcesses: View {
+    var service: StatsService
+    @State private var confirming: String?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(service.warningProcesses) { process in
+                StatsProcessRow(process: process, byMemory: service.warningRanksByMemory, isConfirming: confirming == process.id) {
+                    if confirming == process.id {
+                        service.quit(process)
+                        confirming = nil
+                    } else {
+                        confirming = process.id
+                    }
+                }
+            }
+            if service.warningProcesses.isEmpty {
+                Text("Reading…").font(.notch(size: 11)).foregroundStyle(Color.white.level(0.5))
+                    .frame(maxWidth: .infinity, minHeight: StatsProcessRow.height, alignment: .leading)
+            }
+        }
     }
 }
 

@@ -157,6 +157,25 @@ struct StatsProcessList: View {
     }
 
     private func row(_ process: ProcessUsage) -> some View {
+        StatsProcessRow(process: process, byMemory: service.sortsByMemory, isConfirming: confirming == process.id) {
+            if confirming == process.id {
+                service.quit(process)
+                confirming = nil
+            } else {
+                confirming = process.id
+            }
+        }
+    }
+}
+
+/// One busy app: its icon, name, CPU or memory, and the X that turns into Quit (spec SY-6, SY-14).
+struct StatsProcessRow: View {
+    let process: ProcessUsage
+    let byMemory: Bool
+    let isConfirming: Bool
+    let tapX: () -> Void
+
+    var body: some View {
         HStack(spacing: 7) {
             if let app = process.appPath {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: app)).resizable().frame(width: 16, height: 16)
@@ -165,35 +184,25 @@ struct StatsProcessList: View {
             }
             Text(process.name).font(.notch(size: 11)).foregroundStyle(.white).lineLimit(1)
             Spacer(minLength: 4)
-            Text(service.sortsByMemory ? StatsFormat.bytes(Double(process.memory)) : StatsFormat.percent(process.cpu))
+            Text(byMemory ? StatsFormat.bytes(Double(process.memory)) : StatsFormat.percent(process.cpu))
                 .font(.notch(size: 11, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(Color.white.level(0.7))
-            quitButton(process)
+            Button(action: tapX) {
+                Text(isConfirming ? "Quit" : "✕")
+                    .font(.notch(size: 10, weight: .bold))
+                    .foregroundStyle(isConfirming ? .white : Color.white.level(0.6))
+                    .padding(.horizontal, isConfirming ? 7 : 0)
+                    .frame(minWidth: 20, minHeight: 18)
+                    .background(Capsule().fill(isConfirming ? Theme.red : Color.white.level(0.1)))
+            }
+            .buttonStyle(.notch)
+            .help(isConfirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
         }
-        .frame(height: 22)
+        .frame(height: Self.height)
     }
 
-    private func quitButton(_ process: ProcessUsage) -> some View {
-        let isConfirming = confirming == process.id
-        return Button {
-            if isConfirming {
-                service.quit(process)
-                confirming = nil
-            } else {
-                confirming = process.id
-            }
-        } label: {
-            Text(isConfirming ? "Quit" : "✕")
-                .font(.notch(size: 10, weight: .bold))
-                .foregroundStyle(isConfirming ? .white : Color.white.level(0.6))
-                .padding(.horizontal, isConfirming ? 7 : 0)
-                .frame(minWidth: 20, minHeight: 18)
-                .background(Capsule().fill(isConfirming ? Theme.red : Color.white.level(0.1)))
-        }
-        .buttonStyle(.notch)
-        .help(isConfirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
-    }
+    static let height: CGFloat = 22
 }
 
 /// What shows beside the notch, which alerts are on, and the swap limit (spec SY-7…SY-9).

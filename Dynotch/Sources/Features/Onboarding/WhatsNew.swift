@@ -16,6 +16,16 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.7.8", items: [
+            WhatsNewItem(symbol: "exclamationmark.triangle", title: "Who uses it all",
+                         text: "A system warning beside the notch lists the five busiest apps, and you can quit them there."),
+            WhatsNewItem(symbol: "arrow.down.right.and.arrow.up.left", title: "Pinch back to the drop-down",
+                         text: "Pinching a panel opened from a drop-down brings that drop-down back, like the small task list."),
+            WhatsNewItem(symbol: "square.grid.2x2", title: "Better tiles",
+                         text: "A Notepad calculator tile, Join on the Days tile, a 2×2 Month, the weekly AI usage, and module colours."),
+            WhatsNewItem(symbol: "calendar", title: "Day strip fixed",
+                         text: "Swiping over the days works again, and the shown day is always in the middle.")
+        ]),
         WhatsNewRelease(version: "1.7.7", items: [
             WhatsNewItem(symbol: "slider.horizontal.3", title: "Middle color where you want it",
                          text: "In a Center menu bar gradient, a slider sets where the middle color stands."),

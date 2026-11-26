@@ -41,7 +41,8 @@ enum OnboardingModuleTexts {
         .music: "Play, pause and skip what Spotify plays, with the cover and the track. "
             + "The current track also shows beside the closed notch.",
         .home: "Tiles with what matters from your modules: the next event, the clock, CPU and more. "
-            + "Click a tile to open its module, drag it to move it; choose the tiles in Settings › Modules › Home.",
+            + "Click a tile to open its module, drag it to move it; choose the tiles in Settings › Modules › Home. "
+            + "Some tiles work on their own, like the Notepad calculator.",
         .info: "Version, display and notch details of Wingmate. "
             + "Useful for troubleshooting."
     ]

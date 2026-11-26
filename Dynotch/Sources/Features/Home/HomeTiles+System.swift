@@ -15,24 +15,42 @@ struct StatsTileContent: View {
                 StatsSparkline(values: stats.cpuHistory, top: 1, color: Theme.blue).frame(height: 18)
             }
         case .memory:
-            TileValueView(
-                title: "Memory", value: StatsFormat.percent(snapshot.memoryShare),
-                detail: snapshot.memory.map { "\(StatsFormat.bytes(Double($0.used))) of \(StatsFormat.bytes(Double($0.total)))" },
-                color: StatsSlot.color(for: snapshot.memoryShare)
-            )
+            VStack(alignment: .leading, spacing: 4) {
+                TileValueView(
+                    title: "Memory", value: StatsFormat.percent(snapshot.memoryShare),
+                    detail: snapshot.memory.map { "\(StatsFormat.bytes(Double($0.used))) of \(StatsFormat.bytes(Double($0.total)))" }
+                )
+                // The pressure's colour, as in the module (spec HT-50).
+                StatsBar(fraction: snapshot.memoryShare, color: Self.pressureColor(snapshot.memory?.pressure))
+            }
         case .swap:
             TileValueView(title: "Swap", value: snapshot.memory.map { StatsFormat.bytes(Double($0.swapUsed)) } ?? "—")
         case .network:
-            TileValueView(
-                title: "Network", value: "↓ " + StatsFormat.shortRate(snapshot.download),
-                detail: "↑ " + StatsFormat.rate(snapshot.upload)
-            )
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Network").font(.notch(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                Text("↓ " + StatsFormat.shortRate(snapshot.download))
+                    .font(.notch(size: 22, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.blue)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                Text("↑ " + StatsFormat.rate(snapshot.upload)).font(.notch(size: 10, weight: .medium)).foregroundStyle(Theme.green)
+            }
         case .disk:
             diskContent(snapshot.disk)
         case .topProcesses:
             processes
         default:
             batteryContent(snapshot.battery)
+        }
+    }
+
+    /// Green, orange under pressure, red when critical, as the module's memory card (spec HT-50).
+    static func pressureColor(_ pressure: Int?) -> Color {
+        switch pressure ?? 1 {
+        case 4...: Theme.red
+        case 2...: .orange
+        default: Theme.green
         }
     }
 
@@ -53,7 +71,7 @@ struct StatsTileContent: View {
             let used = 1 - Double(disk.free) / Double(max(disk.total, 1))
             VStack(alignment: .leading, spacing: 4) {
                 TileValueView(title: "Disk", value: StatsFormat.bytes(Double(disk.free)), detail: "free")
-                StatsBar(fraction: used, color: StatsSlot.color(for: used))
+                StatsBar(fraction: used, color: used > 0.95 ? Theme.red : Theme.blue)
             }
         } else {
             TileEmptyView(title: "Disk", text: "Not read yet")
@@ -65,10 +83,13 @@ struct StatsTileContent: View {
         if let battery {
             let state = battery.isCharging ? "Charging" : battery.isOnPower ? "On power" : "On battery"
             let left = battery.minutesLeft.map { " · " + StatsFormat.minutes($0) } ?? ""
-            TileValueView(
-                title: "Battery", value: "\(battery.level)%", detail: state + left,
-                color: battery.level <= 20 && !battery.isOnPower ? Theme.red : .white
-            )
+            VStack(alignment: .leading, spacing: 4) {
+                TileValueView(
+                    title: "Battery", value: "\(battery.level)%", detail: state + left,
+                    color: battery.level <= 20 && !battery.isOnPower ? Theme.red : battery.isCharging ? Theme.green : .white
+                )
+                StatsBar(fraction: Double(battery.level) / 100, color: battery.level <= 20 ? Theme.red : Theme.green)
+            }
         } else {
             TileEmptyView(title: "Battery", text: "No battery")
         }
@@ -138,7 +159,7 @@ private struct ClockToolTileContent: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             HStack(alignment: .bottom) {
-                TileValueView(title: title, value: value(at: context.date), detail: detail)
+                TileValueView(title: title, value: value(at: context.date), detail: detail, color: color)
                 Spacer(minLength: 2)
                 TileButton(symbol: isRunning ? "pause.fill" : "play.fill", help: isRunning ? "Pause" : "Start", action: startOrPause)
             }
@@ -159,6 +180,12 @@ private struct ClockToolTileContent: View {
         case .stopwatch: tools.stopwatch.isReset ? "Not running" : nil
         default: tools.pomodoro.phase.title
         }
+    }
+
+    /// The pomodoro red in focus, green on a break, as beside the notch (spec HT-50).
+    private var color: Color {
+        guard tile == .pomodoro, tools.pomodoro.isRunning || tools.pomodoro.phase.isBreak else { return .white }
+        return tools.pomodoro.phase.isBreak ? Theme.green : Theme.red
     }
 
     private var isRunning: Bool {

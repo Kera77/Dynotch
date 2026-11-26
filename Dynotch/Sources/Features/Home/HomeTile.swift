@@ -48,6 +48,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
     case quickNote = "notes.quickNote"
     case lastResult = "calculator.lastResult"
     case keypad = "calculator.keypad"
+    case notepad = "calculator.notepad"
     case fiveHour = "claudeUsage.fiveHour"
     case weekly = "claudeUsage.weekly"
     case limits = "claudeUsage.limits"
@@ -92,7 +93,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
         .clockWide: Info(feature: .home, title: "Clock", size: .wide),
         .worldClock: Info(feature: .home, title: "World clock", size: .small),
         .today: Info(feature: .home, title: "Today", size: .large),
-        .month: Info(feature: .calendar, title: "Month", size: .small),
+        .month: Info(feature: .calendar, title: "Month", size: .large),
         .nextEvent: Info(feature: .calendar, title: "Next event", size: .small),
         .nextEventWide: Info(feature: .calendar, title: "Next event", size: .wide),
         .week: Info(feature: .calendar, title: "Week", size: .wide),
@@ -117,6 +118,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
         .quickNote: Info(feature: .notes, title: "Quick note", size: .wide),
         .lastResult: Info(feature: .calculator, title: "Last result", size: .small),
         .keypad: Info(feature: .calculator, title: "Calculator", size: .large),
+        .notepad: Info(feature: .calculator, title: "Notepad", size: .large),
         .fiveHour: Info(feature: .claudeUsage, title: "5-hour", size: .small),
         .weekly: Info(feature: .claudeUsage, title: "Weekly", size: .small),
         .limits: Info(feature: .claudeUsage, title: "Limits", size: .wide),
@@ -158,7 +160,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
     static let defaults: [HomeTile] = [.clockWide, .nextEvent, .weatherNow, .remindersOpen, .fiveHour, .nowPlayingWide]
 
     /// Tiles with a text field: the Home then takes the keyboard (spec HT-28).
-    static let withFields: Set<HomeTile> = [.quickNote, .ask]
+    static let withFields: Set<HomeTile> = [.quickNote, .ask, .notepad]
 
     /// Tiles with their own settings (spec HT-29).
     static let withOptions: Set<HomeTile> = [.worldClock, .run]

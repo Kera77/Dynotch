@@ -178,7 +178,8 @@ final class MonthTilePager {
     private(set) var offset = 0
     /// The pointer is over a Month or Calendar tile: a sideways swipe pages it, not the modules.
     var isHovered = false
-    /// The pointer is over the Days tile's strip: a sideways swipe steps the days (spec HT-43).
+    /// The pointer is over a day strip, the Days tile's or the Calendar's: a sideways swipe steps
+    /// the days (spec HT-43, K-18).
     var isOverDays = false
 
     /// One month on or back; false when the pointer is not over the tile.

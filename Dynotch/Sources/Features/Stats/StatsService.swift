@@ -37,6 +37,12 @@ final class StatsService {
     @ObservationIgnored private var dismissed: Set<String> = []
     @ObservationIgnored private var active: [String] = []
     let indicator = StatsIndicator()
+    /// The busiest apps under the warning's drop-down, read only while it is open (spec SY-14).
+    private(set) var warningProcesses: [ProcessUsage] = []
+    /// Memory for low memory, swap and a full disk; CPU when only the heat warns (spec SY-14).
+    private(set) var warningRanksByMemory = true
+    @ObservationIgnored private var warningTask: Task<Void, Never>?
+    @ObservationIgnored private var warningSample: ProcessReadings.Sample?
 
     static let historyLength = 90
     private let settings: AppSettings
@@ -207,5 +213,38 @@ final class StatsService {
     func quit(_ process: ProcessUsage) {
         ProcessReadings.quit(process)
         processes.removeAll { $0.id == process.id }
+        warningProcesses.removeAll { $0.id == process.id }
+    }
+
+    /// The warning's drop-down is open: its top five apps every two seconds, the first ones at
+    /// once and again soon, so the CPU has two samples to compare (spec SY-14).
+    func setWarningVisible(_ visible: Bool) {
+        warningTask?.cancel()
+        warningTask = nil
+        guard visible else {
+            warningSample = nil
+            return
+        }
+        warningTask = Task { [weak self] in
+            var pause = Duration.milliseconds(600)
+            while !Task.isCancelled {
+                self?.readWarningProcesses()
+                try? await Task.sleep(for: pause)
+                pause = .seconds(2)
+            }
+        }
+    }
+
+    private func readWarningProcesses() {
+        let sample = ProcessReadings.sample()
+        let cpu = warningSample.map { ProcessReadings.cpu(from: $0, to: sample) } ?? [:]
+        warningSample = sample
+        warningRanksByMemory = Self.ranksByMemory(indicator.warnings)
+        warningProcesses = ProcessReadings.top(5, byMemory: warningRanksByMemory, cpu: cpu, sample: sample)
+    }
+
+    /// Only the heat ranks by CPU; with any other warning memory is what to free (spec SY-14).
+    nonisolated static func ranksByMemory(_ warnings: [String]) -> Bool {
+        warnings != [StatsWarnings.heat]
     }
 }

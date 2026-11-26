@@ -140,7 +140,8 @@ extension NotchView {
             design: settings.design, shape: shape, isOpen: showsDesign, layer: layer,
             // The panel's opacity is for the open panel only (spec D-25).
             openOpacity: showsPeekDesign ? 1 : settings.panelOpacity,
-            topRow: showsPeekDesign ? geometry.notchSize.height : geometry.menuBarHeight,
+            topRow: showsPeekDesign ? geometry.notchSize.height
+                : settings.design == .split ? geometry.blackRowHeight : geometry.menuBarHeight,
             glassTint: wallpaperTone.tint(for: geometry.screenFrame),
             glassAccent: settings.glassAccent, accentStrength: settings.glassAccentStrength, refined: true,
             isPeek: showsPeekDesign

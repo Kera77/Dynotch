@@ -171,7 +171,9 @@ private struct ReminderListTileContent: View {
             ForEach(Array(items)) { item in
                 TileRow(text: item.title, note: item.due.map { Self.dueText($0, hasTime: item.dueHasTime) }) {
                     Button { store.complete(item) } label: {
+                        // The list's colour, as in the module (spec HT-50).
                         Image(systemName: "circle").font(.system(size: 11))
+                            .foregroundStyle(store.list(for: item)?.color.color ?? Theme.blue)
                     }
                     .buttonStyle(.plain)
                     .help("Complete")
@@ -211,6 +213,7 @@ struct TextTileContent: View {
         case .quickNote: QuickFieldTile(title: "Quick note", placeholder: "Add to the scratchpad…") { services.notes.addToScratchpad($0) }
         case .lastResult: lastResult
         case .keypad: CalculatorKeypadTile()
+        case .notepad: CalculatorNotepadTile(store: services.calculator)
         case .lastCopied: lastCopied
         default: recentClips
         }

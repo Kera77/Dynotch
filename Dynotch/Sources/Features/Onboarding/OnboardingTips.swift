@@ -39,7 +39,8 @@ enum OnboardingTips {
 
     private static let texts: [String: String] = [
         "home": "Click a tile (or spread two fingers over it) to open its module; pinch to come back (or swipe down, "
-            + "Settings › Modules › Home › Back to Home). Drag a tile to move it, here or in Settings › Modules › Home.",
+            + "Settings › Modules › Home › Back to Home). Drag a tile to move it, here or in Settings › Modules › Home. "
+            + "On the Notepad tile you type calculations as in the Calculator.",
         "calendar": "Click a day in the strip or swipe over it to see that day; Join opens the meeting link. "
             + "The icon at the strip's end opens the month view. Before a meeting a countdown waits beside the "
             + "closed notch; hover it for the name and Join.",
@@ -73,7 +74,8 @@ enum OnboardingTips {
             + "the session ring beside the closed notch; above 70% it shows there by itself. With a second account "
             + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
-            + "Options picks what shows beside the closed notch and which warnings you get.",
+            + "Options picks what shows beside the closed notch and which warnings you get; "
+            + "a warning's drop-down lists the five apps using the most, each with its own quit.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "
             + "A low device shows beside the notch; set the limit per device in Settings › Notifications.",
         "music": "Controls Spotify: play, skip, shuffle, repeat, and drag the progress bar. Below are Spotify's "

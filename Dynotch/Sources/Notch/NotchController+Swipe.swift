@@ -57,7 +57,7 @@ extension NotchController {
     private var isOverDayStrip: Bool {
         if model.currentFeature == .home { return model.tileOpening == nil && MonthTilePager.shared.isOverDays }
         return model.currentFeature == .calendar && !model.isLarge && !HoveredTabs.shared.isHovering
-            && model.geometry.dayStripZone(panel: model.openSize).contains(NSEvent.mouseLocation)
+            && MonthTilePager.shared.isOverDays && model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
     }
 
     /// Over a tab row a swipe steps its tabs before the modules; false when not over one or at its end.
@@ -155,5 +155,35 @@ extension NotchController {
         if event.phase.contains(.changed) { return .changed }
         if event.phase.contains(.ended) || event.phase.contains(.cancelled) { return .ended }
         return .none
+    }
+}
+
+// MARK: - Day strip swipe (spec K-4)
+
+extension NotchController {
+    /// Moves the selected day while swiping over the day strip; the strip scrolls with it.
+    func stepDays(phase: SwipeDetector.Phase, isMomentum: Bool, fingerDeltaX: CGFloat, deltaY: CGFloat) -> Bool {
+        if phase == .began { dayQueue.reset() }
+        let steps = dayStepper.handle(phase: phase, isMomentum: isMomentum, fingerDeltaX: fingerDeltaX, deltaY: deltaY)
+        guard steps != 0 else { return dayStepper.isHorizontal }
+        // One day at a time, faster while more are waiting (spec K-17).
+        dayQueue.add(steps)
+        drainSteps()
+        return true
+    }
+
+    func stepDayOnce() {
+        let step = dayQueue.next()
+        guard step != 0 else { return }
+        guard model.isExpanded, model.currentFeature == .calendar || model.currentFeature == .home else { return dayQueue.reset() }
+        let calendarService = calendar
+        guard let day = Calendar.current.date(byAdding: .day, value: step, to: calendarService.selectedDay) else { return }
+        // Two weeks each way is the wall (spec K-15): the rest of the flick stops there.
+        // The Days tile keeps to its five days (spec HT-46).
+        let span = model.currentFeature == .home ? DaysTileContent.span : DayStripView.reach
+        let clamped = DayStripView.clamped(Calendar.current.startOfDay(for: day), around: calendarService.today, span: span)
+        guard clamped != calendarService.selectedDay else { return dayQueue.reset() }
+        calendarService.selectedDay = clamped
+        Haptics.perform(.dayStep, settings: settings)
     }
 }

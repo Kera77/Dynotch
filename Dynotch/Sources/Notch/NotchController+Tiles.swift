@@ -74,8 +74,9 @@ extension NotchController {
               model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
         else { return false }
         if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) == .inward {
-            DiagnosticsLog.append("notch", "closed by pinch (opened from the edge)")
             collapse()
+            let back = restoreEdgeHover().map { $0.hasPrefix("b") ? "a badge" : String($0.dropFirst()) }
+            DiagnosticsLog.append("notch", back.map { "closed by pinch, back to \($0)" } ?? "closed by pinch (opened from the edge)")
             Haptics.perform(.featureSwitch, settings: settings)
         }
         return true

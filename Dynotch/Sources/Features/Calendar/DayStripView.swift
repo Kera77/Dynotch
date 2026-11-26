@@ -5,36 +5,39 @@ struct DayStripView: View {
     @Binding var selectedDay: Date
     let today: Date
     let counts: [Date: Int]
+    /// How many days each side of today: two weeks in the module, two on the Days tile (spec K-15, HT-46).
+    var span = DayStripView.reach
 
     /// Two weeks back and two weeks ahead of today (spec K-15).
-    static let reach = 14
+    nonisolated static let reach = 14
 
-    /// Today ± two weeks; around the selected day if the full calendar chose one further away.
+    /// Today ± the span; around the selected day if the full calendar chose one further away.
     private var days: [Date] {
-        Self.days(around: today, selected: selectedDay)
+        Self.days(around: today, selected: selectedDay, span: span)
     }
 
-    /// The day kept within two weeks of today.
-    nonisolated static func clamped(_ day: Date, around today: Date, calendar: Calendar = .current) -> Date {
+    /// The day kept within the span (two weeks) of today.
+    nonisolated static func clamped(_ day: Date, around today: Date, span: Int = reach, calendar: Calendar = .current) -> Date {
         let distance = calendar.dateComponents([.day], from: today, to: day).day ?? 0
-        guard abs(distance) > reach else { return day }
-        return calendar.date(byAdding: .day, value: distance > 0 ? reach : -reach, to: today) ?? day
+        guard abs(distance) > span else { return day }
+        return calendar.date(byAdding: .day, value: distance > 0 ? span : -span, to: today) ?? day
     }
 
-    nonisolated static func days(around today: Date, selected: Date, calendar: Calendar = .current) -> [Date] {
+    nonisolated static func days(around today: Date, selected: Date, span: Int = reach, calendar: Calendar = .current) -> [Date] {
         let distance = abs(calendar.dateComponents([.day], from: today, to: selected).day ?? 0)
-        let anchor = distance <= reach ? today : selected
-        return (-reach...reach).compactMap { calendar.date(byAdding: .day, value: $0, to: anchor) }
+        let anchor = distance <= span ? today : selected
+        return (-span...span).compactMap { calendar.date(byAdding: .day, value: $0, to: anchor) }
     }
 
     /// The day in the middle of the strip, set before the first frame: scrolling there a frame
     /// later made the opening jerk (spec K-16).
     @State private var centred: Date?
 
-    init(selectedDay: Binding<Date>, today: Date, counts: [Date: Int]) {
+    init(selectedDay: Binding<Date>, today: Date, counts: [Date: Int], span: Int = DayStripView.reach) {
         _selectedDay = selectedDay
         self.today = today
         self.counts = counts
+        self.span = span
         _centred = State(initialValue: selectedDay.wrappedValue)
     }
 
@@ -58,7 +61,8 @@ struct DayStripView: View {
         }
         .initialScroll(to: $centred, anchor: .center)
         .scrollIndicators(.never)
-        .mask(edgeFade)
+        // Five days fit whole: no fading edges there (spec HT-46).
+        .mask(span < DayStripView.reach ? LinearGradient(colors: [.black], startPoint: .leading, endPoint: .trailing) : edgeFade)
         // The selected day's month, small in the gap under the days (spec K-15).
         .overlay(alignment: .bottomLeading) {
             Text(selectedDay.formatted(.dateTime.month(.wide)))
@@ -87,7 +91,7 @@ struct DayStripView: View {
     }
 }
 
-private struct DayCell: View {
+struct DayCell: View {
     let day: Date
     let isToday: Bool
     let isSelected: Bool
@@ -128,10 +132,12 @@ private struct DayCell: View {
                 Rectangle().fill(Color.white.level(0.18)).frame(width: 1).padding(.vertical, 6)
             }
         }
-        .frame(width: 36)
+        .frame(width: Self.width)
         .frame(maxHeight: .infinity)
         .contentShape(Rectangle())
     }
+
+    static let width: CGFloat = 36
 
     private var weekdayText: String {
         let style: Date.FormatStyle.Symbol.Weekday = isHighlighted ? .abbreviated : .narrow
