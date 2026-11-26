@@ -18,7 +18,11 @@ enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
         WhatsNewRelease(version: "1.7.5", items: [
             WhatsNewItem(symbol: "hand.pinch", title: "Pinch out to open",
-                         text: "Spread two fingers over a badge, a drop-down or a Home tile to open it; pinch to go back.")
+                         text: "Spread two fingers over a badge, a drop-down or a Home tile to open it; pinch to go back."),
+            WhatsNewItem(symbol: "person.2.wave.2.fill", title: "Teams in the notch",
+                         text: "Keep the web Teams in a window of its own: unread chats and replies in a Teams tab."),
+            WhatsNewItem(symbol: "mic.slash.fill", title: "Teams meetings",
+                         text: "Mic, camera, hand and Leave beside the notch, a mute shortcut, and a warning when you talk muted.")
         ]),
         WhatsNewRelease(version: "1.7.4", items: [
             WhatsNewItem(symbol: "hand.pinch", title: "Pinch back to the edge",

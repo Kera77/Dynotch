@@ -52,7 +52,7 @@ struct ChatSettingsView: View {
             AccessSection(
                 permissions: [.fullDiskAccess, .accessibility],
                 notificationsReadable: service.status == .running,
-                footer: "Full Disk Access reads the notifications; Accessibility reads the Google Chat web app."
+                footer: "Full Disk Access reads the notifications; Accessibility reads the Google Chat web app and Teams."
             )
             Section {
                 if service.chatSources.isEmpty {
@@ -74,6 +74,7 @@ struct ChatSettingsView: View {
             }
             beeperSection
             GoogleChatWebSettingsSection(chatWeb: service.chatWeb)
+            TeamsSettingsSection(teams: .shared)
             MailSettingsSection(settings: settings, mail: service.mail)
         }
         .formStyle(.grouped)

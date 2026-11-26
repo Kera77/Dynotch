@@ -47,6 +47,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case recording(Date)
     /// A timer, the pomodoro or the stopwatch, the muted microphone, Keep Awake (spec TM-3, QT-5).
     case tools(ToolsGlance)
+    /// A Teams meeting in the web Teams: the microphone and the time since it started (spec MT-6).
+    case teams(TeamsMeeting, since: Date)
 
     var id: String {
         switch self {
@@ -59,13 +61,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .stats: "stats"
         case .recording: "recording"
         case .tools: "tools"
+        case .teams: "teams"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools: false
+        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools, .teams: false
         }
     }
 
@@ -100,6 +103,7 @@ enum IndicatorItem: Identifiable, Equatable {
         case .recording: 0
         case .tools(let glance):
             IndicatorLayout.toolsWidth(glance) + (glance.unfolded ? IndicatorLayout.toolsUnfoldWidth(glance) : 0)
+        case .teams(_, let since): IndicatorLayout.teamsWidth(since: since)
         }
     }
 
@@ -110,7 +114,7 @@ enum IndicatorItem: Identifiable, Equatable {
         case .meeting(_, true), .battery(_, true): 0
         // The Tools' controls drop down, or widen beside the notch (spec TM-19).
         case .tools(let glance): glance.unfolded ? 0 : IndicatorLayout.labelHeight
-        case .meeting, .working, .battery, .stats: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .stats, .teams: IndicatorLayout.labelHeight
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
         case .recording: 0
         case .music: IndicatorLayout.musicDropdownHeight
@@ -129,25 +133,17 @@ enum IndicatorItem: Identifiable, Equatable {
     static func items(
         meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
         tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
-        tools: ToolsGlance? = nil, now: Date = Date()
+        tools: ToolsGlance? = nil, teams: (TeamsMeeting, Date)? = nil, now: Date = Date()
     ) -> [IndicatorItem] {
         // A countdown ending within a minute comes right after the meetings, else at the end (spec TM-4).
         let soon = tools?.clock?.endsSoon(at: now) == true
         let toolsItem = tools.map { [IndicatorItem.tools($0)] } ?? []
         return (recording.map { [.recording($0)] } ?? [])
-            + (music.map { [.music($0)] } ?? []) + meetings.map { .meeting($0) } + (soon ? toolsItem : [])
+            + (music.map { [.music($0)] } ?? []) + (teams.map { [.teams($0.0, since: $0.1)] } ?? [])
+            + meetings.map { .meeting($0) } + (soon ? toolsItem : [])
             + (usage.map { [.usage($0)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem)
-    }
-
-    /// "Resets today 14:30" of the fullest limit, beside the ring (spec PV-58).
-    static func usageResetText(_ limits: [UsageLimit], now: Date = Date()) -> String {
-        let nearest = limits.max { $0.utilization < $1.utilization }
-        // With several accounts the nearest one's name comes first (spec CL-13).
-        let name = nearest?.account.map { $0 + " · " } ?? ""
-        guard let reset = nearest?.resetsAt else { return name + "Usage high" }
-        return name + (name.isEmpty ? "Resets " : "resets ") + UsageAlerts.resetText(reset, now: now)
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands

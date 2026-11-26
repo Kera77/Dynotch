@@ -106,3 +106,16 @@ extension IndicatorLayout {
     static let toolsControlSize: CGFloat = 20
     static let toolsControlSpacing: CGFloat = 4
 }
+
+// MARK: - The usage's reset (spec PV-58)
+
+extension IndicatorItem {
+    /// "Resets today 14:30" of the fullest limit, beside the ring (spec PV-58).
+    static func usageResetText(_ limits: [UsageLimit], now: Date = Date()) -> String {
+        let nearest = limits.max { $0.utilization < $1.utilization }
+        // With several accounts the nearest one's name comes first (spec CL-13).
+        let name = nearest?.account.map { $0 + " · " } ?? ""
+        guard let reset = nearest?.resetsAt else { return name + "Usage high" }
+        return name + (name.isEmpty ? "Resets " : "resets ") + UsageAlerts.resetText(reset, now: now)
+    }
+}

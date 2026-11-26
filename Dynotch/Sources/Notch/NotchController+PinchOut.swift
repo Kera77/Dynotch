@@ -56,7 +56,10 @@ extension NotchController {
         setHoveredIndicator(nil)
         setHoveredBadge(nil)
         expand(fromEdge: true)
-        withAnimation(Self.animation) { model.select(feature, remember: false, exact: true) }
+        withAnimation(Self.animation) {
+            if feature == .notifications { model.notificationsTab = .teams }
+            model.select(feature, remember: false, exact: true)
+        }
     }
 
     /// The module a drop-down beside the notch grows into.
@@ -70,6 +73,7 @@ extension NotchController {
         case .music: .music
         case .stats: .stats
         case .tools: .tools
+        case .teams: .notifications
         case .recording: nil
         }
     }

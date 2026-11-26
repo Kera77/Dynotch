@@ -124,6 +124,8 @@ extension WebNotificationSource {
         "web.whatsapp.com": "WhatsApp Web",
         "app.slack.com": "Slack",
         "teams.microsoft.com": "Microsoft Teams",
+        "teams.live.com": "Microsoft Teams",
+        "teams.cloud.microsoft": "Microsoft Teams",
         "outlook.office.com": "Outlook",
         "outlook.live.com": "Outlook"
     ]

@@ -6,6 +6,8 @@ enum NotificationsTab: Hashable, Sendable, RawRepresentable {
     case chats
     case beeper
     case googleChat
+    /// The web Teams' chats (spec MT-3).
+    case teams
     /// The unread mail of the accounts read from Apple Mail (spec GM-6).
     case mail
     /// A highlighted Beeper network's unread chats (spec BP-15).
@@ -19,6 +21,7 @@ enum NotificationsTab: Hashable, Sendable, RawRepresentable {
         case "chats": self = .chats
         case "beeper": self = .beeper
         case "googleChat": self = .googleChat
+        case "teams": self = .teams
         case "mail": self = .mail
         default:
             guard rawValue.hasPrefix(Self.networkPrefix) else { return nil }
@@ -32,6 +35,7 @@ enum NotificationsTab: Hashable, Sendable, RawRepresentable {
         case .chats: "chats"
         case .beeper: "beeper"
         case .googleChat: "googleChat"
+        case .teams: "teams"
         case .mail: "mail"
         case .network(let name): Self.networkPrefix + name
         }
@@ -43,6 +47,7 @@ enum NotificationsTab: Hashable, Sendable, RawRepresentable {
         case .chats: "Chats"
         case .beeper: "Beeper"
         case .googleChat: "Google Chat"
+        case .teams: "Teams"
         case .mail: "Mail"
         case .network(let name): name
         }
@@ -50,8 +55,9 @@ enum NotificationsTab: Hashable, Sendable, RawRepresentable {
 
     /// The tabs in the picker and the swipe order: the highlighted networks after Beeper
     /// (spec BP-15), Mail only with Mail as Gmail's source (spec GM-6).
-    static func shown(mail: Bool, networks: [String] = []) -> [Self] {
-        [.all, .chats, .beeper] + networks.map(Self.network) + [.googleChat] + (mail ? [.mail] : [])
+    /// Teams once the web Teams was read or sent a notification (spec MT-3).
+    static func shown(mail: Bool, networks: [String] = [], teams: Bool = false) -> [Self] {
+        [.all, .chats, .beeper] + networks.map(Self.network) + [.googleChat] + (teams ? [.teams] : []) + (mail ? [.mail] : [])
     }
 
     /// The Beeper tab needs the larger panel (spec BP-1); Google Chat is a list like All (spec GC-6).
@@ -98,13 +104,16 @@ struct NotificationsTabsView: View {
         VStack(spacing: 6) {
             HStack {
                 CapsulePicker(
-                    items: NotificationsTab.shown(mail: mail.isActive, networks: beeper.highlightedNetworks),
+                    items: NotificationsTab.shown(
+                        mail: mail.isActive, networks: beeper.highlightedNetworks, teams: TeamsService.shared.showsTab(service)
+                    ),
                     selection: $tab, title: \.title
                 ) { item in
                     switch item {
                     case .beeper: beeper.unreadTotal
                     case .network(let name): beeper.unreadTotal(network: name)
                     case .mail: mail.state == .reading ? mail.totalUnread : nil
+                    case .teams: TeamsService.shared.snapshot.map { $0.unread.count }.flatMap { $0 > 0 ? $0 : nil }
                     default: nil
                     }
                 }
@@ -158,6 +167,8 @@ struct NotificationsTabsView: View {
         case .googleChat:
             // Only the unread messages, like the All tab (spec GC-6).
             NotificationsFeatureView(service: service, isActive: isActive) { ChatSources.isGoogleChat($0, catalog: service.catalog) }
+        case .teams:
+            TeamsTabView(teams: .shared, service: service, isActive: isActive)
         case .network(let name):
             BeeperNetworkTab(beeper: beeper, network: name) { open($0) }
         }

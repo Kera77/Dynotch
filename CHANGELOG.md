@@ -2,12 +2,20 @@
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-11-26
+
 ### Added
 - Pinch out (N-28): spreading two fingers opens what the pointer is on, like a click: a drop-down
   beside the closed notch opens its module, a badge its notifications, a peek its card, a Home tile
   its module. Pinching in goes back (N-27, HT-40); one gesture moves only one way. The Home tip and
   the tour's badge line mention it.
-- SPEC: Microsoft Teams in the notch, draft (MT-1…MT-12).
+- Microsoft Teams from the web Teams, without an API (MT-1…MT-12): Teams kept in a browser window of
+  its own is read through Accessibility. A Teams tab under Notifications lists the unread chats
+  (@mentions first); a click opens the chat's last messages with a reply field that sends in Teams.
+  During a meeting a capsule beside the notch shows the mic and the time; its drop-down has mic,
+  camera, hand, share and Leave (asks once more). Settings › Chats › Teams: on/off, a global mute
+  shortcut, and a warning when you talk while muted (microphone level only). `teams.log`. The Teams
+  tab has its first-use tip; What's new lists it.
 
 ## [1.7.4] - 2026-11-26
 

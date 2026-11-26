@@ -171,7 +171,9 @@ final class NotchViewModel {
 
     /// Swiping steps through the tabs first (spec UM-8); false at either end.
     func stepNotificationsTab(by offset: Int) -> Bool {
-        let tabs = NotificationsTab.shown(mail: settings.mailSource == .appleMail, networks: BeeperService.storedHighlights())
+        let tabs = NotificationsTab.shown(
+            mail: settings.mailSource == .appleMail, networks: BeeperService.storedHighlights(), teams: TeamsService.shared.wasSeen
+        )
         guard let index = tabs.firstIndex(of: notificationsTab), tabs.indices.contains(index + offset) else { return false }
         notificationsTab = tabs[index + offset]
         updateLarge()

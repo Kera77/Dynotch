@@ -58,7 +58,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Wingmate shows the weather where you are in the calendar and in a morning forecast.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Wingmate records your voice with a screen recording when you turn the microphone on.</string>
+	<string>Wingmate records your voice with a screen recording when you turn the microphone on, and warns you when you talk while muted in a Teams meeting (it only checks the level, nothing is recorded).</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>Wingmate shows your reminders and checks them off in the notch and the menu bar.</string>
 	<key>NSRemindersUsageDescription</key>

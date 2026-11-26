@@ -25,7 +25,7 @@ extension NotchController {
         let found = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
-            recording: screenshots.recordingSince, tools: ToolsService.shared.glance
+            recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator
         )
         let items = IndicatorItem.unfoldingUsage(
             found, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside

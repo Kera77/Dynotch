@@ -9,7 +9,7 @@ enum OnboardingTips {
 
     /// The tabs that get a tip of their own (spec OB-37).
     static let tabs: [FeatureID: [String]] = [
-        .notifications: ["all", "chats", "beeper", "network", "googleChat", "mail"],
+        .notifications: ["all", "chats", "beeper", "network", "googleChat", "teams", "mail"],
         .tools: ToolsTab.allCases.map(\.rawValue),
         .clipboard: ClipboardTab.allCases.map(\.rawValue),
         .tray: ["tray", "screenshots", "folder"]
@@ -56,6 +56,8 @@ enum OnboardingTips {
             + "Choose which networks get their own tab and badge in Settings › Chats.",
         "notifications.googleChat": "Unread Google Chat messages, read from their notifications. Click a card to read "
             + "it and reply; it stays here until you read it in Google Chat.",
+        "notifications.teams": "Unread Teams chats from Teams open in a browser window of its own; @mentions come first. "
+            + "Click a chat to read it and reply. During a meeting the mic and the controls sit beside the notch.",
         "notifications.mail": "Unread mail from the inboxes of your Apple Mail accounts, grouped by account. Click a "
             + "message to open it in Gmail or Mail; pick the accounts in Settings › Chats.",
         "calculator": "Type a calculation on each line; the result shows on the right, click it to copy. Variables "

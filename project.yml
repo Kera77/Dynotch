@@ -15,7 +15,7 @@ packages:
 
 settings:
   base:
-    MARKETING_VERSION: "1.7.4"
+    MARKETING_VERSION: "1.7.5"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -47,7 +47,7 @@ targets:
         NSCalendarsFullAccessUsageDescription: "Wingmate shows your upcoming events in the notch."
         NSBluetoothAlwaysUsageDescription: "Wingmate shows a notice when a Bluetooth device connects or disconnects, with its battery."
         NSAppleEventsUsageDescription: "Wingmate reads and saves your notes in Notes, sends a text through Messages when you reply to a call, shows and controls what Spotify plays, shows your unread mail from Mail, and reads the unread counts in the titles of your Gmail and Google Chat tabs in Ardia."
-        NSMicrophoneUsageDescription: "Wingmate records your voice with a screen recording when you turn the microphone on."
+        NSMicrophoneUsageDescription: "Wingmate records your voice with a screen recording when you turn the microphone on, and warns you when you talk while muted in a Teams meeting (it only checks the level, nothing is recorded)."
         NSDownloadsFolderUsageDescription: "Wingmate puts a file you just downloaded into the Tray when the notch opens."
         NSContactsUsageDescription: "Wingmate looks up the caller's phone number to send them a text."
         NSRemindersFullAccessUsageDescription: "Wingmate shows your reminders and checks them off in the notch and the menu bar."

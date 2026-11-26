@@ -286,6 +286,7 @@ extension AppDelegate {
     /// The Tools, their shortcuts, the HUD announcements and the weather (spec TM-1, QT-4, HA-1, WX-1).
     func startToolsAndWeather() {
         ToolsService.shared.start(settings: settings, notices: services.notices)
+        TeamsService.shared.start(hud: services.hud)
         QuickToggleService.shared.start()
         let announcer = HUDAnnouncer(hud: services.hud)
         announcer.start()
