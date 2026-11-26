@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings › Menu bar › Color (spec MB-7, MB-7b, MB-8, MB-11, MB-12).
+/// Settings › Menu bar › Color (spec MB-7, MB-8, MB-11, MB-12, MB-15).
 struct MenuBarTintSection: View {
     @Bindable var tint: MenuBarTintService
 
@@ -16,10 +16,6 @@ struct MenuBarTintSection: View {
                         ForEach(MenuBarTintStyle.Direction.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                     }
                     presets
-                    Toggle("Middle color", isOn: Binding(
-                        get: { tint.style.usesMiddle == true },
-                        set: { tint.style.usesMiddle = $0 }
-                    ))
                 }
                 Toggle("Same in Light and Dark", isOn: $tint.style.sameInBoth)
                 colorRow(tint.style.sameInBoth ? "Colors" : "Light", pair: $tint.style.light)
@@ -86,7 +82,7 @@ struct MenuBarTintSection: View {
             HStack(spacing: 8) {
                 TintSwatchPicker(title: tint.style.kind == .gradient ? "Start" : "Color", hex: pair.start)
                 if tint.style.kind == .gradient {
-                    if tint.style.usesMiddle == true {
+                    if tint.style.direction == .center {
                         TintSwatchPicker(title: "Middle", hex: Binding(
                             get: { pair.wrappedValue.middle ?? MenuBarTintStyle.defaultMiddle },
                             set: { pair.wrappedValue.middle = $0 }

@@ -32,6 +32,8 @@ final class NotchManager {
             self?.spaceSwipe(phase)
         }
         monitor.onVerticalSwipe = { [weak self] progress, ended in self?.missionControl?.swiped(progress: progress, ended: ended) }
+        // Back to the Home with a pinch over a module opened from a tile (spec HT-40).
+        monitor.onMagnify = { [weak self] event in self?.controllers.forEach { _ = $0.handleTilePinch(event) } }
         monitor.start()
         spaceSwipes = monitor
         // Mission Control: the notch would cover the Spaces along the top (spec N-19).

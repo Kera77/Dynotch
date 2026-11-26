@@ -1,17 +1,14 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// Settings › Modules › Home: the Home's tiles and the catalog by module, the full settings width
-/// (spec HT-20…HT-23, HT-30…HT-34).
+/// Settings › Modules › Home: the way back, the Home's tiles and the catalog by module, the full
+/// settings width (spec HT-20…HT-23, HT-30…HT-34, HT-37, HT-38, HT-40).
 struct HomeTilesEditor: View {
     @Bindable var tiles: HomeTileSettings
     /// The modules' order, for the catalog (spec HT-21).
     let order: [FeatureID]
 
-    private static let columns = 4
-    private static let cellHeight: CGFloat = 40
-    private static let gap: CGFloat = 6
-    private static let inset: CGFloat = 8
     /// Room left above the block when it stops at the top (spec HT-33).
     private static let topMargin: CGFloat = 16
 
@@ -20,21 +17,30 @@ struct HomeTilesEditor: View {
     /// The settings' visible height and the height above the catalog (spec HT-33).
     @State private var viewportHeight: CGFloat = 400
     @State private var headHeight: CGFloat = 0
-    @State private var previewWidth: CGFloat = 0
-    /// A tile dragged from the small Home, and whether the pointer is still over it (spec HT-31).
+    /// The tile being dragged, whether it came from the small Home, and whether the pointer is
+    /// over it (spec HT-31, HT-37, HT-38).
     @State private var dragged: HomeTile?
-    @State private var isOverPreview = false
+    @State private var isFromHome = false
+    @State private var isOverGrid = false
 
-    private var isRemoving: Bool { dragged != nil && !isOverPreview }
+    /// A tile from the Home is outside it: dropping removes it, a red minus at the pointer says so.
+    private var isRemoving: Bool { dragged != nil && isFromHome && !isOverGrid }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("On the Home: drag to reorder; drag out or click × to remove.")
+                    Picker("Back to Home", selection: $tiles.backGesture) {
+                        ForEach(HomeTileSettings.BackGesture.allCases) { Text($0.title).tag($0) }
+                    }
+                    .help("How a module opened from a tile goes back to the Home; ‹ Home always does")
+                    Text("On the Home: drop a tile where you want it; drag out or click × to remove.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    preview
+                    HomeTilesGrid(tiles: tiles, dragged: $dragged, isOverGrid: $isOverGrid) { tile in
+                        dragged = tile
+                        isFromHome = true
+                    }
                     Text("Tiles: drag onto the Home, click + or double-click to add.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -44,7 +50,7 @@ struct HomeTilesEditor: View {
                     .frame(height: max(viewportHeight - headHeight - 8 - Self.topMargin, 160))
             }
             // Dropped anywhere outside the small Home: off the Home (spec HT-31).
-            .dropDestination(for: String.self) { items, _ in removeDragged(items) }
+            .onDrop(of: [.utf8PlainText, .plainText], delegate: RemoveDrop(remove: removeDragged))
             if tiles.contains(.worldClock) || tiles.contains(.run) { options }
             HStack {
                 Spacer()
@@ -52,73 +58,24 @@ struct HomeTilesEditor: View {
             }
         }
         .task(id: dragged) { await watchDragEnd() }
+        .onChange(of: isRemoving) { _, removing in RemoveBadge.shared.show(removing) }
+        .onDisappear { RemoveBadge.shared.show(false) }
     }
 
-    // MARK: - The Home, small (spec HT-20, HT-22, HT-31)
-
-    private var cellWidth: CGFloat {
-        let room = previewWidth - Self.inset * 2 - Self.gap * CGFloat(Self.columns - 1)
-        return max(room / CGFloat(Self.columns), 30)
+    private func lift(_ tile: HomeTile) {
+        dragged = tile
+        isFromHome = false
     }
 
-    private var preview: some View {
-        let placements = HomeLayout.place(tiles.tiles, columns: Self.columns)
-        let stepX = cellWidth + Self.gap
-        let stepY = Self.cellHeight + Self.gap
-        let rows = max(HomeLayout.rows(of: placements), 1)
-        return ZStack(alignment: .topLeading) {
-            ForEach(placements, id: \.tile) { placement in
-                let tile = placement.tile
-                PreviewTile(
-                    tile: tile, isRemoving: isRemoving && dragged == tile,
-                    remove: { withAnimation(Motion.quick) { tiles.remove(tile) } }
-                )
-                .frame(
-                    width: stepX * CGFloat(placement.size.columns) - Self.gap,
-                    height: stepY * CGFloat(placement.size.rows) - Self.gap
-                )
-                .offset(x: stepX * CGFloat(placement.column), y: stepY * CGFloat(placement.row))
-                .onDrag {
-                    dragged = tile
-                    return NSItemProvider(object: tile.rawValue as NSString)
-                }
-            }
-        }
-        .padding(Self.inset)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .frame(height: stepY * CGFloat(rows) - Self.gap + Self.inset * 2, alignment: .topLeading)
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { previewWidth = $0 }
-        .background(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous).fill(Color.secondary.opacity(0.12)))
-        .contentShape(Rectangle())
-        .dropDestination(for: String.self) { items, location in
-            drop(items, at: location, in: placements)
-        } isTargeted: { isOverPreview = $0 }
-        .animation(Motion.quick, value: placements)
-    }
-
-    /// Before the tile under the drop point, or at the end (spec HT-22).
-    private func drop(_ items: [String], at location: CGPoint, in placements: [TilePlacement]) -> Bool {
-        dragged = nil
-        guard let tile = items.first.flatMap(HomeTile.init(rawValue:)) else { return false }
-        let column = Int((location.x - Self.inset) / (cellWidth + Self.gap))
-        let row = Int((location.y - Self.inset) / (Self.cellHeight + Self.gap))
-        let target = placements.first { placement in
-            (placement.column..<(placement.column + placement.size.columns)).contains(column)
-                && (placement.row..<(placement.row + placement.size.rows)).contains(row)
-        }
-        withAnimation(Motion.quick) { tiles.place(tile, at: target.flatMap { tiles.tiles.firstIndex(of: $0.tile) }) }
-        return true
-    }
-
-    private func removeDragged(_ items: [String]) -> Bool {
+    private func removeDragged() -> Bool {
         defer { dragged = nil }
-        guard let tile = items.first.flatMap(HomeTile.init(rawValue:)), tile == dragged else { return false }
+        guard let tile = dragged, isFromHome else { return false }
         withAnimation(Motion.quick) { tiles.remove(tile) }
         return true
     }
 
     /// A drag can end outside every drop target (another window, the desktop): when the button is
-    /// up and the pointer was not over the small Home, the tile comes off (spec HT-31).
+    /// up and the pointer was not over the small Home, a tile from it comes off (spec HT-31).
     private func watchDragEnd() async {
         while let tile = dragged {
             try? await Task.sleep(for: .milliseconds(150))
@@ -127,9 +84,9 @@ struct HomeTilesEditor: View {
             // Let a drop that is still being delivered come first.
             try? await Task.sleep(for: .milliseconds(150))
             guard dragged == tile else { return }
-            if !isOverPreview { withAnimation(Motion.quick) { tiles.remove(tile) } }
+            if isFromHome, !isOverGrid { withAnimation(Motion.quick) { tiles.remove(tile) } }
             dragged = nil
-            isOverPreview = false
+            isOverGrid = false
         }
     }
 
@@ -177,9 +134,6 @@ struct HomeTilesEditor: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(ScrollChain { viewportHeight = $0 })
         }
-        .overlay {
-            if isRemoving { RemoveBanner() }
-        }
     }
 
     private func catalogGroup(_ group: HomeTileGroup, isOpen: Bool) -> some View {
@@ -202,10 +156,13 @@ struct HomeTilesEditor: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 6)], alignment: .leading, spacing: 6) {
                     ForEach(group.tiles) { tile in
                         CatalogChip(tile: tile, isAdded: tiles.contains(tile)) {
-                            withAnimation(Motion.quick) { tiles.place(tile) }
+                            withAnimation(Motion.quick) { tiles.add(tile) }
                         }
-                        .draggable(tile.rawValue)
-                        .onTapGesture(count: 2) { withAnimation(Motion.quick) { tiles.place(tile) } }
+                        .onDrag {
+                            lift(tile)
+                            return NSItemProvider(object: tile.rawValue as NSString)
+                        }
+                        .onTapGesture(count: 2) { withAnimation(Motion.quick) { tiles.add(tile) } }
                     }
                 }
             }

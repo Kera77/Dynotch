@@ -16,6 +16,17 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.7.2", items: [
+            WhatsNewItem(symbol: "square.grid.3x3", title: "Tiles where you put them",
+                         text: "Settings › Modules › Home: drop a tile on any of five places in a row; "
+                             + "the Home is as wide as its widest row."),
+            WhatsNewItem(symbol: "hand.pinch", title: "Pinch or swipe down",
+                         text: "Choose the way back to the Home again; the pinch now works whichever app is active."),
+            WhatsNewItem(symbol: "capsule", title: "Pill and badges",
+                         text: "On a pill, badge lists drop down whole and take your design, like the tasks."),
+            WhatsNewItem(symbol: "paintpalette", title: "Menu bar directions",
+                         text: "The gradient runs any way, or through a middle color with Center.")
+        ]),
         WhatsNewRelease(version: "1.7.1", items: [
             WhatsNewItem(symbol: "hand.pinch", title: "Back to the Home",
                          text: "Pinch, or swipe down over the top row, both take a module opened from a tile back to the Home."),

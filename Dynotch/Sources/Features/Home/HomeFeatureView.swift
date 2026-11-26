@@ -18,7 +18,7 @@ struct HomeTileServices {
     let music: MusicService
 }
 
-/// The Home: the chosen tiles in a grid that scrolls, or the clock when there are none (spec HT-1…HT-6).
+/// The Home: the chosen tiles in a grid that scrolls, or the clock when there are none (spec HT-1…HT-6, HT-39).
 struct HomeFeatureView: View {
     var tiles: HomeTileSettings
     let services: HomeTileServices
@@ -59,10 +59,11 @@ struct HomeFeatureView: View {
         if tiles.contains(.latestNote) { services.notes.refreshLatest() }
     }
 
+    /// The tiles where they were put, the widest row filling the width (spec HT-38, HT-39).
     private func grid(width: CGFloat) -> some View {
-        let columns = HomeLayout.columns(for: width)
-        let cell = HomeLayout.cell(width: width, columns: columns)
-        let placements = HomeLayout.place(tiles.tiles, columns: columns)
+        let shown = HomeLayout.shown(tiles.slots)
+        let placements = shown.placements
+        let cell = HomeLayout.cell(width: width, columns: shown.columns)
         let rows = HomeLayout.rows(of: placements)
         let step = cell + HomeLayout.gap
         return ZStack(alignment: .topLeading) {

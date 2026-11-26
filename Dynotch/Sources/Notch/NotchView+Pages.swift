@@ -204,7 +204,7 @@ extension NotchView {
             VStack(alignment: .leading, spacing: 4) {
                 Button {
                     DiagnosticsLog.append("home", "back to Home: button")
-                    withAnimation(Motion.spring) { model.backToHome() }
+                    model.backToHomeAnimated()
                 } label: {
                     Label("Home", systemImage: "chevron.left")
                         .font(.notch(size: 11, weight: .medium))

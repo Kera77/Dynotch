@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-11-26
+
+### Changed
+
+- Settings › Modules › Home: the small Home is centred and five columns wide like the normal panel; a tile lands on the place it is dropped (any of the five in a row), tiles it covers move on, and an empty row below always takes one more. While a tile is over it a faint grid shows the cells and where the tile would go. The Home in the notch is as wide as its widest row, at least three tiles (HT-38, HT-39).
+- Dragging a tile out of the small Home no longer turns it or the catalog red: a small red minus follows the pointer, like the green plus when adding (HT-37).
+- The Back to Home choice is back (Pinch or Swipe down); every way back shrinks the module into its tile like the ‹ Home button, and the rest of a swipe no longer scrolls the Home (HT-40, HT-41).
+- Settings › Menu bar › Color: the Middle color switch is gone; the gradient runs Left to right, Right to left, Top to bottom, Bottom to top or Center, which shows the middle color (MB-15).
+- Onboarding: the Home tip names the Back to Home choice and dropping tiles in place.
+
+### Fixed
+
+- The pinch back to the Home works: it is read from the system's gesture events, whichever app is active (HT-40).
+- Pill on external displays: badge lists, and everything else dropping down, open like with the Notch style instead of as a capsule cutting their edges; the top corners are as round as the bottom ones (D-23).
+- A badge's list takes the Liquid glass and Black to glass design, like the tasks counter's (B-14).
+
 ## [1.7.1] - 2026-11-26
 
 ### Fixed

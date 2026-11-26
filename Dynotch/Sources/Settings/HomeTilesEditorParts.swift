@@ -1,10 +1,11 @@
 import AppKit
 import SwiftUI
 
-/// A tile in the small Home: icon, name; × on hover, a red minus while dragged out (spec HT-22, HT-31).
+/// A tile in the small Home: icon, name; × on hover, faded while dragged out (spec HT-22, HT-37).
 struct PreviewTile: View {
     let tile: HomeTile
-    let isRemoving: Bool
+    /// Dragged outside the small Home: only the pointer's red minus says it comes off (spec HT-37).
+    let isLifted: Bool
     let remove: () -> Void
 
     @State private var isHovered = false
@@ -17,24 +18,14 @@ struct PreviewTile: View {
             Spacer(minLength: 0)
             Text(tile.title)
                 .font(.system(size: 10, weight: .medium))
-                .lineLimit(1)
+                .lineLimit(2)
         }
         .padding(6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous).fill(Color.secondary.opacity(0.22)))
-        .opacity(isRemoving ? 0.4 : 1)
-        .overlay {
-            if isRemoving {
-                Image(systemName: "minus.circle.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, .red)
-                    .transition(.scale.combined(with: .opacity))
-                    .accessibilityLabel("Drop outside the Home to remove \(tile.title)")
-            }
-        }
+        .opacity(isLifted ? 0.4 : 1)
         .overlay(alignment: .topTrailing) {
-            if isHovered, !isRemoving {
+            if isHovered, !isLifted {
                 Button(action: remove) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 12))
@@ -46,7 +37,7 @@ struct PreviewTile: View {
                 .accessibilityLabel("Remove \(tile.title)")
             }
         }
-        .animation(Motion.quick, value: isRemoving)
+        .animation(Motion.quick, value: isLifted)
         .onHover { isHovered = $0 }
     }
 }
@@ -93,25 +84,6 @@ struct CatalogChip: View {
         .background(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous).fill(Color.secondary.opacity(0.14)))
         .opacity(isAdded ? 0.55 : 1)
         .help(isAdded ? "\(tile.title) is on the Home" : "Drag onto the Home, click + or double-click to add")
-    }
-}
-
-/// Over the catalog while a Home tile is dragged out: dropping removes it (spec HT-31).
-struct RemoveBanner: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
-            .fill(Color.red.opacity(0.12))
-            .overlay {
-                RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
-                    .strokeBorder(Color.red.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-            }
-            .overlay {
-                Label("Drop to remove", systemImage: "minus.circle.fill")
-                    .font(.callout.weight(.semibold))
-                    .foregroundStyle(.red)
-            }
-            .allowsHitTesting(false)
-            .transition(.opacity)
     }
 }
 

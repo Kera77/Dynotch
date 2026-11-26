@@ -48,6 +48,8 @@ final class SpaceSwipeMonitor {
     /// The up/down swipe (Mission Control, App Exposé): its progress, negative upwards, and
     /// whether it ended (spec N-19b).
     var onVerticalSwipe: (Double, Bool) -> Void = { _, _ in }
+    /// A two-finger pinch, whichever app is active (spec HT-40).
+    var onMagnify: (NSEvent) -> Void = { _ in }
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var isSwiping = false
@@ -86,7 +88,7 @@ final class SpaceSwipeMonitor {
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
             return
         }
-        guard let hidField = SpaceSwipe.hidTypeField, let motionField = SpaceSwipe.motionField,
+        guard !forwardsMagnify(event), let hidField = SpaceSwipe.hidTypeField, let motionField = SpaceSwipe.motionField,
               let phaseField = SpaceSwipe.phaseField
         else { return }
         let hidType = event.getIntegerValueField(hidField)
@@ -113,6 +115,14 @@ final class SpaceSwipeMonitor {
             isSwiping = false
             onPhase(.ended)
         }
+    }
+
+    /// A pinch goes to `onMagnify`: gesture events reach neither an app that is not active nor its
+    /// global monitors (spec HT-40).
+    private func forwardsMagnify(_ event: CGEvent) -> Bool {
+        guard let gesture = NSEvent(cgEvent: event), gesture.type == .magnify else { return false }
+        onMagnify(gesture)
+        return true
     }
 
     /// An up/down dock swipe goes to `onVerticalSwipe`.

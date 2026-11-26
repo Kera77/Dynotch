@@ -30,6 +30,11 @@ extension NotchViewModel {
         select(.home, remember: false)
     }
 
+    /// Every way back shrinks the module into its tile the same way (spec HT-41).
+    func backToHomeAnimated() {
+        withAnimation(Motion.spring) { backToHome() }
+    }
+
     /// A swipe or a top-row icon took the panel to another module: no longer opened from a tile (spec HT-12).
     func leaveTileIfMoved() {
         guard let tileOpening, settings.hostFeature(of: currentFeature) != settings.hostFeature(of: tileOpening.feature)

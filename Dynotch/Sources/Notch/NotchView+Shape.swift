@@ -22,6 +22,8 @@ extension NotchView {
             || devices.current != nil || calls.call != nil || shownNotice != nil
             // An AI ring unfolded sideways (spec PV-58) or the recording's Stop drop nothing down.
             || labelIndex.map { labelHeight(of: $0) > 0 } == true
+            // A badge's list drops down like the others, also from a pill (spec D-23).
+            || hoveredBadgeHeight != nil
     }
 
     /// Only the closed notch's resting state, one row high, is a capsule (spec N-11): as soon
@@ -63,7 +65,9 @@ extension NotchView {
         // Only the fully opened notch: notifications, device notices and the preview stay black.
         // The tasks counter's drop-down is a small panel of its own and takes the design too (spec R-17).
         // The screenshot chooser and pop-up too (spec SH-16).
+        // A badge's list too (spec B-14).
         (model.isExpanded && !model.isPreview) || showsTasksDropDown || (!model.isExpanded && showsScreenshotPeek)
+            || (!model.isExpanded && labelIndex == nil && hoveredBadgeHeight != nil)
     }
 
     /// The tasks counter's drop-down is open under the closed notch (spec R-17).
@@ -88,12 +92,11 @@ extension NotchView {
 
     var shape: UnevenRoundedRectangle {
         if isPill {
-            // Round all round: fully at rest, softer when taller; open, the top corners stay small
-            // so the top row is not cut at its ends.
+            // A capsule only at rest; anything dropping down or open has the notch's own corners,
+            // the top ones as round as the bottom ones (spec D-7, D-23).
             let radius = isCapsule || isRestingPill ? (size.height - pillTrim) / 2 : cornerRadius
-            let top = model.isExpanded ? min(radius, 12) : radius
             return UnevenRoundedRectangle(
-                topLeadingRadius: top, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: top,
+                topLeadingRadius: radius, bottomLeadingRadius: radius, bottomTrailingRadius: radius, topTrailingRadius: radius,
                 style: .continuous
             )
         }

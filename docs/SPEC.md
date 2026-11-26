@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.7.1 elfogadva** · Utolsó módosítás: 2026-11-26
+> Állapot: **v1.7.2 elfogadva** · Utolsó módosítás: 2026-11-26
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -477,6 +477,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | B-11 | (v0.62) **Jelvény elrejtése:** a lenyíló lista jobb felső sarkában (üres listánál az Open mellett) szem-ikon menü: *For 1 Hour*, *For 1 Day*, *Until a New Message* (a szám nő, vagy a jelvény eltűnik, és a következő újra látszik), *Until I Show It Again*. A rejtett jelvény nem foglal helyet a notch mellett. *Settings › App badges* az app sorában mutatja, meddig rejtett („Hidden until 14:30”), és a **Show** gombbal azonnal visszahozza. Újraindítás után is megmarad. |
 | B-12 | (v0.90) **Monokróm jelvények:** a notch melletti jelvények és a jelvénylista ikonjai (az app saját ikonja, a Beeper-hálózatok ikonja, a feltöltött kép) **fekete-fehérek** (szürkeárnyalatosak); a jelek (B-3) eddig is fehérek voltak. A Beállításokban az ikonválasztó színes marad. |
 | B-13 | (v0.97) **Hozzáadás beállítással:** az *Add an app* listában minden app sorában ikonválasztó (SD-11) van a javasolt kezdő ikonnal; az *Add* a kiválasztott ikonnal veszi fel az appot. A *Choose image…* azonnal fel is veszi az appot a feltöltött képpel. |
+| B-14 | (v1.7.2) **A jelvénylista designja (R-17 mintájára):** a notch melletti jelvény lenyíló listája a notch választott designját kapja (*Liquid glass*, *Black to glass*, D-1), mint a feladatszámláló lenyílója. |
 
 ## 4i. Billentyűzetzár (v0.21)
 
@@ -723,6 +724,7 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | D-20 | (v0.101) **Egységes betűméret az üres modulokon:** minden modul üres állapota (pl. Tray *Drop files on the notch…*, Vágólap, Képek) ugyanúgy néz ki, mint az AI *Ask … anything* felirata: 26 pt ikon, alatta 13 pt közepes vastagságú, másodlagos fehér szöveg (a rendszer nagy, félkövér címe helyett). |
 | D-21 | (v0.101) **Még gyorsabb alaptempó (D-19 módosítása):** a nyitás/zárás/átméretezés tempója 0,32 helyett 0,27 mp, a rövid tempó 0,18 helyett 0,15 mp; a hover marad 0,12 mp. A D-19 kivételei változatlanok. |
 | D-22 | (v0.102) **Még gyorsabb tempó (D-21 módosítása):** a nyitás/zárás/átméretezés 0,27 helyett 0,23 mp (kicsit feszesebb rugóval), a rövid tempó 0,15 helyett 0,13 mp; a hover marad 0,12 mp. |
+| D-23 | (v1.7.2) **Pill lenyílók (D-7 módosítása):** *Pill* módban a becsukott notch alá lenyíló részek (jelvénylista, feladatszámláló, értesítés, eszköz, hívás…) **ugyanúgy nyílnak le, mint *Notch* módban**: nem kapszula alakúak, nem vágják le a tartalom szélét. Kapszula csak a nyugalmi, egysoros pill. Lenyílva és kinyitva a pill **felső sarkai ugyanúgy kerekek, mint az alsók** (azonos sugár). |
 
 ## 4u. Modul-ikonsor és környezetfüggő nyitás (v0.41)
 
@@ -1074,6 +1076,7 @@ Ablakváltó a notchban, a ⌘⇥-hoz hasonlóan, de Space-szel, swipe-pal és t
 | MB-12 | (v0.70, hiba) A *Solid* és a *Gradient* módban is minden színmező **színválasztója lenyílik**, és bármilyen szín választható (kész minták és egyedi szín). |
 | MB-13 | (v0.100) **Több hézagstílus (MB-1, MB-4 kiegészítése):** *Empty*, *Line*, *Dot* (kis pont), *Dots* (három pont egymás alatt) és *Double line* (két vékony vonal). |
 | MB-14 | (v0.100) **Elrejtés, ha nincs mellette ikon:** hézagonként *Hide when nothing is left of it* (hézag menüje és *Settings › Menu bar*, alapból ki). Bekapcsolva a hézag nem látszik (0 szélesség), ha tőle balra nincs más menüsor-ikon (a saját hézagokat nem számítva); amint megjelenik egy, a hézag is megjelenik. ~2 mp-enként ellenőrzi. |
+| MB-15 | (v1.7.2) **Irány a közép színnel (MB-7, MB-7b módosítása):** a *Middle color* kapcsoló megszűnik. A *Gradient* iránya: **Left to right**, **Right to left**, **Top to bottom**, **Bottom to top** és **Center** (vízszintesen: a kezdő szín a bal szélen, a középső szín középen, a záró szín a jobb szélen). A középső színválasztó csak *Center* irányban látszik (világos és sötét megjelenéshez külön is, MB-8). A korábban bekapcsolt *Middle color* *Center* irányként töltődik be. |
 
 ## 4ő++. Modulok összevonása (v0.66)
 
@@ -1453,6 +1456,11 @@ Cél: a **Home** modul egy áttekintő kezdőlap legyen: a többi modul legfonto
 | HT-34 | (v1.7.1) **Becsukható modulsorok a katalógusban:** a katalógus modulonkénti csoportjai (Home, Calendar, Info…) a fejlécükre kattintva becsukhatók; alapból mind nyitva. A becsukott csoportokat a Dynotch megjegyzi. |
 | HT-35 | (v1.7.1) **Napló:** a `home.log` a csempés megnyitást (a csempe azonosítója) és a visszalépés módját (pinch, swipe down, gomb) írja; tartalmat nem. |
 | HT-36 | (v1.7.1) **Pinch inaktív appnál is:** ha nem a Dynotch az aktív app, a trackpad pinch eseménye a másik apphoz megy; a Dynotch ezt is figyeli (globális figyelő), és ha a mutató a csempéből nyitott modul fölött van, visszalép a Home-ra. |
+| HT-37 | (v1.7.2) **Kihúzás jele a mutatón (HT-31 módosítása):** a Home előnézetéből kihúzott csempe és a katalógus nem pirosodik be; csak a mutató mellett látszik kis piros mínusz jel (ahogy behúzáskor a zöld plusz), amíg a mutató az előnézeten kívül van, bárhol a képernyőn. Ejtésre a csempe lekerül (HT-31). |
+| HT-38 | (v1.7.2) **Rács a szerkesztőben (HT-4, HT-20, HT-22, HT-23, HT-30 módosítása):** az *On the Home* előnézet középre igazított, és csak akkora, mint az alap notch-panel: **5 oszlop**. A csempe oda kerül, ahová ejtjük (sor és oszlop, az 5 hely bármelyike), nem sorrend szerint folyik. Alul mindig van **egy üres sor**, oda is lehet ejteni. Amíg húzunk a Home fölött, halvány rács mutatja a cellákat, és kiemeli, hová kerülne a csempe (a teljes méretével). Ha a hely foglalt, az ott álló csempék a következő szabad helyre csúsznak. A + gomb és a dupla kattintás az első szabad helyre tesz. Mentés: `home.layout` (`modul.csempe@sor,oszlop`); a régi `home.tiles` sorrendje egyszer 5 oszlopra rendezve átkerül. |
+| HT-39 | (v1.7.2) **A Home szélessége a csempékből (HT-3 módosítása):** a notchban a Home annyi oszlop széles, amennyit a legszélesebb sor elfoglal (a legbalabb és a legjobbra eső foglalt oszlop között), **legalább 3**; a csempék az alap panel 5 oszlopos méretét kapják. A teljesen üres felső sorok és bal oszlopok kimaradnak; 3-nál keskenyebb elrendezés középre kerül. A Home magassága átméretezhető (RS-1), a szélessége a csempéket követi. |
+| HT-40 | (v1.7.2) **Újra van választó (HT-12 módosítása):** *Settings › Modules › Home › Back to Home*: **Pinch** (alap) vagy **Swipe down**; csak a választott mozdulat visz vissza, a ‹ Home gomb mindig. A pinch a trackpaden két ujjal **összehúzás**; a Dynotch rendszerszinten figyeli (listen-only event tap, mint az N-10-nél), így akkor is működik, ha nem a Dynotch az aktív app. Egy mozdulat egyszer lép vissza; a mozdulat maradéka nem görgeti a Home-ot és nem vált modult. |
+| HT-41 | (v1.7.2) **Egy animáció (HT-12, HT-13 kiegészítése):** a visszalépés minden módja (pinch, swipe down, ‹ Home) és minden modulnál ugyanazzal az animációval megy, mint a Naptárból a ‹ Home gombbal: a modul a csempéje helyére zsugorodik, a Home a helyén marad. |
 
 ## 5. Nyitott kérdések
 
@@ -1500,6 +1508,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.7.2** | Csempék a választott helyre 5 oszlopos rácsban, a Home szélessége a legszélesebb sorból; piros mínusz a mutatón kihúzáskor; újra Pinch / Swipe down választó, működő pinch, egységes vissza-animáció; Pill lenyílók és badge-design javítása; menüsor-átmenet irányai Centerrel |
 | **v1.7.1** | Vissza a Home-ra csípéssel és lefelé swipe-pal is (inaktív appnál is); teljes szélességű csempeszerkesztő ⊕ gombbal, piros mínusszal kihúzáskor, becsukható modulsorokkal és láncolt görgetéssel; a Modules nyitott sorai megmaradnak, Collapse all (HT-30…HT-36, SD-19) |
 | **v1.7.0** | Kezdőlap csempékkel: 57 csempe minden modulból hat méretben (1×1…3×2), kattintásra a modul a csempéből nyílik, vissza csípéssel vagy lefelé swipe-pal, hónaplapozás swipe-pal, gombok és mezők a csempéken, összeállítás drag and droppal a *Settings › Modules › Home* alatt (HT-1…HT-29) |
 | **v1.6.1** | Fülválasztók swipe-ja az aktuális fültől lép (Tools minden fülén végig), a Naptár Calendar \| Weather választóján a füleket lépteti; a gyorskapcsoló-csempék felirata nem tolja le a sort, az Empty Trash megerősítése piros (S-7, QT-11) |

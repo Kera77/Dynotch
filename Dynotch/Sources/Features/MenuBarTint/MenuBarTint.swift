@@ -9,9 +9,16 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
         case gradient = "Gradient"
     }
 
+    /// Center: the middle colour between the start and the end (spec MB-15).
     enum Direction: String, Codable, CaseIterable, Sendable {
         case horizontal = "Left to right"
+        case rightToLeft = "Right to left"
         case vertical = "Top to bottom"
+        case bottomToTop = "Bottom to top"
+        case center = "Center"
+
+        var isVertical: Bool { self == .vertical || self == .bottomToTop }
+        var isReversed: Bool { self == .rightToLeft || self == .bottomToTop }
     }
 
     /// Two colours, as hex ("#RRGGBB"); a solid tint uses the first.
@@ -29,7 +36,7 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
     var sameInBoth = true
     /// 0.1…0.8: the menu bar's titles and icons show through the tint (spec MB-9).
     var opacity: Double = 0.5
-    /// A third colour in the middle of the gradient (spec MB-7b); optional so older settings decode.
+    /// The old Middle color switch (spec MB-7b): only read, a saved "on" loads as Center (spec MB-15).
     var usesMiddle: Bool?
 
     static let defaultMiddle = "#FFFFFF"
@@ -38,15 +45,24 @@ struct MenuBarTintStyle: Codable, Equatable, Sendable {
 
     func pair(dark isDark: Bool) -> Pair { isDark && !sameInBoth ? dark : light }
 
-    /// The colours drawn, left to right or top to bottom (spec MB-7, MB-7b).
+    /// The colours drawn, left to right or top to bottom (spec MB-7, MB-15).
     func colors(dark isDark: Bool) -> [String] {
         let pair = pair(dark: isDark)
         switch kind {
         case .off, .solid: return [pair.start, pair.start]
         case .gradient:
-            guard usesMiddle == true else { return [pair.start, pair.end] }
-            return [pair.start, pair.middle ?? Self.defaultMiddle, pair.end]
+            if direction == .center { return [pair.start, pair.middle ?? Self.defaultMiddle, pair.end] }
+            return direction.isReversed ? [pair.end, pair.start] : [pair.start, pair.end]
         }
+    }
+
+    /// Settings saved with Middle color on draw through the middle as before (spec MB-15).
+    func migrated() -> Self {
+        guard usesMiddle == true else { return self }
+        var style = self
+        style.usesMiddle = nil
+        style.direction = .center
+        return style
     }
 
     /// Ready-made gradients for the settings.
@@ -113,7 +129,7 @@ final class MenuBarTintService {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         style = defaults.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(MenuBarTintStyle.self, from: $0) }
-            ?? MenuBarTintStyle()
+            .map { $0.migrated() } ?? MenuBarTintStyle()
     }
 
     func start() {
@@ -228,7 +244,7 @@ struct MenuBarTintView: View {
 
     private var tint: some View {
         let style = service.style
-        let vertical = style.direction == .vertical
+        let vertical = style.direction.isVertical
         return LinearGradient(
             colors: style.colors(dark: colorScheme == .dark).map(TintColor.color),
             startPoint: vertical ? .top : .leading, endPoint: vertical ? .bottom : .trailing

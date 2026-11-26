@@ -35,7 +35,13 @@ extension NotchViewModel {
     }
 
     func clampedModuleSize(_ size: CGSize) -> CGSize {
-        ModuleSizes.clamped(size, min: normalOpenSize, max: geometry.maxModuleSize)
+        homeWidth(ModuleSizes.clamped(size, min: normalOpenSize, max: geometry.maxModuleSize))
+    }
+
+    /// The Home's width follows its tiles; only its height is resized (spec HT-39).
+    private func homeWidth(_ size: CGSize) -> CGSize {
+        guard sizedFeature == .home, !isLarge else { return size }
+        return CGSize(width: homeSize.width, height: size.height)
     }
 
     /// Follows the drag of the resize handle, without animation.
@@ -120,8 +126,16 @@ extension NotchViewModel {
         // The stats' tiles and process list need the room (spec SY-1).
         case .stats: return geometry.mediumSize
         case .tools: return geometry.toolsSize
+        case .home where !isLarge: return homeSize
         default: return isLarge ? geometry.largeSize : geometry.expandedSize
         }
+    }
+
+    /// As wide as the widest row of tiles, at least three columns (spec HT-39).
+    var homeSize: CGSize {
+        let columns = HomeLayout.shown(HomeTileSettings.shared.slots).columns
+        let width = HomeLayout.panelWidth(columns: columns, normalWidth: geometry.expandedSize.width)
+        return CGSize(width: width, height: geometry.expandedSize.height)
     }
 
     /// Merged, the AI tabs sit in the header beside the chat list, which needs the medium width (spec MG-2).

@@ -42,7 +42,9 @@ struct MenuBarTintTests {
         var style = MenuBarTintStyle()
         style.kind = .gradient
         #expect(style.colors(dark: false) == [style.light.start, style.light.end])
-        style.usesMiddle = true
+        style.direction = .rightToLeft
+        #expect(style.colors(dark: false) == [style.light.end, style.light.start])
+        style.direction = .center
         #expect(style.colors(dark: false) == [style.light.start, MenuBarTintStyle.defaultMiddle, style.light.end])
         style.light.middle = "#112233"
         #expect(style.colors(dark: false)[1] == "#112233")
@@ -55,5 +57,11 @@ struct MenuBarTintTests {
         let decoded = try JSONDecoder().decode(MenuBarTintStyle.self, from: old)
         #expect(decoded.usesMiddle == nil)
         #expect(decoded.colors(dark: false).count == 2)
+        // The old Middle color switch loads as Center (spec MB-15).
+        var middle = MenuBarTintStyle()
+        middle.kind = .gradient
+        middle.usesMiddle = true
+        #expect(middle.migrated().direction == .center)
+        #expect(middle.migrated().colors(dark: false).count == 3)
     }
 }

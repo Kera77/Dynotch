@@ -21,27 +21,43 @@ struct HomeTilesTests {
         return NotchViewModel(settings: AppSettings(defaults: makeDefaults()), geometry: geometry, screenName: "Test")
     }
 
-    // MARK: - Grid (spec HT-3, HT-4)
+    // MARK: - Grid (spec HT-38, HT-39)
 
-    @Test func columnsGrowWithTheWidthAndAreAtLeastTwo() {
-        #expect(HomeLayout.columns(for: 120) == 2)
-        #expect(HomeLayout.columns(for: 300) == 2)
-        #expect(HomeLayout.columns(for: 324) == 3)
-        #expect(HomeLayout.columns(for: 640) == 6)
+    @Test func tilesKeepTheirPlaceAndPushWhatTheyCover() {
+        var slots = HomeLayout.slots(from: [.cpu, .memory, .clockWide, .swap])
+        // In five columns everything fits the first row, in order.
+        #expect(slots.map(\.column) == [0, 1, 2, 4])
+        #expect(slots.allSatisfy { $0.row == 0 })
+        // Put at the fifth place of the second row, it stays there.
+        slots = HomeLayout.put(.disk, row: 1, column: 4, in: slots)
+        #expect(slots.first { $0.tile == .disk } == HomeSlot(tile: .disk, row: 1, column: 4))
+        // A wide tile dropped on the last column is kept inside the grid; the tile it covers moves on.
+        slots = HomeLayout.put(.nowPlayingWide, row: 1, column: 4, in: slots)
+        #expect(slots.first { $0.tile == .nowPlayingWide } == HomeSlot(tile: .nowPlayingWide, row: 1, column: 3))
+        #expect(slots.first { $0.tile == .disk } == HomeSlot(tile: .disk, row: 2, column: 0))
     }
 
-    @Test func aSmallTileFillsTheHoleAWideOneLeft() {
-        // cpu | memory | (wide does not fit) ; next row: wide clock; cpu… memory… swap fills row 0's end.
-        let tiles: [HomeTile] = [.cpu, .memory, .clockWide, .swap]
-        let placements = HomeLayout.place(tiles, columns: 3)
-        #expect(placements.map(\.row) == [0, 0, 1, 0])
-        #expect(placements.map(\.column) == [0, 1, 0, 2])
-        #expect(HomeLayout.rows(of: placements) == 2)
+    @Test func theWidestRowSetsTheWidthAtLeastThree() {
+        let two = [HomeSlot(tile: .cpu, row: 2, column: 1), HomeSlot(tile: .memory, row: 2, column: 2)]
+        let narrow = HomeLayout.shown(two)
+        #expect(narrow.columns == 3)
+        // Empty rows above and columns left are left out; two columns are centred in three.
+        #expect(narrow.placements.map(\.row) == [0, 0])
+        #expect(narrow.placements.map(\.column) == [0, 1])
+        let wide = HomeLayout.shown(two + [HomeSlot(tile: .clockWide, row: 3, column: 3)])
+        #expect(wide.columns == 4)
+        let normal: CGFloat = 560
+        #expect(abs(HomeLayout.panelWidth(columns: 5, normalWidth: normal) - normal) < 0.01)
+        #expect(HomeLayout.panelWidth(columns: 3, normalWidth: normal) < normal)
     }
 
-    @Test func aTileWiderThanTheGridIsNarrowed() {
-        let placements = HomeLayout.place([.clockWide], columns: 1)
-        #expect(placements.first?.size == TileSize(rows: 1, columns: 1))
+    @Test func theOldOrderIsLaidOutOnce() {
+        let defaults = makeDefaults()
+        defaults.set(["stats.cpu", "home.clockWide"], forKey: "home.tiles")
+        let settings = HomeTileSettings(defaults: defaults)
+        #expect(settings.slots.map(\.column) == [0, 1])
+        #expect(HomeSlot(saved: "stats.cpu@2,9") == HomeSlot(tile: .cpu, row: 2, column: 4))
+        #expect(HomeSlot(saved: "gone.tile@0,0") == nil)
     }
 
     // MARK: - Catalog and saving (spec HT-14, HT-15, HT-23)
@@ -63,19 +79,16 @@ struct HomeTilesTests {
         let defaults = makeDefaults()
         let settings = HomeTileSettings(defaults: defaults)
         #expect(settings.tiles == HomeTile.defaults)
-        settings.place(.disk)
-        #expect(settings.tiles.last == .disk)
-        // Dropped on the first tile: before it.
-        settings.place(.disk, at: 0)
-        #expect(settings.tiles.first == .disk)
-        // Moved forward onto the third tile: just before it.
-        let third = settings.tiles[2]
-        settings.place(.disk, at: 2)
-        #expect(settings.tiles.firstIndex(of: .disk) == settings.tiles.firstIndex(of: third).map { $0 - 1 })
+        settings.add(.disk)
+        #expect(settings.contains(.disk))
+        settings.put(.disk, row: 4, column: 2)
+        #expect(settings.slots.contains(HomeSlot(tile: .disk, row: 4, column: 2)))
         settings.remove(.cpu)
+        settings.backGesture = .swipeDown
         let reloaded = HomeTileSettings(defaults: defaults)
-        #expect(reloaded.tiles == settings.tiles)
+        #expect(Set(reloaded.slots) == Set(settings.slots))
         #expect(!reloaded.contains(.cpu))
+        #expect(reloaded.backGesture == .swipeDown)
         reloaded.reset()
         #expect(reloaded.tiles == HomeTile.defaults)
     }
@@ -141,6 +154,13 @@ struct HomeTilesTests {
         #expect(!fired)
         fired = gesture.swipe(phase: .changed, fingerDown: 25, fingerSideways: 2)
         #expect(fired)
+        // The rest of that swipe, momentum included, is swallowed; a new swipe is not.
+        var swallowed = gesture.swallowsRest(began: false, inGesture: true)
+        #expect(swallowed)
+        swallowed = gesture.swallowsRest(began: false, inGesture: false)
+        #expect(!swallowed)
+        swallowed = gesture.swallowsRest(began: true, inGesture: true)
+        #expect(!swallowed)
     }
 
     // MARK: - Second part (spec HT-14, HT-16, HT-18, HT-27)
@@ -150,12 +170,12 @@ struct HomeTilesTests {
         #expect(FeatureID.allCases.allSatisfy { withTiles.contains($0) })
     }
 
-    @Test func everySizeIsUsedAndFitsAGridOfTwo() {
+    @Test func everySizeIsUsedAndFitsTheGrid() {
         let sizes = Set(HomeTile.allCases.map(\.size))
         #expect(sizes == [.small, .wide, .tall, .large, .wideLarge, .tallLarge])
-        let placements = HomeLayout.place(HomeTile.allCases, columns: 2)
+        let placements = HomeLayout.placements(HomeLayout.slots(from: HomeTile.allCases))
         #expect(placements.count == HomeTile.allCases.count)
-        #expect(placements.allSatisfy { $0.column + $0.size.columns <= 2 })
+        #expect(placements.allSatisfy { $0.column + $0.size.columns <= HomeLayout.columns })
     }
 
     @Test func aPartOfTheTodayTileOpensItsModule() {
