@@ -20,6 +20,12 @@ final class NotchManager {
         self.openSettings = openSettings
     }
 
+    /// The pointer is on one of the notches (spec F-19).
+    func holdsPointer() -> Bool {
+        let point = NSEvent.mouseLocation
+        return controllers.contains { $0.holdsPointer(point) }
+    }
+
     func start() {
         rebuildIfNeeded()
         // The open Music module or the dropped-down player shows the new track itself (spec MU-10).

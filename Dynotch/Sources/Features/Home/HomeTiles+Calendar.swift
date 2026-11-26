@@ -15,7 +15,7 @@ struct CalendarTileContent: View {
         case .today:
             TodayTileContent(services: services)
         case .month:
-            // 2×2, so the month is not squeezed (spec HT-49).
+            // One row, two columns: the month without empty room (spec HT-52).
             HomeMonthGrid(calendar: services.calendar, pager: .shared, compact: size.rows < 2)
         case .nextEvent, .nextEventWide:
             NextEventTileContent(calendar: services.calendar, isWide: tile == .nextEventWide)

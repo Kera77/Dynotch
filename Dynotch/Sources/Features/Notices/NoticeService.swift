@@ -26,6 +26,8 @@ struct StickyNotice: Equatable, Sendable {
     var stays: TimeInterval?
     /// After an update: hovering opens What's new in the notch; only its Got it removes it (spec WN-6, WN-7).
     var whatsNew: [WhatsNewRelease]?
+    /// Counts down to an action, e.g. Spencer's switch; Cancel in place of the X (spec SL-4).
+    var countdown: DateInterval?
 
     /// A download in `~/Downloads` finished (spec PV-57).
     static func downloaded(_ file: URL) -> StickyNotice {
@@ -53,38 +55,63 @@ struct StickyNotice: Equatable, Sendable {
 @Observable
 final class NoticeService {
     private(set) var notice: StickyNotice?
+    /// The earlier notice, in a compact row under the newer one (spec E-30). What's new waits
+    /// here while another notice stands in its place (spec WN-7).
+    private(set) var second: StickyNotice?
 
     @ObservationIgnored private var downloadExpiry: Task<Void, Never>?
     @ObservationIgnored private var expiry: Task<Void, Never>?
-    /// What's new, put aside while another notice stands in its place (spec WN-7).
-    @ObservationIgnored private var parked: StickyNotice?
     /// How long a finished download stays (spec PV-57).
     static let downloadStays: TimeInterval = 3
 
     func show(_ notice: StickyNotice) {
         // Nothing pops up during the tour (spec OB-11).
         guard !OnboardingController.isRunning else { return }
-        if let current = self.notice, current.whatsNew != nil, notice.whatsNew == nil { parked = current }
-        self.notice = notice
+        let stack = Self.stacked(top: self.notice, second: second, new: notice)
+        self.notice = stack.top
+        second = stack.second
         expiry?.cancel()
         guard let stays = notice.stays else { return }
         expiry = Task { [weak self] in
             try? await Task.sleep(for: .seconds(stays))
-            guard !Task.isCancelled, let self, self.notice == notice else { return }
-            self.notice = self.takeParked()
+            guard !Task.isCancelled, let self else { return }
+            self.remove(notice)
         }
     }
 
-    /// What's new comes back once the notice in its place goes (spec WN-7).
-    private func takeParked() -> StickyNotice? {
-        defer { parked = nil }
-        return parked
+    /// The new notice on top, the one it covers under it, at most two (spec E-30). The same
+    /// source's new notice replaces its old one; What's new never drops out (spec WN-7); a
+    /// finished download only passes by (spec PV-57).
+    nonisolated static func stacked(
+        top: StickyNotice?, second: StickyNotice?, new: StickyNotice
+    ) -> (top: StickyNotice, second: StickyNotice?) {
+        var earlier = [top, second].compactMap { $0 }.filter { $0.download == nil }
+        if new.whatsNew == nil { earlier.removeAll { $0.whatsNew == nil && $0.source == new.source } }
+        if new.whatsNew != nil { earlier.removeAll { $0.whatsNew != nil } }
+        // What's new outlasts the others under the new one.
+        let kept = earlier.first { $0.whatsNew != nil } ?? earlier.first
+        return (new, kept)
+    }
+
+    /// Takes one notice away, wherever it stands; the one under it moves up.
+    func remove(_ shown: StickyNotice) {
+        if notice == shown {
+            notice = second
+            second = nil
+        } else if second == shown {
+            second = nil
+        }
+    }
+
+    /// The notice is still under the notch, on top or under it.
+    func isShown(_ shown: StickyNotice) -> Bool {
+        notice == shown || second == shown
     }
 
     /// Got it on What's new: the only way it goes (spec WN-6).
     func dismissWhatsNew() {
-        parked = nil
-        if notice?.whatsNew != nil { notice = nil }
+        if second?.whatsNew != nil { second = nil }
+        if let notice, notice.whatsNew != nil { remove(notice) }
     }
 
     /// A finished download, unless something more important stands there; it goes by itself.
@@ -96,15 +123,16 @@ final class NoticeService {
         downloadExpiry?.cancel()
         downloadExpiry = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Self.downloadStays))
-            guard !Task.isCancelled, let self, self.notice == shown else { return }
-            self.notice = self.takeParked()
+            guard !Task.isCancelled, let self else { return }
+            self.remove(shown)
         }
     }
 
-    /// What's new does not go this way, only with its Got it (spec WN-7).
+    /// The top notice goes and the one under it moves up. What's new does not go this way,
+    /// only with its Got it (spec WN-7).
     func dismiss() {
         guard let notice, notice.whatsNew == nil else { return }
-        self.notice = takeParked()
+        remove(notice)
     }
 
     /// Links other programs open to tell Dynotch something (spec CN-2).

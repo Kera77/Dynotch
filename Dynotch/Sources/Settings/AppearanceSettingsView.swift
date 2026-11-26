@@ -13,6 +13,8 @@ struct AppearanceSettingsView: View {
                     ForEach(NotchDesign.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                // The old black look for notifications under the notch (spec D-28).
+                Toggle("Black notifications under the notch", isOn: Bindable(NotificationLook.shared).black)
                 SettingsSlider(
                     title: "Open panel opacity", value: $settings.panelOpacity, range: AppSettings.panelOpacityRange, step: 0.05
                 ) { "\(Int(($0 * 100).rounded())) %" }
@@ -114,7 +116,8 @@ struct AppearanceSettingsView: View {
         note += " The open panel has a soft rim light and shadow, a black that deepens towards the bottom, glass tinted "
             + "to the wallpaper, and an even black-to-glass fade."
         note += " Liquid glass is the glass of Black to glass all over; Black over glass parts the black top row "
-            + "from the glass with a sharp line. Notifications under the notch keep a black top in every design."
+            + "from the glass with a sharp line. Notifications under the notch keep a black top in every design, "
+            + "or stay all black with Black notifications under the notch."
         note += " Crisp look (trial): a stronger blur, lighter grey fills, brighter text."
         if #unavailable(macOS 26.0) { note += " Liquid glass needs macOS 26; here a dark blur is used instead." }
         return note

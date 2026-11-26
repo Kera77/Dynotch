@@ -114,6 +114,10 @@ struct NotchView: View {
 
     /// A sticky notice is written under the notch unless an indicator's details are open there.
     var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
+    /// The earlier notice's row under the shown one (spec E-30).
+    var secondNoticeHeight: CGFloat {
+        shownNotice != nil && notices.second != nil && !settings.noticesBeside ? NotificationService.secondRowHeight : 0
+    }
 
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     var labelIndex: Int? {
@@ -255,6 +259,7 @@ struct NotchView: View {
         .animation(Self.quickAnimation, value: hud.display != nil)
         .animation(NotchController.animation, value: calls.call != nil)
         .animation(NotchController.animation, value: notices.notice)
+        .animation(NotchController.animation, value: notices.second)
         .animation(Self.quickAnimation, value: calls.isComposing)
         .animation(NotchController.animation, value: settings.roundedNotch)
         .animation(NotchController.animation, value: settings.roundOnlyWhereShown)
@@ -272,6 +277,10 @@ struct NotchView: View {
     private var expandedContent: some View {
         VStack(spacing: 0) {
             menuBar
+            // Black over glass: the content starts a little under the line (spec D-27).
+            if settings.design == .split {
+                Color.clear.frame(height: max(geometry.blackRowHeight - geometry.menuBarHeight, 0) + 4)
+            }
             if model.isShowingSettings {
                 SettingsView(
                     settings: settings, calendar: calendar, notifications: notifications,
@@ -344,7 +353,7 @@ extension NotchView {
         if devices.current != nil { return geometry.devicePeekSize }
         if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
-            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight)
+            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight + secondNoticeHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)

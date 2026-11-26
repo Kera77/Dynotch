@@ -37,8 +37,10 @@ extension NotchIndicatorView {
                 .lineLimit(1)
             Spacer(minLength: 8)
             // The small X like everywhere else; a swipe up still works too (spec CN-5b).
-            // What's new has none: it goes with its Got it (spec WN-7).
-            if notice.whatsNew == nil {
+            // What's new has none: it goes with its Got it (spec WN-7). A countdown has Cancel (spec SL-4).
+            if let countdown = notice.countdown {
+                CountdownCancelPill(interval: countdown, cancel: dismissNotice)
+            } else if notice.whatsNew == nil {
                 Button(action: dismissNotice) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.notch(size: 13))

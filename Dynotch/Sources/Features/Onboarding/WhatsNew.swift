@@ -16,6 +16,22 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.7.9", items: [
+            WhatsNewItem(symbol: "rectangle.3.group", title: "Spencer layouts by display",
+                         text: "A Spencer button beside the notch restores a layout, and switches by itself "
+                             + "when your displays change, with 10 seconds to cancel."),
+            WhatsNewItem(symbol: "bell", title: "Black notifications",
+                         text: "Appearance › Black notifications under the notch keeps them plain black in any design."),
+            WhatsNewItem(symbol: "square.stack", title: "Two notices under the notch",
+                         text: "A new notice no longer hides the one before: they stand one under the other."),
+            WhatsNewItem(symbol: "calendar", title: "Today in the middle",
+                         text: "The day strip centres today from the first opening, and today dims when another day is picked."),
+            WhatsNewItem(symbol: "square.grid.2x2", title: "Smaller tiles",
+                         text: "Month and Notepad are 1×2 now, and the Notepad's hint goes the moment you type."),
+            WhatsNewItem(symbol: "hand.tap", title: "Calmer notch",
+                         text: "One tap when a pinch opens the notch, no focus change behind it, "
+                             + "and room under the line in Black over glass.")
+        ]),
         WhatsNewRelease(version: "1.7.8", items: [
             WhatsNewItem(symbol: "exclamationmark.triangle", title: "Who uses it all",
                          text: "A system warning beside the notch lists the five busiest apps, and you can quit them there."),

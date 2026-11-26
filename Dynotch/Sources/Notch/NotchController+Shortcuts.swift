@@ -74,9 +74,11 @@ extension NotchController {
         // Beside the notch in Wings mode (spec PV-37).
         if settings.noticesBeside { return wingsPeekZone }
         let geometry = model.geometry
+        // With the earlier notice's row under it (spec E-30).
+        let label = IndicatorLayout.labelHeight + (notices.second == nil ? 0 : NotificationService.secondRowHeight)
         let rect = layout.isEmpty
-            ? geometry.rect(for: CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + IndicatorLayout.labelHeight))
-            : layout.rect(notchRect: geometry.notchRect, labelHeight: IndicatorLayout.labelHeight)
+            ? geometry.rect(for: CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + label))
+            : layout.rect(notchRect: geometry.notchRect, labelHeight: label)
         return rect.insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)
     }
 
@@ -162,16 +164,18 @@ extension NotchController {
 
     /// The first hover on the update's notice opens What's new (spec WN-6).
     func opensWhatsNew(at point: CGPoint, layout: IndicatorLayout) -> Bool {
-        guard notices.notice?.whatsNew != nil, !model.isExpanded, model.hoveredIndicator == nil, calendar.announcement == nil,
-              noticeArea(for: layout).contains(point)
+        guard notices.notice?.whatsNew != nil || notices.second?.whatsNew != nil, !model.isExpanded,
+              model.hoveredIndicator == nil, calendar.announcement == nil, noticeArea(for: layout).contains(point)
         else { return false }
+        // Under another notice, only its own row opens it (spec E-30).
+        if notices.notice?.whatsNew == nil, model.geometry.notchRect.minY - point.y < IndicatorLayout.labelHeight { return false }
         return openWhatsNew()
     }
 
     /// Opens the notch on What's new, from its notice (spec WN-6).
     @discardableResult
     func openWhatsNew() -> Bool {
-        guard let releases = notices.notice?.whatsNew else { return false }
+        guard let releases = notices.notice?.whatsNew ?? notices.second?.whatsNew else { return false }
         setHoveredBadge(nil)
         if !model.isExpanded {
             expand()

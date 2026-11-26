@@ -11,6 +11,8 @@ final class FocusFollowsMouse {
     private var attempts = FocusRules.Attempts()
     /// When each reason for not switching was last written to the log.
     private var lastSkipLog: [String: Date] = [:]
+    /// The pointer is on the notch: its windows below keep their focus (spec F-19).
+    var isOverNotch: () -> Bool = { false }
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -59,6 +61,10 @@ final class FocusFollowsMouse {
         else { return }
         let windows = WindowPicker.screenWindows(from: info)
         if !afterLettingGo, letGoIfDynotchHoldsKeys(windows: windows) { return }
+        if isOverNotch() {
+            logSkip("the pointer is on the notch")
+            return
+        }
         if NSApp.windows.contains(where: FocusRules.takesKeyboard) {
             logSkip("a Dynotch window has the keyboard")
             return

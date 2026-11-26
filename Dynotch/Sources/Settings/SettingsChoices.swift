@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// Where the settings open (spec C-2).
 enum SettingsPresentation: String, CaseIterable, Sendable {
@@ -26,6 +27,22 @@ enum NotchDesign: String, CaseIterable, Sendable {
         case .blend: "Black to glass"
         case .split: "Black over glass"
         }
+    }
+}
+
+/// Notifications under the closed notch stay plain black, whatever the design (spec D-28).
+@MainActor
+@Observable
+final class NotificationLook {
+    static let shared = NotificationLook()
+    nonisolated static let blackKey = "blackNotifications"
+
+    var black: Bool {
+        didSet { UserDefaults.standard.set(black, forKey: Self.blackKey) }
+    }
+
+    init() {
+        black = UserDefaults.standard.bool(forKey: Self.blackKey)
     }
 }
 

@@ -11,6 +11,14 @@ extension NotchController {
         settleCollapsedMouse(at: NSEvent.mouseLocation)
     }
 
+    /// The pointer is on the visible notch: the open panel, or a drop-down, notice or
+    /// notification of the closed one. Focus does not follow it to the windows below (spec F-19).
+    func holdsPointer(_ point: CGPoint) -> Bool {
+        if model.isExpanded { return model.geometry.rect(for: model.openSize).contains(point) }
+        if hoverZone.contains(point) { return true }
+        return !panel.ignoresMouseEvents && (model.hoveredIndicator != nil || model.hoveredBadge != nil || isOverNotice)
+    }
+
     func settleCollapsedMouse(at point: CGPoint) {
         guard !model.isExpanded, !callIsShown, !model.isShowingStrip else { return }
         let onRow = model.hoveredIndicator != nil || model.hoveredBadge != nil || model.badgesUnfolded || isOverNotice

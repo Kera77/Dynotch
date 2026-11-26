@@ -96,6 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         manager.start()
         notchManager = manager
+        startWatchingNotch(manager)
         startOnboarding(manager)
         announceUpdate()
         offerTextService(manager)
@@ -237,6 +238,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// "New Dynotch Note" in the Services menu (spec J-13).
+    /// Focus stays while the pointer is on the notch (spec F-19); Spencer's layouts follow the
+    /// displays (spec SL-3, SL-4).
+    private func startWatchingNotch(_ manager: NotchManager) {
+        focusFollowsMouse.isOverNotch = { [weak manager] in manager?.holdsPointer() ?? false }
+        SpencerService.shared.start(notices: services.notices)
+    }
+
     private func offerTextService(_ manager: NotchManager) {
         let provider = TextServiceProvider { [weak self, weak manager] text in
             self?.services.notes.addToScratchpad(text)

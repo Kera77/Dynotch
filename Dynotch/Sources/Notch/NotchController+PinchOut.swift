@@ -24,13 +24,16 @@ extension NotchController {
         if tileBack.pinch(phase: Self.phase(of: event), magnification: event.magnification) == .outward {
             DiagnosticsLog.append("notch", "opened by pinch: \(target.name)")
             target.open()
-            Haptics.perform(.featureSwitch, settings: settings)
+            // Opening the panel gives its own tap; only a tile in the open Home needs one (spec N-30).
+            if !target.opensPanel { Haptics.perform(.featureSwitch, settings: settings) }
         }
         return true
     }
 
     private struct PinchOutTarget {
         let name: String
+        /// Opens the panel, whose opening already taps the trackpad (spec N-30).
+        var opensPanel = true
         let open: @MainActor () -> Void
     }
 
@@ -40,7 +43,7 @@ extension NotchController {
                   model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation),
                   let hovered = HomeTileHover.current
             else { return nil }
-            return PinchOutTarget(name: "tile \(hovered.tile.rawValue)") { [model] in
+            return PinchOutTarget(name: "tile \(hovered.tile.rawValue)", opensPanel: false) { [model] in
                 withAnimation(Motion.spring) { model.openTile(hovered.tile, anchor: hovered.anchor) }
             }
         }

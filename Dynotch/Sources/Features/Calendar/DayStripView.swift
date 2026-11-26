@@ -42,6 +42,24 @@ struct DayStripView: View {
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
+            strip
+                // The width still grows while the panel opens (and the Today button comes and
+                // goes): the selected day is put back in the middle each time (spec K-20).
+                .background(GeometryReader { geometry in
+                    Color.clear.onChange(of: geometry.size.width) { _, _ in recentre(proxy) }
+                })
+                .onAppear { DispatchQueue.main.async { recentre(proxy) } }
+        }
+    }
+
+    private func recentre(_ proxy: ScrollViewProxy) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { proxy.scrollTo(selectedDay, anchor: .center) }
+    }
+
+    private var strip: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 0) {
                 ForEach(days, id: \.self) { day in
@@ -97,12 +115,14 @@ struct DayCell: View {
     let isSelected: Bool
     let hasEvents: Bool
 
-    private var isHighlighted: Bool { isToday || isSelected }
+    /// Only the picked day is large and bright; today stays blue but dim when another day is
+    /// picked, so going back to it shows (spec K-21).
+    private var isHighlighted: Bool { isSelected }
 
     private var isFirstOfMonth: Bool { Calendar.current.component(.day, from: day) == 1 }
 
     private var color: Color {
-        if isToday { return CalendarStyle.accent }
+        if isToday { return isSelected ? CalendarStyle.accent : CalendarStyle.accent.opacity(0.6) }
         if isSelected { return .white }
         if Calendar.current.isDateInWeekend(day) { return CalendarStyle.weekend.opacity(0.8) }
         return Color.white.level(0.6)

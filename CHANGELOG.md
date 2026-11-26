@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [1.7.9] - 2026-11-26
+
+### Added
+- Spencer button beside the notch (shown while Spencer is installed): its menu lists Spencer's
+  layouts; picking one restores it and remembers it for the connected displays. Switch
+  automatically (on by default): when the displays change (iPad, two monitors…), a notice under the
+  notch says which layout comes, with a Cancel pill whose rim runs out anticlockwise in 10 s; then
+  the layout is restored through Spencer's command line tool. Update current layout, Open Spencer.
+  `spencer.log` (SL-1…SL-6). The tour's last step mentions the button.
+- Appearance › Black notifications under the notch: notifications and device notices stay plain
+  black whatever the design (D-28).
+
+### Changed
+- Month and Notepad tiles are 1×2 (one row, two columns) (HT-52, HT-53).
+- The day strip's today is large and bright only while picked; otherwise blue but dim (K-21).
+- Buttons beside the notch are 24 pt wide so seven fit (SL-1).
+
+### Fixed
+- Two sticky notices (e.g. What's new and Claude finished) stand one under the other; the new
+  one no longer covers the earlier one (E-30).
+- A pinch out that opens the notch gives one haptic tap, not two (N-30).
+- Focus follows the mouse no longer switches to the window behind the notch while the pointer is
+  on it (F-19).
+- The day strip centres the picked day on the first opening too (K-20).
+- Black over glass: module tab pickers no longer touch the line (D-27).
+- The Notepad's hint disappears completely with the first keystroke (HT-53).
+
 ## [1.7.8] - 2026-11-26
 
 ### Added

@@ -46,10 +46,10 @@ extension NotchView {
 }
 
 /// Lock and gear on the right of the panel's top row (spec C-1, SZ-8).
-/// Sizes of the controls right of the notch: six buttons fit beside even the smallest panel.
+/// Sizes of the controls right of the notch: seven buttons fit beside even the smallest panel (spec SL-1).
 enum TrailingControlsMetrics {
-    static let buttonWidth: CGFloat = 28
-    static let buttonCount = 6
+    static let buttonWidth: CGFloat = 24
+    static let buttonCount = 7
     static let spacing: CGFloat = 2
     /// The capsule's padding and the margin at the panel's edge.
     static let insets: CGFloat = 2 * 3 + 14
@@ -98,6 +98,9 @@ struct TrailingControls: View {
         case .tablet:
             // An iPad as a display (spec TB-1).
             TabletMenu(service: tablets)
+        case .spencer:
+            // Spencer's window layouts, switched by the displays (spec SL-1).
+            SpencerMenu(service: .shared)
         case .followMouse:
             // Focus follows mouse on and off (spec F-9): blue while on.
             iconButton(control.symbol, isOn: followsMouse, action: toggleFollowsMouse)

@@ -22,6 +22,7 @@ extension NotchView {
             hiddenBadges: badgeFit.hidden,
             hoveredBadge: model.hoveredBadge,
             notice: notice,
+            secondNotice: notice == nil || settings.noticesBeside ? nil : notices.second,
             // A click opens the app's notifications in the notch; nothing else (spec B-6c).
             openBadge: showBadgeNotifications,
             moveBadge: { id, index in

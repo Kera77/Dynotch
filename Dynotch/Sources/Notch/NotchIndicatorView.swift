@@ -15,6 +15,8 @@ struct NotchIndicatorView: View {
     var hoveredBadge: String?
     /// Written under the row while no indicator's details are open (spec CN-1).
     var notice: StickyNotice?
+    /// The earlier notice, in a compact row under it (spec E-30).
+    var secondNotice: StickyNotice?
     var openBadge: (BadgeItem) -> Void = { _ in }
     var moveBadge: (String, Int) -> Void = { _, _ in }
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
@@ -92,6 +94,11 @@ struct NotchIndicatorView: View {
                     )
                 } else if let notice {
                     noticeLabel(notice)
+                    if let secondNotice {
+                        PeekSecondRowView(row: .notice(secondNotice), app: nil, content: nil)
+                            .frame(height: NotificationService.secondRowHeight)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
             }
         }

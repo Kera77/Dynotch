@@ -4,6 +4,7 @@ import SwiftUI
 /// shown. Settings always stays, or there would be no way back to it.
 enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     case tablet
+    case spencer
     case followMouse
     case keyboardLock
     case pin
@@ -15,6 +16,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .tablet: "iPad as a display"
+        case .spencer: "Spencer window layouts"
         case .followMouse: "Focus follows the mouse"
         case .keyboardLock: "Keyboard lock"
         case .pin: "Pin the notch open"
@@ -26,6 +28,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     var symbol: String {
         switch self {
         case .tablet: "ipad.landscape"
+        case .spencer: SpencerMenu.symbol
         case .followMouse: "arrow.up.square.fill"
         case .keyboardLock: "keyboard.fill"
         case .pin: "lock.fill"
@@ -57,7 +60,10 @@ final class TopRowLayout {
             .filter(\.canHide)
     }
 
-    var visible: [TopRowControl] { order.filter { !hidden.contains($0) } }
+    /// The Spencer button only while Spencer is installed (spec SL-1).
+    var visible: [TopRowControl] {
+        order.filter { !hidden.contains($0) && ($0 != .spencer || SpencerService.shared.isInstalled) }
+    }
 
     func isShown(_ control: TopRowControl) -> Bool { !hidden.contains(control) }
 

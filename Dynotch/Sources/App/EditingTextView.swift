@@ -35,6 +35,24 @@ class EditingTextView: NSTextView {
         }
     }
 
+    /// The whole view is redrawn when the text becomes or stops being empty: a redraw of the
+    /// typed line only left the rest of the placeholder standing (spec HT-53).
+    override func didChangeText() {
+        super.didChangeText()
+        let isEmpty = string.isEmpty
+        if isEmpty != wasEmpty { needsDisplay = true }
+        wasEmpty = isEmpty
+    }
+
+    override var string: String {
+        didSet {
+            if string.isEmpty != wasEmpty { needsDisplay = true }
+            wasEmpty = string.isEmpty
+        }
+    }
+
+    private var wasEmpty = true
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         guard string.isEmpty, let placeholder else { return }

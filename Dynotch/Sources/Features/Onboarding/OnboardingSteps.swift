@@ -36,7 +36,8 @@ extension OnboardingStep {
             "Wingmate only asks for what your modules need. Nothing here is required."
         case .ready:
             "Settings live behind the gear icon at the right of the notch's top row; the switch beside it holds "
-                + "quick toggles like Keep Awake."
+                + "quick toggles like Keep Awake. With Spencer installed, its button there switches your window "
+                + "layouts, and can do it by itself when your displays change."
         }
     }
 
