@@ -39,6 +39,7 @@ struct NotificationStackView: View {
                 header(for: latest)
             }
             ScrollViewReader { proxy in
+              GeometryReader { viewport in
                 ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(notifications) { notification in
@@ -57,6 +58,9 @@ struct NotificationStackView: View {
                     }
                     .padding(.leading, 50)
                     .padding(.trailing, 14)
+                    // Bottom up, like a chat: a new answer pushes the messages up while the
+                    // card stays the same size (spec E-34).
+                    .frame(minHeight: viewport.size.height, alignment: .bottom)
                 }
                 .scrollIndicators(.never)
                 .onAppear {
@@ -66,6 +70,7 @@ struct NotificationStackView: View {
                 .onChange(of: proxyTarget) { _, target in
                     if let target { withAnimation(Motion.quick) { proxy.scrollTo(target, anchor: .bottom) } }
                 }
+              }
             }
             if canReply, let replyTarget {
                 NotificationReplyField(
@@ -79,7 +84,9 @@ struct NotificationStackView: View {
                             answers.append(Answer(line: replyingTo?.id, text: text))
                             replyingTo = nil
                         }
-                        if let last = answers.last { withAnimation { proxyTarget = last.id } }
+                        // Once the new bubble is laid out, the card stays in place and the
+                        // messages slide up (spec E-34).
+                        if let last = answers.last { DispatchQueue.main.async { proxyTarget = last.id } }
                     }
                 )
                     .padding(.horizontal, 12)

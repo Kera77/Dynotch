@@ -70,7 +70,8 @@ struct NotificationReplyField: View {
             .background(RoundedRectangle(cornerRadius: AppleStyle.corner(8), style: .continuous).fill(Color.white.level(0.1)))
             .focused($isFocused)
             .onSubmit(send)
-            .disabled(status == .sending)
+            // Not disabled while sending: it would lose the focus, the panel the keyboard, and on
+            // getting it back the field would select the sent text (spec E-34).
             // Clicking into the field pins the notch, so it does not close while typing.
             .onChange(of: isFocused) { _, focused in
                 if focused {
@@ -163,13 +164,16 @@ struct NotificationReplyField: View {
         status = .sending
         let line = quote
         let quoted = line.map { service.content(for: $0).detail }
+        // Empty at once, ready for the next message; back if it did not go (spec E-34).
+        let typed = text
+        text = ""
         Task {
             do {
                 let note = try await service.reply(to: line ?? target, text: reply, quoting: quoted)
-                text = ""
                 status = .sent(note)
                 sent(reply)
             } catch {
+                if text.isEmpty { text = typed }
                 status = .failed("\(error)")
             }
         }

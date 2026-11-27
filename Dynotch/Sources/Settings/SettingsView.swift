@@ -110,6 +110,7 @@ private struct GeneralSettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var claudeHook = ClaudeHook.isInstalled()
+    @Bindable private var sessionSettings = ClaudeSessionSettings.shared
     @State private var questionHook = ClaudeQuestionHook.isInstalled()
     @State private var codexHook = CodexHook.isInstalled()
     @State private var claudeHookError: String?
@@ -193,6 +194,9 @@ private struct GeneralSettingsView: View {
             AISettingsSection(chat: chat)
             Section {
                 Toggle("AI usage indicator next to the notch", isOn: $settings.claudeRingVisible)
+                Toggle("Follow Claude Code sessions at the indicator", isOn: $sessionSettings.listsSessions)
+                Toggle("Drop down when a new session starts", isOn: $sessionSettings.popsUp)
+                    .disabled(!sessionSettings.listsSessions)
                 Toggle("Notify above 70% (again every 10%)", isOn: $settings.claudeUsageAlerts)
             } header: {
                 Text("AI usage")

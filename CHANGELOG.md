@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Added
+- Following Claude Code sessions at the AI ring can be turned off in Settings › General › AI usage:
+  the sessions in the ring's hover and the drop-down for a new session separately (CS-8).
+  Onboarding tip of AI Usage updated.
+
+### Changed
+- The usage dropped down for a new Claude Code session goes by itself after about 6 seconds (it
+  stays while hovered) and can be flicked up like other notices (CS-7b).
+- A Beeper chat clicked in the Beeper badge's hover list opens on the Chats tab with its card open
+  and ready to type (BP-22).
+
+### Fixed
+- After sending from a chat card the reply field empties at once instead of selecting the sent
+  text, the notch no longer jumps, and the card under the notch keeps its size while the messages
+  slide up (E-34).
+
 ## [1.8.3] - 2026-11-27
 
 ### Added

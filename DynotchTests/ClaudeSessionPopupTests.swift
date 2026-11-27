@@ -24,22 +24,18 @@ struct ClaudeSessionPopupTests {
         #expect(service.popupShown)
     }
 
-    @Test func itGoesTenMinutesAfterTheLastSessionEnded() {
+    @Test func itGoesByItselfAfterAFewSecondsUnlessHovered() {
         let service = ClaudeSessionService()
         let start = Date()
-        service.handle(event("UserPromptSubmit", at: start))
-        // Still working: it stays however long.
-        service.checkPopup(now: start.addingTimeInterval(3600))
+        service.handle(event("SessionStart", at: start))
+        service.handle(event("UserPromptSubmit", at: start.addingTimeInterval(2)))
+        service.checkPopup(now: start.addingTimeInterval(4))
         #expect(service.popupShown)
-        let stop = start.addingTimeInterval(3700)
-        service.handle(event("Stop", at: stop))
-        service.checkPopup(now: stop.addingTimeInterval(9 * 60))
+        // Hovering keeps it; leaving lets it go a few seconds later, even while Claude works.
+        service.touchPopup(at: start.addingTimeInterval(5))
+        service.checkPopup(now: start.addingTimeInterval(9))
         #expect(service.popupShown)
-        // Hovering starts the ten minutes again.
-        service.touchPopup(at: stop.addingTimeInterval(9 * 60))
-        service.checkPopup(now: stop.addingTimeInterval(11 * 60))
-        #expect(service.popupShown)
-        service.checkPopup(now: stop.addingTimeInterval(20 * 60))
+        service.checkPopup(now: start.addingTimeInterval(12))
         #expect(!service.popupShown)
     }
 

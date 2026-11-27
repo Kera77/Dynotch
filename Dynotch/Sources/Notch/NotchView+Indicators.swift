@@ -93,7 +93,7 @@ extension NotchView {
     var indicatorItems: [IndicatorItem] {
         let items = IndicatorItem.items(
             meetings: calendarIndicator.events, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
-            sessions: notices.sessions.running(), working: chatIndicator.isWorking,
+            sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
             tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator

@@ -105,11 +105,15 @@ struct BeeperComposer: View {
         isSending = true
         let quoted = replyTo?.id
         let attached = file
+        // Empty at once, ready for the next message; back if it did not go (spec E-34).
+        let typed = text
+        text = ""
         Task {
             if await service.send(message, to: chat.id, replyTo: quoted, file: attached) {
-                text = ""
                 file = nil
                 replyTo = nil
+            } else if text.isEmpty {
+                text = typed
             }
             isSending = false
         }

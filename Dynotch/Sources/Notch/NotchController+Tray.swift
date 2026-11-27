@@ -221,7 +221,16 @@ extension NotchController {
         let request = CardOpenRequest(sender: row.sender)
         let fromBeeper = row.id < 0 && row.id > -20_000
         if fromBeeper { beeper.cardRequest = request } else { notifications.cardRequest = request }
-        showNotifications(for: badge)
+        // Beeper's chat opens on the Chats tab, where its card opens with the reply field (spec BP-22);
+        // the Beeper tab with its chat list open would not show it.
+        if settings.isEnabled(.notifications), BadgeApp.chatTab(for: badge.app) == .beeper {
+            // A Notification Center line of Beeper: on the Chats tab its chat may stand as a Beeper card.
+            beeper.cardRequest = request
+            noteEdgeOrigin(badge: badge.id)
+            openChatTab(.chats)
+        } else {
+            showNotifications(for: badge)
+        }
         // Not found in the list: it does not open a card later by surprise.
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             guard let self else { return }

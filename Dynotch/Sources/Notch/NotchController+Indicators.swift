@@ -24,7 +24,7 @@ extension NotchController {
     func collapsedRow() -> CollapsedRow {
         let found = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
-            sessions: notices.sessions.running(), working: chat.isWorking,
+            sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator
         )
@@ -242,14 +242,16 @@ extension NotchController {
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
-            sessions: notices.sessions.running(), working: chat.isWorking,
+            sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
         if let handled = handleDevicePeekScroll(event) ?? handleTaskListScroll(event, items: items, layout: layout) {
             return handled
         }
-        if let handled = handleBesideMeetingScroll(event) { return handled }
+        if let handled = handleBesideMeetingScroll(event) ?? handleUsagePopupScroll(event, items: items, layout: layout) {
+            return handled
+        }
         let announced = calendar.announcement.flatMap { announcement in
             items.firstIndex { if case .meeting(let item, _) = $0 { item.id == announcement.id } else { false } }
         }

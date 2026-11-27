@@ -40,6 +40,12 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.8.4", items: [
+            WhatsNewItem(symbol: "terminal", title: "Session pop-up only flashes",
+                         text: "A new Claude Code session shows the usage for a few seconds; flick it up, or turn it off in Settings."),
+            WhatsNewItem(symbol: "bubble.left.and.bubble.right", title: "Beeper chats open on Chats",
+                         text: "A chat clicked in the Beeper badge's list opens its card on the Chats tab; sending keeps the card steady.")
+        ]),
         WhatsNewRelease(version: "1.8.3", items: [
             WhatsNewItem(symbol: "terminal", title: "Sessions at the usage ring",
                          text: "The AI ring's hover lists your Claude Code sessions; a new session drops them down by itself."),

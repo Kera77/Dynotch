@@ -13,6 +13,33 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.4": [
+            TestPlanItem(
+                id: "usage-popup-flash", group: "Sessions at the usage ring",
+                text: "Start a new Claude Code session: the usage drops down and goes by itself after ~6 s; hovered it stays.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "usage-popup-flick", group: "Sessions at the usage ring",
+                text: "Start another session and flick the drop-down up with two fingers: it goes at once.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "usage-follow-toggle", group: "Sessions at the usage ring",
+                text: "Settings › General › AI usage: turn off the drop-down, then the following; a new session no longer drops down.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "beeper-badge-chats", group: "Beeper",
+                text: "Hover the Beeper badge and click a chat: the Chats tab opens with that chat's card open, ready to type.",
+                log: "beeper"
+            ),
+            TestPlanItem(
+                id: "beeper-send-steady", group: "Beeper",
+                text: "Send two messages from a card: the field empties without selecting the text, the notch stays and the messages slide up.",
+                log: "beeper"
+            )
+        ],
         "1.8.3": [
             TestPlanItem(
                 id: "usage-sessions", group: "Sessions at the usage ring",

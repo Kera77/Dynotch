@@ -224,12 +224,16 @@ struct BeeperUnreadCard: View {
         if anchor == nil { anchor = unread.first?.id }
         beeper.answeringChatID = chat.id
         let replyTo = quote?.id
+        // Empty at once, ready for the next message; back if it did not go (spec E-34).
+        let typed = text
+        text = ""
         Task {
             let sent = await beeper.send(message, to: chat.id, replyTo: replyTo)
             isSending = false
             if sent {
-                text = ""
                 quote = nil
+            } else if text.isEmpty {
+                text = typed
             }
         }
     }
