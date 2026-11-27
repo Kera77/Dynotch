@@ -1,10 +1,12 @@
 import SwiftUI
 
-/// The Cleaner module: leftovers of removed apps, caches, and removing an app with its files
-/// (spec TT-1…TT-6).
+/// The Cleaner on the Stats: leftovers of removed apps, caches, and removing an app with its files
+/// (spec TT-1…TT-6, TT-8).
 struct CleanerView: View {
     @Bindable var service: CleanerService
     let isActive: Bool
+    /// ‹ Stats (spec TT-8).
+    let back: () -> Void
 
     @State private var confirming = false
 
@@ -26,14 +28,30 @@ struct CleanerView: View {
             footer
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .overlay { if service.isCleaning { busy } }
         .onChange(of: isActive, initial: true) { _, active in
+            service.isViewed = active
             if active { service.scanIfNeeded(); service.refreshSpace() }
         }
+        .onDisappear { service.isViewed = false }
         .onChange(of: service.tab) { confirming = false }
     }
 
     private var header: some View {
         HStack(spacing: 8) {
+            Button(action: back) {
+                HStack(spacing: 3) {
+                    Image(systemName: "chevron.left").font(.notch(size: 11, weight: .semibold))
+                    Text("Stats").font(.notch(size: 12, weight: .medium))
+                }
+                .padding(.horizontal, 8)
+                .frame(height: 22)
+                .background(Capsule().fill(Theme.fill))
+                .contentShape(Capsule())
+            }
+            .buttonStyle(.notch)
+            .foregroundStyle(Color.white.level(0.8))
+            .help("Back to the Stats")
             Text("Cleaner")
                 .font(.notch(size: 13, weight: .semibold))
                 .foregroundStyle(.white)
@@ -56,6 +74,19 @@ struct CleanerView: View {
                     .frame(width: 40)
             }
         }
+    }
+
+    /// Over the whole Cleaner while it cleans: nothing in it can be clicked (spec TT-12).
+    private var busy: some View {
+        VStack(spacing: 8) {
+            ProgressView().controlSize(.small)
+            Text("Cleaning…").font(.notch(size: 12, weight: .medium)).foregroundStyle(Color.white.level(0.75))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous).fill(Color.black.opacity(0.6)))
+        .contentShape(Rectangle())
+        .onTapGesture {}
+        .transition(.opacity)
     }
 
     private var scanning: some View {
@@ -82,7 +113,7 @@ struct CleanerView: View {
                     .foregroundStyle(Color.white.level(0.7))
                 pill("Move to Trash", color: Theme.red) {
                     confirming = false
-                    service.trashPending()
+                    withAnimation(Motion.quick) { service.trashPending() }
                 }
             } else {
                 status
@@ -125,12 +156,25 @@ struct CleanerView: View {
     }
 }
 
-/// The cleaner beside the notch and in the preview (spec TT-7).
-enum CleanerWing {
-    @MainActor static func right(_ service: CleanerService) -> String {
-        if service.isScanning { return "Scanning…" }
-        guard service.hasScanned else { return "Click to scan" }
-        return "\(CleanerService.format(service.cleanable)) to clean"
+/// Clean on the Stats' Disk card and on the disk tiles: opens the Cleaner (spec TT-8, TT-10).
+struct CleanButton: View {
+    /// The tile it sits on, so the Stats grow from it; nil on the Disk card.
+    var tile: HomeTile?
+
+    @Environment(\.openCleaner) private var openCleaner
+
+    var body: some View {
+        Button { openCleaner(tile) } label: {
+            Text("Clean")
+                .font(.notch(size: 10, weight: .semibold))
+                .padding(.horizontal, 8)
+                .frame(height: 18)
+                .background(Capsule().fill(Theme.selectedFill))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+        .help("Open the Cleaner")
     }
 }
 
@@ -144,5 +188,7 @@ struct CleanerTileContent: View {
             value: service.hasScanned ? CleanerService.format(service.cleanable) : "Scan",
             detail: service.hasScanned ? "to clean" : "Free up space"
         )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .topTrailing) { CleanButton(tile: .cleaner) }
     }
 }

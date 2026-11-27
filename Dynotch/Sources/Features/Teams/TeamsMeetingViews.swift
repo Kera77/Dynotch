@@ -11,12 +11,13 @@ extension IndicatorLayout {
 }
 
 extension NotchIndicatorView {
-    /// The Tools' or the Teams meeting's capsule (spec TM-3, MT-6).
+    /// The Tools', the Teams meeting's or the Cleaner's capsule (spec TM-3, MT-6, TT-13).
     @ViewBuilder
     func controlsCapsule(_ item: IndicatorItem, now: Date) -> some View {
         switch item {
         case .tools(let glance): toolsCapsule(glance, now: now)
         case .teams(let meeting, let since): TeamsMeetingSlot(meeting: meeting, since: since, now: now)
+        case .cleaner(let glance): CleanerGlanceView(glance: glance)
         default: EmptyView()
         }
     }

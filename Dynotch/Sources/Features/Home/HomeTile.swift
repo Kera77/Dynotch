@@ -55,7 +55,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
     case chat = "claudeChat.chat"
     case ask = "claudeChat.ask"
     case claudeSessions = "claudeSessions.list"
-    case cleaner = "cleaner.status"
+    case cleaner = "stats.cleaner"
     case batteryMac = "battery.mac"
     case devices = "battery.devices"
     case lastCopied = "clipboard.last"
@@ -127,7 +127,7 @@ enum HomeTile: String, CaseIterable, Identifiable, Sendable {
         .chat: Info(feature: .claudeChat, title: "Chat", size: .wide),
         .ask: Info(feature: .claudeChat, title: "Ask", size: .wide),
         .claudeSessions: Info(feature: .claudeSessions, title: "Sessions", size: .wide),
-        .cleaner: Info(feature: .cleaner, title: "Cleaner", size: .small),
+        .cleaner: Info(feature: .stats, title: "Cleaner", size: .small),
         .batteryMac: Info(feature: .battery, title: "Mac", size: .small),
         .devices: Info(feature: .battery, title: "Devices", size: .wide),
         .lastCopied: Info(feature: .clipboard, title: "Last copied", size: .small),

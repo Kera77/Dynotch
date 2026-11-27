@@ -7,7 +7,7 @@ import Testing
 struct TopRowTests {
     @Test func topRowOrderKeepsStoredAndAddsNewControls() {
         #expect(TopRowLayout.normalized([]) == TopRowControl.allCases)
-        let expected: [TopRowControl] = [.tablet, .spencer, .followMouse, .keyboardLock, .settings, .pin, .toggles]
+        let expected: [TopRowControl] = [.tablet, .spencer, .cleaner, .followMouse, .keyboardLock, .settings, .pin, .toggles]
         #expect(TopRowLayout.normalized(["settings", "pin", "bogus", "pin"]) == expected)
     }
 
@@ -22,6 +22,15 @@ struct TopRowTests {
         #expect(!layout.visible.contains(.tablet))
         // Kept for the next launch.
         #expect(TopRowLayout(defaults: defaults).order.first == .settings)
+    }
+
+    @MainActor @Test func theCleanerButtonIsOffUntilSwitchedOn() throws {
+        let defaults = try #require(UserDefaults(suiteName: "TopRowTests-\(UUID().uuidString)"))
+        #expect(!TopRowLayout(defaults: defaults).isShown(.cleaner))
+        TopRowLayout(defaults: defaults).setShown(.cleaner, true)
+        #expect(TopRowLayout(defaults: defaults).isShown(.cleaner))
+        TopRowLayout(defaults: defaults).setShown(.cleaner, false)
+        #expect(!TopRowLayout(defaults: defaults).isShown(.cleaner))
     }
 
     @Test func theRightControlsFitBesideEveryNotch() {

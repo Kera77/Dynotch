@@ -5,9 +5,11 @@ import SwiftUI
 @Observable
 final class NotchViewModel {
     private(set) var isExpanded = false { didSet { noteOpened() } }
-    private(set) var currentFeature: FeatureID { didSet { noteOpened(); leaveTileIfMoved() } }
+    private(set) var currentFeature: FeatureID { didSet { noteOpened(); leaveTileIfMoved(); leaveCleanerIfMoved() } }
     /// The module opened from a Home tile, until it goes back or away (spec HT-11).
     var tileOpening: TileOpening?
+    /// The Cleaner shows in place of the Stats (spec TT-8).
+    var showsCleaner = false
     /// Opened from the closed notch's edge (a drop-down, a badge, a peek): a pinch closes it (spec N-27).
     var openedFromEdge = false
     /// True while the panel shows the full calendar and uses the large size.
@@ -35,9 +37,7 @@ final class NotchViewModel {
     /// What's new, opened from its notice under the notch (spec WN-6).
     private(set) var whatsNew: [WhatsNewRelease] = []
 
-    func showWhatsNew(_ releases: [WhatsNewRelease]) {
-        whatsNew = releases
-    }
+    func showWhatsNew(_ releases: [WhatsNewRelease]) { whatsNew = releases }
     /// The first-launch tour fills the open panel until it ends (spec OB-36).
     var showsTour = false
     /// Lock in the top row: the panel stays open even when the pointer leaves it (spec SZ-8).
@@ -305,6 +305,7 @@ final class NotchViewModel {
 
     /// A closed notch opens on its module again, not on the settings or the toggles.
     private func leavePages() {
+        if showsCleaner { showsCleaner = false }
         if isShowingSettings { isShowingSettings = false }
         if isShowingToggles { isShowingToggles = false }
     }

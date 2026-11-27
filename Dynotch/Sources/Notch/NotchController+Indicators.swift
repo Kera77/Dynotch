@@ -26,7 +26,8 @@ extension NotchController {
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
             sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
-            recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator
+            recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator,
+            cleaner: CleanerService.shared.notchGlance
         )
         let items = IndicatorItem.unfoldingUsage(
             found, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
@@ -108,6 +109,7 @@ extension NotchController {
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             guard settlesOn("i\(slot)") else { return }
+            if case .cleaner = items[slot] { return openCleanerFromIndicator() }
             // The cover and the stats open their module (spec MU-2, SY-7).
             // With a warning the stats drop it down with an X instead (spec SY-10).
             if let feature = items[slot].opensModule, feature != .stats || stats.indicator.warnings.isEmpty {

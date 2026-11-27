@@ -36,9 +36,7 @@ enum OnboardingModuleTexts {
         .claudeUsage: "Your Claude usage and when the limits reset, at a glance. "
             + "It lives as the Usage tab of the AI module, and a ring beside the notch warns when you run low. "
             + "Add a second account, like the desktop app's, in Settings › General.",
-        .cleaner: "Frees space on your Mac: files left behind by removed apps and caches you do not need. "
-            + "It also removes an app together with its folders; everything goes to the Trash.",
-        .stats: "CPU, memory, disk and network of your Mac at a glance. "
+        .stats: "CPU, memory, disk and network of your Mac at a glance; Clean on the Disk card frees space. "
             + "The Batteries tab shows your connected devices and their charge.",
         .battery: "Batteries of your Mac, AirPods, mouse and other connected devices. "
             + "It lives as a tab of System, and warns beside the notch when one runs low.",

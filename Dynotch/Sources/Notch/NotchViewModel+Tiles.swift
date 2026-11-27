@@ -20,6 +20,8 @@ extension NotchViewModel {
         DiagnosticsLog.append("home", "opened tile \(tile.rawValue) → \(feature.rawValue)")
         // Not remembered: the next opening follows the usual rules (spec HT-13).
         select(feature, remember: false, exact: true)
+        // The Cleaner tile opens the Cleaner on the Stats (spec TT-10).
+        if tile == .cleaner { showsCleaner = true }
     }
 
     /// The pinch, the swipe down or ‹ Home: the module shrinks back into its tile (spec HT-12, HT-13).

@@ -8,6 +8,8 @@ import Observation
 final class CleanerService {
     static let shared = CleanerService()
 
+    enum NotchGlance: Equatable { case cleaning, done }
+
     enum Tab: String, CaseIterable, Hashable {
         case leftovers, caches, apps
 
@@ -33,6 +35,15 @@ final class CleanerService {
     /// After a clean: "Freed 2.3 GB", and what could not be moved (spec TT-5).
     private(set) var freed: Int64?
     private(set) var failed = 0
+    /// Moving to the Trash and the scan after it: the Cleaner can't be touched (spec TT-12).
+    private(set) var isCleaning = false
+    /// Beside the closed notch: the spinner while cleaning, then the green tick (spec TT-13).
+    private(set) var notchGlance: NotchGlance?
+    /// The Cleaner is open in a notch: a clean ending there needs no tick (spec TT-13).
+    var isViewed = false {
+        didSet { if isViewed, notchGlance == .done { notchGlance = nil } }
+    }
+    private var glanceTimer: Task<Void, Never>?
     private(set) var freeSpace: Int64 = 0
     private(set) var totalSpace: Int64 = 0
 
@@ -74,6 +85,7 @@ final class CleanerService {
                 .union(result.caches.filter { !$0.inUse && $0.size >= CleanerScan.selectedCache }.map(\.url))
             self.hasScanned = true
             self.isScanning = false
+            if self.isCleaning { self.finishCleaning() }
             CleanerLog.write("scan: \(result.leftovers.count) leftover apps, \(result.caches.count) caches, "
                 + "\(result.apps.count) apps, fda=\(result.needsFullDiskAccess)")
         }
@@ -115,21 +127,52 @@ final class CleanerService {
         return [CleanerItem(url: app.url, size: app.size)] + selectedItems
     }
 
+    /// Off the main thread, the Cleaner covered until the list is scanned again (spec TT-12).
     func trashPending() {
-        let items = pending.filter { CleanerScan.mayRemove($0.url) }
-        var freedNow: Int64 = 0
+        guard !isCleaning else { return }
+        let all = pending
+        let items = all.filter { CleanerScan.mayRemove($0.url) }
+        let tab = tab
+        isCleaning = true
+        glanceTimer?.cancel()
+        notchGlance = .cleaning
+        Task {
+            let (moved, freedNow) = await Task.detached(priority: .userInitiated) { Self.trash(items) }.value
+            let failedNow = all.count - moved
+            CleanerLog.write("trash: \(moved) moved, \(failedNow) failed, \(freedNow / 1_000_000) MB, tab=\(tab.rawValue)")
+            selected.subtract(items.map(\.url))
+            freed = freedNow
+            failed = failedNow
+            if tab == .apps { app = nil; appFiles = [] }
+            scanAfterClean()
+        }
+    }
+
+    nonisolated private static func trash(_ items: [CleanerItem]) -> (moved: Int, freed: Int64) {
+        var freed: Int64 = 0
         var moved = 0
         for item in items where (try? FileManager.default.trashItem(at: item.url, resultingItemURL: nil)) != nil {
-            freedNow += item.size
+            freed += item.size
             moved += 1
         }
-        let failedNow = pending.count - moved
-        CleanerLog.write("trash: \(moved) moved, \(failedNow) failed, \(freedNow / 1_000_000) MB, tab=\(tab.rawValue)")
-        selected.subtract(items.map(\.url))
-        freed = freedNow
-        failed = failedNow
-        if tab == .apps { app = nil; appFiles = [] }
-        scanAfterClean()
+        return (moved, freed)
+    }
+
+    /// The tick waits beside the closed notch for ten minutes, unless the clean was watched (spec TT-13).
+    private func finishCleaning() {
+        isCleaning = false
+        guard !isViewed else { return notchGlance = nil }
+        notchGlance = .done
+        glanceTimer = Task {
+            try? await Task.sleep(for: .seconds(600))
+            guard !Task.isCancelled, notchGlance == .done else { return }
+            notchGlance = nil
+        }
+    }
+
+    /// Hovering the tick opens the Cleaner: the tick has done its job (spec TT-13).
+    func clearNotchGlance() {
+        if notchGlance == .done { notchGlance = nil }
     }
 
     private func scanAfterClean() {

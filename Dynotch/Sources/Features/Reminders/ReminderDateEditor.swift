@@ -4,7 +4,11 @@ import SwiftUI
 /// choices, the chosen day, and a small month under it.
 struct ReminderDayPicker: View {
     @Binding var due: Date
+    /// Called when the month opens, so the detail scrolls it fully into view (spec R-25).
+    var onShowMonth: () -> Void = {}
     @State private var showsMonth = false
+
+    static let monthID = "reminder-month"
     @State private var month = Date()
 
     private var calendar: Calendar { .current }
@@ -18,6 +22,7 @@ struct ReminderDayPicker: View {
             }
             if showsMonth {
                 ReminderMonth(month: $month, selected: due) { setDay($0) }
+                    .id(Self.monthID)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -38,6 +43,7 @@ struct ReminderDayPicker: View {
         ) {
             month = due
             withAnimation(Motion.quick) { showsMonth.toggle() }
+            if showsMonth { onShowMonth() }
         }
     }
 

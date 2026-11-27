@@ -77,9 +77,9 @@ enum OnboardingTips {
             + "Both can be turned off in Settings › General › AI usage.",
         "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished and how long. Click one to "
             + "bring its window forward; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
-        "cleaner": "Leftovers lists files of apps that are gone, Caches what apps keep to load faster, Apps removes an "
-            + "app with its files. Tick what to clean and click Clean; everything goes to the Trash, so you can put it back.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
+            + "Clean on the Disk card opens the Cleaner: leftovers of removed apps, caches, and removing an app "
+            + "with its files, all to the Trash. ‹ Stats or a pinch brings you back. "
             + "Options picks what shows beside the closed notch and which warnings you get; "
             + "a warning's drop-down lists the five apps using the most, each with its own quit.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "

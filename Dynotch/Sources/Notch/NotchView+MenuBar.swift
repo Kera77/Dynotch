@@ -34,9 +34,15 @@ extension NotchView {
                 isPinned: model.isPinned,
                 isShowingSettings: model.isShowingSettings,
                 isShowingToggles: model.isShowingToggles,
+                isShowingCleaner: model.showsCleaner && model.currentFeature == .stats,
                 togglePin: { model.isPinned.toggle() },
                 toggleSettings: toggleSettings,
-                toggleToggles: toggleQuickToggles
+                toggleToggles: toggleQuickToggles,
+                toggleCleaner: { [model] in
+                    withAnimation(NotchController.animation) {
+                        if model.showsCleaner { model.closeCleaner() } else { model.openCleaner() }
+                    }
+                }
             )
             .padding(.trailing, 14)
                 .frame(width: sideWidth, alignment: .trailing)
@@ -68,9 +74,11 @@ struct TrailingControls: View {
     let isPinned: Bool
     let isShowingSettings: Bool
     let isShowingToggles: Bool
+    let isShowingCleaner: Bool
     let togglePin: () -> Void
     let toggleSettings: () -> Void
     let toggleToggles: () -> Void
+    let toggleCleaner: () -> Void
 
     private let layout = TopRowLayout.shared
     @State private var dragged: TopRowControl?
@@ -101,6 +109,10 @@ struct TrailingControls: View {
         case .spencer:
             // Spencer's window layouts, switched by the displays (spec SL-1).
             SpencerMenu(service: .shared)
+        case .cleaner:
+            // The Cleaner on the Stats (spec TT-9).
+            pageButton(control, isShowing: isShowingCleaner, action: toggleCleaner)
+                .help("Cleaner (⌘-drag to reorder)")
         case .followMouse:
             // Focus follows mouse on and off (spec F-9): blue while on.
             iconButton(control.symbol, isOn: followsMouse, action: toggleFollowsMouse)

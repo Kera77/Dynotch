@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Changed
+- The Cleaner is no longer a module of its own: Clean on the Stats' Disk card opens it in place of
+  the Stats, with ‹ Stats and a pinch to go back (TT-8). It can also be opened from a Cleaner
+  button in the top row (off by default, Settings › General) and from Clean on the Home's Disk and
+  Cleaner tiles (TT-9, TT-10). A Cleaner tile placed before has to be added again.
+- The Cleaner's tick marks are round (TT-11). While it cleans (moving to the Trash, now off the main
+  thread, and the scan after it) the whole Cleaner is covered and can't be clicked (TT-12).
+- Closing the notch while it cleans shows the same spinner right of the notch, then a green tick;
+  hovering it opens the Cleaner again (TT-13).
+- In an app of the Apps tab, a two-finger sideways swipe goes back to the app list instead of
+  switching modules (TT-14).
+- Opening the month in a task's details scrolls it fully into view (R-25).
+- Onboarding: the Cleaner's own module text and tip are gone; the Stats' text and tip mention
+  Clean on the Disk card (TT-15).
+
 ## [1.8.5] - 2026-11-27
 
 ### Changed

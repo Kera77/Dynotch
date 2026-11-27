@@ -20,7 +20,6 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
     case terminal
     case tools
     case weather
-    case cleaner
 
     var id: String { rawValue }
 
@@ -44,7 +43,6 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .terminal: "Terminal"
         case .tools: "Tools"
         case .weather: "Weather"
-        case .cleaner: "Cleaner"
         }
     }
 
@@ -68,7 +66,6 @@ enum FeatureID: String, CaseIterable, Identifiable, Sendable {
         case .terminal: "apple.terminal"
         case .tools: "timer"
         case .weather: "cloud.sun.fill"
-        case .cleaner: "externaldrive.badge.minus"
         }
     }
 }

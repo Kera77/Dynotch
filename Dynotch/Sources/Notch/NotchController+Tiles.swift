@@ -60,7 +60,7 @@ extension NotchController {
     /// A pinch over the module opened from a tile, when Pinch is the way back (spec HT-40). The
     /// event tap hands it over whichever app is active, so the pointer must be over the panel.
     func handleTilePinch(_ event: NSEvent) -> Bool {
-        if handleEdgePinch(event) || handlePinchOut(event) { return true }
+        if handleCleanerPinch(event) || handleEdgePinch(event) || handlePinchOut(event) { return true }
         guard model.isExpanded, model.tileOpening != nil, HomeTileSettings.shared.backGesture == .pinch,
               model.geometry.rect(for: model.openSize).contains(NSEvent.mouseLocation)
         else { return false }

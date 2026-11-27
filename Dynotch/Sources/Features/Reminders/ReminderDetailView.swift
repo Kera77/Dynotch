@@ -12,15 +12,17 @@ struct ReminderDetailView: View {
         VStack(spacing: 0) {
             header
             if let binding = Binding($details) {
-                ScrollView(.vertical) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        texts(binding)
-                        dateSection(binding)
-                        optionsSection(binding)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            texts(binding)
+                            dateSection(binding) { revealMonth(proxy) }
+                            optionsSection(binding)
+                        }
+                        .padding(12)
                     }
-                    .padding(12)
+                    .scrollIndicators(.never)
                 }
-                .scrollIndicators(.never)
             } else {
                 Text("This reminder is gone.").foregroundStyle(Color.white.level(0.6)).frame(maxHeight: .infinity)
             }
@@ -66,14 +68,22 @@ struct ReminderDetailView: View {
         .font(.notch(size: 12))
     }
 
-    private func dateSection(_ details: Binding<ReminderDetails>) -> some View {
+    /// The opened month scrolls fully into view, no scrolling by hand (spec R-25).
+    private func revealMonth(_ proxy: ScrollViewProxy) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(60))
+            withAnimation(Motion.quick) { proxy.scrollTo(ReminderDayPicker.monthID, anchor: .bottom) }
+        }
+    }
+
+    private func dateSection(_ details: Binding<ReminderDetails>, onShowMonth: @escaping () -> Void) -> some View {
         DetailGroup {
             DetailRow(symbol: "calendar", title: "Date", detail: nil) {
                 Toggle("", isOn: details.hasDate).labelsHidden().toggleStyle(.switch).controlSize(.mini)
             }
             // Inside the notch, never a system pop-up (spec R-24).
             if details.wrappedValue.hasDate {
-                ReminderDayPicker(due: details.due).padding(.leading, 28)
+                ReminderDayPicker(due: details.due, onShowMonth: onShowMonth).padding(.leading, 28)
             }
             Divider().overlay(Color.white.level(0.08))
             DetailRow(symbol: "clock", title: "Time", detail: nil) {

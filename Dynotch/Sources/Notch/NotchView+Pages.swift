@@ -15,7 +15,10 @@ extension NotchView {
     /// A module, under the tabs of a merged module (spec MG-2).
     @ViewBuilder
     func page(for feature: FeatureID) -> some View {
-        if let tabs = settings.mergedTabs(for: feature), tabs[0] == .claudeChat {
+        if feature == .stats, model.showsCleaner {
+            // The Cleaner covers the System's tabs too (spec TT-8).
+            modulePage(for: feature)
+        } else if let tabs = settings.mergedTabs(for: feature), tabs[0] == .claudeChat {
             // The AI module's header has room for the tabs, beside its buttons on the right.
             modulePage(for: feature)
                 .environment(\.mergedTabs, MergedTabs(tabs: tabs, selected: feature) { tab in model.pickTab(tab) })
@@ -72,7 +75,7 @@ extension NotchView {
             ClaudeChatFeatureView(service: chat, isActive: model.isExpanded && model.currentFeature == .claudeChat)
         case .battery:
             BatteryFeatureView(service: battery, isActive: model.isExpanded && model.currentFeature == .battery)
-        case .clipboard, .tray, .info, .music, .stats, .terminal, .tools, .weather, .claudeSessions, .cleaner:
+        case .clipboard, .tray, .info, .music, .stats, .terminal, .tools, .weather, .claudeSessions:
             morePage(for: feature)
         }
     }
@@ -86,10 +89,14 @@ extension NotchView {
             TrayFeatureView(store: tray, edit: editScreenshot)
         case .claudeSessions:
             ClaudeSessionsView(service: notices.sessions, open: openClaudeSession)
-        case .cleaner:
-            CleanerView(service: .shared, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .cleaner)
         case .music:
             MusicFeatureView(service: music, isActive: model.isExpanded && model.currentFeature == .music)
+        case .stats where model.showsCleaner:
+            // The Cleaner in place of the Stats (spec TT-8).
+            CleanerView(
+                service: .shared, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats,
+                back: { [model] in withAnimation(Motion.spring) { model.closeCleaner() } }
+            )
         case .stats:
             StatsFeatureView(
                 service: stats, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats,
@@ -200,6 +207,7 @@ extension NotchView {
                 // Only the module shown and its neighbours (for the swipe) are built (spec N-16).
                 if abs(position - center) <= 1 {
                     page(for: feature)
+                        .environment(\.openCleaner, cleanerOpener)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 12)
                         .frame(width: pageWidth)
@@ -243,6 +251,7 @@ extension NotchView {
                 .foregroundStyle(.white)
                 .help("Back to the Home")
                 page(for: model.currentFeature)
+                    .environment(\.openCleaner, cleanerOpener)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .padding(.horizontal, 20)
@@ -257,6 +266,11 @@ extension NotchView {
 }
 
 extension NotchView {
+    /// The Clean buttons of the Stats' Disk card and the disk tiles (spec TT-8, TT-10).
+    var cleanerOpener: @MainActor @Sendable (HomeTile?) -> Void {
+        { [model] tile in withAnimation(Motion.spring) { model.openCleaner(from: tile) } }
+    }
+
     /// The services the Home's tiles read (spec HT-7).
     var homeTileServices: HomeTileServices {
         HomeTileServices(

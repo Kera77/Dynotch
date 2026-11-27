@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 // MARK: - Widths of the recording and of the unfolded items (spec SH-5c, PV-69)
 
@@ -118,5 +119,27 @@ extension IndicatorItem {
         let name = nearest?.account.map { $0 + " · " } ?? ""
         guard let reset = nearest?.resetsAt else { return name + "Usage high" }
         return name + (name.isEmpty ? "Resets " : "resets ") + UsageAlerts.resetText(reset, now: now)
+    }
+}
+
+/// Capsule outline that starts at the top centre and runs clockwise, so trimming its start
+/// makes the line disappear clockwise.
+struct ClockwiseCapsule: Shape {
+    func path(in rect: CGRect) -> Path {
+        let radius = min(rect.height, rect.width) / 2
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - radius, y: rect.midY), radius: radius,
+            startAngle: .degrees(-90), endAngle: .degrees(90), clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + radius, y: rect.midY), radius: radius,
+            startAngle: .degrees(90), endAngle: .degrees(270), clockwise: false
+        )
+        path.closeSubpath()
+        return path
     }
 }

@@ -72,7 +72,7 @@ struct HomeTilesTests {
         let groups = HomeTileGroup.catalog(order: [.stats, .calendar, .home])
         #expect(Array(groups.map(\.feature).prefix(3)) == [.stats, .calendar, .home])
         #expect(groups.count == FeatureID.allCases.count)
-        #expect(groups.first?.tiles.count == 7)
+        #expect(groups.first?.tiles.count == 8)
     }
 
     @Test func tilesArePlacedMovedRemovedAndSaved() {

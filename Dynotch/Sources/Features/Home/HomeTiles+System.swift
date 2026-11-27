@@ -71,6 +71,8 @@ struct StatsTileContent: View {
             let used = 1 - Double(disk.free) / Double(max(disk.total, 1))
             VStack(alignment: .leading, spacing: 4) {
                 TileValueView(title: "Disk", value: StatsFormat.bytes(Double(disk.free)), detail: "free")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .topTrailing) { CleanButton(tile: .disk) }
                 StatsBar(fraction: used, color: used > 0.95 ? Theme.red : Theme.blue)
             }
         } else {

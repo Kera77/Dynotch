@@ -125,8 +125,6 @@ extension NotchViewModel {
         case .notes where isLarge, .reminders where isLarge: return geometry.mediumSize
         // The stats' tiles and process list need the room (spec SY-1).
         case .stats: return geometry.mediumSize
-        // Room for the paths and sizes (spec TT-1).
-        case .cleaner: return isLarge ? geometry.largeSize : geometry.mediumSize
         case .tools: return geometry.toolsSize
         case .home where !isLarge: return homeSize
         default: return isLarge ? geometry.largeSize : geometry.expandedSize

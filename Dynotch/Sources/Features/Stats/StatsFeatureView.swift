@@ -106,7 +106,12 @@ struct StatsFeatureView: View {
         let used = disk.map { 1 - Double($0.free) / Double(max($0.total, 1)) } ?? 0
         return StatsCard(title: "Disk", symbol: "internaldrive", value: disk.map { StatsFormat.bytes(Double($0.free)) + " free" } ?? "–") {
             StatsBar(fraction: used, color: used > 0.95 ? Theme.red : Theme.blue)
-            StatsDetail("Read \(StatsFormat.rate(service.snapshot.diskRead)) · Write \(StatsFormat.rate(service.snapshot.diskWrite))")
+            HStack(spacing: 6) {
+                StatsDetail("Read \(StatsFormat.rate(service.snapshot.diskRead)) · Write \(StatsFormat.rate(service.snapshot.diskWrite))")
+                Spacer(minLength: 4)
+                // The Cleaner opens in place of the Stats (spec TT-8).
+                CleanButton()
+            }
         }
     }
 

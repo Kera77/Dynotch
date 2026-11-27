@@ -160,7 +160,8 @@ struct CleanerRow: View {
         let some = !ticked && urls.contains(where: service.selected.contains)
         HStack(spacing: 8) {
             Button { service.toggle(urls) } label: {
-                Image(systemName: ticked ? "checkmark.square.fill" : some ? "minus.square.fill" : "square")
+                // Round, not square (spec TT-11).
+                Image(systemName: ticked ? "checkmark.circle.fill" : some ? "minus.circle.fill" : "circle")
                     .font(.notch(size: 13))
                     .foregroundStyle(ticked || some ? Theme.blue : Color.white.level(0.45))
             }

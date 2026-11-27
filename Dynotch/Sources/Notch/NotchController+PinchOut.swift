@@ -130,9 +130,9 @@ extension NotchController {
         case .battery: .battery
         case .tasks: .reminders
         case .music: .music
-        case .stats: .stats
         case .tools: .tools
         case .teams: .notifications
+        case .stats, .cleaner: .stats
         case .recording: nil
         }
     }

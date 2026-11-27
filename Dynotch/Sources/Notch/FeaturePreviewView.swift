@@ -142,8 +142,6 @@ extension NotchView {
                 ?? "No weather loaded"
         case .claudeSessions:
             detail = ClaudeSessionsWing.right(notices.sessions.sessions)
-        case .cleaner:
-            detail = CleanerWing.right(.shared)
         case .home, .info:
             detail = "Click or swipe down to open"
         }

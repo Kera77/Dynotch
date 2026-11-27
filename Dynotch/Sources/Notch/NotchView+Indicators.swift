@@ -68,7 +68,7 @@ extension NotchView {
             case .battery(let device, _): battery.dismissWarning(for: device)
             case .tasks: tasks.hide()
             case .stats: stats.dismissWarnings()
-            case .music, .recording, .tools, .teams: break
+            case .music, .recording, .tools, .teams, .cleaner: break
             }
         }
     }
@@ -97,7 +97,7 @@ extension NotchView {
             sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
-            tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator
+            tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator, cleaner: CleanerService.shared.notchGlance
         )
         return IndicatorItem.unfoldingUsage(
             items, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside

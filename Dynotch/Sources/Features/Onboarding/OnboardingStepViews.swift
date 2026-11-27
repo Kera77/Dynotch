@@ -9,7 +9,7 @@ struct OnboardingModulesStep: View {
         ("Everyday", [.calendar, .weather, .notifications, .reminders, .notes, .calculator]),
         ("Work", [.clipboard, .tray, .tools, .terminal]),
         ("AI", [.claudeChat, .claudeUsage, .claudeSessions]),
-        ("Mac", [.stats, .battery, .cleaner, .music, .home])
+        ("Mac", [.stats, .battery, .music, .home])
     ]
 
     var body: some View {

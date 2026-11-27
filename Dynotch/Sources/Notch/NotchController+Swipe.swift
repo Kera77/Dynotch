@@ -31,9 +31,7 @@ extension NotchController {
             fingerDeltaX: fingerDeltaX,
             deltaY: event.scrollingDeltaY
         ) {
-            // The quick toggles' page closes, back to the module under it (spec QT-6).
-            if model.isShowingToggles {
-                withAnimation(Self.animation) { model.setShowingToggles(false) }
+            if closesPageBySwipe() {
                 gestureSwitchedFeature = true
                 return true
             }
@@ -49,6 +47,15 @@ extension NotchController {
             }
         }
         return swipe.isHorizontalGesture && (phase != .none || isMomentum)
+    }
+
+    /// The quick toggles' page closes, back to the module under it (spec QT-6); out of an app in
+    /// the Cleaner, back to its list, no module switch (spec TT-14).
+    private func closesPageBySwipe() -> Bool {
+        if !gestureSwitchedFeature, swipesOutOfCleanerApp() { return true }
+        guard model.isShowingToggles else { return false }
+        withAnimation(Self.animation) { model.setShowingToggles(false) }
+        return true
     }
 
     /// Over the calendar's day strip a horizontal swipe steps through the days (spec K-4), and

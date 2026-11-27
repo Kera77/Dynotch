@@ -5,6 +5,7 @@ import SwiftUI
 enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     case tablet
     case spencer
+    case cleaner
     case followMouse
     case keyboardLock
     case pin
@@ -17,6 +18,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .tablet: "iPad as a display"
         case .spencer: "Spencer window layouts"
+        case .cleaner: "Cleaner"
         case .followMouse: "Focus follows the mouse"
         case .keyboardLock: "Keyboard lock"
         case .pin: "Pin the notch open"
@@ -29,6 +31,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .tablet: "ipad.landscape"
         case .spencer: SpencerMenu.symbol
+        case .cleaner: "externaldrive.badge.minus"
         case .followMouse: "arrow.up.square.fill"
         case .keyboardLock: "keyboard.fill"
         case .pin: "lock.fill"
@@ -38,6 +41,9 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     }
 
     var canHide: Bool { self != .settings }
+
+    /// Off until switched on in the settings (spec TT-9).
+    static let hiddenByDefault: Set<TopRowControl> = [.cleaner]
 }
 
 /// The order and the hidden controls, kept in the defaults (spec M-11).
@@ -52,12 +58,16 @@ final class TopRowLayout {
     private let defaults: UserDefaults
     private static let orderKey = "topRowOrder"
     private static let hiddenKey = "topRowHidden"
+    /// The controls hidden by default that were switched on (spec TT-9).
+    private static let shownKey = "topRowShown"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         order = Self.normalized(defaults.stringArray(forKey: Self.orderKey) ?? [])
         hidden = Set((defaults.stringArray(forKey: Self.hiddenKey) ?? []).compactMap(TopRowControl.init(rawValue:)))
             .filter(\.canHide)
+        let shown = Set((defaults.stringArray(forKey: Self.shownKey) ?? []).compactMap(TopRowControl.init(rawValue:)))
+        hidden.formUnion(TopRowControl.hiddenByDefault.subtracting(shown))
     }
 
     /// The Spencer button only while Spencer is installed (spec SL-1).
@@ -71,6 +81,7 @@ final class TopRowLayout {
         guard control.canHide else { return }
         if shown { hidden.remove(control) } else { hidden.insert(control) }
         defaults.set(hidden.map(\.rawValue).sorted(), forKey: Self.hiddenKey)
+        defaults.set(TopRowControl.hiddenByDefault.subtracting(hidden).map(\.rawValue).sorted(), forKey: Self.shownKey)
     }
 
     /// Moves a control to the place of another one.

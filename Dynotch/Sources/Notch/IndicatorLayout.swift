@@ -1,28 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// Capsule outline that starts at the top centre and runs clockwise, so trimming its start
-/// makes the line disappear clockwise.
-struct ClockwiseCapsule: Shape {
-    func path(in rect: CGRect) -> Path {
-        let radius = min(rect.height, rect.width) / 2
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
-        path.addArc(
-            center: CGPoint(x: rect.maxX - radius, y: rect.midY), radius: radius,
-            startAngle: .degrees(-90), endAngle: .degrees(90), clockwise: false
-        )
-        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
-        path.addArc(
-            center: CGPoint(x: rect.minX + radius, y: rect.midY), radius: radius,
-            startAngle: .degrees(90), endAngle: .degrees(270), clockwise: false
-        )
-        path.closeSubpath()
-        return path
-    }
-}
-
 /// Something shown beside the closed notch: a meeting countdown, or the Claude usage (spec
 /// K-7, CL-6).
 enum IndicatorItem: Identifiable, Equatable {
@@ -49,6 +27,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case tools(ToolsGlance)
     /// A Teams meeting in the web Teams: the microphone and the time since it started (spec MT-6).
     case teams(TeamsMeeting, since: Date)
+    /// The Cleaner moving files to the Trash, then its tick (spec TT-13).
+    case cleaner(CleanerService.NotchGlance)
 
     var id: String {
         switch self {
@@ -62,13 +42,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .recording: "recording"
         case .tools: "tools"
         case .teams: "teams"
+        case .cleaner: "cleaner"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools, .teams: false
+        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools, .teams, .cleaner: false
         }
     }
 
@@ -104,6 +85,7 @@ enum IndicatorItem: Identifiable, Equatable {
         case .tools(let glance):
             IndicatorLayout.toolsWidth(glance) + (glance.unfolded ? IndicatorLayout.toolsUnfoldWidth(glance) : 0)
         case .teams(_, let since): IndicatorLayout.teamsWidth(since: since)
+        case .cleaner: IndicatorLayout.ringSlotWidth
         }
     }
 
@@ -117,8 +99,8 @@ enum IndicatorItem: Identifiable, Equatable {
         case .meeting, .working, .battery, .teams: IndicatorLayout.labelHeight
         // Shown only with a warning: the warning and the five busiest apps (spec SY-10, SY-14).
         case .stats: IndicatorLayout.labelHeight + IndicatorLayout.warningProcessRows * StatsProcessRow.height + 4
-        // Nothing drops down; the dot itself becomes Stop (spec SH-5b).
-        case .recording: 0
+        // Nothing drops down; the dot itself becomes Stop (spec SH-5b). Hovering the Cleaner's tick opens it (spec TT-13).
+        case .recording, .cleaner: 0
         case .music: IndicatorLayout.musicDropdownHeight
         // The tasks drop down under their header (spec R-12).
         case .tasks(let count):
@@ -136,7 +118,8 @@ enum IndicatorItem: Identifiable, Equatable {
         meetings: [CalendarEvent], usage: [UsageLimit]?, sessions: [ClaudeSession] = [],
         working: Bool = false, lowBatteries: [BatteryDevice] = [], tasks: TaskCount? = nil,
         music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
-        tools: ToolsGlance? = nil, teams: (TeamsMeeting, Date)? = nil, now: Date = Date()
+        tools: ToolsGlance? = nil, teams: (TeamsMeeting, Date)? = nil, cleaner: CleanerService.NotchGlance? = nil,
+        now: Date = Date()
     ) -> [IndicatorItem] {
         // A countdown ending within a minute comes right after the meetings, else at the end (spec TM-4).
         let soon = tools?.clock?.endsSoon(at: now) == true
@@ -146,7 +129,7 @@ enum IndicatorItem: Identifiable, Equatable {
             + meetings.map { .meeting($0) } + (soon ? toolsItem : [])
             + (usage.map { [.usage($0, sessions: sessions)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
-            + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem)
+            + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem) + (cleaner.map { [.cleaner($0)] } ?? [])
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands

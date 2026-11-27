@@ -13,6 +13,38 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.6": [
+            TestPlanItem(
+                id: "task-month-scroll", group: "Tasks",
+                text: "Task details › Date › click the day capsule: the details scroll so the whole month shows.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "cleaner-from-stats", group: "Cleaner",
+                text: "Stats › Disk › Clean opens the Cleaner (no Cleaner module any more); ‹ Stats and a pinch go back.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-entry-points", group: "Cleaner",
+                text: "Clean on the Home's Disk and Cleaner tiles, and the Cleaner button in the top row (switch it on in Settings).",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-busy", group: "Cleaner",
+                text: "Clean something: the whole Cleaner is covered with Cleaning… and can't be clicked until it's done; ticks are round.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-notch-tick", group: "Cleaner",
+                text: "Close the notch while cleaning: spinner right of the notch, then a green tick; hovering it opens the Cleaner.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-app-swipe", group: "Cleaner",
+                text: "Apps › open an app: a two-finger sideways swipe goes back to the list without changing module.",
+                log: "cleaner"
+            )
+        ],
         "1.8.5": [
             TestPlanItem(
                 id: "sessions-claude-app", group: "Claude Code sessions",
