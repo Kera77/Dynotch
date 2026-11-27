@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-11-28
+
+### Changed
+- Updates: a release may carry the app under its new name (`Wingmate-X.Y.Z.zip` with
+  `Wingmate.app`). It is accepted when it has the same certificate, goes beside the old bundle in
+  the Applications folder, and the old bundle is removed only once the new one is in place; if
+  anything fails, the old app starts again. *Launch at login* is remembered for the new app
+  (U-11, U-12).
+
 ## [1.9.1] - 2026-11-27
 
 ### Added

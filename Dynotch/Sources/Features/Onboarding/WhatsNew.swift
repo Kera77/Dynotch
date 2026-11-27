@@ -40,6 +40,10 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.9.2", items: [
+            WhatsNewItem(symbol: "arrow.triangle.2.circlepath", title: "Ready for the new name",
+                         text: "The next update can bring the app under its new name, with your settings.")
+        ]),
         WhatsNewRelease(version: "1.9.1", items: [
             WhatsNewItem(symbol: "rectangle.on.rectangle", title: "Under the focused app",
                          text: "With Only covered windows, the switcher lists the windows under the app you work in."),

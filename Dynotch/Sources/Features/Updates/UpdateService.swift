@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import ServiceManagement
 
 /// Keeps Dynotch up to date from its GitHub releases (spec U-1…U-4).
 @MainActor
@@ -117,7 +118,9 @@ final class UpdateService {
             do {
                 let prepared = try await Self.prepare(release)
                 DiagnosticsLog.append("updates", "installing \(release.version)")
-                try Self.launchInstaller(newApp: prepared.app, target: target, folder: prepared.folder)
+                let destination = target.deletingLastPathComponent().appendingPathComponent(prepared.app.lastPathComponent)
+                if destination != target { Self.prepareForRename() }
+                try Self.launchInstaller(newApp: prepared.app, target: destination, running: target, folder: prepared.folder)
                 NSApp.terminate(nil)
             } catch {
                 let message = (error as? Failure)?.message ?? error.localizedDescription
@@ -143,7 +146,8 @@ final class UpdateService {
             let zip = folder.appendingPathComponent(release.archiveName)
             try archive.write(to: zip)
             let unpack = ProcessRunner.run("/usr/bin/ditto", ["-x", "-k", zip.path, folder.path], timeout: 120)
-            let app = folder.appendingPathComponent("Dynotch.app")
+            let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+            let app = folder.appendingPathComponent(UpdateLogic.appBundle(in: names) ?? "Dynotch.app")
             let version = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             guard unpack?.succeeded == true, version == release.version else {
                 throw Failure(message: "The download is not Wingmate \(release.version).")
@@ -155,13 +159,22 @@ final class UpdateService {
         }.value
     }
 
-    private static func launchInstaller(newApp: URL, target: URL, folder: URL) throws {
+    /// Before the app is replaced by its renamed self: remembers *Launch at login* for the new app
+    /// and takes this one out of the login items, as its bundle goes away (spec U-12).
+    private static func prepareForRename() {
+        let enabled = SMAppService.mainApp.status == .enabled
+        UserDefaults.standard.set(enabled, forKey: "launchAtLoginBeforeRename")
+        if enabled { try? SMAppService.mainApp.unregister() }
+        DiagnosticsLog.append("updates", "renamed app, launch at login was \(enabled ? "on" : "off")")
+    }
+
+    private static func launchInstaller(newApp: URL, target: URL, running: URL, folder: URL) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/sh")
         // Detached, so it outlives this app.
         process.arguments = [
             "-c", "( \(UpdateLogic.installScript)\n) >/dev/null 2>&1 &", "dynotch-update",
-            String(ProcessInfo.processInfo.processIdentifier), newApp.path, target.path, folder.path
+            String(ProcessInfo.processInfo.processIdentifier), newApp.path, target.path, folder.path, running.path
         ]
         try process.run()
     }

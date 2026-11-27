@@ -75,7 +75,27 @@ struct UpdateTests {
         // The swap keeps the old copy until the new one is in place.
         let script = UpdateLogic.installScript
         #expect(script.contains("\"$3.previous\""))
-        #expect(script.contains("/usr/bin/open \"$3\""))
+        #expect(script.contains("/usr/bin/open \"$app\""))
+    }
+
+    @Test func aRenamedReleaseIsFound() throws {
+        let json = Data("""
+        {"tag_name":"v1.9.3","draft":false,"prerelease":true,"assets":[
+          {"name":"Wingmate-1.9.3.zip","browser_download_url":"https://x/Wingmate-1.9.3.zip"},
+          {"name":"SHA256SUMS.txt","browser_download_url":"https://x/SHA256SUMS.txt"}]}
+        """.utf8)
+        let release = try #require(UpdateLogic.newestRelease(fromListJSON: Data("[".utf8) + json + Data("]".utf8)))
+        #expect(release.archiveName == "Wingmate-1.9.3.zip")
+        #expect(UpdateLogic.appBundle(in: ["Wingmate-1.9.3.zip", "Wingmate.app"]) == "Wingmate.app")
+        #expect(UpdateLogic.appBundle(in: ["Dynotch.app"]) == "Dynotch.app")
+        #expect(UpdateLogic.appBundle(in: ["Other.app"]) == nil)
+    }
+
+    @Test func theRenamedAppMustHaveTheSameCertificate() {
+        let designated = #"identifier "com.peterkereki.Dynotch" and certificate leaf = H"9767""#
+        #expect(UpdateLogic.requirement(designated, own: "com.peterkereki.Dynotch", swappedTo: "com.peterkereki.Wingmate")
+            == #"identifier "com.peterkereki.Wingmate" and certificate leaf = H"9767""#)
+        #expect(UpdateLogic.requirement(designated, own: "com.other", swappedTo: "com.peterkereki.Wingmate") == nil)
     }
 
     @Test func anUpdateIsReportedOnceAfterwards() {

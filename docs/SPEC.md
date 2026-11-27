@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.9 elfogadva** · Utolsó módosítás: 2026-11-27
+> Állapot: **v1.9 elfogadva** · Utolsó módosítás: 2026-11-28
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -673,6 +673,8 @@ A Badgeify mintájára: a kiválasztott alkalmazások olvasatlan értesítésein
 | U-8 | (v1.8) A kiadás (`release.yml`) a tagből dönti el a csatornát: ha az utolsó szám nem 0, **prerelease** lesz, nem „latest”, így a többi felhasználó appja (U-1) és a Homebrew cask (U-4) nem kapja meg. |
 | U-9 | (v1.8) `scripts/install.sh vX.Y.Z`: prerelease kézi telepítése **bekapcsolja a Beta updates-t** (U-7); az automatikus telepítést csak akkor kapcsolja ki (RF-21), ha a telepített verzió régebbi a legújabb kiadásnál (a prerelease-eket is számítva). |
 | U-10 | (v1.8) **What's new a két csatornán (WN-4):** minden teszt build saját `WhatsNew` bejegyzést kap; a rendes kiadáskor a ciklus teszt bejegyzései **összevonva az `1.x.0` alá** kerülnek, így a felhasználók egy listában látják az újdonságokat. |
+| U-11 | (v1.9.2) **Frissítés átnevezett appra:** a kiadás zipje `Wingmate-X.Y.Z.zip` vagy (régi) `Dynotch-X.Y.Z.zip` lehet, benne `Wingmate.app` vagy `Dynotch.app`. Az aláírás-ellenőrzés (U-2) ugyanazt a tanúsítványt (`certificate leaf`) követeli meg; az azonosító a futó appé vagy `com.peterkereki.Wingmate` lehet. Új névnél az új app a régi mellé (`/Applications/Wingmate.app`) kerül, siker után a régi bundle törlődik; hiba esetén a régi app indul újra. |
+| U-12 | (v1.9.2) Átnevező frissítés előtt az app elmenti, hogy be volt-e kapcsolva a *Launch at login* (`launchAtLoginBeforeRename`), és kiveszi magát a login itemek közül; az új app ezt az értéket veszi át (RN-6). |
 
 ## 4r. iPad mint kijelző (v0.34)
 
@@ -1629,6 +1631,19 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | TL-5 | (TL-1…TL-4 megszüntetése) **Nincs tesztlista:** a tesztverziókból kikerül a tesztlista: nincs *Settings › Testing* oldal, nincs „Test 1.x.y” jelzés a notch alatt, és a kódból is eltűnik (`TestPlan`, `TestPlanStore`). A tesztelendők listáját a kiadás után csak a tulajdonosnak küldött üzenet tartalmazza. |
 | TT-31 | (TT-9 módosítása) **Új Cleaner ikon:** a Cleaner ikonja mindenhol egy kitöltött lemez (`internaldrive.fill`) a jobb felső sarkában kis szikrával (`sparkle`), a felső sor többi kitöltött ikonjához illően: a notch felső sorának gombján és a *Settings* felső sor beállításában a kettő együtt, ahol csak egy SF Symbol fér (What's new), a `internaldrive.fill`. A korábbi `externaldrive.badge.minus` megszűnik. |
 
+## 4ő-R. Átnevezés: Wingmate (v1.9.3)
+
+| ID | Követelmény |
+|---|---|
+| RN-1 | Az app neve mindenhol **Wingmate**: appnév, bundle (`Wingmate.app`, `com.peterkereki.Wingmate`), URL-séma (`wingmate://`), logmappa (`~/Library/Logs/Wingmate`), Application Support mappa, kulcskarika-szolgáltatás (`Wingmate Claude account`), hookok, kiadási fájlok, GitHub repó (`Kera77/Wingmate`), Homebrew tap (`Kera77/homebrew-wingmate`, cask `wingmate`). A régi név csak az egyszeri átvételben (RN-2…RN-7) és az átnevezés CHANGELOG-/What's new-sorában szerepel. |
+| RN-2 | **Egyszeri átvétel** az első induláskor, minden más előtt (`RenameMigration`, `main.swift`), teszt hostban soha. Kész jelzés: `renameMigration.done`; ha nincs régi adat, csak ezt állítja be. |
+| RN-3 | **Beállítások:** a `com.peterkereki.Dynotch` tartomány minden kulcsa átkerül; a kulcsokban és szöveges értékekben (tömbökben, szótárakban is) a `dynotch`/`Dynotch`/`DyNotch` → `wingmate`/`Wingmate`. A már meglévő új kulcsot nem írja felül. A régi tartomány törlődik. |
+| RN-4 | **Fájlok:** `~/Library/Application Support/Dynotch` → `…/Wingmate` (benne `DynotchChat` → `WingmateChat`), `~/Library/Logs/Dynotch` → `…/Wingmate`, `~/Library/WebKit` és `~/Library/HTTPStorages` régi bundle-ID mappái (webes bejelentkezések, sütik) → új bundle-ID. Csak akkor mozgat, ha a cél még nincs; a régi `Caches`/`Saved Application State` mappát törli. |
+| RN-5 | **Kulcskarika:** a `Dynotch Claude account` elemek átkerülnek `Wingmate Claude account` alá, a régiek törlődnek (a macOS egyszer engedélyt kérhet). |
+| RN-6 | **Hookok:** a `~/.claude/settings.json` és `~/.codex/hooks.json` régi (`dynotch://`) hookjai lecserélődnek az újakra, ugyanazokra, amik be voltak kapcsolva; minden más hook marad. Ha a *Launch at login* be volt kapcsolva (U-12), az új app is bekapcsolja. |
+| RN-7 | A régi `/Applications/Dynotch.app` (ha még ott van, és tényleg a régi bundle-ID) törlődik. A macOS-engedélyek (Accessibility, képernyőfelvétel, naptár…) a bundle-ID-hez kötődnek, ezeket egyszer újra meg kell adni; az app a szokásos módon kéri őket. |
+| RN-8 | A régi verziók (≤ 1.9.2) a 1.9.2 frissítőjén (U-11) jutnak el a Wingmate-hez; a régebbiek előbb 1.9.2-re frissülnek. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -1675,6 +1690,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.9.2** | Teszt build: a frissítő az átnevezett appot (Wingmate) is telepíti ugyanazzal a tanúsítvánnyal, a régi bundle helyett; a *Launch at login* átkerül (U-11, U-12) |
 | **v1.9.1** | Teszt build: a váltó *Only covered windows* szűrője a fókuszban lévő app alatti ablakokra szűkíthető (*Covered by*); a naplókban nincs felhasználónév és fióknév; GitHub secret scanning (AS-22, C-7b) |
 | **v1.9.0** | Publikus kiadás: az 1.8.1…1.8.9 tesztverziók összes újdonsága (Claude Code munkamenetek és válasz a notchból, Cleaner modul a Stats al-oldalaként, lejárt feladat sora, dátumszerkesztő, karcsúbb értesítések, megmaradó csevegőkártyák), plusz új Cleaner ikon (TT-31). |
 | **v1.8.9** | Teszt build: Cleaner: a Free mindig a lemezsáv végén, visszacsukódó karika a részletek bezárásakor, hoverre növő gombok; a tesztlista megszűnik (TT-28…TT-30, TL-5) |
