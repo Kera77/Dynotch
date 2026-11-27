@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.8.3 elfogadva** · Utolsó módosítás: 2026-11-27
+> Állapot: **v1.8.4 elfogadva** · Utolsó módosítás: 2026-11-27
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1634,6 +1634,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.8.4** | Teszt build: az új munkamenetre lenyílt usage csak felvillan és felpöccinthető, kapcsolható követés; Beeper-csevegés a Chats fülön nyílik, stabil küldés kijelölés és ugrás nélkül (CS-7b, CS-8, BP-22, E-34) |
 | **v1.8.3** | Teszt build: futó Claude Code munkamenetek a usage karikán, magától lenyílik új munkamenetre; Beeper/Google Chat-kártya ott marad válasz közben, buborékos üzenetek (CS-6, CS-7, E-32, E-33) |
 | **v1.8.2** | Teszt build: Cleaner modul (törölt appok maradványai, gyorsítótárak, app törlése a fájljaival, minden a Kukába), az értesítések csak a notch szélességével nyílnak, ha beleférnek (TT-1…TT-7, E-31) |
 | **v1.8.1** | Teszt build: Claude Code munkamenetek az AI modul Sessions fülén, válasz a notchból (kérdés gombjai, Allow / Deny), tesztlista a Settings › Testing oldalon (CQ-5…CQ-7, CS-1…CS-5, TL-1…TL-4) |

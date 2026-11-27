@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.4] - 2026-11-27
+
 ### Added
 - Following Claude Code sessions at the AI ring can be turned off in Settings › General › AI usage:
   the sessions in the ring's hover and the drop-down for a new session separately (CS-8).
