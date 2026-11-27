@@ -36,7 +36,7 @@ enum TestPlan {
             ),
             TestPlanItem(
                 id: "beeper-send-steady", group: "Beeper",
-                text: "Send two messages from a card: the field empties without selecting the text, the notch stays and the messages slide up.",
+                text: "Send two messages from a card: the field empties without a selection, the notch stays, messages slide up.",
                 log: "beeper"
             )
         ],
