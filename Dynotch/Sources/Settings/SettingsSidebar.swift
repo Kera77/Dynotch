@@ -16,7 +16,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case tools
     case menuBar
     case permissions
-    case testing
     case about
 
     var id: String { rawValue }
@@ -38,7 +37,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .tools: "Tools"
         case .menuBar: "Menu bar"
         case .permissions: "Permissions"
-        case .testing: "Testing"
         case .about: "About"
         }
     }
@@ -59,7 +57,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .screenshots: "camera.viewfinder"
         case .tools: "timer"
         case .menuBar: "menubar.rectangle"
-        case .testing: "checklist"
         case .permissions: "lock.shield"
         case .about: "info.circle"
         }
@@ -84,19 +81,14 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .switcher: "switcher alt tab windows apps swipe trackpad thumbnails"
         case .screenshots: "screenshot capture snip crop record video editor annotate scrolling"
         case .menuBar: "menu bar space spacer divider line gap"
-        case .testing: "test build beta checklist report log broken"
         case .tools: "timer stopwatch pomodoro toggles keep awake dark mode microphone night shift hud announcements caps lock charger"
         case .permissions: "privacy access full disk accessibility calendar reminders contacts bluetooth"
         case .about: "version update diagnostics quit"
         }
     }
 
-    /// Testing only while the running test build has a list (spec TL-2).
-    var isAvailable: Bool { self != .testing || TestPlan.current != nil }
-
     func matches(_ search: String) -> Bool {
-        guard isAvailable else { return false }
-        return search.isEmpty || title.localizedCaseInsensitiveContains(search) || keywords.localizedCaseInsensitiveContains(search)
+        search.isEmpty || title.localizedCaseInsensitiveContains(search) || keywords.localizedCaseInsensitiveContains(search)
     }
 }
 

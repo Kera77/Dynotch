@@ -21,13 +21,13 @@ struct CleanerDiskBar: View {
         var rest = DiskBreakdown()
     }
 
-    /// The parts, largest first from the left (spec TT-23); their sizes add up to the disk's.
+    /// The parts, largest first from the left, Free always last (spec TT-23, TT-28); their sizes
+    /// add up to the disk's.
     /// - Parameter found: the scanned sizes; nil before a scan.
     static func parts(total: Int64, free: Int64, found: Found?) -> [Part] {
         let used = max(total - free, 0)
         guard let found else {
             return [Part(title: "Used", size: used, color: Color.white.level(0.45)), Part(title: "Free", size: free, color: .clear)]
-                .sorted { $0.size > $1.size }
         }
         let measured = [
             Part(title: "Apps", size: found.apps, color: Theme.blue), Part(title: "App data", size: found.rest.appData, color: .teal),
@@ -43,8 +43,10 @@ struct CleanerDiskBar: View {
             left -= size
             known.append(Part(title: part.title, size: size, color: part.color))
         }
-        let all = known + [Part(title: "Other", size: left, color: Color.white.level(0.35)), Part(title: "Free", size: free, color: .clear)]
-        return all.filter { $0.size > 0 || $0.title == "Free" }.sorted { $0.size > $1.size }
+        let taken = (known + [Part(title: "Other", size: left, color: Color.white.level(0.35))])
+            .filter { $0.size > 0 }
+            .sorted { $0.size > $1.size }
+        return taken + [Part(title: "Free", size: free, color: .clear)]
     }
 
     /// What each part holds, on hover (spec TT-24).

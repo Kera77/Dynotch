@@ -135,6 +135,8 @@ final class CleanerService {
 
     func pick(_ app: CleanerApp?) {
         self.app = app
+        // A circle opened in the details folds back with them (spec TT-29).
+        expandedButton = nil
         appFiles = []
         freed = nil
         guard let app else { return }

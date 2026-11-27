@@ -51,12 +51,13 @@ struct CleanerExtrasTests {
     @Test func diskBarAddsUpToTheDisk() {
         let found = CleanerDiskBar.Found(apps: 30, caches: 10, leftovers: 5, rest: DiskBreakdown(system: 20, appData: 0, files: 15))
         let parts = CleanerDiskBar.parts(total: 200, free: 100, found: found)
-        // Largest first; an empty part is left out (spec TT-23, TT-24).
-        #expect(parts.map(\.title) == ["Free", "Apps", "System", "Other", "Files", "Caches", "Leftovers"])
+        // Largest first, Free always last; an empty part is left out (spec TT-23, TT-24, TT-28).
+        #expect(parts.map(\.title) == ["Apps", "System", "Other", "Files", "Caches", "Leftovers", "Free"])
         #expect(parts.reduce(0) { $0 + $1.size } == 200)
         let over = CleanerDiskBar.parts(total: 200, free: 100, found: .init(apps: 80, caches: 40, leftovers: 0))
         #expect(over.reduce(0) { $0 + $1.size } == 200)
         #expect(CleanerDiskBar.parts(total: 200, free: 100, found: nil).map(\.size) == [100, 100])
+        #expect(CleanerDiskBar.parts(total: 200, free: 150, found: nil).map(\.title) == ["Used", "Free"])
     }
 
     @Test func lastUsedWords() {

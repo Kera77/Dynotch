@@ -29,8 +29,6 @@ struct StickyNotice: Equatable, Sendable {
     var countdown: DateInterval?
     /// Claude Code waits for an answer from the notch's buttons (spec CQ-5).
     var reply: ClaudeReplyRequest?
-    /// A click opens Settings › Testing (spec TL-4).
-    var opensTestList = false
 
     /// A download in `~/Downloads` finished (spec PV-57).
     static func downloaded(_ file: URL) -> StickyNotice {

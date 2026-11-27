@@ -135,12 +135,6 @@ extension NotchController {
             showAnswerIfReady()
             return
         }
-        if notice.opensTestList {
-            notices.dismiss()
-            collapse()
-            notices.openTesting?()
-            return
-        }
         // A timer's or the weather's notice opens its module (spec TM-5, WX-7).
         if let feature = notice.opens, settings.isEnabled(feature) {
             notices.dismiss()

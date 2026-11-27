@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [1.8.9] - 2026-11-27
+
+### Changed
+- Cleaner: Free always stands last, on the right of the disk bar and its labels (TT-28).
+- Cleaner: buttons grow a little on hover instead of the grey highlight (TT-30).
+
+### Fixed
+- Cleaner: a circle opened in an app's details folds back when the details close, instead of
+  staying open in the list (TT-29).
+
+### Removed
+- The test list of test builds: no Settings › Testing page, no "Test 1.x.y" notice, and the
+  `TestPlan` code is gone (TL-5). Onboarding is unaffected.
+
 ## [1.8.8] - 2026-11-27
 
 ### Added

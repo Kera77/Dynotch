@@ -118,6 +118,15 @@ extension PrimitiveButtonStyle where Self == NotchButtonStyle {
     static var notch: NotchButtonStyle { NotchButtonStyle() }
 }
 
+/// How a notch button answers hover: the grey highlight, or growing a little (the Cleaner, spec TT-30).
+enum NotchHover {
+    case highlight, grow
+}
+
+extension EnvironmentValues {
+    @Entry var notchHover: NotchHover = .highlight
+}
+
 private struct AppleHoverButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         HoverBody(configuration: configuration)
@@ -126,13 +135,16 @@ private struct AppleHoverButtonStyle: ButtonStyle {
     private struct HoverBody: View {
         let configuration: ButtonStyleConfiguration
         @Environment(\.isEnabled) private var isEnabled
+        @Environment(\.notchHover) private var hover
         @State private var isHovered = false
 
         var body: some View {
+            let grows = hover == .grow
             configuration.label
                 .background {
-                    HoverHighlight(opacity: configuration.isPressed ? 0.14 : (isHovered ? 0.08 : 0))
+                    if !grows { HoverHighlight(opacity: configuration.isPressed ? 0.14 : (isHovered ? 0.08 : 0)) }
                 }
+                .scaleEffect(grows && isHovered ? 1.08 : 1)
                 .opacity(configuration.isPressed ? 0.7 : 1)
                 .onHover { isHovered = isEnabled && $0 }
                 .animation(Motion.hover, value: isHovered)

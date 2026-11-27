@@ -87,7 +87,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startDeviceAndMediaModules()
         services.updates.start()
         let notices = services.notices
-        notices.wireTestPlan { [weak self] in self?.settingsWindow.show(tab: .testing) }
         services.chat.onAnswerReady = { notices.show(.answered(by: $0.service.title, in: $0.title)) }
         showsReplyProblems(services.notifications.chatWeb, in: notices)
         NSApp.mainMenu = EditMenu.make()

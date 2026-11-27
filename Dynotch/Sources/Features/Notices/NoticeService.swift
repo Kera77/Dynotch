@@ -69,7 +69,6 @@ final class NoticeService {
     /// Got it on What's new: the only way it goes (spec WN-6).
     func dismissWhatsNew() {
         if second?.whatsNew != nil { second = nil }
-        defer { onWhatsNewDismissed?() }
         if let notice, notice.whatsNew != nil { remove(notice) }
     }
 
@@ -99,11 +98,6 @@ final class NoticeService {
         guard let second, second.whatsNew == nil else { return }
         remove(second)
     }
-
-    /// Called after What's new's Got it, e.g. for the test list's notice (spec TL-4).
-    @ObservationIgnored var onWhatsNewDismissed: (() -> Void)?
-    /// Opens Settings › Testing (spec TL-4).
-    @ObservationIgnored var openTesting: (() -> Void)?
 
     /// Links other programs open to tell Dynotch something (spec CN-2).
     func handle(_ url: URL) {

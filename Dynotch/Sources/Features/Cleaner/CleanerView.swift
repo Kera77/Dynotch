@@ -30,6 +30,8 @@ struct CleanerView: View {
             footer
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Buttons grow a little on hover instead of the grey highlight (spec TT-30).
+        .environment(\.notchHover, .grow)
         .overlay { if service.isCleaning { busy } }
         .onChange(of: isActive, initial: true) { _, active in
             service.isViewed = active
@@ -149,13 +151,17 @@ struct CleanerView: View {
     }
 
     private func pill(_ title: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
-            .buttonStyle(.notch)
-            .font(.notch(size: 12, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .frame(height: 24)
-            .background(Capsule().fill(color))
+        // The capsule is in the label, so the whole pill grows on hover (spec TT-30).
+        Button(action: action) {
+            Text(title)
+                .font(.notch(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .frame(height: 24)
+                .background(Capsule().fill(color))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.notch)
     }
 }
 

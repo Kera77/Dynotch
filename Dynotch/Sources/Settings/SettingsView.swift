@@ -90,8 +90,6 @@ struct SettingsView: View {
             MenuBarSettingsView(spacers: MenuBarSpacerService.shared)
         case .permissions:
             PermissionsSettingsView(notifications: notifications, settings: settings)
-        case .testing:
-            TestingSettingsView()
         case .about:
             AboutSettingsView(updates: updates, settings: settings, notifications: notifications)
         }

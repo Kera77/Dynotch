@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.8.8 elfogadva** · Utolsó módosítás: 2026-11-27
+> Állapot: **v1.8.9 elfogadva** · Utolsó módosítás: 2026-11-27
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1621,6 +1621,10 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | CS-11 | (CS-6 bővítése) **Min dolgozik:** a usage karika lenyílójában és a Sessions fülön minden munkamenet alatt egy halványabb sor: dolgozás közben **az éppen futó lépés** a munkamenet naplójából („Editing NotchView.swift”, „Reading SPEC.md”, „Running: Build the app”, „Searching the code”), befejezve **a válasz első sora**, egyébként a **feladat** (az utolsó prompt első sora). A lépés dolgozás közben ~3 mp-enként frissül; a napló tartalma nem kerül a logba. |
 | CS-12 | (CS-6 módosítása) **Az app ikonja:** a usage karika lenyílójában a munkamenet előtt a terminál jel helyett annak az appnak az ikonja áll, amelyben fut (Terminal, VS Code, Claude…), mint a Sessions fülön; ismeretlen appnál marad a terminál jel. |
 | CS-13 | (CS-11 bővítése) **Több részlet hoverre:** a usage karika lenyílójában egy munkamenet sorára mutatva (kb. 0,4 mp után) a sor **kinyílik**, és címkézett sorokban mutatja: *Task* (a feladat, legfeljebb 2 sor), *Now* (az éppen futó lépés, ha dolgozik), *Answer* (a válasz első sora, legfeljebb 2 sor); ha egyik sincs, az állapotot. A notch magassága ehhez igazodik; a sorról lemenve visszacsukódik. Kattintás továbbra is az appra visz (CS-10). |
+| TT-28 | (TT-23 módosítása) **A Free mindig a végén:** a lemezsávban és a feliratai között a **Free** mindig a jobb szélen, utolsóként áll; a többi rész továbbra is a legnagyobbtól a legkisebbig. |
+| TT-29 | (TT-25 javítása) **Visszacsukódó karika:** ha a jobbról beúszó app-részletekben egy karikát (Open/Quit vagy Uninstall) megnyomtunk, majd a részleteket bezárjuk (X, ‹ vagy másik app), a karika visszacsukódik; a lista sorában sem marad kinyitva. |
+| TT-30 | (D-15j kivétele) **Hover nagyítással a Cleanerben:** a Cleaner minden gombja (Stats, Scan, pipák, karikák, Cancel, Move to Trash, Clean, X, ‹) hoverre szürke kiemelés helyett **kicsit megnő** (kb. 8%), nyomásra halványul. |
+| TL-5 | (TL-1…TL-4 megszüntetése) **Nincs tesztlista:** a tesztverziókból kikerül a tesztlista: nincs *Settings › Testing* oldal, nincs „Test 1.x.y” jelzés a notch alatt, és a kódból is eltűnik (`TestPlan`, `TestPlanStore`). A tesztelendők listáját a kiadás után csak a tulajdonosnak küldött üzenet tartalmazza. |
 
 ## 5. Nyitott kérdések
 
@@ -1668,6 +1672,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.8.9** | Teszt build: Cleaner: a Free mindig a lemezsáv végén, visszacsukódó karika a részletek bezárásakor, hoverre növő gombok; a tesztlista megszűnik (TT-28…TT-30, TL-5) |
 | **v1.8.8** | Teszt build: lejárt feladat felpöccintése 30 percre, Cleaner: lemezsáv nagyság szerint, Other felbontva (System, App data, Files), két karika az app sorában és részleteiben (Open/Quit, kuka), futó app kiléptetve törölhető, gyűrűs tisztítás-jelző a notch mellett, munkamenet részletei hoverre (R-29, TT-23…TT-27, CS-13) |
 | **v1.8.7** | Teszt build: lejárt feladat egy vékony sorban a notch alatt Laterrel és X-szel, színes feladatszámláló, kattintható és beszédesebb Claude Code munkamenetek, Month csempe a helyén, Cleaner: Uninstall és Quit a sorban, lemezsáv, második oszlop, utolsó használat, Large files, nagyobb betűk (R-26…R-28, CS-10…CS-12, HT-56, TT-16…TT-22) |
 | **v1.8.6** | Teszt build: a Cleaner a Stats al-oldala (Clean gomb a Disk kártyán és a lemez-csempéken, felső sor gombja, ‹ Stats és pinch vissza), kerek jelölők, tisztítás közben letakart Cleaner, töltés és zöld pipa a csukott notch mellett, swipe vissza az appból; a feladat havi naptára egészben látszik (TT-8…TT-15, R-25) |
