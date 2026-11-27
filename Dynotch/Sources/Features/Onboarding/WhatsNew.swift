@@ -40,6 +40,7 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.9.0", sections: publicSections190),
         WhatsNewRelease(version: "1.8.9", items: [
             WhatsNewItem(symbol: "chart.bar.xaxis", title: "Free at the end",
                          text: "The Cleaner's disk bar keeps Free on the right, after the used parts."),
@@ -71,7 +72,7 @@ enum WhatsNew {
                          text: "A disk bar, app details sliding in on the right, last used dates and a Large files tab.")
         ]),
         WhatsNewRelease(version: "1.8.6", items: [
-            WhatsNewItem(symbol: "externaldrive.badge.minus", title: "Cleaner on the Stats",
+            WhatsNewItem(symbol: CleanerGlyph.symbol, title: "Cleaner on the Stats",
                          text: "Clean on the Disk card or a disk tile opens the Cleaner; ‹ Stats or a pinch brings you back."),
             WhatsNewItem(symbol: "checkmark.circle", title: "Cleaning beside the notch",
                          text: "Close the notch while it cleans: a spinner, then a green tick that opens the Cleaner on hover."),
@@ -99,7 +100,7 @@ enum WhatsNew {
                          text: "Beeper and Google Chat cards stay open until you close them, with your messages on the right.")
         ]),
         WhatsNewRelease(version: "1.8.2", items: [
-            WhatsNewItem(symbol: "externaldrive.badge.minus", title: "Cleaner",
+            WhatsNewItem(symbol: CleanerGlyph.symbol, title: "Cleaner",
                          text: "A new module finds leftovers of removed apps and caches, and uninstalls an app with its files."),
             WhatsNewItem(symbol: "bell.badge", title: "Slimmer notifications",
                          text: "Notifications and device notices open only as wide as the notch when they fit.")

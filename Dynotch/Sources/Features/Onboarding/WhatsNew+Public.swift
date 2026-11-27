@@ -73,4 +73,46 @@ extension WhatsNew {
                          text: "The Phone app no longer gets stuck after a call.")
         ])
     ]
+
+    /// 1.9.0: what 1.8.1…1.8.9 brought, and the new Cleaner icon.
+    static let publicSections190: [WhatsNewSection] = [
+        WhatsNewSection(title: "Claude Code", symbol: "terminal", items: [
+            WhatsNewItem(symbol: "terminal", title: "Sessions at the usage ring",
+                         text: "The AI ring's hover lists your Claude Code sessions from every app; click one to jump there."),
+            WhatsNewItem(symbol: "text.line.first.and.arrowtriangle.forward", title: "What each one is doing",
+                         text: "Each session shows its app's icon and its step, answer or task; rest on it for more."),
+            WhatsNewItem(symbol: "hand.tap", title: "Answer from the notch",
+                         text: "Claude's questions show their options as buttons, permissions get Allow and Deny.")
+        ]),
+        WhatsNewSection(title: "Cleaner", symbol: CleanerGlyph.symbol, items: [
+            WhatsNewItem(symbol: CleanerGlyph.symbol, title: "A new Cleaner",
+                         text: "Clean on the Stats' Disk card finds leftovers of removed apps, caches and large files."),
+            WhatsNewItem(symbol: "trash", title: "Uninstall in one click",
+                         text: "Two round buttons in an app's row: Open or Quit, and the bin that removes it with its files."),
+            WhatsNewItem(symbol: "chart.bar.xaxis", title: "Disk bar",
+                         text: "Largest part first, split into System, App data and Files, with Free at the end."),
+            WhatsNewItem(symbol: "circle.circle", title: "Cleaning beside the notch",
+                         text: "Close the notch while it cleans: a ring runs beside it and fills green when done.")
+        ]),
+        WhatsNewSection(title: "Tasks", symbol: "checklist", items: [
+            WhatsNewItem(symbol: "exclamationmark.circle", title: "Overdue tasks stay",
+                         text: "The oldest overdue task waits in a thin row under the notch; swipe it up to hide it for 30 minutes."),
+            WhatsNewItem(symbol: "checklist", title: "Coloured counter",
+                         text: "The counter turns orange an hour before a task is due and red once one is overdue."),
+            WhatsNewItem(symbol: "calendar", title: "New date picker",
+                         text: "Set a task's day and time right in the notch; its month shows whole.")
+        ]),
+        WhatsNewSection(title: "Notifications and chats", symbol: "bell.badge", items: [
+            WhatsNewItem(symbol: "bell.badge", title: "Slimmer notifications",
+                         text: "Notifications open only as wide as the notch when they fit; both notices have an X."),
+            WhatsNewItem(symbol: "bubble.left.and.bubble.right", title: "Chat cards stay",
+                         text: "Beeper and Google Chat cards stay open while you reply; Beeper chats open on the Chats tab.")
+        ]),
+        WhatsNewSection(title: "Look", symbol: "paintpalette", items: [
+            WhatsNewItem(symbol: CleanerGlyph.symbol, title: "New Cleaner icon",
+                         text: "The Cleaner's button is a drive with a small sparkle, filled like the others."),
+            WhatsNewItem(symbol: "plus.magnifyingglass", title: "Growing buttons",
+                         text: "The Cleaner's buttons grow a little under the pointer instead of turning grey.")
+        ])
+    ]
 }

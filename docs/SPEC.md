@@ -1,6 +1,6 @@
 # Dynotch – specifikáció
 
-> Állapot: **v1.8.9 elfogadva** · Utolsó módosítás: 2026-11-27
+> Állapot: **v1.9 elfogadva** · Utolsó módosítás: 2026-11-27
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1625,6 +1625,7 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | TT-29 | (TT-25 javítása) **Visszacsukódó karika:** ha a jobbról beúszó app-részletekben egy karikát (Open/Quit vagy Uninstall) megnyomtunk, majd a részleteket bezárjuk (X, ‹ vagy másik app), a karika visszacsukódik; a lista sorában sem marad kinyitva. |
 | TT-30 | (D-15j kivétele) **Hover nagyítással a Cleanerben:** a Cleaner minden gombja (Stats, Scan, pipák, karikák, Cancel, Move to Trash, Clean, X, ‹) hoverre szürke kiemelés helyett **kicsit megnő** (kb. 8%), nyomásra halványul. |
 | TL-5 | (TL-1…TL-4 megszüntetése) **Nincs tesztlista:** a tesztverziókból kikerül a tesztlista: nincs *Settings › Testing* oldal, nincs „Test 1.x.y” jelzés a notch alatt, és a kódból is eltűnik (`TestPlan`, `TestPlanStore`). A tesztelendők listáját a kiadás után csak a tulajdonosnak küldött üzenet tartalmazza. |
+| TT-31 | (TT-9 módosítása) **Új Cleaner ikon:** a Cleaner ikonja mindenhol egy kitöltött lemez (`internaldrive.fill`) a jobb felső sarkában kis szikrával (`sparkle`), a felső sor többi kitöltött ikonjához illően: a notch felső sorának gombján és a *Settings* felső sor beállításában a kettő együtt, ahol csak egy SF Symbol fér (What's new), a `internaldrive.fill`. A korábbi `externaldrive.badge.minus` megszűnik. |
 
 ## 5. Nyitott kérdések
 
@@ -1672,6 +1673,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.9.0** | Publikus kiadás: az 1.8.1…1.8.9 tesztverziók összes újdonsága (Claude Code munkamenetek és válasz a notchból, Cleaner modul a Stats al-oldalaként, lejárt feladat sora, dátumszerkesztő, karcsúbb értesítések, megmaradó csevegőkártyák), plusz új Cleaner ikon (TT-31). |
 | **v1.8.9** | Teszt build: Cleaner: a Free mindig a lemezsáv végén, visszacsukódó karika a részletek bezárásakor, hoverre növő gombok; a tesztlista megszűnik (TT-28…TT-30, TL-5) |
 | **v1.8.8** | Teszt build: lejárt feladat felpöccintése 30 percre, Cleaner: lemezsáv nagyság szerint, Other felbontva (System, App data, Files), két karika az app sorában és részleteiben (Open/Quit, kuka), futó app kiléptetve törölhető, gyűrűs tisztítás-jelző a notch mellett, munkamenet részletei hoverre (R-29, TT-23…TT-27, CS-13) |
 | **v1.8.7** | Teszt build: lejárt feladat egy vékony sorban a notch alatt Laterrel és X-szel, színes feladatszámláló, kattintható és beszédesebb Claude Code munkamenetek, Month csempe a helyén, Cleaner: Uninstall és Quit a sorban, lemezsáv, második oszlop, utolsó használat, Large files, nagyobb betűk (R-26…R-28, CS-10…CS-12, HT-56, TT-16…TT-22) |

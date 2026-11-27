@@ -2,21 +2,9 @@
 
 ## [Unreleased]
 
-## [1.8.9] - 2026-11-27
+## [1.9.0] - 2026-11-27
 
-### Changed
-- Cleaner: Free always stands last, on the right of the disk bar and its labels (TT-28).
-- Cleaner: buttons grow a little on hover instead of the grey highlight (TT-30).
-
-### Fixed
-- Cleaner: a circle opened in an app's details folds back when the details close, instead of
-  staying open in the list (TT-29).
-
-### Removed
-- The test list of test builds: no Settings › Testing page, no "Test 1.x.y" notice, and the
-  `TestPlan` code is gone (TL-5). Onboarding is unaffected.
-
-## [1.8.8] - 2026-11-27
+Public release: everything from the 1.8.1…1.8.9 test builds, plus a new Cleaner icon.
 
 ### Added
 - A two-finger swipe up on the overdue task row under the closed notch hides it for 30 minutes;
@@ -25,21 +13,6 @@
   on every part (TT-24).
 - Hovering a Claude Code session in the usage ring's drop-down opens it: the task, the step
   running now and the answer, each labelled (CS-13).
-
-### Changed
-- Cleaner: the disk bar and its labels always run from the largest part to the smallest; labels
-  wrap when narrow (TT-23).
-- Cleaner: every app row ends in size, arrow and two equal circles, green Open (blue X Quit while
-  it runs) and a red bin; a click grows the circle over the other into its labelled button, a
-  second click does it. Uninstalling a running app quits it first (TT-25). The app details have
-  the same circles; the bin asks in the footer, then quits the app and removes it (TT-26).
-- The clean beside the closed notch is a ring like the others: a blue arc with sparkles, then a
-  green filled ring with a tick (TT-27).
-- Onboarding: the Stats, tasks and sessions tips mention the round buttons, the swipe up and the session hover.
-
-## [1.8.7] - 2026-11-27
-
-### Added
 - An overdue task stays under the closed notch in one thin row (the oldest one, "+N" for the
   rest) until completed or dismissed; hovering it drops the tasks counter's list down, where an
   overdue task also has Later (back in an hour) and X (R-26, R-28).
@@ -52,106 +25,20 @@
   details slide in from the right as a second column with Quit, Uninstall and its files (TT-19);
   when each app was last opened, and sorting by it (TT-20); a Large files tab with files over
   500 MB in Downloads, Desktop, Documents, Movies and Containers (TT-21).
-
-### Changed
-- Cleaner: Uninstall in an app's row asks once in the row and moves the app with all its files to
-  the Trash without opening it; a running app has a blue Quit there instead, which quits without
-  asking (TT-16, TT-17). Its text is the app's usual size (TT-22).
-
-### Fixed
-- A Claude Code session in the usage ring's drop-down can be clicked: it brings its app forward
-  (CS-10).
-- The 1×2 Month tile fits its tile like the Ask tile: the month's name beside a grid sized to the
-  tile (HT-56).
-- Onboarding: the Tasks, Sessions and Stats tips mention the overdue row, what a session is doing,
-  clicking a session at the usage ring, Uninstall in the Cleaner's rows and large files.
-
-## [1.8.6] - 2026-11-27
-
-### Changed
-- The Cleaner is no longer a module of its own: Clean on the Stats' Disk card opens it in place of
-  the Stats, with ‹ Stats and a pinch to go back (TT-8). It can also be opened from a Cleaner
-  button in the top row (off by default, Settings › General) and from Clean on the Home's Disk and
-  Cleaner tiles (TT-9, TT-10). A Cleaner tile placed before has to be added again.
-- The Cleaner's tick marks are round (TT-11). While it cleans (moving to the Trash, now off the main
-  thread, and the scan after it) the whole Cleaner is covered and can't be clicked (TT-12).
-- Closing the notch while it cleans shows the same spinner right of the notch, then a green tick;
-  hovering it opens the Cleaner again (TT-13).
-- In an app of the Apps tab, a two-finger sideways swipe goes back to the app list instead of
-  switching modules (TT-14).
-- Opening the month in a task's details scrolls it fully into view (R-25).
-- Onboarding: the Cleaner's own module text and tip are gone; the Stats' text and tip mention
-  Clean on the Disk card (TT-15).
-
-## [1.8.5] - 2026-11-27
-
-### Changed
-- A task's date and time in its details are set inside the notch in Wingmate's style: quick
-  choices (Today, Tomorrow, Next week; 9:00, 12:00, 18:00), a small month that opens from the
-  chosen day, hour : minute with arrows (5-minute steps); Repeat, Early Reminder, List and
-  Priority are soft capsules with the same menus (R-24).
-
-### Fixed
-- The notch no longer closes while a pop-up opened from it (a popover, a date picker's calendar)
-  reaches outside it (R-23).
-- Claude Code sessions in every app are listed (Claude app, VS Code, Cursor, terminals), not only the
-  ones that sent a hook event since Dynotch started: running `claude` processes are found with
-  the app they run in and show as Ready until their first hook event (CS-9). A helper's app ID
-  (e.g. the Claude app's built-in Claude Code) counts as its app, so the icon and click are right.
-- With two notices under the notch, the lower (earlier) one has its own X as well (E-35).
-
-## [1.8.4] - 2026-11-27
-
-### Added
 - Following Claude Code sessions at the AI ring can be turned off in Settings › General › AI usage:
   the sessions in the ring's hover and the drop-down for a new session separately (CS-8).
   Onboarding tip of AI Usage updated.
-
-### Changed
-- The usage dropped down for a new Claude Code session goes by itself after about 6 seconds (it
-  stays while hovered) and can be flicked up like other notices (CS-7b).
-- A Beeper chat clicked in the Beeper badge's hover list opens on the Chats tab with its card open
-  and ready to type (BP-22).
-
-### Fixed
-- After sending from a chat card the reply field empties at once instead of selecting the sent
-  text, the notch no longer jumps, and the card under the notch keeps its size while the messages
-  slide up (E-34).
-
-## [1.8.3] - 2026-11-27
-
-### Added
 - The AI usage ring's hover also lists the running Claude Code sessions (project, state, how long;
   up to four, then "+N more"), in Wings mode too (CS-6).
 - A new Claude Code session drops the usage and the sessions down under the notch by itself, even
   below 70 %; its X closes it until the next session, and it goes by itself 10 minutes after no
   session runs and nothing happened (CS-7). Onboarding tip of AI Usage, What's new and test list for 1.8.3 updated.
-
-### Fixed
-- Beeper and Google Chat cards no longer vanish a few seconds after clicking into their reply
-  field: the card stays until it is closed, another card opens or the notch closes, shows what I
-  sent as my own message and takes more messages; a card opened from the notch no longer closes
-  after a reply (E-32).
-- Chat cards show messages as bubbles: the others' on the left, mine on the right, sliding in from
-  their side (E-33).
-
-## [1.8.2] - 2026-11-26
-
-### Added
 - Cleaner module (TT-1…TT-7): Leftovers lists files of removed apps in `~/Library` (named by an app
   identifier, no app of that vendor on the Mac, never `com.apple.*`), Caches lists app, developer
   (DerivedData, Homebrew, npm, pip) and log caches by size, Apps removes an app with its files
   (Quit first if it runs). Everything goes to the Trash after a confirmation; "Freed …" afterwards.
   Full Disk Access hint, `cleaner.log` with counts only. Home tile, Wings text, onboarding module
   text and first-use tip, What's new and test list for 1.8.2.
-
-### Fixed
-- Notifications (with their second row) and device notices open only as wide as the closed notch
-  when their content fits, and only as much wider as needed (E-31).
-
-## [1.8.1] - 2026-11-26
-
-### Added
 - AI › Sessions tab (new module, merged into AI): every Claude Code session in Terminal, VS Code or
   the Claude app, newest on top, with its state (Working, Asks, Needs you, Background task,
   Finished, Ready), how long and the prompt's first line; a click brings its window forward,
@@ -167,6 +54,77 @@
   note), Copy report puts it on the clipboard with the last 40 lines of each broken item's log;
   a "Test 1.x.y" notice after What's new opens it. The release skill writes the list into
   `TestPlan` (TL-1…TL-4).
+
+### Changed
+- New Cleaner icon everywhere: a filled drive with a small sparkle, matching the other filled
+  icons of the top row (TT-31).
+- Cleaner: Free always stands last, on the right of the disk bar and its labels (TT-28).
+- Cleaner: buttons grow a little on hover instead of the grey highlight (TT-30).
+- Cleaner: the disk bar and its labels always run from the largest part to the smallest; labels
+  wrap when narrow (TT-23).
+- Cleaner: every app row ends in size, arrow and two equal circles, green Open (blue X Quit while
+  it runs) and a red bin; a click grows the circle over the other into its labelled button, a
+  second click does it. Uninstalling a running app quits it first (TT-25). The app details have
+  the same circles; the bin asks in the footer, then quits the app and removes it (TT-26).
+- The clean beside the closed notch is a ring like the others: a blue arc with sparkles, then a
+  green filled ring with a tick (TT-27).
+- Onboarding: the Stats, tasks and sessions tips mention the round buttons, the swipe up and the session hover.
+- Cleaner: Uninstall in an app's row asks once in the row and moves the app with all its files to
+  the Trash without opening it; a running app has a blue Quit there instead, which quits without
+  asking (TT-16, TT-17). Its text is the app's usual size (TT-22).
+- The Cleaner is no longer a module of its own: Clean on the Stats' Disk card opens it in place of
+  the Stats, with ‹ Stats and a pinch to go back (TT-8). It can also be opened from a Cleaner
+  button in the top row (off by default, Settings › General) and from Clean on the Home's Disk and
+  Cleaner tiles (TT-9, TT-10). A Cleaner tile placed before has to be added again.
+- The Cleaner's tick marks are round (TT-11). While it cleans (moving to the Trash, now off the main
+  thread, and the scan after it) the whole Cleaner is covered and can't be clicked (TT-12).
+- Closing the notch while it cleans shows the same spinner right of the notch, then a green tick;
+  hovering it opens the Cleaner again (TT-13).
+- In an app of the Apps tab, a two-finger sideways swipe goes back to the app list instead of
+  switching modules (TT-14).
+- Opening the month in a task's details scrolls it fully into view (R-25).
+- Onboarding: the Cleaner's own module text and tip are gone; the Stats' text and tip mention
+  Clean on the Disk card (TT-15).
+- A task's date and time in its details are set inside the notch in Wingmate's style: quick
+  choices (Today, Tomorrow, Next week; 9:00, 12:00, 18:00), a small month that opens from the
+  chosen day, hour : minute with arrows (5-minute steps); Repeat, Early Reminder, List and
+  Priority are soft capsules with the same menus (R-24).
+- The usage dropped down for a new Claude Code session goes by itself after about 6 seconds (it
+  stays while hovered) and can be flicked up like other notices (CS-7b).
+- A Beeper chat clicked in the Beeper badge's hover list opens on the Chats tab with its card open
+  and ready to type (BP-22).
+
+### Fixed
+- Cleaner: a circle opened in an app's details folds back when the details close, instead of
+  staying open in the list (TT-29).
+- A Claude Code session in the usage ring's drop-down can be clicked: it brings its app forward
+  (CS-10).
+- The 1×2 Month tile fits its tile like the Ask tile: the month's name beside a grid sized to the
+  tile (HT-56).
+- Onboarding: the Tasks, Sessions and Stats tips mention the overdue row, what a session is doing,
+  clicking a session at the usage ring, Uninstall in the Cleaner's rows and large files.
+- The notch no longer closes while a pop-up opened from it (a popover, a date picker's calendar)
+  reaches outside it (R-23).
+- Claude Code sessions in every app are listed (Claude app, VS Code, Cursor, terminals), not only the
+  ones that sent a hook event since Dynotch started: running `claude` processes are found with
+  the app they run in and show as Ready until their first hook event (CS-9). A helper's app ID
+  (e.g. the Claude app's built-in Claude Code) counts as its app, so the icon and click are right.
+- With two notices under the notch, the lower (earlier) one has its own X as well (E-35).
+- After sending from a chat card the reply field empties at once instead of selecting the sent
+  text, the notch no longer jumps, and the card under the notch keeps its size while the messages
+  slide up (E-34).
+- Beeper and Google Chat cards no longer vanish a few seconds after clicking into their reply
+  field: the card stays until it is closed, another card opens or the notch closes, shows what I
+  sent as my own message and takes more messages; a card opened from the notch no longer closes
+  after a reply (E-32).
+- Chat cards show messages as bubbles: the others' on the left, mine on the right, sliding in from
+  their side (E-33).
+- Notifications (with their second row) and device notices open only as wide as the closed notch
+  when their content fits, and only as much wider as needed (E-31).
+
+### Removed
+- The test list of test builds: no Settings › Testing page, no "Test 1.x.y" notice, and the
+  `TestPlan` code is gone (TL-5). Onboarding is unaffected.
 
 ## [1.8.0] - 2026-11-26
 

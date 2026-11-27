@@ -136,8 +136,7 @@ struct TrailingControls: View {
     /// A button that shows a page in place of the module, highlighted while it shows.
     private func pageButton(_ control: TopRowControl, isShowing: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: control.symbol)
-                .font(.notch(size: 12, weight: .semibold))
+            TopRowIcon(control: control, size: 12, weight: .semibold)
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
                 .foregroundStyle(isShowing ? Color.white : Color.white.level(0.7))
                 .background(Capsule(style: .continuous).fill(isShowing ? Color.white.level(0.22) : .clear))

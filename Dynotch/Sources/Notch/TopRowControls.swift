@@ -31,7 +31,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .tablet: "ipad.landscape"
         case .spencer: SpencerMenu.symbol
-        case .cleaner: "externaldrive.badge.minus"
+        case .cleaner: CleanerGlyph.symbol
         case .followMouse: "arrow.up.square.fill"
         case .keyboardLock: "keyboard.fill"
         case .pin: "lock.fill"
@@ -130,7 +130,7 @@ struct TopRowSettingsRows: View {
                     .foregroundStyle(.secondary)
                     .accessibilityLabel("Drag to reorder")
                 Toggle(isOn: Binding(get: { layout.isShown(control) }, set: { layout.setShown(control, $0) })) {
-                    Label(control.title, systemImage: control.symbol)
+                    Label { Text(control.title) } icon: { TopRowIcon(control: control, size: 13) }
                 }
                 .disabled(!control.canHide)
             }
@@ -161,5 +161,41 @@ private struct TopRowDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         ReorderDragEnd.finish { dragged = nil }
         return true
+    }
+}
+
+/// A top-row control's icon: its SF Symbol, or the Cleaner's drive with a sparkle (spec TT-31).
+struct TopRowIcon: View {
+    let control: TopRowControl
+    let size: CGFloat
+    var weight: Font.Weight = .regular
+
+    var body: some View {
+        if control == .cleaner {
+            CleanerGlyph(size: size, weight: weight)
+        } else {
+            Image(systemName: control.symbol).font(.notch(size: size, weight: weight))
+        }
+    }
+}
+
+/// The Cleaner's icon: a filled drive with a small sparkle at its top right (spec TT-31).
+struct CleanerGlyph: View {
+    /// The single symbol where only one fits, such as What's new.
+    nonisolated static let symbol = "internaldrive.fill"
+
+    let size: CGFloat
+    var weight: Font.Weight = .semibold
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Image(systemName: Self.symbol)
+                .font(.notch(size: size * 0.92, weight: weight))
+                .padding(.trailing, size * 0.3)
+                .padding(.top, size * 0.3)
+            Image(systemName: "sparkle")
+                .font(.notch(size: size * 0.5, weight: weight))
+        }
+        .accessibilityHidden(true)
     }
 }
