@@ -43,6 +43,11 @@ struct SwitcherSettingsView: View {
                 Toggle("Only covered windows", isOn: $settings.onlyCovered)
                     .help("Leaves out the windows you can see; minimized, hidden and other Spaces' windows stay")
                 if settings.onlyCovered {
+                    Picker("Covered by", selection: $settings.coverSource) {
+                        ForEach(SwitcherCoverSource.allCases, id: \.self) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .help("Focused app: only the windows under the app you work in")
                     SettingsSlider(
                         title: "Covered at least", value: $settings.coverThreshold, range: SwitcherSettings.coverRange, step: 0.05
                     ) { "\(Int(($0 * 100).rounded())) %" }

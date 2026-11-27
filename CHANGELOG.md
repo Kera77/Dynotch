@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-11-27
+
+### Added
+- Switcher: with *Only covered windows* on, a new *Covered by* choice: *Focused app* (default) lists
+  only the windows under the app you work in, *Any window* keeps the old behaviour (AS-22).
+
+### Security
+- Logs show the home folder as `~`, and the notification log's `site=` field only shows web hosts,
+  never an account name or file name (C-7b).
+- CI and preflight workflows run with a read-only token; GitHub secret scanning, push protection
+  and Dependabot security updates are on.
+
 ## [1.9.0] - 2026-11-27
 
 Public release: everything from the 1.8.1…1.8.9 test builds, plus a new Cleaner icon.

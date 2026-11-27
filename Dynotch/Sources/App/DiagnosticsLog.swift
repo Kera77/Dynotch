@@ -11,9 +11,14 @@ enum DiagnosticsLog {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Dynotch")
     }
 
+    /// The home folder as "~", so the user name stays out of the logs.
+    nonisolated static func scrubbed(_ text: String, home: String = NSHomeDirectory()) -> String {
+        home.count > 1 ? text.replacingOccurrences(of: home, with: "~") : text
+    }
+
     /// Replaces the log's text.
     static func write(_ name: String, _ text: String) {
-        let stamped = "\(Date().formatted(.iso8601)) Dynotch \(AppInfo.version) (\(AppInfo.build))\n\(text)\n"
+        let stamped = "\(Date().formatted(.iso8601)) Dynotch \(AppInfo.version) (\(AppInfo.build))\n\(scrubbed(text))\n"
         queue.async {
             cache[name] = nil
             try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -23,7 +28,7 @@ enum DiagnosticsLog {
 
     /// Adds a line, keeping the last `limit` lines.
     static func append(_ name: String, _ line: String, limit: Int = 200) {
-        let stamped = "\(Date().formatted(.iso8601)) \(line)"
+        let stamped = "\(Date().formatted(.iso8601)) \(scrubbed(line))"
         queue.async {
             let url = directory.appendingPathComponent("\(name).log")
             var lines = cache[name] ?? {

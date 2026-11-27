@@ -67,15 +67,10 @@ final class SwitcherController {
     /// Lists the windows and chooses the way back, without showing them.
     private func prepare() -> Bool {
         guard settings.isOn, !isShown, !isPending else { return false }
-        var options = SwitcherWindows.Options()
-        options.scope = settings.scope
-        options.groupsByApp = settings.groupsByApp
-        options.showsMinimized = settings.showsMinimized
-        options.showsHidden = settings.showsHidden
-        options.display = settings.currentDisplayOnly ? displayFrame() : nil
-        options.excluded = settings.excluded
-        options.onlyCovered = settings.onlyCovered
-        options.coverThreshold = settings.coverThreshold
+        let options = settings.windowOptions(
+            display: settings.currentDisplayOnly ? displayFrame() : nil,
+            focusedPID: NSWorkspace.shared.frontmostApplication?.processIdentifier
+        )
         items = SwitcherWindows.list(options)
         guard !items.isEmpty else { return false }
         // Covered windows only: the front one is not listed, so the first is the way back (spec AS-14).

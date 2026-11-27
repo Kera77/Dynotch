@@ -41,6 +41,14 @@ enum SwitcherScope: String, CaseIterable, Sendable {
     var title: String { self == .currentSpace ? "Current Space" : "All apps" }
 }
 
+/// What counts as covering a window for "Only covered windows" (spec AS-22).
+enum SwitcherCoverSource: String, CaseIterable, Sendable {
+    case focusedApp
+    case anyWindow
+
+    var title: String { self == .focusedApp ? "Focused app" : "Any window" }
+}
+
 /// The window switcher's settings (spec AS-1…AS-12), kept in the defaults.
 @MainActor
 @Observable
@@ -80,6 +88,8 @@ final class SwitcherSettings {
     var onlyCovered: Bool { didSet { save(onlyCovered, Key.covered) } }
     /// How much of a window must be covered, 0.25…0.9.
     var coverThreshold: Double { didSet { save(coverThreshold, Key.coverThreshold) } }
+    /// Whose windows cover: the focused app's or any (spec AS-22).
+    var coverSource: SwitcherCoverSource { didSet { save(coverSource.rawValue, Key.coverSource) } }
 
     static let swipeStepRange: ClosedRange<Double> = 0.05...0.25
     static let showDelayRange: ClosedRange<Double> = 0...1
@@ -93,6 +103,7 @@ final class SwitcherSettings {
         static let showDelay = "switcherShowDelay", quickPrevious = "switcherQuickPrevious"
         static let modules = "moduleSwitcherOn", moduleFingers = "moduleSwitcherFingers", moduleRow = "moduleSwitcherRow"
         static let excluded = "switcherExcluded", covered = "switcherOnlyCovered", coverThreshold = "switcherCoverThreshold"
+        static let coverSource = "switcherCoverSource"
     }
 
     private let defaults: UserDefaults
@@ -120,6 +131,22 @@ final class SwitcherSettings {
         excluded = defaults.stringArray(forKey: Key.excluded) ?? []
         onlyCovered = defaults.bool(forKey: Key.covered)
         coverThreshold = defaults.object(forKey: Key.coverThreshold) as? Double ?? 0.5
+        coverSource = defaults.string(forKey: Key.coverSource).flatMap(SwitcherCoverSource.init(rawValue:)) ?? .focusedApp
+    }
+
+    /// The window list's filters from these settings (spec AS-3…AS-14, AS-22).
+    func windowOptions(display: CGRect?, focusedPID: pid_t?) -> SwitcherWindows.Options {
+        var options = SwitcherWindows.Options()
+        options.scope = scope
+        options.groupsByApp = groupsByApp
+        options.showsMinimized = showsMinimized
+        options.showsHidden = showsHidden
+        options.display = display
+        options.excluded = excluded
+        options.onlyCovered = onlyCovered
+        options.coverThreshold = coverThreshold
+        options.coveringPID = coverSource == .focusedApp ? focusedPID : nil
+        return options
     }
 
     /// The first time: the modules that had a shortcut, so the row stays as it was (spec QS-10).

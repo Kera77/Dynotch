@@ -33,6 +33,8 @@ enum SwitcherWindows {
         var onlyCovered = false
         /// The share of a window that must be covered.
         var coverThreshold = 0.5
+        /// Only this app's windows cover (the focused one, spec AS-22); nil: any window.
+        var coveringPID: pid_t?
     }
 
     struct AppInfo: Sendable {
@@ -66,7 +68,7 @@ enum SwitcherWindows {
         var result: [SwitcherItem] = []
         var seenApps: Set<pid_t> = []
         // Front to back: what lies above each window (spec AS-14).
-        let covers = coveringRects(info, ownPID: ownPID)
+        let covers = coveringRects(info, ownPID: ownPID, onlyPID: options.coveringPID)
         for (index, entry) in info.enumerated() {
             guard let id = entry[kCGWindowNumber as String] as? CGWindowID,
                   let pid = entry[kCGWindowOwnerPID as String] as? pid_t, pid != ownPID,
@@ -97,11 +99,13 @@ enum SwitcherWindows {
     }
 
     /// For each entry, its frame if it is a visible normal window that can cover the ones below.
-    nonisolated static func coveringRects(_ info: [[String: Any]], ownPID: pid_t) -> [CGRect?] {
+    /// With `onlyPID`, only that app's windows cover (spec AS-22).
+    nonisolated static func coveringRects(_ info: [[String: Any]], ownPID: pid_t, onlyPID: pid_t? = nil) -> [CGRect?] {
         info.map { entry in
+            let owner = entry[kCGWindowOwnerPID as String] as? pid_t
             guard entry[kCGWindowLayer as String] as? Int ?? 0 == 0,
                   entry[kCGWindowIsOnscreen as String] as? Bool ?? true,
-                  entry[kCGWindowOwnerPID as String] as? pid_t != ownPID,
+                  owner != ownPID, onlyPID == nil || owner == onlyPID,
                   let boundsDictionary = entry[kCGWindowBounds as String] as? NSDictionary,
                   let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary)
             else { return nil }

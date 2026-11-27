@@ -79,6 +79,18 @@ enum WebNotificationSource {
         return false
     }
 
+    /// The site for the diagnostics log: a web host only; anything else (an account name, a
+    /// file name, an identifier) becomes "other", so no personal data reaches the log.
+    static func loggedSite(_ site: String?) -> String {
+        guard let site, !site.isEmpty else { return "-" }
+        let parts = site.lowercased().split(separator: ".")
+        let webEndings: Set<Substring> = ["com", "net", "org", "io", "app", "ai", "dev", "co", "me", "hu", "local", "microsoft"]
+        guard parts.count >= 2, let last = parts.last, webEndings.contains(last),
+              site.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "." || $0 == "-" }), !site.contains("@")
+        else { return "other" }
+        return site
+    }
+
     /// The link's shape for the diagnostics log: host and path with ids masked.
     static func maskedShape(of url: URL) -> String {
         let path = (url.path + (url.fragment.map { "#" + $0 } ?? ""))

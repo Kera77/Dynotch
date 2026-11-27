@@ -270,7 +270,7 @@ final class NotificationService {
             // Identifiers and site only, never the notification's text.
             DiagnosticsLog.append(
                 "notification-records",
-                "#\(record.id) app=\(record.appIdentifier) site=\(parsed.site ?? "-") "
+                "#\(record.id) app=\(record.appIdentifier) site=\(WebNotificationSource.loggedSite(parsed.site)) "
                     + "link=\(parsed.link.map(WebNotificationSource.maskedShape) ?? "-") "
                     + "as=\(notification.appIdentifier) shown=\(enabled)\(otherBrowser ? " (not the default browser)" : "") "
                     + "fields=\(NotificationParser.keySummary(of: record.data))"

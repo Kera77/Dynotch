@@ -226,6 +226,14 @@ struct NotificationTests {
         let link = WebNotificationSource.conversationLink(in: plist)
         #expect(link?.absoluteString == "https://chat.google.com/u/0/app/chat/AAAAbcdEfgh")
         #expect(WebNotificationSource.maskedShape(of: try #require(link)) == "chat.google.com/u/0/app/chat/…")
+        // No account name or file name in the log, only web hosts.
+        #expect(WebNotificationSource.loggedSite("calendar.google.com") == "calendar.google.com")
+        #expect(WebNotificationSource.loggedSite("beeper.local") == "beeper.local")
+        #expect(WebNotificationSource.loggedSite("anna.kovacs") == "other")
+        #expect(WebNotificationSource.loggedSite("anna@example.com") == "other")
+        #expect(WebNotificationSource.loggedSite("1a2b.jpeg") == "other")
+        #expect(WebNotificationSource.loggedSite(nil) == "-")
+        #expect(DiagnosticsLog.scrubbed("path: /Users/anna/Library/x", home: "/Users/anna") == "path: ~/Library/x")
 
         let noLink: [String: Any] = ["req": ["titl": "x", "body": "https://chat.google.com/dm/ABCDEF123"]]
         #expect(WebNotificationSource.conversationLink(in: noLink) == nil)

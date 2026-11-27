@@ -77,6 +77,26 @@ struct SwitcherTests {
         #expect(SwitcherController.steps(travel: -0.12, step: 0.05) == -2)
     }
 
+    @Test func onlyCoveredByTheFocusedApp() {
+        func placed(_ id: CGWindowID, pid: pid_t, x: Int) -> [String: Any] {
+            var entry = window(id, pid: pid)
+            entry[kCGWindowBounds as String] = ["X": x, "Y": 0, "Width": 800, "Height": 600]
+            return entry
+        }
+        // Front to back: Code's 1 over Zen's 2; Zen (focused) 2 over Code's 3 and its own 4.
+        let info = [placed(1, pid: 20, x: 1000), placed(2, pid: 10, x: 0), placed(3, pid: 20, x: 0),
+                    placed(4, pid: 10, x: 0), placed(5, pid: 20, x: 1000)]
+        var options = SwitcherWindows.Options()
+        options.onlyCovered = true
+        options.coveringPID = 10
+        let ids = SwitcherWindows.items(from: info, apps: apps, minimized: [], ownPID: 1, options: options).map(\.windowID)
+        // 5 lies under Code's 1, not under the focused app: left out (spec AS-22).
+        #expect(ids == [3, 4])
+        options.coveringPID = nil
+        let any = SwitcherWindows.items(from: info, apps: apps, minimized: [], ownPID: 1, options: options).map(\.windowID)
+        #expect(any == [3, 4, 5])
+    }
+
     @Test func onlyCoveredLeavesOutTheWindowsYouCanSee() {
         func placed(_ id: CGWindowID, pid: pid_t, x: Int, onScreen: Bool = true) -> [String: Any] {
             var entry = window(id, pid: pid, onScreen: onScreen)

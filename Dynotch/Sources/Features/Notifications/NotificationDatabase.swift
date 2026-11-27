@@ -168,7 +168,7 @@ final class NotificationDatabase: @unchecked Sendable {
                 let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any] ?? [:]
                 let request = (plist["req"] as? [String: Any]) ?? [:]
                 lines.append(
-                    "browser record \(identifier): site=\(WebNotificationSource.site(in: plist) ?? "-") "
+                    "browser record \(identifier): site=\(WebNotificationSource.loggedSite(WebNotificationSource.site(in: plist))) "
                         + "keys=\(plist.keys.sorted()) req=\(request.keys.sorted())"
                 )
             }

@@ -7,6 +7,10 @@ on:
   push:
     branches: [preflight]
 
+# Read-only token: these runs only check the code.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Check
