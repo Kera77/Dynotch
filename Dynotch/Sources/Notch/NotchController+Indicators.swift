@@ -252,7 +252,8 @@ extension NotchController {
             lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)
-        if let handled = handleDevicePeekScroll(event) ?? handleTaskListScroll(event, items: items, layout: layout) {
+        if let handled = handleDevicePeekScroll(event) ?? handleOverdueScroll(event, items: items, layout: layout)
+            ?? handleTaskListScroll(event, items: items, layout: layout) {
             return handled
         }
         if let handled = handleBesideMeetingScroll(event) ?? handleUsagePopupScroll(event, items: items, layout: layout) {

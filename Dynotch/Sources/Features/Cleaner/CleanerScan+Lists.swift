@@ -9,6 +9,18 @@ struct CleanerResult: Sendable {
     var largeFiles: [CleanerItem] = []
     /// A folder could not be read: Full Disk Access would show more (spec TT-6).
     var needsFullDiskAccess = false
+    /// What the rest of the used space is made of, for the disk bar (spec TT-24).
+    var breakdown = DiskBreakdown()
+}
+
+/// The used space beyond apps, caches and leftovers (spec TT-24).
+struct DiskBreakdown: Sendable, Equatable {
+    /// macOS itself: the system, Preboot, VM (swap) and Update volumes.
+    var system: Int64 = 0
+    /// Apps' data in `~/Library`: Application Support, Containers, Group Containers, without leftovers.
+    var appData: Int64 = 0
+    /// The owner's folders: Desktop, Documents, Downloads, Movies, Music, Pictures.
+    var files: Int64 = 0
 }
 
 extension CleanerScan {
@@ -23,7 +35,33 @@ extension CleanerScan {
         result.leftovers = leftovers(installed: installed, running: running, result: &result)
         result.caches = caches(running: running, result: &result)
         result.apps = removableApps()
+        result.breakdown = breakdown(leftovers: result.leftovers)
         return result
+    }
+
+    // MARK: - Disk breakdown (spec TT-24)
+
+    static let systemVolumes = ["/", "/System/Volumes/VM", "/System/Volumes/Preboot", "/System/Volumes/Update"]
+    static let appDataFolders = ["Application Support", "Containers", "Group Containers"]
+    static let fileFolders = ["Desktop", "Documents", "Downloads", "Movies", "Music", "Pictures"]
+
+    static func breakdown(leftovers: [CleanerGroup]) -> DiskBreakdown {
+        let dataFolders = appDataFolders.map { library.appending(path: $0) }
+        let inData = leftovers.flatMap(\.items).filter { item in
+            dataFolders.contains { item.url.path.hasPrefix($0.path + "/") }
+        }
+        return DiskBreakdown(
+            system: systemVolumes.reduce(0) { $0 + volumeUsed($1) },
+            appData: max(dataFolders.reduce(0) { $0 + size(of: $1) } - inData.reduce(0) { $0 + $1.size }, 0),
+            files: fileFolders.reduce(0) { $0 + size(of: home.appending(path: $1)) }
+        )
+    }
+
+    /// The space one APFS volume takes in its container.
+    static func volumeUsed(_ path: String) -> Int64 {
+        var stats = statfs()
+        guard statfs(path, &stats) == 0 else { return 0 }
+        return Int64(stats.f_blocks - stats.f_bfree) * Int64(stats.f_bsize)
     }
 
     // MARK: - Leftovers (spec TT-2)

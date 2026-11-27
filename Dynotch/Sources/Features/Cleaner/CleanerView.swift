@@ -102,7 +102,9 @@ struct CleanerView: View {
         let size = pending.reduce(Int64(0)) { $0 + $1.size }
         HStack(spacing: 8) {
             if confirming {
-                Text("Move \(pending.count) \(pending.count == 1 ? "item" : "items") (\(CleanerService.format(size))) to the Trash?")
+                let quits = service.tab == .apps && service.app.map(service.isRunning) == true
+                Text((quits ? "Quit and move " : "Move ")
+                     + "\(pending.count) \(pending.count == 1 ? "item" : "items") (\(CleanerService.format(size))) to the Trash?")
                     .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -113,9 +115,9 @@ struct CleanerView: View {
                     .foregroundStyle(Color.white.level(0.7))
                 pill("Move to Trash", color: Theme.red) {
                     confirming = false
-                    withAnimation(Motion.quick) { service.trashPending() }
+                    // A running app quits first, then goes (spec TT-26).
+                    withAnimation(Motion.quick) { if service.tab == .apps { service.uninstallPicked() } else { service.trashPending() } }
                 }
-                .disabled(service.tab == .apps && service.app.map(service.isRunning) == true)
             } else {
                 status
                 Spacer(minLength: 4)

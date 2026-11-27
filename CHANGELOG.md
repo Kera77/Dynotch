@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [1.8.8] - 2026-11-27
+
+### Added
+- A two-finger swipe up on the overdue task row under the closed notch hides it for 30 minutes;
+  then it comes back while the task is still overdue (R-29).
+- Cleaner: the disk bar splits the old "Other" into System, App data and Files, with a hover help
+  on every part (TT-24).
+
+### Changed
+- Cleaner: the disk bar and its labels always run from the largest part to the smallest; labels
+  wrap when narrow (TT-23).
+- Cleaner: every app row ends in size, arrow and two equal circles, green Open (blue X Quit while
+  it runs) and a red bin; a click grows the circle over the other into its labelled button, a
+  second click does it. Uninstalling a running app quits it first (TT-25). The app details have
+  the same circles; the bin asks in the footer, then quits the app and removes it (TT-26).
+- The clean beside the closed notch is a ring like the others: a blue arc with sparkles, then a
+  green filled ring with a tick (TT-27).
+- Onboarding: the Stats and tasks tips mention the round buttons and the swipe up.
+
 ## [1.8.7] - 2026-11-27
 
 ### Added

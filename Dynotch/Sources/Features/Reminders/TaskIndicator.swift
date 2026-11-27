@@ -96,6 +96,8 @@ enum TaskIndicatorLogic {
     static let soonLead: TimeInterval = 3600
     /// Later on an overdue task brings it back after an hour (spec R-26).
     static let laterDelay: TimeInterval = 3600
+    /// A swipe up on the overdue row hides it for half an hour (spec R-29).
+    static let swipeDelay: TimeInterval = 1800
 
     /// Red with an overdue task, orange with one due within the hour, else white (spec R-27).
     static func tone(_ items: [ReminderItem], now: Date, calendar: Calendar = .current) -> TaskTone {
@@ -253,6 +255,14 @@ final class TaskIndicator {
     /// Later on an overdue task: back under the notch in an hour (spec R-26).
     func remindLater(_ item: ReminderItem, now: Date = Date()) {
         later[item.id] = now.addingTimeInterval(TaskIndicatorLogic.laterDelay)
+        save()
+        update(now: now)
+    }
+
+    /// A swipe up on the overdue row: every overdue task under the notch comes back in 30 minutes (spec R-29).
+    func snoozeOverdue(now: Date = Date()) {
+        guard let overdue = shown?.overdue, !overdue.isEmpty else { return }
+        overdue.forEach { later[$0.id] = now.addingTimeInterval(TaskIndicatorLogic.swipeDelay) }
         save()
         update(now: now)
     }

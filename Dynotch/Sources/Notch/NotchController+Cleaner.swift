@@ -39,23 +39,35 @@ extension NotchController {
     }
 }
 
-/// The clean beside the closed notch: the same spinner as in the Cleaner, then a green tick (spec TT-13).
+/// The clean beside the closed notch in the rings' style (spec TT-13, TT-27): while it cleans a
+/// blue arc runs round the grey ring with sparkles in the middle; when done the ring fills green
+/// with a tick in it.
 struct CleanerGlanceView: View {
     let glance: CleanerService.NotchGlance
 
+    @State private var turning = false
+    private static let lineWidth: CGFloat = 3
+
     var body: some View {
-        Group {
-            switch glance {
-            case .cleaning:
-                ProgressView().controlSize(.small).scaleEffect(0.8)
-            case .done:
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.notch(size: 15, weight: .semibold))
-                    .foregroundStyle(Theme.green)
-                    .transition(.scale.combined(with: .opacity))
-            }
+        let done = glance == .done
+        ZStack {
+            Circle().stroke(Color.white.level(0.22), lineWidth: Self.lineWidth)
+            Circle()
+                .trim(from: 0, to: done ? 1 : 0.3)
+                .stroke(done ? Theme.green : Theme.blue, style: StrokeStyle(lineWidth: Self.lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(done ? -90 : turning ? 270 : -90))
+                .animation(done ? Motion.quick : .linear(duration: 1).repeatForever(autoreverses: false), value: turning)
+            Image(systemName: done ? "checkmark" : "sparkles")
+                .font(.notch(size: done ? 10 : 9.5, weight: .bold))
+                .foregroundStyle(done ? Theme.green : Color.white.level(0.85))
+                .contentTransition(.symbolEffect(.replace))
         }
+        .padding(Self.lineWidth / 2)
+        .frame(width: LevelRing.size, height: LevelRing.size)
         .frame(width: IndicatorLayout.ringSlotWidth, height: LevelRing.size)
-        .help(glance == .cleaning ? "Cleaning…" : "Cleaned: hover to see what was freed")
+        .animation(Motion.quick, value: done)
+        .onAppear { turning = !done }
+        .onChange(of: done) { _, isDone in turning = !isDone }
+        .help(done ? "Cleaned: hover to see what was freed" : "Cleaning…")
     }
 }

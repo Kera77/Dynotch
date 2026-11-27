@@ -68,7 +68,8 @@ enum OnboardingTips {
             + "Edits save by themselves; ⌘B, ⌘I and the Aa menu format text, ⇧⌘L makes a checklist.",
         "reminders": "Click New task at the end of a list and type: “tomorrow 9” sets the date. Click the "
             + "circle to complete a task, the i for its details; each column's header picks what it shows. "
-            + "An overdue task stays in a thin row under the closed notch until you complete it, dismiss it or click Later.",
+            + "An overdue task stays in a thin row under the closed notch until you complete it, dismiss it or click Later; "
+            + "swipe it up to hide it for 30 minutes.",
         "claudeChat": "Ask Claude or ChatGPT; the header picks the provider, the model and a template. Add the "
             + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",
         "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
@@ -82,7 +83,8 @@ enum OnboardingTips {
             + "drop-down; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Clean on the Disk card opens the Cleaner: leftovers of removed apps, caches, and removing an app "
-            + "with its files (Uninstall in its row), and files over 500 MB, all to the Trash. ‹ Stats or a pinch brings you back. "
+            + "with its files (Open or Quit and the bin in its row: click once to grow, again to do it), "
+            + "and files over 500 MB, all to the Trash. ‹ Stats or a pinch brings you back. "
             + "Options picks what shows beside the closed notch and which warnings you get; "
             + "a warning's drop-down lists the five apps using the most, each with its own quit.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "

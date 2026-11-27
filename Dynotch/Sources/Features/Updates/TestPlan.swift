@@ -13,6 +13,43 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.8": [
+            TestPlanItem(
+                id: "overdue-swipe", group: "Tasks",
+                text: "Swipe the overdue row under the closed notch up with two fingers: it goes away and comes back after 30 minutes.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "disk-order", group: "Cleaner",
+                text: "The disk bar and its labels run from the largest part to the smallest (Free included); labels wrap.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "disk-other", group: "Cleaner",
+                text: "After a scan the bar shows System, App data and Files besides Apps and Caches; a label's hover says what it holds.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "app-circles", group: "Cleaner",
+                text: "Apps: size, arrow, then two equal circles (green Open or blue X Quit, red bin); sizes line up.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "app-grow", group: "Cleaner",
+                text: "Click a circle: it grows into Open, Quit or Uninstall; click again to do it; it folds back after 4 s.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "app-uninstall-running", group: "Cleaner",
+                text: "Uninstall a running app from its row or details (bin, then the footer question): it quits, then goes.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-ring", group: "Cleaner",
+                text: "Close the notch while cleaning: a blue arc runs round a ring with sparkles, then the ring fills green with a tick.",
+                log: "cleaner"
+            )
+        ],
         "1.8.7": [
             TestPlanItem(
                 id: "overdue-row", group: "Tasks",
@@ -181,60 +218,6 @@ enum TestPlan {
                 id: "chat-bubbles", group: "Chat cards stay while you reply",
                 text: "In Beeper and Google Chat cards the others' messages are on the left, yours on the right, sliding in.",
                 log: "notifications"
-            )
-        ],
-        "1.8.2": [
-            TestPlanItem(
-                id: "narrow-notification", group: "Slimmer notifications",
-                text: "A short notification (and a device notice) hangs under the notch only as wide as the notch; a long one is wider.",
-                log: "notifications"
-            ),
-            TestPlanItem(
-                id: "cleaner-scan", group: "Cleaner",
-                text: "Cleaner scans by itself on first open; Leftovers shows only apps you removed, Caches lists sizes.",
-                log: "cleaner"
-            ),
-            TestPlanItem(
-                id: "cleaner-clean", group: "Cleaner",
-                text: "Clean asks first, moves the ticked items to the Trash and shows Freed …; they can be put back.",
-                log: "cleaner"
-            ),
-            TestPlanItem(
-                id: "cleaner-uninstall", group: "Cleaner",
-                text: "Apps › pick a test app: its files are listed; Uninstall moves the app and the ticked files to the Trash.",
-                log: "cleaner"
-            )
-        ],
-        "1.8.1": [
-            TestPlanItem(
-                id: "sessions-list", group: "Sessions tab",
-                text: "AI › Sessions lists your Claude Code sessions: Working while it runs, Finished when done, with the prompt.",
-                log: "claude-hook"
-            ),
-            TestPlanItem(
-                id: "sessions-open", group: "Sessions tab",
-                text: "Clicking a session brings its VS Code window forward; Clear finished and right-click Remove work.",
-                log: "claude-hook"
-            ),
-            TestPlanItem(
-                id: "answer-question", group: "Answers from the notch",
-                text: "Switch to another app; when Claude asks a question, its options show as buttons and a click answers it.",
-                log: "claude-hook"
-            ),
-            TestPlanItem(
-                id: "answer-permission", group: "Answers from the notch",
-                text: "A permission request shows the command with Allow and Deny; both reach Claude Code.",
-                log: "claude-hook"
-            ),
-            TestPlanItem(
-                id: "answer-pass", group: "Answers from the notch",
-                text: "With VS Code in front, or after the X, Claude Code asks in VS Code as before, without delay.",
-                log: "claude-hook"
-            ),
-            TestPlanItem(
-                id: "test-list", group: "Test list",
-                text: "Settings › Testing shows this list; Works / Broken, a note and Copy report (with the log) work.",
-                log: "updates"
             )
         ]
     ]

@@ -40,6 +40,16 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.8.8", items: [
+            WhatsNewItem(symbol: "hand.point.up", title: "Swipe an overdue task away",
+                         text: "Swipe the overdue row under the notch up: it hides for 30 minutes, then comes back."),
+            WhatsNewItem(symbol: "circle.circle", title: "Round app buttons",
+                         text: "Open or Quit and the bin sit as two circles; click one to grow it, again to do it."),
+            WhatsNewItem(symbol: "chart.bar.xaxis", title: "Disk bar, largest first",
+                         text: "The Cleaner's disk bar runs from the largest part, with System, App data and Files split out."),
+            WhatsNewItem(symbol: "sparkles", title: "Cleaning ring",
+                         text: "Beside the closed notch the clean runs as a ring like the others and fills green when done.")
+        ]),
         WhatsNewRelease(version: "1.8.7", items: [
             WhatsNewItem(symbol: "exclamationmark.circle", title: "Overdue tasks stay",
                          text: "The oldest overdue task waits in a thin row under the notch with +N; hover it for the list."),

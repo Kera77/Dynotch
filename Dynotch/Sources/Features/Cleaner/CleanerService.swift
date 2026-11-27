@@ -1,6 +1,9 @@
 import AppKit
 import Observation
 
+/// Open or Quit, or the bin, in an app's row (spec TT-25).
+enum CleanerAppButtonKind: Equatable { case primary, uninstall }
+
 /// The Cleaner module's state: what a scan found, what is selected, and moving it to the
 /// Trash (spec TT-1…TT-6).
 @MainActor
@@ -34,8 +37,13 @@ final class CleanerService {
         didSet { if tab == .large { scanLargeIfNeeded() } }
     }
     var appSort: AppSort = .size
-    /// The app whose row asks "Uninstall … and its files?" (spec TT-17).
-    var askingUninstall: CleanerApp?
+    /// The round button grown into its labelled one, waiting for the second click (spec TT-25).
+    struct AppButton: Equatable {
+        let app: URL
+        let kind: CleanerAppButtonKind
+    }
+
+    var expandedButton: AppButton?
     /// Looking for large files (spec TT-21).
     private(set) var isScanningLarge = false
     private(set) var hasScannedLarge = false
@@ -141,16 +149,49 @@ final class CleanerService {
     /// Uninstall in the details: the question in the footer with the ticked files (spec TT-19).
     var asksToUninstall = false
 
-    /// Uninstall confirmed in an app's row: the app and all its files to the Trash, without
-    /// opening it (spec TT-17).
+    /// Uninstall confirmed in an app's row: a running app quits first, then the app and all its
+    /// files go to the Trash, without opening it (spec TT-17, TT-25).
     func uninstallFromRow(_ app: CleanerApp) {
-        askingUninstall = nil
-        guard !isRunning(app), !isCleaning else { return }
+        expandedButton = nil
+        guard !isCleaning else { return }
         if self.app == app { pick(nil) }
         Task {
+            guard await quitAndWait(app) else { return }
             let files = await Task.detached(priority: .userInitiated) { CleanerScan.files(of: app) }.value
             trash([CleanerItem(url: app.url, size: app.size)] + files, tab: .apps)
         }
+    }
+
+    /// Move to Trash in the details: a running app quits first (spec TT-26).
+    func uninstallPicked() {
+        guard let app, !isCleaning else { return }
+        Task {
+            guard await quitAndWait(app) else { return }
+            trashPending()
+        }
+    }
+
+    /// Quits the app and waits up to ten seconds for it to close; false when it stays open
+    /// (e.g. it asks to save), and then nothing is removed (spec TT-26).
+    private func quitAndWait(_ app: CleanerApp) async -> Bool {
+        guard isRunning(app) else { return true }
+        quit(app)
+        for _ in 0..<50 {
+            try? await Task.sleep(for: .milliseconds(200))
+            if NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleID).isEmpty { return true }
+        }
+        CleanerLog.write("uninstall: the app did not quit, nothing removed")
+        return false
+    }
+
+    /// The round button folds back (spec TT-25).
+    func foldButton(of app: CleanerApp) {
+        if expandedButton?.app == app.url { expandedButton = nil }
+    }
+
+    /// Green Open on an app that is not running (spec TT-25).
+    func open(_ app: CleanerApp) {
+        NSWorkspace.shared.openApplication(at: app.url, configuration: NSWorkspace.OpenConfiguration())
     }
 
     func isRunning(_ app: CleanerApp) -> Bool {
