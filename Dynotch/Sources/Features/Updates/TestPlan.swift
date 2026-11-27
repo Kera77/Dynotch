@@ -13,6 +13,38 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.3": [
+            TestPlanItem(
+                id: "usage-sessions", group: "Sessions at the usage ring",
+                text: "Hover the AI ring beside the notch: under the limits your running Claude Code sessions show with state and time.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "usage-popup", group: "Sessions at the usage ring",
+                text: "Start a new Claude Code session: the usage drops down by itself; its X closes it until the next session.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "usage-popup-gone", group: "Sessions at the usage ring",
+                text: "When the session finished and you don't touch it, the drop-down goes by itself after about 10 minutes.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "beeper-stays", group: "Chat cards stay while you reply",
+                text: "Click into a Beeper card's reply field: it stays; send two messages, both show on the right as yours.",
+                log: "beeper"
+            ),
+            TestPlanItem(
+                id: "gchat-stays", group: "Chat cards stay while you reply",
+                text: "The same with a Google Chat notification; the card goes only when you close it or click away.",
+                log: "google-chat-web"
+            ),
+            TestPlanItem(
+                id: "chat-bubbles", group: "Chat cards stay while you reply",
+                text: "In Beeper and Google Chat cards the others' messages are on the left, yours on the right, sliding in.",
+                log: "notifications"
+            )
+        ],
         "1.8.2": [
             TestPlanItem(
                 id: "narrow-notification", group: "Slimmer notifications",

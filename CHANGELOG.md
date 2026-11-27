@@ -2,12 +2,14 @@
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-11-27
+
 ### Added
 - The AI usage ring's hover also lists the running Claude Code sessions (project, state, how long;
   up to four, then "+N more"), in Wings mode too (CS-6).
 - A new Claude Code session drops the usage and the sessions down under the notch by itself, even
   below 70 %; its X closes it until the next session, and it goes by itself 10 minutes after no
-  session runs and nothing happened (CS-7). Onboarding tip of AI Usage and What's new updated.
+  session runs and nothing happened (CS-7). Onboarding tip of AI Usage, What's new and test list for 1.8.3 updated.
 
 ### Fixed
 - Beeper and Google Chat cards no longer vanish a few seconds after clicking into their reply
