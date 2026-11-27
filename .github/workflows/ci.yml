@@ -43,8 +43,8 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild test \
-            -project Dynotch.xcodeproj \
-            -scheme Dynotch \
+            -project Wingmate.xcodeproj \
+            -scheme Wingmate \
             -destination 'platform=macOS' \
             -derivedDataPath build/DerivedData \
             -resultBundlePath build/TestResults.xcresult \

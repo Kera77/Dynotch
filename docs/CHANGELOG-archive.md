@@ -40,7 +40,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 
 ### Changed
 - Apple Mail as Gmail source: the unread messages now come from Mail's own index (read only, with the existing Full Disk Access); Mail is asked only for its accounts, so a huge Inbox no longer keeps it busy (GM-13).
-- After Mail doesn't answer, Dynotch asks again only after 1, 2, 5, then 15 minutes, and it no longer restarts Mail after it was quit (GM-14, GM-15).
+- After Mail doesn't answer, Wingmate asks again only after 1, 2, 5, then 15 minutes, and it no longer restarts Mail after it was quit (GM-14, GM-15).
 
 ### Fixed
 - Apple Mail kept freezing ("not responding"): the old read filtered the whole Inbox through Apple Events every minute (GM-13).
@@ -87,8 +87,8 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.81.0] - 2026-11-20
 
 ### Changed
-- The bin icon is gone everywhere: notices beside the notch (also the first "Dynotch updated"), notification groups, "Clear all" and Clipboard items show the usual X.
-- Notifications wings: an X at the right edge removes the shown app's notifications from Dynotch.
+- The bin icon is gone everywhere: notices beside the notch (also the first "Wingmate updated"), notification groups, "Clear all" and Clipboard items show the usual X.
+- Notifications wings: an X at the right edge removes the shown app's notifications from Wingmate.
 
 ### Fixed
 - Notes wings: while the latest note has not loaded, it is fetched again every second, for at most 10 seconds.
@@ -111,7 +111,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ### Added
 - A finished download shows beside the notch: a download icon on the left and a green tick on the right, for 3 seconds; hovering it opens the Tray with the file on top.
 - Module strip: a module can also open when the pointer rests on its icon (Settings › Appearance › Module strip, with an adjustable delay).
-- Notifications beside the notch: swipe up (or click the small bin) to delete one from Dynotch; the Notification Centre keeps it.
+- Notifications beside the notch: swipe up (or click the small bin) to delete one from Wingmate; the Notification Centre keeps it.
 
 ### Changed
 - The tasks counter is always white, like the badges; its drop-down shows six tasks and scrolls when there are more.
@@ -124,7 +124,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.78.0] - 2026-11-20
 
 ### Changed
-- DyNotch Wings: while a small notice stands beside the notch, hovering the notch no longer opens the module's wings over it. Swiped up (or closed with X or a click), the notice swims into the notch first, then the module's wings open if the pointer is on the notch, otherwise the notch's own items swim out.
+- Wingmate Wings: while a small notice stands beside the notch, hovering the notch no longer opens the module's wings over it. Swiped up (or closed with X or a click), the notice swims into the notch first, then the module's wings open if the pointer is on the notch, otherwise the notch's own items swim out.
 - AI Wings: the logo and name of the AI chosen in the module (Claude or ChatGPT; the chat's AI on the chat tab), and that AI's own session usage on the right.
 - Notifications: the All tab and the Notifications wings show everything, Beeper's unread chats too (once, not again as Beeper notifications).
 - Clipboard Wings: a hovered dot opens where it is, so a short text no longer pulls the item away from the pointer; an open item also keeps the wings a little below the notch for its two seconds.
@@ -136,9 +136,9 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.77.0] - 2026-11-19
 
 ### Changed
-- DyNotch Wings: the small drop-downs (Claude or ChatGPT finished, Claude asks, Dynotch updated, a device connected) stand beside the notch instead of under it: the icon and who it is from on the left, the notice itself on the right.
-- DyNotch Wings: a notification beside the notch takes only the room it needs on the left; its text starts at the notch's edge, runs to its end when it does not fit, and starts again when hovered. While the pointer is on it, it stays; the newest one shows after.
-- DyNotch Wings: the module strip's icons drop in all at once.
+- Wingmate Wings: the small drop-downs (Claude or ChatGPT finished, Claude asks, Wingmate updated, a device connected) stand beside the notch instead of under it: the icon and who it is from on the left, the notice itself on the right.
+- Wingmate Wings: a notification beside the notch takes only the room it needs on the left; its text starts at the notch's edge, runs to its end when it does not fit, and starts again when hovered. While the pointer is on it, it stays; the newest one shows after.
+- Wingmate Wings: the module strip's icons drop in all at once.
 - Tray Wings: just "Drop files" on the left.
 - AI Wings: the module's icon and name on the left; the session's percent and its ring (no number inside) on the right.
 - Reminders Wings: no Undo button; clicking the ticked ring again unticks it.
@@ -151,42 +151,42 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.76.0] - 2026-11-19
 
 ### Changed
-- DyNotch Wings: a click on the notch opens the panel fully, a second click on the open panel's notch folds it back into the wings; the wings go when the pointer leaves the notch.
-- DyNotch Wings: each side is only as wide as its own content, so the wings no longer take empty room.
-- DyNotch Wings: closing, the wings' text slides into the notch at once and only then do the notch's own items (countdowns, badges) swim out; opening fully, the wings' text goes at once too.
-- DyNotch Wings: the module strip comes down from above, and sits under anything that hangs below the wings.
-- DyNotch Wings, Calendar: always the next event, also on a later day ("Tomorrow", the weekday, or the date).
-- DyNotch Wings, AI: the session usage shows even when the AI module's chat tab is the one that opens.
-- DyNotch Wings, Stats: four devices next to the notch, always with room for 100%; "+N" opens the others to the left on hover.
-- DyNotch Wings, Notifications: the newest app stays next to the notch and open; hovering another opens its name in place, the icons step aside and the message slides the way the pointer moved.
-- DyNotch Wings, Reminders: no drop-down list; the newest item at the left, the next due one (or the second newest) at the right, each with a ring in its list's colour. A click ticks it with a few seconds of Undo, then completes it in Reminders and the next one swims out of the notch.
-- DyNotch Wings, Notes: the note's name at the left, its text at the right running once to its end; the latest note now loads even before the Notes panel was opened.
-- DyNotch Wings, Clipboard: hovering an item opens it as wide as its wing allows, the other two in that wing shrink to dots at the edges.
-- DyNotch Wings, Tray: "Drop files on the notch" is the same capsule as AirDrop.
+- Wingmate Wings: a click on the notch opens the panel fully, a second click on the open panel's notch folds it back into the wings; the wings go when the pointer leaves the notch.
+- Wingmate Wings: each side is only as wide as its own content, so the wings no longer take empty room.
+- Wingmate Wings: closing, the wings' text slides into the notch at once and only then do the notch's own items (countdowns, badges) swim out; opening fully, the wings' text goes at once too.
+- Wingmate Wings: the module strip comes down from above, and sits under anything that hangs below the wings.
+- Wingmate Wings, Calendar: always the next event, also on a later day ("Tomorrow", the weekday, or the date).
+- Wingmate Wings, AI: the session usage shows even when the AI module's chat tab is the one that opens.
+- Wingmate Wings, Stats: four devices next to the notch, always with room for 100%; "+N" opens the others to the left on hover.
+- Wingmate Wings, Notifications: the newest app stays next to the notch and open; hovering another opens its name in place, the icons step aside and the message slides the way the pointer moved.
+- Wingmate Wings, Reminders: no drop-down list; the newest item at the left, the next due one (or the second newest) at the right, each with a ring in its list's colour. A click ticks it with a few seconds of Undo, then completes it in Reminders and the next one swims out of the notch.
+- Wingmate Wings, Notes: the note's name at the left, its text at the right running once to its end; the latest note now loads even before the Notes panel was opened.
+- Wingmate Wings, Clipboard: hovering an item opens it as wide as its wing allows, the other two in that wing shrink to dots at the edges.
+- Wingmate Wings, Tray: "Drop files on the notch" is the same capsule as AirDrop.
 
 ## [0.75.0] - 2026-11-19
 
 ### Changed
 - The Apple style is now the only look: the Style switch in Settings › Appearance is gone, and the former look's code with it.
-- DyNotch Wings spread out of the middle of the notch to the left and right on hover, and slide back in when it closes.
-- DyNotch Wings: a two-finger swipe left or right on the wings switches to the next or previous module (round the end); a swipe up over the open panel's top row folds it back into the wings.
-- DyNotch Wings: a new notification shows beside the notch (the app and who wrote at the left, the first line at the right) instead of dropping down; a swipe up puts it away, a swipe down opens it.
-- DyNotch Wings: files dragged onto the notch no longer open the panel: the wings spread with Keep in Tray at the left and AirDrop at the right; a file kept in the tray shows in the wings.
-- DyNotch Wings, AI Usage: the current session on the right as a percentage with a ring in the notch indicator's colours; the weekly limit on the left.
-- DyNotch Wings, Stats: the Mac's and the devices' batteries on the left, as many as fit; a button on the right widens the wings to the display's edges to show every device, and they narrow again when the pointer heads back to the notch. Memory and swap stay on the right.
-- DyNotch Wings, Notifications: the apps' icons on the left, the newest next to the notch with its name; hovering an icon shows that app's name and latest message, a click opens its notifications.
-- DyNotch Wings, Reminders: the task added last on the left; resting on the task icon drops the task list down, as under the notch's task counter.
-- DyNotch Wings, Notes: the note changed last, its folder and name on the left, its text on the right.
-- DyNotch Wings: text that does not fit runs from right to left, rests at its end and starts again (not with Reduce motion).
-- DyNotch Wings, Calculator: the result without the "=" sign.
-- DyNotch Wings, Clipboard: the three newest items on the left, the next three on the right; a click copies one.
+- Wingmate Wings spread out of the middle of the notch to the left and right on hover, and slide back in when it closes.
+- Wingmate Wings: a two-finger swipe left or right on the wings switches to the next or previous module (round the end); a swipe up over the open panel's top row folds it back into the wings.
+- Wingmate Wings: a new notification shows beside the notch (the app and who wrote at the left, the first line at the right) instead of dropping down; a swipe up puts it away, a swipe down opens it.
+- Wingmate Wings: files dragged onto the notch no longer open the panel: the wings spread with Keep in Tray at the left and AirDrop at the right; a file kept in the tray shows in the wings.
+- Wingmate Wings, AI Usage: the current session on the right as a percentage with a ring in the notch indicator's colours; the weekly limit on the left.
+- Wingmate Wings, Stats: the Mac's and the devices' batteries on the left, as many as fit; a button on the right widens the wings to the display's edges to show every device, and they narrow again when the pointer heads back to the notch. Memory and swap stay on the right.
+- Wingmate Wings, Notifications: the apps' icons on the left, the newest next to the notch with its name; hovering an icon shows that app's name and latest message, a click opens its notifications.
+- Wingmate Wings, Reminders: the task added last on the left; resting on the task icon drops the task list down, as under the notch's task counter.
+- Wingmate Wings, Notes: the note changed last, its folder and name on the left, its text on the right.
+- Wingmate Wings: text that does not fit runs from right to left, rests at its end and starts again (not with Reduce motion).
+- Wingmate Wings, Calculator: the result without the "=" sign.
+- Wingmate Wings, Clipboard: the three newest items on the left, the next three on the right; a click copies one.
 
 ## [0.74.0] - 2026-11-19
 
 ### Changed
 - Preview on hover: the notch no longer drops down; it widens to the left and right at its own height (up to two thirds of the display), the module's icon and name on the left, its line on the right. It opens fully only on a click or a two-finger swipe down; the delay and the click toggle are gone.
 - Preview on hover with the module strip on: hovering shows the strip under the widened notch straight away.
-- The preview is now called DyNotch Wings. The wings are as wide as their content needs, and show each module at a glance: the next event with Join, app icons with counts, the last calculation, the note's first lines, open and overdue reminders with a check-off, the AI limits, Claude's last answer, the batteries, the last copies as chips, the tray's files with AirDrop, the song with play/pause and next, CPU, memory and swap. Only a click on the notch itself opens the panel; the wings' buttons do their own thing.
+- The preview is now called Wingmate Wings. The wings are as wide as their content needs, and show each module at a glance: the next event with Join, app icons with counts, the last calculation, the note's first lines, open and overdue reminders with a check-off, the AI limits, Claude's last answer, the batteries, the last copies as chips, the tray's files with AirDrop, the song with play/pause and next, CPU, memory and swap. Only a click on the notch itself opens the panel; the wings' buttons do their own thing.
 
 ### Added
 - Gmail from Apple Mail (Settings › Notifications › Gmail › Source): every unread message of the chosen Mail accounts, also those that came without a notification, in a new Mail tab and at the top of All, one group per account. The Gmail badge counts them, its hover list shows them, and a click opens the message in Gmail. Mail is only read, nothing is marked read; Mail can be kept running hidden, and its own alerts silenced from a button. The notification-based way stays as the other choice.
@@ -217,8 +217,8 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 
 ### Fixed
 - Google Chat cards made from a real notification also open their conversation in the web app when opened, so it is read there (only cards without a notification did before), and a card row appearing closed no longer marks its conversation unread.
-- Google Chat cards opened from the notch show the messages again: Dynotch waits until the web app shows the opened conversation (not the previous one) for up to 6 seconds.
-- "Mark as unread" after closing a Google Chat card without a reply works: Dynotch waits for the web app's menu (built on its first opening) and presses the item only in the menu it just opened.
+- Google Chat cards opened from the notch show the messages again: Wingmate waits until the web app shows the opened conversation (not the previous one) for up to 6 seconds.
+- "Mark as unread" after closing a Google Chat card without a reply works: Wingmate waits for the web app's menu (built on its first opening) and presses the item only in the menu it just opened.
 
 ## [0.70.0] - 2026-11-19
 
@@ -227,7 +227,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - Menu bar color: an optional middle color for a three-color gradient.
 - Switcher: a quick swipe only switches; the switcher drops down after "Show switcher after" (0.15 s by default). Optionally a quick swipe always goes to the previous app.
 - Screenshots: Area Recording, a screen recording of a picked area only.
-- Settings › Notifications › Dynotch alerts: Low memory and Swap above the limit are separate switches.
+- Settings › Notifications › Wingmate alerts: Low memory and Swap above the limit are separate switches.
 
 ### Fixed
 - The menu bar color wells open (Solid and Gradient), with ready-made colors and Custom….
@@ -237,7 +237,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.69.2] - 2026-11-19
 
 ### Fixed
-- Dynotch could crash while reading the Google Chat web app (its page is deeper than a background thread's stack); the page is now walked without recursion.
+- Wingmate could crash while reading the Google Chat web app (its page is deeper than a background thread's stack); the page is now walked without recursion.
 
 ## [0.69.1] - 2026-11-19
 
@@ -253,12 +253,12 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - "ChatGPT finished": the same line when Codex finishes a turn in the ChatGPT app or the terminal (Settings › General › Tell me when Codex (ChatGPT) finishes; a Stop hook in ~/.codex/hooks.json).
 - Colored menu bar: Settings › Menu bar › Menu bar color – solid or gradient, presets, opacity, separate colors for Light and Dark.
 - Joining a meeting from its row under the notch folds the row away; the countdown stays.
-- Settings › Notifications › Dynotch alerts: turn off Dynotch's own pop-ups by kind (system/swap, AI usage, batteries charged, Dynotch updated).
+- Settings › Notifications › Wingmate alerts: turn off Wingmate's own pop-ups by kind (system/swap, AI usage, batteries charged, Wingmate updated).
 - Google Chat conversations the web app shows unread without any notification get a card in Notifications.
 
 ### Fixed
 - The notch no longer disappears when the Dock slides in; only Mission Control hides it.
-- Dynotch no longer freezes when a Bluetooth device connects (the banner search runs off the main thread, with short timeouts).
+- Wingmate no longer freezes when a Bluetooth device connects (the banner search runs off the main thread, with short timeouts).
 - During a meeting share the notch is left out of the shared picture at once, not only after the next interaction.
 - A notification popping up no longer pulls the left badges in or cuts the badge next to the notch.
 
@@ -330,7 +330,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 
 ### Changed
 - Mission Control: the notch slides up out of the way quickly and slides back down the same way; with the trackpad it leaves as soon as the swipe up starts.
-- AI: the history beside the chats no longer lists Claude Code and Codex sessions; under the chats asked in Dynotch, "On the web" lists the claude.ai and chatgpt.com conversations from the browsers' history, opening in the browser.
+- AI: the history beside the chats no longer lists Claude Code and Codex sessions; under the chats asked in Wingmate, "On the web" lists the claude.ai and chatgpt.com conversations from the browsers' history, opening in the browser.
 
 ## [0.64.0] - 2026-11-19
 
@@ -347,7 +347,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - Typing in the AI chat and its streamed answer no longer redraw the whole notch on every display; neither does the calendar's day view ticking.
 
 ### Fixed
-- Apple Notes, Messages, Bluetooth and update tools that hang are stopped after a time limit, so a stuck Notes no longer leaves the Notes module dead until Dynotch restarts.
+- Apple Notes, Messages, Bluetooth and update tools that hang are stopped after a time limit, so a stuck Notes no longer leaves the Notes module dead until Wingmate restarts.
 - Log lines written at the same time from different threads are no longer lost; writing the logs never holds up the notch.
 - The Notification Center database is read in the background, so a busy database never stalls the notch.
 
@@ -356,7 +356,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ### Fixed
 - macOS's own Bluetooth banner is looked for in Control Center and the other system processes too, not only in Notification Center; devices.log notes where it was looked for.
 - The device notice is centred under the notch.
-- Dynotch could freeze with a notice stuck under the notch (e.g. while switching sound devices): measuring the menu bar asked Dynotch's own accessibility from the background.
+- Wingmate could freeze with a notice stuck under the notch (e.g. while switching sound devices): measuring the menu bar asked Wingmate's own accessibility from the background.
 
 ### Changed
 - A device notice can be flicked away upwards; resting on a Bluetooth notice opens the batteries after half a second.
@@ -383,7 +383,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - App badges can be hidden from the notch for an hour, a day, until a new message, or until shown again; Settings › App badges shows how long and brings them back.
 
 ### Fixed
-- Gmail and Google Chat (Safari web apps) badges list their messages again: the pages close their own notifications, which Dynotch now keeps, showing as many as the badge counts.
+- Gmail and Google Chat (Safari web apps) badges list their messages again: the pages close their own notifications, which Wingmate now keeps, showing as many as the badge counts.
 
 ## [0.61.0] - 2026-11-19
 
@@ -418,7 +418,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.58.0] - 2026-11-18
 
 ### Fixed
-- The notice under the notch (e.g. "Dynotch updated") has the small X instead of the arrow.
+- The notice under the notch (e.g. "Wingmate updated") has the small X instead of the arrow.
 - Submenus in the System options and the music player stay open while choosing.
 - Screenshots are taken at the display's full Retina resolution; the pointer is a crosshair
   while picking.
@@ -514,13 +514,13 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
   quit or hide. Window previews are a separate switch, as they need Screen Recording.
 - Beeper: networks whose app is not installed (e.g. Instagram) get their own icon, fetched once
   from the network's website.
-- Banner-free mode: under the Focus named in Settings › Notifications (default "Dynotch")
-  Dynotch keeps popping up; a Focus that allows no apps keeps every macOS banner away while the
+- Banner-free mode: under the Focus named in Settings › Notifications (default "Wingmate")
+  Wingmate keeps popping up; a Focus that allows no apps keeps every macOS banner away while the
   notch still shows each notification.
 
 ### Fixed
 - Google Chat in Zen (and other browsers) replaces its notification for the same chat in place;
-  Dynotch missed those and now shows them.
+  Wingmate missed those and now shows them.
 - Previewing a tray file with Quick Look closed the notch (and the preview) when the pointer
   left; the notch now stays while the preview shows, then closes on the next click outside.
 
@@ -555,13 +555,13 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.51.0] - 2026-11-18
 
 ### Added
-- Replying to Google Chat from the notch when the notification names no conversation: Dynotch
+- Replying to Google Chat from the notch when the notification names no conversation: Wingmate
   opens Google Chat, jumps to the conversation by name (⌘⇧K) and sends only once the window or
   the field shows that name; otherwise the text stays on the clipboard.
 
 ### Fixed
 - Beeper messages read in Beeper stayed in the notification list.
-- Settings › Notifications explains why chats whose banner Dynotch hides cannot disappear once
+- Settings › Notifications explains why chats whose banner Wingmate hides cannot disappear once
   read elsewhere, and what to set instead.
 
 ## [0.50.0] - 2026-11-18
@@ -631,7 +631,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ### Fixed
 - Focus follows mouse closed drop-downs inside an app (e.g. DataGrip's project picker): inside
   the active app it now moves only between standard windows.
-- Settings › Permissions: Grant for Contacts (and Calendar, Reminders) did nothing until Dynotch
+- Settings › Permissions: Grant for Contacts (and Calendar, Reminders) did nothing until Wingmate
   had asked once; it now shows the system's prompt.
 
 ## [0.45.0] - 2026-11-18
@@ -694,7 +694,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - Calculator: variables (`price = 1200`), `20% of 340`, units (`5 km in mi`, `30 c in f`) and
   `total` for the lines above.
 - Notes: the draft is now a Scratchpad; "Paste as Note" adds the clipboard, and any app's
-  selected text goes there with Services › New Dynotch Note.
+  selected text goes there with Services › New Wingmate Note.
 - Reminders: due dates as coloured pills (overdue, today, tomorrow, later).
 - Batteries: a week of history per device, with a chart and the estimated time left; a notice
   when a device is charged; a small chart on the low-battery label beside the notch.
@@ -728,7 +728,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - The drop area over the notch did not appear for drags from Finder.
 - Pill mode: the expanded top row now sits centred, clear of the corners.
 - Calculator: Enter on the last line moved the last result down.
-- Full Disk Access: Settings shows a tick when it is granted, and a hint (switch Dynotch off and
+- Full Disk Access: Settings shows a tick when it is granted, and a hint (switch Wingmate off and
   on there) when macOS still denies it after an update.
 - ChatGPT's usage header lacked Updated, Show at notch and refresh.
 - Clipboard's Keep setting looks like the calendar's lead time.
@@ -765,7 +765,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
   disk images come or go, with the battery (L / R / Case for AirPods), Eject and Open for drives,
   "Use for audio" for headphones. Settings › General › Connected devices.
 - A click on Beeper's badge beside the notch opens the notch on the Beeper tab.
-- "Dynotch updated" now pops up under the notch after an update (swipe up to dismiss), besides
+- "Wingmate updated" now pops up under the notch after an update (swipe up to dismiss), besides
   being listed in the notifications.
 
 ### Changed
@@ -779,7 +779,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - Liquid glass shows only when the notch is fully open; notifications, device notices and the
   preview stay black.
 - The pill on displays without a notch ends exactly where the menu bar ends.
-- The emoji picker is a small one of Dynotch's own, always under the emoji button.
+- The emoji picker is a small one of Wingmate's own, always under the emoji button.
 - The Reminders menu bar count sits exactly between the icon's two lines (drawn into the icon).
 
 ## [0.41.0] - 2026-11-17
@@ -809,7 +809,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ### Fixed
 - Liquid glass turned nearly black in modules that take typing (and after pinning): the glass
   now has a window of its own that never takes the keyboard.
-- The first opening after a long idle time lagged: App Nap is off for Dynotch.
+- The first opening after a long idle time lagged: App Nap is off for Wingmate.
 
 ## [0.39.0] - 2026-11-17
 
@@ -821,7 +821,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
   in the Dock (Settings › General, on by default).
 
 ### Changed
-- The settings about how Dynotch looks moved from General to the new Appearance tab.
+- The settings about how Wingmate looks moved from General to the new Appearance tab.
 
 ## [0.38.0] - 2026-11-17
 
@@ -919,7 +919,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - The search field in Settings › Notifications could not be clicked.
 
 ### Added
-- App badges no longer cover the menu bar: Dynotch measures where the active app's menus (and
+- App badges no longer cover the menu bar: Wingmate measures where the active app's menus (and
   status items) end left of the notch; badges that do not fit wait behind a "‹ +N" that unfolds
   them on hover.
 
@@ -950,10 +950,10 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 ## [0.27.0] - 2026-11-17
 
 ### Added
-- Releases also carry `Dynotch.dmg` under a fixed name, for the Homebrew cask.
-- Automatic updates: Dynotch checks GitHub every 6 hours, verifies the download (checksum,
+- Releases also carry `Wingmate.dmg` under a fixed name, for the Homebrew cask.
+- Automatic updates: Wingmate checks GitHub every 6 hours, verifies the download (checksum,
   version, signature), replaces itself and restarts. Settings › About: on/off and "Check Now".
-- Homebrew: `brew tap kera77/dynotch && brew trust kera77/dynotch && brew install --cask dynotch`.
+- Homebrew: `brew tap kera77/wingmate && brew trust kera77/wingmate && brew install --cask wingmate`.
 
 ## [0.26.0] - 2026-11-16
 
@@ -1418,7 +1418,7 @@ Versions 0.89 and before. Newer ones are in [CHANGELOG.md](../CHANGELOG.md).
 - Placeholder features: Home (clock/date) and Info (version, display, notch size).
 
 ### Changed
-- Dynotch is now a background agent app (no Dock icon, no main window).
+- Wingmate is now a background agent app (no Dock icon, no main window).
 - App Sandbox disabled (needed for the upcoming volume/brightness HUD).
 
 ## [0.1.1] - 2026-11-12

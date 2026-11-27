@@ -80,9 +80,9 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           security find-identity -p codesigning "$KEYCHAIN"
           IDENTITY_HASH="$(security find-identity -p codesigning "$KEYCHAIN" \
-            | awk '/"Dynotch Self-Signed"/ { print $2; exit }')"
+            | awk '/Self-Signed"/ { print $2; exit }')"
           if [[ -z "$IDENTITY_HASH" ]]; then
-            echo "::error::Dynotch Self-Signed identity not found after import"
+            echo "::error::self-signed identity not found after import"
             exit 1
           fi
           echo "SIGNING_IDENTITY=$IDENTITY_HASH" >> "$GITHUB_ENV"
@@ -97,7 +97,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: Dynotch-${{ env.VERSION }}
+          name: Wingmate-${{ env.VERSION }}
           path: dist/*
 
       - name: Publish GitHub Release
@@ -107,9 +107,9 @@ jobs:
         run: |
           # 1.x.y with y > 0 is a test build: a prerelease, not "latest" (spec U-6, U-8).
           if [[ "${VERSION##*.}" != "0" ]]; then
-            CHANNEL=(--prerelease --latest=false); TITLE="Dynotch $VERSION (test)"
+            CHANNEL=(--prerelease --latest=false); TITLE="Wingmate $VERSION (test)"
           else
-            CHANNEL=(--latest); TITLE="Dynotch $VERSION"
+            CHANNEL=(--latest); TITLE="Wingmate $VERSION"
           fi
           gh release create "$GITHUB_REF_NAME" dist/* \
             --title "$TITLE" \

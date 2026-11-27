@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.9.3] - 2026-11-28
+
+### Changed
+- The app is called **Wingmate** everywhere (formerly Dynotch): app and bundle
+  (`com.peterkereki.Wingmate`), `wingmate://` links, log and Application Support folders, keychain
+  items, hooks, release files, GitHub repository, Homebrew cask, docs and the whole history (RN-1).
+  Onboarding and tips already used the app name only through the shared texts, so they changed
+  with it.
+
+### Added
+- One-time takeover at the first launch: settings, folders (Application Support, logs, web
+  sign-ins and cookies, the Claude chat history), the added Claude accounts in the keychain,
+  the Claude Code and Codex hooks and *Launch at login* come over from the old name; the old
+  app goes to the Bin. macOS permissions have to be granted again (RN-2…RN-8).
+
 ## [1.9.2] - 2026-11-28
 
 ### Changed
@@ -127,7 +142,7 @@ Public release: everything from the 1.8.1…1.8.9 test builds, plus a new Cleane
 - The notch no longer closes while a pop-up opened from it (a popover, a date picker's calendar)
   reaches outside it (R-23).
 - Claude Code sessions in every app are listed (Claude app, VS Code, Cursor, terminals), not only the
-  ones that sent a hook event since Dynotch started: running `claude` processes are found with
+  ones that sent a hook event since Wingmate started: running `claude` processes are found with
   the app they run in and show as Ready until their first hook event (CS-9). A helper's app ID
   (e.g. the Claude app's built-in Claude Code) counts as its app, so the icon and click are right.
 - With two notices under the notch, the lower (earlier) one has its own X as well (E-35).
@@ -313,7 +328,7 @@ Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Added
 
-- AI usage with several Claude accounts: Settings › General › AI usage accounts › Add account signs in another account (for example the Claude desktop app's) in the browser; Dynotch keeps and renews that sign-in in its own keychain item. The AI Usage view shows the account whose session is growing (Auto) or the one picked by hand, with its name and a green dot while in use. The notch ring follows the account nearest its limit, and its hover lists every account's session by name; alerts carry the account's name. With one account nothing changes (CL-8…CL-15). Onboarding: the AI Usage module text and tip mention the second account.
+- AI usage with several Claude accounts: Settings › General › AI usage accounts › Add account signs in another account (for example the Claude desktop app's) in the browser; Wingmate keeps and renews that sign-in in its own keychain item. The AI Usage view shows the account whose session is growing (Auto) or the one picked by hand, with its name and a green dot while in use. The notch ring follows the account nearest its limit, and its hover lists every account's session by name; alerts carry the account's name. With one account nothing changes (CL-8…CL-15). Onboarding: the AI Usage module text and tip mention the second account.
 
 ## [1.5.0] - 2026-11-25
 
@@ -326,7 +341,7 @@ Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Fixed
 
-- Finder, Spotlight and Launchpad show the app as Wingmate instead of Dynotch: the plain Info.plist name now matches the file name Dynotch.app, so macOS uses the localized name (WM-3). Onboarding: no tour step or tip names the app file, so none changed.
+- Finder, Spotlight and Launchpad show the app as Wingmate instead of Wingmate: the plain Info.plist name now matches the file name Wingmate.app, so macOS uses the localized name (WM-3). Onboarding: no tour step or tip names the app file, so none changed.
 
 ## [1.4.0] - 2026-11-25
 
@@ -391,7 +406,7 @@ Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Changed
 
-- The app is now called Wingmate in Finder, Spotlight, System Settings, the permission prompts and everywhere in its interface. Its bundle id, folders, logs and repository keep the Dynotch name, so permissions and settings stay (WM-1, WM-2).
+- The app is now called Wingmate in Finder, Spotlight, System Settings, the permission prompts and everywhere in its interface. Its bundle id, folders, logs and repository keep the Wingmate name, so permissions and settings stay (WM-1, WM-2).
 
 ## [0.113.0] - 2026-11-24
 
@@ -434,7 +449,7 @@ Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Changed
 
-- Haptics play on the trackpad's own motor, so they are felt although Dynotch is never the active app: the three-finger swipe up, every sideways swipe (modules, the module strip, Notifications and Tray tabs, wings), flicking a notice or meeting away, swiping back to the wings and swiping down to open fully. Where the motor is missing the system haptics play as before (H-8).
+- Haptics play on the trackpad's own motor, so they are felt although Wingmate is never the active app: the three-finger swipe up, every sideways swipe (modules, the module strip, Notifications and Tray tabs, wings), flicking a notice or meeting away, swiping back to the wings and swiping down to open fully. Where the motor is missing the system haptics play as before (H-8).
 - Views redraw only when what they show changes: the notch no longer redraws as a whole for every Stats, badge or music update (RF-13); chained animations wait for the previous one to end instead of a fixed time (RF-14).
 - Background checks run only while their feature is on, pause while the displays sleep or the Mac is locked, and look three times less often on battery or in Low Power Mode (RF-8…RF-10). The Mission Control watch reads the window list about once a second instead of 3 times a second (RF-7); notifications come from the database's file watch, with a 30 s fallback (RF-12); the menu bar is measured when the app, the display or the badges change (RF-12); clocks that show hours and minutes redraw once a minute (RF-11).
 - Replies typed into Google Chat or a linked conversation, and AI answers pasted into an app, are marked transient: no clipboard history keeps them, and the whole previous clipboard (images and files too) comes back afterwards (RF-5).
@@ -505,7 +520,7 @@ Public release: everything from the 1.7.3…1.7.10 test builds.
 
 ### Changed
 
-- Settings › Appearance, under DyNotch Wings: "Small notices beside the notch" switch, in place of the Small notices picker in Notifications; the pop-ups stand beside the notch without the rest of Wings (PV-73).
+- Settings › Appearance, under Wingmate Wings: "Small notices beside the notch" switch, in place of the Small notices picker in Notifications; the pop-ups stand beside the notch without the rest of Wings (PV-73).
 
 ## [0.103.0] - 2026-11-24
 

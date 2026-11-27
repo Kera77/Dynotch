@@ -1,4 +1,4 @@
-# Dynotch – backlog
+# Wingmate – backlog
 
 Ötletek, amelyek még nincsenek a SPEC-ben. Csak akkor kerülnek elő, ha az owner rákérdez.
 
@@ -9,7 +9,7 @@ Globális gyorsbillentyűre a notchból keresőmező nyílik, alatta csoportosí
 
 Lehetséges források:
 1. Modulok (megnyitás)
-2. Dynotch-parancsok: notch rögzítése, billentyűzetzár, képmetsző, vágólap törlése, beállítások
+2. Wingmate-parancsok: notch rögzítése, billentyűzetzár, képmetsző, vágólap törlése, beállítások
 3. Appok és ablakok (a váltó listájából)
 4. Tartalom: jegyzetek, emlékeztetők, naptáresemények, vágólap-előzmények, AI-beszélgetések
 5. Inline számolás (`12*34` → eredmény)

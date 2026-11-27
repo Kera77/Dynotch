@@ -1,4 +1,4 @@
-# Dynotch – notes for Claude
+# Wingmate – notes for Claude
 
 Personal macOS notch app (SwiftUI + AppKit agent app, no sandbox, Swift 6 strict concurrency,
 XcodeGen `project.yml`). The owner writes in Hungarian: **answer in Hungarian**. The app's UI
@@ -28,10 +28,10 @@ in it (grouped by feature, with the log to send if something fails).
 
 ## Where things are
 
-- `Dynotch/Sources/Notch/` – the notch panel (one `NotchController` per display, `NotchManager`).
-- `Dynotch/Sources/Features/<Module>/` – modules. `App/AppServices.swift` lists the services,
+- `Wingmate/Sources/Notch/` – the notch panel (one `NotchController` per display, `NotchManager`).
+- `Wingmate/Sources/Features/<Module>/` – modules. `App/AppServices.swift` lists the services,
   `App/Theme.swift` the shared colours, motion and controls.
-- Logs: `~/Library/Logs/Dynotch/*.log` (no message content is logged).
+- Logs: `~/Library/Logs/Wingmate/*.log` (no message content is logged).
 
 ## New modules
 

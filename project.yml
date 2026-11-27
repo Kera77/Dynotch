@@ -1,4 +1,4 @@
-name: Dynotch
+name: Wingmate
 options:
   bundleIdPrefix: com.peterkereki
   deploymentTarget:
@@ -15,35 +15,35 @@ packages:
 
 settings:
   base:
-    MARKETING_VERSION: "1.9.2"
+    MARKETING_VERSION: "1.9.3"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
 
 targets:
-  Dynotch:
+  Wingmate:
     type: application
     platform: macOS
     sources:
-      - path: Dynotch
+      - path: Wingmate
     dependencies:
       - package: SwiftTerm
     info:
-      path: Dynotch/Resources/Info.plist
+      path: Wingmate/Resources/Info.plist
       properties:
-        # These must match the file name Dynotch.app, or Finder takes the app for renamed by the user and
+        # These must match the file name Wingmate.app, or Finder takes the app for renamed by the user and
         # ignores the localized name. en.lproj/InfoPlist.strings gives the visible name Wingmate (WM-3).
-        CFBundleDisplayName: Dynotch
-        CFBundleName: Dynotch
+        CFBundleDisplayName: Wingmate
+        CFBundleName: Wingmate
         LSHasLocalizedDisplayName: true
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
         CFBundleURLTypes:
-          - CFBundleURLName: com.peterkereki.Dynotch
-            CFBundleURLSchemes: [dynotch]
+          - CFBundleURLName: com.peterkereki.Wingmate
+            CFBundleURLSchemes: [wingmate]
         NSCalendarsFullAccessUsageDescription: "Wingmate shows your upcoming events in the notch."
         NSBluetoothAlwaysUsageDescription: "Wingmate shows a notice when a Bluetooth device connects or disconnects, with its battery."
         NSAppleEventsUsageDescription: "Wingmate reads and saves your notes in Notes, sends a text through Messages when you reply to a call, shows and controls what Spotify plays, shows your unread mail from Mail, and reads the unread counts in the titles of your Gmail and Google Chat tabs in Ardia."
@@ -63,11 +63,11 @@ targets:
           - NSMenuItem:
               default: New Wingmate Note
             NSMessage: makeNote
-            NSPortName: Dynotch
+            NSPortName: Wingmate
             NSSendTypes: [NSStringPboardType, public.utf8-plain-text]
             NSRequiredContext: {}
     entitlements:
-      path: Dynotch/Resources/Dynotch.entitlements
+      path: Wingmate/Resources/Wingmate.entitlements
       properties:
         com.apple.security.app-sandbox: false
         com.apple.security.personal-information.calendars: true
@@ -76,7 +76,7 @@ targets:
         com.apple.security.personal-information.location: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch
+        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Wingmate
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Manual
@@ -86,7 +86,7 @@ targets:
         # Test and debug builds are a different app for macOS: they never take the installed app's
         # permissions (Contacts, Full Disk Access…), which are kept per identifier (spec C-8c).
         Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch.debug
+          PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Wingmate.debug
     postCompileScripts:
       - name: SwiftLint
         basedOnDependencyAnalysis: false
@@ -98,32 +98,32 @@ targets:
             echo "warning: SwiftLint not installed (brew install swiftlint)"
           fi
 
-  DynotchTests:
+  WingmateTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: DynotchTests
+      - path: WingmateTests
     dependencies:
-      - target: Dynotch
+      - target: Wingmate
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.DynotchTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.WingmateTests
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: $(TEST_HOST)
-        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Dynotch.app/Contents/MacOS/Dynotch
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Wingmate.app/Contents/MacOS/Wingmate
 
 schemes:
-  Dynotch:
+  Wingmate:
     build:
       targets:
-        Dynotch: all
-        DynotchTests: [test]
+        Wingmate: all
+        WingmateTests: [test]
     test:
       config: Debug
       gatherCoverageData: true
       coverageTargets:
-        - Dynotch
+        - Wingmate
       targets:
-        - DynotchTests
+        - WingmateTests
     archive:
       config: Release

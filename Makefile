@@ -1,5 +1,5 @@
-SCHEME      := Dynotch
-PROJECT     := Dynotch.xcodeproj
+SCHEME      := Wingmate
+PROJECT     := Wingmate.xcodeproj
 DERIVED     := build/DerivedData
 DESTINATION := platform=macOS
 

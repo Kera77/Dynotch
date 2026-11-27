@@ -8,8 +8,8 @@ VISIBILITY="--private"
 
 gh auth status >/dev/null
 
-gh repo create Dynotch "$VISIBILITY" \
-  --description "Dynotch – macOS app" \
+gh repo create Wingmate "$VISIBILITY" \
+  --description "Wingmate – macOS app" \
   --source . --remote origin --push
 
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"

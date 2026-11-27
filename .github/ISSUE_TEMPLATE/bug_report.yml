@@ -15,7 +15,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Dynotch verzió
+      label: Wingmate verzió
   - type: input
     id: macos
     attributes:

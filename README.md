@@ -1,6 +1,6 @@
-# Wingmate (Dynotch)
+# Wingmate (Wingmate)
 
-Natív macOS notch-alkalmazás (SwiftUI, macOS 14+). A látható neve 1.0-tól **Wingmate**; a repó, a bundle azonosító, a kiadási fájlok és a mappák neve Dynotch maradt.
+Natív macOS notch-alkalmazás (SwiftUI, macOS 14+). A látható neve 1.0-tól **Wingmate**; a repó, a bundle azonosító, a kiadási fájlok és a mappák neve Wingmate maradt.
 
 - [Telepítés](#telepítés)
 - [Fejlesztés](#fejlesztés)
@@ -13,13 +13,13 @@ Személyes használatra készül, Apple aláírás/notarizáció nélkül. A kia
 ### Homebrew
 
 ```bash
-brew tap kera77/dynotch
-brew trust kera77/dynotch          # Homebrew 7: külső tap engedélyezése
-brew install --cask dynotch
+brew tap kera77/wingmate
+brew trust kera77/wingmate          # Homebrew 7: külső tap engedélyezése
+brew install --cask wingmate
 ```
 
 A cask mindig a legfrissebb kiadást telepíti, és leveszi róla a karantén jelzést (az app önaláírt).
-Frissíteni nem kell kézzel: a Dynotch maga frissül (lásd lent).
+Frissíteni nem kell kézzel: a Wingmate maga frissül (lásd lent).
 
 ### Script
 
@@ -52,15 +52,15 @@ make lint        # SwiftLint (--strict, ugyanaz, mint a CI-ban)
 make release     # lokális Release build -> dist/
 ```
 
-Az `Dynotch.xcodeproj` **generált** fájl, nincs verziókezelve. Projektbeállítást (target,
+Az `Wingmate.xcodeproj` **generált** fájl, nincs verziókezelve. Projektbeállítást (target,
 bundle ID, build setting, verzió) a [`project.yml`](project.yml)-ben módosíts, majd `make generate`.
 
 ### Struktúra
 
 ```
-Dynotch/Sources       Swift forrás
-Dynotch/Resources     Assets, AppIcon.icon (app-ikon: Design/AppIcon-light.svg és -dark.svg-ből), Info.plist, entitlements
-DynotchTests          Swift Testing unit tesztek
+Wingmate/Sources       Swift forrás
+Wingmate/Resources     Assets, AppIcon.icon (app-ikon: Design/AppIcon-light.svg és -dark.svg-ből), Info.plist, entitlements
+WingmateTests          Swift Testing unit tesztek
 scripts/              build / release / install / GitHub bootstrap scriptek
 .github/workflows     CI és Release workflow
 ```
@@ -75,7 +75,7 @@ scripts/              build / release / install / GitHub bootstrap scriptek
 ## Aláíró tanúsítvány
 
 A Release workflow a `SIGNING_CERT_P12` és `SIGNING_CERT_PASSWORD` repo secretekből importálja a
-„Dynotch Self-Signed” tanúsítványt. Biztonsági másolat: `~/.dynotch-signing/` (nincs a repóban).
+„Wingmate Self-Signed” tanúsítványt. Biztonsági másolat: `~/.wingmate-signing/` (nincs a repóban).
 Ha elveszik, új tanúsítványt kell generálni; ilyenkor az engedélyeket egyszer újra meg kell adni.
 
 ## CI/CD
@@ -108,7 +108,7 @@ A script a `preflight` ágra tolja a commitot, megvárja a Preflight workflow-t,
    ```
 3. A Release workflow a tagből veszi a verziót (`MARKETING_VERSION`), a build szám a
    workflow futás sorszáma. Pár perc múlva megjelenik a
-   [Releases](https://github.com/Kera77/Dynotch/releases) oldalon. Telepítés: `make install`.
+   [Releases](https://github.com/Kera77/Wingmate/releases) oldalon. Telepítés: `make install`.
 
 Próbabuild publikálás nélkül: *Actions → Release → Run workflow*, verzió megadásával; az
 eredmény a futás artifactjai között lesz.

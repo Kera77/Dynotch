@@ -1,6 +1,6 @@
 included:
-  - Dynotch
-  - DynotchTests
+  - Wingmate
+  - WingmateTests
 excluded:
   - build
   - DerivedData
