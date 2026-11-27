@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.6] - 2026-11-27
+
 ### Changed
 - The Cleaner is no longer a module of its own: Clean on the Stats' Disk card opens it in place of
   the Stats, with ‹ Stats and a pinch to go back (TT-8). It can also be opened from a Cleaner
