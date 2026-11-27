@@ -132,6 +132,9 @@ final class NotificationService {
     /// Cards kept although the web app shows their conversation read: open, or just marked
     /// unread again (spec GW-17); card id → until when.
     @ObservationIgnored var chatWebHeld: [Int64: Date] = [:]
+    /// The conversation answered from a card: it stays, although read, until the card is closed
+    /// or the notch is clicked away (spec E-32).
+    var answering: AppNotification?
     /// Google Chat conversations that got a card while unread, without a notification (spec GW-5b).
     @ObservationIgnored var chatUnreadCarded: Set<String> = []
     /// The last "unread without a card" log line, written once per change (spec GW-25).

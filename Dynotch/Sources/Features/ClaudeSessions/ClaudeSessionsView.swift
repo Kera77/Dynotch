@@ -75,7 +75,7 @@ struct ClaudeSessionsView: View {
     }
 }
 
-private struct ClaudeSessionRow: View {
+struct ClaudeSessionRow: View {
     let session: ClaudeSession
 
     var body: some View {
@@ -131,7 +131,7 @@ private struct ClaudeSessionRow: View {
     }
 }
 
-private struct ClaudeSessionStateCapsule: View {
+struct ClaudeSessionStateCapsule: View {
     let state: ClaudeSession.State
 
     var body: some View {

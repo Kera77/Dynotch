@@ -68,7 +68,8 @@ extension IndicatorItem {
         guard let hovered, items.indices.contains(hovered) else { return items }
         var unfolded = items
         switch items[hovered] {
-        case .usage(let limits, false) where wings: unfolded[hovered] = .usage(limits, unfolded: true)
+        // With sessions the hover drops down to list them (spec CS-6).
+        case .usage(let limits, false, let sessions) where wings && sessions.isEmpty: unfolded[hovered] = .usage(limits, unfolded: true)
         case .meeting(let event, false) where wings: unfolded[hovered] = .meeting(event, unfolded: true)
         case .battery(let device, false) where wings: unfolded[hovered] = .battery(device, unfolded: true)
         // The Tools' controls (spec TM-19).

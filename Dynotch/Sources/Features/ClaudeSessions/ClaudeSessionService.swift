@@ -67,6 +67,11 @@ final class ClaudeSessionService {
 
     func handle(_ event: ClaudeSessionEvent) {
         forgetQuiet(now: event.date)
+        popupActivity = event.date
+        // A new session drops the usage down with the sessions (spec CS-7).
+        if [.start, .prompt].contains(event.kind), !sessions.contains(where: { $0.id == event.sessionID }) {
+            showPopup()
+        }
         guard event.kind != .end else {
             sessions.removeAll { $0.id == event.sessionID }
             return
@@ -116,6 +121,55 @@ final class ClaudeSessionService {
     }
 
     var hasFinished: Bool { sessions.contains { $0.state == .finished } }
+
+    // MARK: - Under the usage ring (spec CS-6, CS-7)
+
+    /// The usage and the sessions are down under the notch without hover (spec CS-7).
+    private(set) var popupShown = false
+    /// The last session event or hover over the pop-up.
+    private var popupActivity = Date.distantPast
+    @ObservationIgnored private var popupTimer: Task<Void, Never>?
+    /// Once no session runs, the pop-up goes after this long without activity (spec CS-7).
+    static let popupQuietTime: TimeInterval = 10 * 60
+
+    /// What the ring's hover lists: every session not finished, and the ones finished in the
+    /// last ten minutes (spec CS-6).
+    func running(now: Date = Date()) -> [ClaudeSession] {
+        sessions.filter { $0.state != .finished || now.timeIntervalSince($0.since) < Self.popupQuietTime }
+    }
+
+    /// The pointer is on the pop-up: the ten minutes start again.
+    func touchPopup(at date: Date = Date()) {
+        guard popupShown else { return }
+        popupActivity = max(popupActivity, date)
+    }
+
+    /// Its X (spec CS-7).
+    func closePopup() {
+        popupShown = false
+        popupTimer?.cancel()
+        popupTimer = nil
+    }
+
+    /// Hides the pop-up once no session works, asks or runs in the background and nothing
+    /// happened for ten minutes (spec CS-7).
+    func checkPopup(now: Date = Date()) {
+        guard popupShown else { return }
+        let busy = sessions.contains { [.working, .asks, .needsYou, .background].contains($0.state) }
+        if !busy, now.timeIntervalSince(popupActivity) >= Self.popupQuietTime { closePopup() }
+    }
+
+    private func showPopup() {
+        popupShown = true
+        guard popupTimer == nil else { return }
+        popupTimer = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                guard let self, !Task.isCancelled else { return }
+                self.checkPopup()
+            }
+        }
+    }
 
     // MARK: - Private
 

@@ -30,8 +30,8 @@ enum IndicatorItem: Identifiable, Equatable {
     /// time, Join and an X (spec PV-69).
     case meeting(CalendarEvent, unfolded: Bool = false)
     /// All usage limits; the capsule shows the fullest one. Unfolded: in Wings mode the hovered
-    /// ring widens to the right with the reset time and an X (spec PV-58).
-    case usage([UsageLimit], unfolded: Bool = false)
+    /// ring widens to the right with the reset time and an X (spec PV-58). Sessions: listed under them (CS-6).
+    case usage([UsageLimit], unfolded: Bool = false, sessions: [ClaudeSession] = [])
     /// Claude is writing an answer in the chat (spec CC-4).
     case working
     /// A device whose battery is low (spec BT-3).
@@ -90,7 +90,7 @@ enum IndicatorItem: Identifiable, Equatable {
         switch self {
         case .meeting(let event, let unfolded):
             IndicatorLayout.slotWidth + (unfolded ? IndicatorLayout.meetingUnfoldWidth(for: event) : 0)
-        case .usage(let limits, let unfolded):
+        case .usage(let limits, let unfolded, _):
             IndicatorLayout.ringSlotWidth + (unfolded ? IndicatorLayout.usageUnfoldWidth(for: limits) : 0)
         case .working: IndicatorLayout.ringSlotWidth
         case .battery(let device, let unfolded):
@@ -125,16 +125,17 @@ enum IndicatorItem: Identifiable, Equatable {
             IndicatorLayout.labelHeight + (count.isSplit ? IndicatorLayout.taskPickerExtra : 0)
                 + CGFloat(min(count.rows, IndicatorLayout.taskRows)) * IndicatorLayout.taskRowHeight + 6
         // Unfolded beside the notch, nothing drops down (spec PV-58).
-        case .usage(_, true): 0
-        case .usage(let limits, false): 12 + CGFloat(max(limits.count, 1)) * 20
+        case .usage(_, true, _): 0
+        case .usage(let limits, false, let sessions): IndicatorLayout.usageLabelHeight(limits, sessions)
         }
     }
 
     /// The cover next to the notch, then meetings, the usage, low batteries, the stats, and the
     /// tasks at the far right.
     static func items(
-        meetings: [CalendarEvent], usage: [UsageLimit]?, working: Bool = false, lowBatteries: [BatteryDevice] = [],
-        tasks: TaskCount? = nil, music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
+        meetings: [CalendarEvent], usage: [UsageLimit]?, sessions: [ClaudeSession] = [],
+        working: Bool = false, lowBatteries: [BatteryDevice] = [], tasks: TaskCount? = nil,
+        music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
         tools: ToolsGlance? = nil, teams: (TeamsMeeting, Date)? = nil, now: Date = Date()
     ) -> [IndicatorItem] {
         // A countdown ending within a minute comes right after the meetings, else at the end (spec TM-4).
@@ -143,7 +144,7 @@ enum IndicatorItem: Identifiable, Equatable {
         return (recording.map { [.recording($0)] } ?? [])
             + (music.map { [.music($0)] } ?? []) + (teams.map { [.teams($0.0, since: $0.1)] } ?? [])
             + meetings.map { .meeting($0) } + (soon ? toolsItem : [])
-            + (usage.map { [.usage($0)] } ?? [])
+            + (usage.map { [.usage($0, sessions: sessions)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem)
     }

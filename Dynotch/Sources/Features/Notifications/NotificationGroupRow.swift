@@ -12,6 +12,14 @@ struct NotificationGroupRow: View {
     let toggle: () -> Void
     /// Opened by a click: the reply field takes typing at once (spec E-27).
     @State private var openedByClick = false
+    /// Sent from this card while it is open, mine on the right (spec E-32, E-33).
+    @State private var sentTexts: [SentText] = []
+
+    private struct SentText: Identifiable {
+        let id = UUID()
+        let text: String
+        let date: Date
+    }
 
     private var app: NotificationApp { service.catalog.app(for: group.latest.appIdentifier) }
 
@@ -27,12 +35,16 @@ struct NotificationGroupRow: View {
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(group.notifications) { message($0) }
+                    ForEach(sentTexts) { sent in
+                        MessageBubble(mine: true) { MessageBubbleText(text: Text(sent.text), time: sent.date, mine: true) }
+                    }
                 }
                 .padding(.leading, 36)
                 if service.canReply(to: group.latest) {
                     NotificationReplyField(
                         service: service, target: group.latest,
-                        focusesOnAppear: openedByClick || focusRequest > 0, focusRequest: focusRequest
+                        focusesOnAppear: openedByClick || focusRequest > 0, focusRequest: focusRequest,
+                        sent: { text in withAnimation(Motion.quick) { sentTexts.append(SentText(text: text, date: Date())) } }
                     )
                         .padding(.leading, 36)
                         .padding(.bottom, 8)
@@ -50,6 +62,7 @@ struct NotificationGroupRow: View {
         .onAppear { if isExpanded { service.cardOpened(group.notifications) } }
         .onChange(of: isExpanded) { _, open in
             if open { service.cardOpened(group.notifications) } else { service.cardsClosed(group.notifications) }
+            if !open { sentTexts = [] }
         }
     }
 
@@ -102,22 +115,12 @@ struct NotificationGroupRow: View {
         .help(isExpanded ? "Close" : "Open the messages and reply")
     }
 
+    /// The others' messages from the left, mine on the right (spec E-33).
     private func message(_ notification: AppNotification) -> some View {
-        let loading = service.isLoadingChatTexts(notification)
-        return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            (loading ? Text("Loading messages…") : service.content(for: notification).detailText())
-                .font(.notch(size: 12))
-                .foregroundStyle(Color.white.level(0.9))
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text(notification.date.formatted(date: .omitted, time: .shortened))
-                .font(.notch(size: 10))
-                .monospacedDigit()
-                .foregroundStyle(Color.white.level(0.4))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous).fill(Color.white.level(0.08)))
+        NotificationBubbles(
+            content: service.content(for: notification), date: notification.date,
+            loading: service.isLoadingChatTexts(notification)
+        )
     }
 
     /// For apps that cannot be answered from here (mail, system notices).

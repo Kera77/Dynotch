@@ -6,6 +6,8 @@ extension NotificationService {
     /// - Parameter quoting: the line answered (spec E-17); Beeper links the answer to it, other
     ///   apps get the text alone.
     func reply(to notification: AppNotification, text: String, quoting: String? = nil) async throws -> String {
+        // Answered: the card stays for the next message until it is closed (spec E-32).
+        answering = notification
         if notification.appIdentifier.lowercased().contains("beeper") {
             try await BeeperClient().reply(to: notification.title, text: text, quoting: quoting)
             return "Sent"

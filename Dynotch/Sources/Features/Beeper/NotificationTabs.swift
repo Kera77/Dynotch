@@ -187,7 +187,8 @@ struct NotificationsTabsView: View {
     /// A Beeper message whose chat Beeper no longer counts as unread goes from the list (spec UM-10).
     /// A highlighted network's message belongs to its own tab (spec BP-16).
     private func readInBeeper(_ notification: AppNotification) -> Bool {
-        guard ChatSources.isBeeper(notification), beeper.state == .ready else { return false }
+        // Being answered from its card, it stays until the card is closed (spec E-32).
+        guard ChatSources.isBeeper(notification), beeper.state == .ready, !service.isAnswering(notification) else { return false }
         return ChatSources.isRead(chatNamed: notification.title, in: beeper.chats) || beeper.isHighlighted(chatNamed: notification.title)
     }
 

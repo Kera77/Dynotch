@@ -30,20 +30,7 @@ extension NotchView {
             },
             showBadgeNotifications: { _ in },
             openBadgeChat: openBadgeChat,
-            dismiss: { item in
-                withAnimation(Self.quickAnimation) {
-                    model.hoveredIndicator = nil
-                    switch item {
-                    case .meeting(let event, _): calendar.dismissIndicator(event)
-                    case .usage: claudeUsage.dismissIndicator()
-                    case .working: break
-                    case .battery(let device, _): battery.dismissWarning(for: device)
-                    case .tasks: tasks.hide()
-                    case .stats: stats.dismissWarnings()
-                    case .music, .recording, .tools, .teams: break
-                    }
-                }
-            },
+            dismiss: dismissIndicator,
             join: { joinedMeeting($0) },
             openTasks: { openModule(.reminders) },
             openStats: { openModule(.stats) },
@@ -63,7 +50,33 @@ extension NotchView {
         row.music = music
         row.showsMusicPlayer = model.hoveredIndicator != nil
         row.stats = stats
+        row.usagePopup = notices.sessions.popupShown
         return row
+    }
+
+    /// An indicator's X.
+    func dismissIndicator(_ item: IndicatorItem) {
+        withAnimation(Self.quickAnimation) {
+            model.hoveredIndicator = nil
+            switch item {
+            case .meeting(let event, _): calendar.dismissIndicator(event)
+            // The pop-up for new sessions closes; otherwise hidden until the next 10 % (spec CS-7).
+            case .usage where notices.sessions.popupShown: notices.sessions.closePopup()
+            case .usage: claudeUsage.dismissIndicator()
+            case .working: break
+            case .battery(let device, _): battery.dismissWarning(for: device)
+            case .tasks: tasks.hide()
+            case .stats: stats.dismissWarnings()
+            case .music, .recording, .tools, .teams: break
+            }
+        }
+    }
+
+    /// A new Claude Code session drops the usage down with the sessions, unless a notice is
+    /// written there (spec CS-7).
+    var usagePopupIndex: Int? {
+        guard notices.sessions.popupShown, notices.notice == nil else { return nil }
+        return indicatorItems.firstIndex { if case .usage = $0 { true } else { false } }
     }
 
     /// A hovered badge's list under the row (spec B-10).
@@ -79,7 +92,8 @@ extension NotchView {
     /// Meeting countdowns and the Claude usage beside the closed notch.
     var indicatorItems: [IndicatorItem] {
         let items = IndicatorItem.items(
-            meetings: calendarIndicator.events, usage: claudeUsage.notchLimits, working: chatIndicator.isWorking,
+            meetings: calendarIndicator.events, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
+            sessions: notices.sessions.running(), working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
             tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator

@@ -139,6 +139,14 @@ final class ClaudeUsageService {
         return [nearest] + others
     }
 
+    /// While Claude Code sessions dropped the usage down (spec CS-7) the ring shows below 70 %
+    /// and after its X too; without usage data it shows empty, for the sessions.
+    func notchLimits(sessionsPopup: Bool) -> [UsageLimit]? {
+        if let limits = notchLimits { return limits }
+        guard sessionsPopup, settings.isEnabled(.claudeUsage), settings.claudeRingVisible else { return nil }
+        return nearest.map { [$0] } ?? []
+    }
+
     var isSessionPinned: Bool { settings.claudeSessionPinned }
 
     /// Shows or hides the session beside the notch regardless of the 70 % threshold.

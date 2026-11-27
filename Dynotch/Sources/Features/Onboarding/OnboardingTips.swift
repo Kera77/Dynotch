@@ -72,7 +72,8 @@ enum OnboardingTips {
             + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",
         "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
             + "the session ring beside the closed notch; above 70% it shows there by itself. With a second account "
-            + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one.",
+            + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one. Hover the ring to see your "
+            + "running Claude Code sessions; a new session drops them down by itself.",
         "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished and how long. Click one to "
             + "bring its window forward; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
         "cleaner": "Leftovers lists files of apps that are gone, Caches what apps keep to load faster, Apps removes an "

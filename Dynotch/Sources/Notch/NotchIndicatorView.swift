@@ -56,6 +56,8 @@ struct NotchIndicatorView: View {
     /// The cover's progress and the stats' numbers (spec MU-3, SY-7).
     var music: MusicService?
     var stats: StatsService?
+    /// The usage dropped down by itself for a new Claude Code session (spec CS-7).
+    var usagePopup = false
 
     static let lineWidth: CGFloat = 2
 
@@ -190,7 +192,7 @@ struct NotchIndicatorView: View {
         switch item {
         case .meeting(let event, let unfolded):
             meetingCapsule(item, event: event, unfolded: unfolded, now: now)
-        case .usage(let limits, let unfolded):
+        case .usage(let limits, let unfolded, _):
             let used = limits.map(\.utilization).max() ?? 0
             if unfolded {
                 unfoldedUsage(item, limits: limits, ring: usageRing(used: used), now: now)
@@ -245,12 +247,12 @@ extension NotchIndicatorView {
         switch item {
         case .meeting(let event, false):
             meetingLabel(for: event, now: now)
-        case .usage(let limits, false):
-            usageLabel(for: limits, now: now)
+        case .usage(let limits, false, let sessions):
+            usageLabel(for: limits, sessions: sessions, now: now)
         case .battery(let device, false):
             batteryLabel(device, item: item)
         // Unfolded beside the notch, nothing drops down (spec PV-58, PV-69).
-        case .meeting(_, true), .usage(_, true), .battery(_, true):
+        case .meeting(_, true), .usage(_, true, _), .battery(_, true):
             EmptyView()
         case .tasks(let count):
             tasksLabel(count, item: item)
@@ -308,39 +310,6 @@ extension NotchIndicatorView {
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// Every usage limit: used, left, and when it resets (spec CL-6).
-    private func usageLabel(for limits: [UsageLimit], now: Date) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(limits) { limit in
-                    HStack(spacing: 6) {
-                        Text(limit.account.map { "\($0) · \(limit.title)" } ?? limit.title)
-                            .font(.notch(size: 12, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        Text(Self.usageText(for: limit, now: now))
-                            .font(.notch(size: 11))
-                            .monospacedDigit()
-                            .foregroundStyle(Self.color(for: limit.level))
-                            .lineLimit(1)
-                    }
-                    .frame(height: 16)
-                }
-            }
-            dismissButton(for: .usage(limits), help: "Hide until usage reaches the next 10%")
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 4)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-    }
-
-    static func usageText(for limit: UsageLimit, now: Date) -> String {
-        let used = Int(limit.utilization.rounded())
-        let reset = limit.resetsAt.map { " · resets " + UsageAlerts.resetText($0, now: now) } ?? ""
-        return "\(used)% used · \(100 - used)% left\(reset)"
     }
 
     /// Always at the right edge (spec K-8e).

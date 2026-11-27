@@ -131,6 +131,8 @@ struct NotchView: View {
                 if case .meeting(let event, _) = item { event.id == announcement.id } else { false }
             }
         }
+        // A new Claude Code session drops the usage down with the sessions (spec CS-7).
+        if let usagePopupIndex { return usagePopupIndex }
         // A new track's name, for a moment (spec MU-4).
         // Beside the notch it is a small notice of its own (spec PV-68).
         guard musicIndicator.isAnnouncing, !settings.noticesBeside else { return nil }

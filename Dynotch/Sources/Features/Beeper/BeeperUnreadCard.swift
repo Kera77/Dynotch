@@ -21,16 +21,26 @@ struct BeeperUnreadCard: View {
     @Environment(\.takeKeyboard) private var takeKeyboard
     /// Focused by itself after a click on the card: read only once typing starts (spec E-27, UM-3b).
     @State private var focusedBySelf = false
+    /// The first unread message when answering began: still shown after the chat got read (spec E-32).
+    @State private var anchor: String?
 
     /// The unread messages from the others, the newest last; while the card is being answered,
-    /// from the first of them on, my replies included (spec BP-21).
+    /// from the first of them on, my replies included (spec BP-21, E-32).
     private var unread: [BeeperFullMessage] {
         let all = (beeper.messages[chat.id] ?? []).filter { $0.isDeleted != true }
         let others = Array(all.filter { !$0.mine }.suffix(max(chat.unread, 1)))
-        guard beeper.answeringChatID == chat.id, let first = others.first,
-              let start = all.firstIndex(where: { $0.id == first.id })
+        guard beeper.answeringChatID == chat.id, let first = anchor ?? others.first?.id,
+              let start = all.firstIndex(where: { $0.id == first })
         else { return others }
         return Array(all[start...].suffix(8))
+    }
+
+    /// Clicked into or typed: read in Beeper, but the card stays with its messages until another
+    /// card opens or the notch closes (spec UM-3b, E-32).
+    private func engage() {
+        if anchor == nil { anchor = unread.first?.id }
+        beeper.answeringChatID = chat.id
+        beeper.markRead(chat.id)
     }
 
     var body: some View {
@@ -46,6 +56,7 @@ struct BeeperUnreadCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(unread) { line($0) }
                 }
+                .animation(Motion.quick, value: unread.map(\.id))
                 .padding(.leading, 36)
                 field
                     .padding(.leading, 36)
@@ -64,6 +75,9 @@ struct BeeperUnreadCard: View {
             if focusRequest > 0 { focusReply() }
         }
         .onChange(of: focusRequest) { _, _ in focusReply() }
+        .onChange(of: beeper.answeringChatID) { _, id in
+            if id != chat.id { anchor = nil }
+        }
     }
 
     /// Focused by itself: the panel takes the keyboard, then the field (spec E-27).
@@ -120,21 +134,17 @@ struct BeeperUnreadCard: View {
         return time.isEmpty ? network : "\(network) · \(time)"
     }
 
-    /// One message; hovering shows its own reply button (spec UM-9).
+    /// One message; hovering shows its own reply button (spec UM-9). The others' from the left,
+    /// mine on the right (spec E-33).
     private func line(_ message: BeeperFullMessage) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        MessageBubble(mine: message.mine, highlighted: quote?.id == message.id) {
             VStack(alignment: .leading, spacing: 1) {
-                if message.mine {
-                    Text("You").font(.notch(size: 10, weight: .semibold)).foregroundStyle(BeeperStyle.blue)
-                } else if chat.isGroup, let sender = message.senderName {
+                if !message.mine, chat.isGroup, let sender = message.senderName {
                     Text(sender).font(.notch(size: 10, weight: .semibold)).foregroundStyle(Color.white.level(0.55))
                 }
-                Text(Self.text(of: message))
-                    .font(.notch(size: 12))
-                    .foregroundStyle(Color.white.level(0.9))
-                    .fixedSize(horizontal: false, vertical: true)
+                MessageBubbleText(text: Text(Self.text(of: message)), time: message.date, mine: message.mine)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        } accessory: {
             Button {
                 quote = message
                 isFocused = true
@@ -146,17 +156,7 @@ struct BeeperUnreadCard: View {
             .opacity(hovered == message.id || quote?.id == message.id ? 1 : 0)
             .help("Reply to this message")
             .accessibilityLabel("Reply to this message")
-            Text(message.date.map { $0.formatted(date: .omitted, time: .shortened) } ?? "")
-                .font(.notch(size: 10))
-                .monospacedDigit()
-                .foregroundStyle(Color.white.level(0.4))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: AppleStyle.corner(9), style: .continuous)
-                .fill(Color.white.level(quote?.id == message.id ? 0.16 : 0.08))
-        )
         .contentShape(Rectangle())
         .onHover { hovered = $0 ? message.id : (hovered == message.id ? nil : hovered) }
     }
@@ -193,7 +193,7 @@ struct BeeperUnreadCard: View {
                     .onChange(of: isFocused) { _, focused in
                         if focused {
                             pinNotch()
-                            if !focusedBySelf { beeper.markRead(chat.id) }
+                            if !focusedBySelf { engage() }
                         } else {
                             focusedBySelf = false
                         }
@@ -201,7 +201,7 @@ struct BeeperUnreadCard: View {
                     .onChange(of: text) { _, typed in
                         if focusedBySelf, !typed.isEmpty {
                             focusedBySelf = false
-                            beeper.markRead(chat.id)
+                            engage()
                         }
                     }
                 Button(action: send) {
@@ -221,6 +221,7 @@ struct BeeperUnreadCard: View {
         guard !message.isEmpty, !isSending else { return }
         isSending = true
         // Answered: the card stays open for the next message (spec BP-21).
+        if anchor == nil { anchor = unread.first?.id }
         beeper.answeringChatID = chat.id
         let replyTo = quote?.id
         Task {

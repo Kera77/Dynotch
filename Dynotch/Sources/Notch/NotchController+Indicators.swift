@@ -23,7 +23,8 @@ extension NotchController {
 
     func collapsedRow() -> CollapsedRow {
         let found = IndicatorItem.items(
-            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
+            sessions: notices.sessions.running(), working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator
         )
@@ -117,6 +118,10 @@ extension NotchController {
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
+        // Hovering the usage keeps its pop-up for another ten minutes (spec CS-7).
+        if let index = model.hoveredIndicator, items.indices.contains(index), case .usage = items[index] {
+            notices.sessions.touchPopup()
+        }
     }
 
     /// While one icon's details are down, passing over another icon on the way does not swap
@@ -161,7 +166,11 @@ extension NotchController {
         let announced = settings.noticesBeside ? nil : calendar.announcement.flatMap { announcement in
             items.firstIndex { if case .meeting(let item, _) = $0 { item.id == announcement.id } else { false } }
         }
-        guard let index = model.hoveredIndicator.flatMap({ items.indices.contains($0) ? $0 : nil }) ?? announced else { return nil }
+        // The usage dropped down for a new session is under the pointer like a hovered one (spec CS-7).
+        let popup = notices.sessions.popupShown && notices.notice == nil
+            ? items.firstIndex { if case .usage = $0 { true } else { false } } : nil
+        guard let index = model.hoveredIndicator.flatMap({ items.indices.contains($0) ? $0 : nil }) ?? announced ?? popup
+        else { return nil }
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point) ? index : nil
@@ -232,7 +241,8 @@ extension NotchController {
         if handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
-            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits, working: chat.isWorking,
+            meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),
+            sessions: notices.sessions.running(), working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown
         )
         let layout = IndicatorLayout(items: items, badges: badges.visible)

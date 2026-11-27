@@ -22,10 +22,13 @@ struct NotificationStackView: View {
     @State private var answers: [Answer] = []
     /// A click on a message puts the typing into the reply field (spec E-27).
     @State private var focusRequest = 0
+    /// The newest answer, scrolled into view.
+    @State private var proxyTarget: UUID?
 
     struct Answer: Identifiable {
         let id = UUID()
-        let line: Int64
+        /// The line answered; nil: the conversation, shown at the end (spec E-32).
+        let line: Int64?
         let text: String
     }
 
@@ -46,6 +49,11 @@ struct NotificationStackView: View {
                                     .id(answer.id)
                             }
                         }
+                        // Sent while the card is open, mine on the right (spec E-32, E-33).
+                        ForEach(answers.filter { $0.line == nil }) { answer in
+                            answerBubble(answer.text)
+                                .id(answer.id)
+                        }
                     }
                     .padding(.leading, 50)
                     .padding(.trailing, 14)
@@ -55,6 +63,9 @@ struct NotificationStackView: View {
                     // Long cards start at the top and scroll down (spec E-23).
                     if let first = notifications.first { proxy.scrollTo(first.id, anchor: .top) }
                 }
+                .onChange(of: proxyTarget) { _, target in
+                    if let target { withAnimation(Motion.quick) { proxy.scrollTo(target, anchor: .bottom) } }
+                }
             }
             if canReply, let replyTarget {
                 NotificationReplyField(
@@ -62,14 +73,13 @@ struct NotificationStackView: View {
                     cancelQuote: { replyingTo = nil },
                     focusRequest: focusRequest,
                     sent: { text in
-                        // A line's answer joins the conversation and the card stays open; an
-                        // answer to the whole conversation closes it (spec E-17).
-                        if let line = replyingTo {
-                            answers.append(Answer(line: line.id, text: text))
+                        // Every answer joins the conversation and the card stays open for the
+                        // next one, until it is closed or clicked away (spec E-17, E-32).
+                        withAnimation(Motion.quick) {
+                            answers.append(Answer(line: replyingTo?.id, text: text))
                             replyingTo = nil
-                        } else {
-                            close()
                         }
+                        if let last = answers.last { withAnimation { proxyTarget = last.id } }
                     }
                 )
                     .padding(.horizontal, 12)
@@ -142,19 +152,12 @@ struct NotificationStackView: View {
         .help("Open \(app.name)")
     }
 
-    /// One message: its text and time, without repeating the sender.
+    /// One message: its text and time in a bubble from the left, without repeating the sender (spec E-33).
     private func message(_ notification: AppNotification) -> some View {
-        return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            service.content(for: notification).detailText()
-                .font(.notch(size: 13))
-                .foregroundStyle(Color.white.level(0.9))
-                // Hovered, the whole text shows (spec E-23).
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text(notification.date.formatted(date: .omitted, time: .shortened))
-                .font(.notch(size: 10))
-                .monospacedDigit()
-                .foregroundStyle(Color.white.level(0.4))
+        NotificationBubbles(
+            content: service.content(for: notification), date: notification.date, size: 13,
+            highlighted: replyingTo?.id == notification.id
+        ) {
             if canReply {
                 Button {
                     replyingTo = notification
@@ -171,12 +174,6 @@ struct NotificationStackView: View {
                 .opacity(hoveredLine == notification.id || replyingTo?.id == notification.id ? 1 : 0)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous)
-                .fill(Color.white.level(replyingTo?.id == notification.id ? 0.14 : 0.08))
-        )
         .contentShape(Rectangle())
         .onTapGesture { if canReply { focusRequest += 1 } }
         .onHover { hovering in
@@ -190,17 +187,10 @@ struct NotificationStackView: View {
 
     private static var blue: Color { Theme.blue }
 
-    /// My answer to a line, on the right like in chat apps.
+    /// My answer, on the right like in chat apps (spec E-33).
     private func answerBubble(_ text: String) -> some View {
-        HStack {
-            Spacer(minLength: 40)
-            Text(text)
-                .font(.notch(size: 13))
-                .foregroundStyle(.white)
-                .lineLimit(3)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: AppleStyle.corner(10), style: .continuous).fill(Self.blue))
+        MessageBubble(mine: true) {
+            MessageBubbleText(text: Text(text), time: Date(), mine: true, size: 13)
         }
     }
 }

@@ -25,7 +25,9 @@ extension NotificationService {
     }
 
     /// Clicking into a Google Chat card's reply field reads the conversation in the web app too (spec GW-8).
+    /// From then on the card stays until it is closed (spec E-32).
     func replyFieldFocused(_ notification: AppNotification) {
+        answering = notification
         guard isGoogleChat(notification) else { return }
         chatWeb.markRead(title: notification.title)
     }
@@ -34,7 +36,7 @@ extension NotificationService {
     /// notch (spec GW-7). Unknown or ambiguous conversations stay.
     func dropReadInChat(_ snapshot: ChatWebSnapshot, now: Date = Date()) {
         let gone = Set(recent.filter { notification in
-            guard isGoogleChat(notification), (chatWebHeld[notification.id] ?? .distantPast) < now,
+            guard isGoogleChat(notification), (chatWebHeld[notification.id] ?? .distantPast) < now, !isAnswering(notification),
                   let conversation = GoogleChatWebService.match(notification.title, in: snapshot.conversations)
             else { return false }
             return Self.isRead(
@@ -209,6 +211,7 @@ extension NotificationService {
     /// Closed: the conversation stays read (the web app's menu for "Mark as unread" opens only
     /// in its active window), so the card goes as any read one (spec GW-17c, GW-7).
     func cardsClosed(_ cards: [AppNotification]) {
+        if cards.contains(where: isAnswering) { answering = nil }
         for card in cards {
             guard let conversationID = chatWebOpened.removeValue(forKey: card.id) else { continue }
             if chatWebPending[conversationID] == card.id { chatWebPending[conversationID] = nil }
@@ -219,6 +222,7 @@ extension NotificationService {
     /// Every open card is closed with the notch.
     func allCardsClosed() {
         cardsClosed(recent.filter { chatWebOpened[$0.id] != nil })
+        answering = nil
     }
 
     /// Answered: it stays read, and the card goes as any read one (spec GW-17, GW-7).
@@ -228,6 +232,15 @@ extension NotificationService {
             chatWebOpened[card.id] = nil
             chatWebHeld[card.id] = nil
         }
+    }
+
+    /// Whether the card belongs to the conversation being answered (spec E-32).
+    func isAnswering(_ notification: AppNotification) -> Bool {
+        guard let answering else { return false }
+        if Self.sameConversation(answering, notification) { return true }
+        let chat = { (card: AppNotification) in card.sourceIdentifier == Self.chatWebSource || self.isGoogleChat(card) }
+        return chat(answering) && chat(notification)
+            && GoogleChatJump.conversationName(from: answering.title) == GoogleChatJump.conversationName(from: notification.title)
     }
 
     /// Whether the card is still loading its messages from the web app (spec GW-17).
