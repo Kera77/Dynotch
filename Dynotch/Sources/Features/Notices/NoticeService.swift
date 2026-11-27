@@ -94,6 +94,12 @@ final class NoticeService {
         remove(notice)
     }
 
+    /// The X on the earlier notice under the top one: only that one goes (spec E-35).
+    func dismissSecond() {
+        guard let second, second.whatsNew == nil else { return }
+        remove(second)
+    }
+
     /// Called after What's new's Got it, e.g. for the test list's notice (spec TL-4).
     @ObservationIgnored var onWhatsNewDismissed: (() -> Void)?
     /// Opens Settings › Testing (spec TL-4).

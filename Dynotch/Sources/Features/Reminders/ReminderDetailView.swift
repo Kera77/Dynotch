@@ -68,12 +68,12 @@ struct ReminderDetailView: View {
 
     private func dateSection(_ details: Binding<ReminderDetails>) -> some View {
         DetailGroup {
-            DetailRow(symbol: "calendar", title: "Date", detail: details.wrappedValue.hasDate ? dayText(details.wrappedValue.due) : nil) {
+            DetailRow(symbol: "calendar", title: "Date", detail: nil) {
                 Toggle("", isOn: details.hasDate).labelsHidden().toggleStyle(.switch).controlSize(.mini)
             }
+            // Inside the notch, never a system pop-up (spec R-24).
             if details.wrappedValue.hasDate {
-                DatePicker("", selection: details.due, displayedComponents: .date)
-                    .labelsHidden().datePickerStyle(.field).frame(maxWidth: .infinity, alignment: .trailing)
+                ReminderDayPicker(due: details.due).padding(.leading, 28)
             }
             Divider().overlay(Color.white.level(0.08))
             DetailRow(symbol: "clock", title: "Time", detail: nil) {
@@ -88,49 +88,45 @@ struct ReminderDetailView: View {
                 .labelsHidden().toggleStyle(.switch).controlSize(.mini)
             }
             if details.wrappedValue.hasTime {
-                DatePicker("", selection: details.due, displayedComponents: .hourAndMinute)
-                    .labelsHidden().datePickerStyle(.field).frame(maxWidth: .infinity, alignment: .trailing)
+                ReminderTimePicker(due: details.due).padding(.leading, 28)
             }
         }
     }
 
     private func optionsSection(_ details: Binding<ReminderDetails>) -> some View {
-        DetailGroup {
+        let value = details.wrappedValue
+        let repeats = ReminderRepeat.allCases.filter { $0 != .custom || value.repeats == .custom }
+        // Soft capsules with the usual menus instead of system pop-up buttons (spec R-24).
+        return DetailGroup {
             DetailRow(symbol: "repeat", title: "Repeat", detail: nil) {
-                Picker("", selection: details.repeats) {
-                    ForEach(ReminderRepeat.allCases.filter { $0 != .custom || details.wrappedValue.repeats == .custom }, id: \.self) {
-                        Text($0.title).tag($0)
-                    }
-                }
-                .labelsHidden().fixedSize().disabled(!details.wrappedValue.hasDate)
+                ReminderMenu(
+                    title: value.repeats.title, selection: details.repeats,
+                    options: repeats.map { ($0.title, $0) }, isEnabled: value.hasDate
+                )
             }
             DetailRow(symbol: "bell", title: "Early Reminder", detail: nil) {
-                Picker("", selection: details.early) {
-                    ForEach(EarlyReminder.allCases, id: \.self) { Text($0.title).tag($0) }
-                }
-                .labelsHidden().fixedSize().disabled(!details.wrappedValue.hasTime)
+                ReminderMenu(
+                    title: value.early.title, selection: details.early,
+                    options: EarlyReminder.allCases.map { ($0.title, $0) }, isEnabled: value.hasTime
+                )
             }
             DetailRow(symbol: "list.bullet", title: "List", detail: nil) {
-                Picker("", selection: details.listID) {
-                    ForEach(store.lists) { Text($0.title).tag($0.id) }
-                }
-                .labelsHidden().fixedSize()
+                ReminderMenu(
+                    title: store.lists.first { $0.id == value.listID }?.title ?? "List", selection: details.listID,
+                    options: store.lists.map { ($0.title, $0.id) }
+                )
             }
             DetailRow(symbol: "exclamationmark", title: "Priority", detail: nil) {
-                Picker("", selection: details.priority) {
-                    ForEach(ReminderDetails.priorities, id: \.value) { Text($0.title).tag($0.value) }
-                }
-                .labelsHidden().fixedSize()
+                ReminderMenu(
+                    title: ReminderDetails.priorities.first { $0.value == value.priority }?.title ?? "None",
+                    selection: details.priority, options: ReminderDetails.priorities.map { ($0.title, $0.value) }
+                )
             }
             Button("Flags, tags, places and images: open in Reminders") { store.openRemindersApp() }
                 .buttonStyle(.notch)
                 .font(.notch(size: 10))
                 .foregroundStyle(Color.white.level(0.45))
         }
-    }
-
-    private func dayText(_ date: Date) -> String {
-        date.formatted(.dateTime.year().month(.wide).day().weekday(.wide))
     }
 
     private func close() {

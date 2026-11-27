@@ -199,7 +199,7 @@ final class NotchController {
         // While a mouse button is down (e.g. dragging a slider) the panel stays open.
         // A menu opened from the panel reaches outside it: the panel stays while it is open (spec N-22).
         let isInside = keepOpenZone.contains(NSEvent.mouseLocation) || inSticky || NSEvent.pressedMouseButtons != 0
-            || OpenMenus.isOpen
+            || OpenMenus.isOpen || hasOpenPopup
         // The window is larger than the visible panel: let clicks around the panel through.
         panel.ignoresMouseEvents = !isInside
         if isInside { isHeldOpen = false }
@@ -271,7 +271,7 @@ final class NotchController {
             guard !Task.isCancelled, let self else { return }
             self.closeTask = nil
             let isOutside = !self.keepOpenZone.contains(NSEvent.mouseLocation) && NSEvent.pressedMouseButtons == 0
-            if isOutside, !self.isHeldOpen, !self.model.keepsOpen, !OpenMenus.isOpen {
+            if isOutside, !self.isHeldOpen, !self.model.keepsOpen, !OpenMenus.isOpen, !self.hasOpenPopup {
                 self.collapse()
             }
         }

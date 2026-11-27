@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-11-27
+
+### Changed
+- A task's date and time in its details are set inside the notch in Wingmate's style: quick
+  choices (Today, Tomorrow, Next week; 9:00, 12:00, 18:00), a small month that opens from the
+  chosen day, hour : minute with arrows (5-minute steps); Repeat, Early Reminder, List and
+  Priority are soft capsules with the same menus (R-24).
+
+### Fixed
+- The notch no longer closes while a pop-up opened from it (a popover, a date picker's calendar)
+  reaches outside it (R-23).
+- Claude Code sessions in every app are listed (Claude app, VS Code, Cursor, terminals), not only the
+  ones that sent a hook event since Dynotch started: running `claude` processes are found with
+  the app they run in and show as Ready until their first hook event (CS-9). A helper's app ID
+  (e.g. the Claude app's built-in Claude Code) counts as its app, so the icon and click are right.
+- With two notices under the notch, the lower (earlier) one has its own X as well (E-35).
+
 ## [1.8.4] - 2026-11-27
 
 ### Added

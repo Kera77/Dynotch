@@ -69,7 +69,8 @@ enum ClaudeQuestionHook {
         func value(_ name: String) -> String? {
             items.first { $0.name == name }?.value?.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        let app = value("app").flatMap { $0.isEmpty ? nil : $0 }
+        // A helper's identifier stands for its app (spec CS-9).
+        let app = value("app").flatMap { $0.isEmpty ? nil : ClaudeProcessScan.hostBundleID($0) }
         let project = value("project") ?? ""
         switch url.host?.lowercased() {
         case "claude-answered":

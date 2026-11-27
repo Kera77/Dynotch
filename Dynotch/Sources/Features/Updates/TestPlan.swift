@@ -13,6 +13,33 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.5": [
+            TestPlanItem(
+                id: "sessions-claude-app", group: "Claude Code sessions",
+                text: "Sessions in VS Code, the Claude app (Code tab) and a terminal all show in AI › Sessions, each with its app's icon.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "sessions-after-restart", group: "Claude Code sessions",
+                text: "Quit and reopen Dynotch: within ~10 s running sessions are back as Ready; a click brings the right app forward.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "notice-second-x", group: "Notices",
+                text: "With two notices under the notch (e.g. Claude and Codex done), the lower one has an X; it removes only that one.",
+                log: "notch"
+            ),
+            TestPlanItem(
+                id: "task-date-editor", group: "Task details",
+                text: "Task details: set the day with the chips or the small month, the time with the chips and arrows; Done saves it.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "task-menus", group: "Task details",
+                text: "Repeat, Early Reminder, List and Priority open their menus from the capsules; the notch stays open meanwhile.",
+                log: "reminders"
+            )
+        ],
         "1.8.4": [
             TestPlanItem(
                 id: "usage-popup-flash", group: "Sessions at the usage ring",

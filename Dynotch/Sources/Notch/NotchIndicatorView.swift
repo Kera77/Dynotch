@@ -30,6 +30,8 @@ struct NotchIndicatorView: View {
     var openTasks: () -> Void = {}
     /// Closes the notice under the notch (spec CN-5b).
     var dismissNotice: () -> Void = {}
+    /// Closes only the earlier notice in the row under it (spec E-35).
+    var dismissSecondNotice: () -> Void = {}
     var openNotice: () -> Void = {}
     /// A button of Claude Code's question or permission (spec CQ-5).
     var answerNotice: (String) -> Void = { _ in }
@@ -99,7 +101,11 @@ struct NotchIndicatorView: View {
                 } else if let notice {
                     noticeLabel(notice)
                     if let secondNotice {
-                        PeekSecondRowView(row: .notice(secondNotice), app: nil, content: nil)
+                        PeekSecondRowView(
+                            row: .notice(secondNotice), app: nil, content: nil,
+                            // What's new goes with its Got it, a countdown with Cancel (spec E-35).
+                            dismiss: secondNotice.whatsNew == nil && secondNotice.countdown == nil ? dismissSecondNotice : nil
+                        )
                             .frame(height: NotificationService.secondRowHeight)
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }

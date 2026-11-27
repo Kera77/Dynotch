@@ -44,6 +44,7 @@ extension NotchView {
         row.stopRecording = { screenshots.stopRecording() }
         row.recordingHovered = isRecordingHovered
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
+        row.dismissSecondNotice = { withAnimation(Self.quickAnimation) { notices.dismissSecond() } }
         row.openNotice = { openNotice() }
         row.answerNotice = { choice in withAnimation(Self.quickAnimation) { notices.answer(choice) } }
         row.openTools = openTools

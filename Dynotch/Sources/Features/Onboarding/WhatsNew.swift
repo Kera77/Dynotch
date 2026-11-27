@@ -40,6 +40,14 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.8.5", items: [
+            WhatsNewItem(symbol: "terminal", title: "Sessions from every app",
+                         text: "Claude Code sessions in the Claude app, VS Code or any terminal show up, even before they do anything."),
+            WhatsNewItem(symbol: "calendar", title: "New date picker for tasks",
+                         text: "Set a task's day and time right in the notch: quick choices, a small month and arrows."),
+            WhatsNewItem(symbol: "xmark.circle", title: "X on both notices",
+                         text: "With two notices under the notch, the lower one has its own X too.")
+        ]),
         WhatsNewRelease(version: "1.8.4", items: [
             WhatsNewItem(symbol: "terminal", title: "Session pop-up only flashes",
                          text: "A new Claude Code session shows the usage for a few seconds; flick it up, or turn it off in Settings."),

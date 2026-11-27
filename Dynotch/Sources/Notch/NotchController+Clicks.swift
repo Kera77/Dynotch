@@ -44,3 +44,13 @@ extension NotchController {
         return notifications.hoveredPeek(depth: model.geometry.notchRect.maxY - point.y, in: model.geometry)
     }
 }
+
+// MARK: - Pop-ups reaching out of the notch (spec R-23)
+
+extension NotchController {
+    /// A pop-up opened from the panel (a popover, a date picker's calendar) reaches out of the
+    /// notch: the panel stays while it is on screen. The glass under the panel does not count.
+    var hasOpenPopup: Bool {
+        panel.childWindows?.contains { $0 !== glassPanel && $0.isVisible } ?? false
+    }
+}

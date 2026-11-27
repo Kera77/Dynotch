@@ -7,6 +7,8 @@ struct PeekSecondRowView: View {
     let row: PeekSecondRow
     let app: NotificationApp?
     let content: NotificationContent?
+    /// The small X, like on the row above; nil: none (spec E-35).
+    var dismiss: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,11 +28,22 @@ struct PeekSecondRowView: View {
                         .layoutPriority(-1)
                 }
                 Spacer(minLength: 0)
+                if let dismiss {
+                    Button(action: dismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.notch(size: 12))
+                            .foregroundStyle(Color.white.level(0.55))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.notch)
+                    .help("Dismiss")
+                    .accessibilityLabel("Dismiss \(title)")
+                }
             }
             .padding(.horizontal, 14)
             .frame(maxHeight: .infinity)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder private var icon: some View {

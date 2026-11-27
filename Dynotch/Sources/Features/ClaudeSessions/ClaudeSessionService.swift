@@ -56,6 +56,10 @@ struct ClaudeSession: Equatable, Identifiable, Sendable {
     var since: Date
     var lastEvent: Date
     var prompt: String?
+
+    /// Found as a running process without a hook event yet (spec CS-9).
+    var pid: pid_t? { id.hasPrefix(Self.foundPrefix) ? pid_t(id.dropFirst(Self.foundPrefix.count)) : nil }
+    static let foundPrefix = "pid:"
 }
 
 @MainActor
@@ -68,8 +72,11 @@ final class ClaudeSessionService {
     func handle(_ event: ClaudeSessionEvent) {
         forgetQuiet(now: event.date)
         // A new session drops the usage down with the sessions (spec CS-7), unless turned off (CS-8).
-        if [.start, .prompt].contains(event.kind), !sessions.contains(where: { $0.id == event.sessionID }),
-           popupEnabled() {
+        // A session found running before is not new: its hook row takes its place (spec CS-9).
+        let isKnown = sessions.contains { $0.id == event.sessionID }
+        let found = isKnown ? nil : sessions.first { $0.pid != nil && $0.app == event.app && $0.project == Self.projectName(event.folder) }
+        if let found { sessions.removeAll { $0.id == found.id } }
+        if [.start, .prompt].contains(event.kind), !isKnown, found == nil, popupEnabled() {
             showPopup(at: event.date)
         }
         guard event.kind != .end else {
@@ -113,8 +120,56 @@ final class ClaudeSessionService {
     }
 
     func remove(_ id: String) {
+        // A removed running process stays away while it runs (spec CS-9).
+        if let pid = sessions.first(where: { $0.id == id })?.pid { hiddenPIDs.insert(pid) }
         sessions.removeAll { $0.id == id }
     }
+
+    // MARK: - Running on the Mac (spec CS-9)
+
+    @ObservationIgnored private var hiddenPIDs: Set<pid_t> = []
+    @ObservationIgnored private var scanTask: Task<Void, Never>?
+    static let scanInterval: Duration = .seconds(10)
+
+    /// Looks for Claude Code processes every few seconds, in every app.
+    func startScanning() {
+        guard scanTask == nil else { return }
+        scanTask = Task { [weak self] in
+            while !Task.isCancelled {
+                let found = await Task.detached(priority: .utility) { ClaudeProcessScan.running() }.value
+                guard let self, !Task.isCancelled else { return }
+                self.merge(found)
+                try? await Task.sleep(for: Self.scanInterval)
+            }
+        }
+    }
+
+    /// Running processes without a hook row are listed as Ready with their app; a hook row with
+    /// the same app and project stands for one of them; an ended process's row goes (spec CS-9).
+    func merge(_ found: [ClaudeProcessScan.Found]) {
+        let alive = Set(found.map(\.pid))
+        hiddenPIDs.formIntersection(alive)
+        var next = sessions.filter { session in session.pid.map(alive.contains) ?? true }
+        var claimed: [String: Int] = [:]
+        for session in next where session.pid == nil { claimed[Self.key(session.app, session.project), default: 0] += 1 }
+        for process in found.sorted(by: { $0.started < $1.started }) where !hiddenPIDs.contains(process.pid) {
+            let project = Self.projectName(process.folder)
+            let id = ClaudeSession.foundPrefix + String(process.pid)
+            let key = Self.key(process.app, project)
+            if let count = claimed[key], count > 0 {
+                claimed[key] = count - 1
+                next.removeAll { $0.id == id }
+            } else if !next.contains(where: { $0.id == id }) {
+                next.append(ClaudeSession(
+                    id: id, project: project, app: process.app, state: .ready,
+                    since: process.started, lastEvent: process.started
+                ))
+            }
+        }
+        if next != sessions { sessions = next }
+    }
+
+    private static func key(_ app: String?, _ project: String) -> String { (app ?? "-") + "|" + project }
 
     func clearFinished() {
         sessions.removeAll { $0.state == .finished }
@@ -196,7 +251,7 @@ final class ClaudeSessionService {
     }
 
     private func forgetQuiet(now: Date) {
-        sessions.removeAll { now.timeIntervalSince($0.lastEvent) > Self.forgetAfter }
+        sessions.removeAll { $0.pid == nil && now.timeIntervalSince($0.lastEvent) > Self.forgetAfter }
     }
 
     /// The transcript tells whether background work still runs and where it really worked (CN-3, CN-4).

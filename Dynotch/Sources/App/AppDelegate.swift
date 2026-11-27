@@ -75,6 +75,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         services.reminders.start()
         focusFollowsMouse.start()
         services.claudeUsage.start()
+        // Sessions in every app, also the ones that sent no hook event yet (spec CS-9).
+        services.notices.sessions.startScanning()
         services.hud.start()
         startBadges()
         MenuBarSpacerService.shared.start()
