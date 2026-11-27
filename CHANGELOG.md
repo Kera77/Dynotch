@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [1.8.7] - 2026-11-27
+
+### Added
+- An overdue task stays under the closed notch in one thin row (the oldest one, "+N" for the
+  rest) until completed or dismissed; hovering it drops the tasks counter's list down, where an
+  overdue task also has Later (back in an hour) and X (R-26, R-28).
+- The tasks counter turns orange an hour before a timed task is due and red while a task is overdue
+  (R-27).
+- Claude Code sessions show the step they run ("Editing NotchView.swift"), the first line of the
+  answer once finished, or the task, read from the session's transcript; at the usage ring with
+  the app's icon (CS-11, CS-12).
+- Cleaner: a disk bar under the header (apps, caches, leftovers, other, free) (TT-18); an app's
+  details slide in from the right as a second column with Quit, Uninstall and its files (TT-19);
+  when each app was last opened, and sorting by it (TT-20); a Large files tab with files over
+  500 MB in Downloads, Desktop, Documents, Movies and Containers (TT-21).
+
+### Changed
+- Cleaner: Uninstall in an app's row asks once in the row and moves the app with all its files to
+  the Trash without opening it; a running app has a blue Quit there instead, which quits without
+  asking (TT-16, TT-17). Its text is the app's usual size (TT-22).
+
+### Fixed
+- A Claude Code session in the usage ring's drop-down can be clicked: it brings its app forward
+  (CS-10).
+- The 1×2 Month tile fits its tile like the Ask tile: the month's name beside a grid sized to the
+  tile (HT-56).
+- Onboarding: the Tasks, Sessions and Stats tips mention the overdue row, what a session is doing,
+  clicking a session at the usage ring, Uninstall in the Cleaner's rows and large files.
+
 ## [1.8.6] - 2026-11-27
 
 ### Changed

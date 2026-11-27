@@ -56,6 +56,23 @@ struct ClaudeSession: Equatable, Identifiable, Sendable {
     var since: Date
     var lastEvent: Date
     var prompt: String?
+    /// The transcript, read for the step it runs and its answer (spec CS-11).
+    var transcript: String?
+    /// The step running now, e.g. "Editing NotchView.swift" (spec CS-11).
+    var activity: String?
+    /// The first line of the last answer (spec CS-11).
+    var answer: String?
+
+    /// The dimmer line under it: the step while working, the answer once finished, else the task (spec CS-11).
+    var detail: String? {
+        let text: String? = switch state {
+        case .working: activity ?? prompt
+        case .background: activity ?? answer ?? prompt
+        case .finished: answer ?? prompt
+        case .ready, .asks, .needsYou: prompt
+        }
+        return text?.isEmpty == false ? text : nil
+    }
 
     /// Found as a running process without a hook event yet (spec CS-9).
     var pid: pid_t? { id.hasPrefix(Self.foundPrefix) ? pid_t(id.dropFirst(Self.foundPrefix.count)) : nil }
@@ -88,12 +105,15 @@ final class ClaudeSessionService {
             state: .ready, since: event.date, lastEvent: event.date
         )
         session.app = event.app ?? session.app
+        session.transcript = event.transcript ?? session.transcript
         session.lastEvent = event.date
         switch event.kind {
         case .start:
             break
         case .prompt:
             session.prompt = event.prompt ?? session.prompt
+            session.activity = nil
+            session.answer = nil
             set(&session, .working, at: event.date)
         case .stop:
             set(&session, .finished, at: event.date)
@@ -102,6 +122,35 @@ final class ClaudeSessionService {
             return
         }
         put(session)
+        if session.state == .working { followActivity() }
+    }
+
+    // MARK: - What it is doing (spec CS-11)
+
+    @ObservationIgnored private var activityTask: Task<Void, Never>?
+    static let activityInterval: Duration = .seconds(3)
+
+    /// Reads the working sessions' transcripts every few seconds while any of them works.
+    private func followActivity() {
+        guard activityTask == nil else { return }
+        activityTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                let working = self.sessions.filter { $0.state == .working }.compactMap { session in
+                    session.transcript.map { (session.id, $0) }
+                }
+                if working.isEmpty { break }
+                for (id, path) in working {
+                    let reading = await Task.detached(priority: .utility) { ClaudeSessionActivity.read(fileAt: path) }.value
+                    guard let index = self.sessions.firstIndex(where: { $0.id == id }), self.sessions[index].state == .working,
+                          self.sessions[index].activity != reading.activity
+                    else { continue }
+                    self.sessions[index].activity = reading.activity
+                }
+                try? await Task.sleep(for: Self.activityInterval)
+            }
+            self?.activityTask = nil
+        }
     }
 
     /// A question or permission waits (spec CQ-1); an unknown session is not added.
@@ -258,8 +307,11 @@ final class ClaudeSessionService {
     private func refineStop(of id: String, transcript: String) {
         Task { [weak self] in
             let summary = await Task.detached { ClaudeTranscript.summary(ofFileAt: transcript) }.value
+            let reading = await Task.detached { ClaudeSessionActivity.read(fileAt: transcript) }.value
             self?.update(id) { session in
                 guard session.state == .finished else { return }
+                session.answer = reading.answer
+                session.activity = nil
                 if let project = summary.project { session.project = project }
                 if !summary.pending.isEmpty { session.state = .background }
             }

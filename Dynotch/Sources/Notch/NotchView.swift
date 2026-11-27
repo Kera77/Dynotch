@@ -116,10 +116,6 @@ struct NotchView: View {
 
     /// A sticky notice is written under the notch unless an indicator's details are open there.
     var shownNotice: StickyNotice? { labelIndex == nil ? notices.notice : nil }
-    /// The earlier notice's row under the shown one (spec E-30).
-    var secondNoticeHeight: CGFloat {
-        shownNotice != nil && notices.second != nil && !settings.noticesBeside ? NotificationService.secondRowHeight : 0
-    }
 
     /// The indicator whose details are open: the hovered one, otherwise the announced meeting.
     var labelIndex: Int? {
@@ -135,8 +131,11 @@ struct NotchView: View {
         if let usagePopupIndex { return usagePopupIndex }
         // A new track's name, for a moment (spec MU-4).
         // Beside the notch it is a small notice of its own (spec PV-68).
-        guard musicIndicator.isAnnouncing, !settings.noticesBeside else { return nil }
-        return indicatorItems.firstIndex { if case .music = $0 { true } else { false } }
+        if musicIndicator.isAnnouncing, !settings.noticesBeside,
+           let music = indicatorItems.firstIndex(where: { if case .music = $0 { true } else { false } }) {
+            return music
+        }
+        return overdueTasksIndex
     }
 
     private var hoveredIndicator: Int? {
@@ -368,7 +367,7 @@ extension NotchView {
     /// The cover's player drops down only when hovered; announced, only the track's name (spec MU-2, MU-4).
     func labelHeight(of index: Int) -> CGFloat {
         if case .music = indicatorItems[index], hoveredIndicator == nil { return IndicatorLayout.musicAnnounceHeight }
-        return indicatorItems[index].labelHeight
+        return hoveredIndicator == nil ? indicatorItems[index].restingLabelHeight : indicatorItems[index].labelHeight
     }
 }
 

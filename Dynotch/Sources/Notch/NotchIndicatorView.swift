@@ -60,6 +60,10 @@ struct NotchIndicatorView: View {
     var stats: StatsService?
     /// The usage dropped down by itself for a new Claude Code session (spec CS-7).
     var usagePopup = false
+    /// The tasks counter is hovered: its list drops down, not the overdue rows (spec R-26).
+    var showsTaskList = true
+    /// A click on a session's row brings its app forward (spec CS-10).
+    var openSession: (ClaudeSession) -> Void = { _ in }
 
     static let lineWidth: CGFloat = 2
 

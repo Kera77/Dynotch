@@ -3,8 +3,24 @@ import SwiftUI
 /// The running Claude Code sessions under the usage limits in the ring's hover (spec CS-6):
 /// project, state and how long, at most four, then "+N more".
 struct UsageSessionRows: View {
+    /// The app the session runs in, else the terminal mark (spec CS-12).
+    @ViewBuilder
+    private func icon(_ session: ClaudeSession) -> some View {
+        if let app = session.app, let image = BadgeIconCache.appIcon(bundleID: app) {
+            Image(nsImage: image).resizable().scaledToFit()
+        } else {
+            Image(systemName: "terminal")
+                .font(.notch(size: 10))
+                .foregroundStyle(Color.white.level(0.55))
+        }
+    }
+
     let sessions: [ClaudeSession]
     let now: Date
+    /// A click brings the session's app forward with the project's window (spec CS-10).
+    var open: (ClaudeSession) -> Void = { _ in }
+
+    @State private var hovered: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -13,22 +29,49 @@ struct UsageSessionRows: View {
                 .frame(height: 0.75)
                 .padding(.bottom, 4)
             ForEach(sessions.prefix(IndicatorLayout.sessionRows)) { session in
-                HStack(spacing: 6) {
-                    Image(systemName: "terminal")
-                        .font(.notch(size: 10))
-                        .foregroundStyle(Color.white.level(0.55))
-                    Text(session.project)
-                        .font(.notch(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                    ClaudeSessionStateCapsule(state: session.state)
-                    Spacer(minLength: 8)
-                    Text(ClaudeSessionRow.elapsed(since: session.since, now: now))
-                        .font(.notch(size: 11))
-                        .monospacedDigit()
-                        .foregroundStyle(Color.white.level(0.5))
+                HStack(alignment: .top, spacing: 6) {
+                    icon(session)
+                        .frame(width: 14, height: 14)
+                        .padding(.top, 3)
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 6) {
+                            Text(session.project)
+                                .font(.notch(size: 12, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                            ClaudeSessionStateCapsule(state: session.state)
+                            Spacer(minLength: 8)
+                            Text(ClaudeSessionRow.elapsed(since: session.since, now: now))
+                                .font(.notch(size: 11))
+                                .monospacedDigit()
+                                .foregroundStyle(Color.white.level(0.5))
+                        }
+                        .frame(height: 18)
+                        // The step, the answer or the task (spec CS-11).
+                        if let detail = session.detail {
+                            Text(detail)
+                                .font(.notch(size: 11))
+                                .foregroundStyle(Color.white.level(0.55))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(height: 15)
+                        }
+                    }
                 }
-                .frame(height: IndicatorLayout.sessionRowHeight)
+                .frame(height: IndicatorLayout.sessionRowHeight(session), alignment: .top)
+                .padding(.horizontal, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
+                        .fill(hovered == session.id ? Theme.fill : .clear)
+                )
+                .padding(.horizontal, -4)
+                .contentShape(Rectangle())
+                .onHover { inside in
+                    if inside { hovered = session.id } else if hovered == session.id { hovered = nil }
+                }
+                .onTapGesture { open(session) }
+                .help(session.app == nil ? "" : "Show this session")
+                .accessibilityAddTraits(.isButton)
             }
             if sessions.count > IndicatorLayout.sessionRows {
                 Text("+\(sessions.count - IndicatorLayout.sessionRows) more")
@@ -44,6 +87,12 @@ extension IndicatorLayout {
     /// The running sessions under the usage limits (spec CS-6): at most this many rows.
     static let sessionRows = 4
     static let sessionRowHeight: CGFloat = 20
+    /// With the step, answer or task under it: two lines (spec CS-11).
+    static let sessionDetailRowHeight: CGFloat = 36
+
+    static func sessionRowHeight(_ session: ClaudeSession) -> CGFloat {
+        session.detail == nil ? sessionRowHeight : sessionDetailRowHeight
+    }
 
     /// The limits, then the sessions (spec CL-6, CS-6).
     static func usageLabelHeight(_ limits: [UsageLimit], _ sessions: [ClaudeSession]) -> CGFloat {
@@ -53,7 +102,7 @@ extension IndicatorLayout {
     static func sessionRowsHeight(_ sessions: [ClaudeSession]) -> CGFloat {
         guard !sessions.isEmpty else { return 0 }
         let more = sessions.count > sessionRows ? 1 : 0
-        return 8 + CGFloat(min(sessions.count, sessionRows) + more) * sessionRowHeight
+        return 8 + sessions.prefix(sessionRows).reduce(0) { $0 + sessionRowHeight($1) } + CGFloat(more) * sessionRowHeight
     }
 }
 
@@ -79,7 +128,7 @@ extension NotchIndicatorView {
                     .frame(height: 16)
                 }
                 if !sessions.isEmpty {
-                    UsageSessionRows(sessions: sessions, now: now)
+                    UsageSessionRows(sessions: sessions, now: now, open: openSession)
                         .padding(.top, limits.isEmpty ? 0 : 4)
                 }
             }

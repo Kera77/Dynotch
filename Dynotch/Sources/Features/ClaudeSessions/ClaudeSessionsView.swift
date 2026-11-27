@@ -97,8 +97,8 @@ struct ClaudeSessionRow: View {
                             .foregroundStyle(Color.white.level(0.5))
                     }
                 }
-                if let prompt = session.prompt, !prompt.isEmpty {
-                    Text(prompt)
+                if let detail = session.detail {
+                    Text(detail)
                         .font(.notch(size: 11))
                         .foregroundStyle(Color.white.level(0.5))
                         .lineLimit(1)

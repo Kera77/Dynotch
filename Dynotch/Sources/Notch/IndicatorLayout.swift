@@ -112,6 +112,12 @@ enum IndicatorItem: Identifiable, Equatable {
         }
     }
 
+    /// Without hover: the overdue tasks' thin rows under the counter (spec R-26); else the same.
+    var restingLabelHeight: CGFloat {
+        if case .tasks(let count) = self, !count.overdue.isEmpty { return IndicatorLayout.overdueHeight }
+        return labelHeight
+    }
+
     /// The cover next to the notch, then meetings, the usage, low batteries, the stats, and the
     /// tasks at the far right.
     static func items(
@@ -190,6 +196,12 @@ struct IndicatorLayout: Equatable {
     /// Tasks listed in the counter's drop-down at most; Open shows the rest.
     static let taskRows = 6
     static let taskRowHeight: CGFloat = 22
+    /// A thin overdue row under the counter (spec R-26).
+    static let overdueRowHeight: CGFloat = 24
+
+    /// The overdue tasks' one thin row (spec R-28).
+    static let overdueHeight: CGFloat = overdueRowHeight + 6
+
     /// The list picker makes the tasks' header taller (spec R-17).
     static let taskPickerExtra: CGFloat = 6
     /// A badge's hover list holds this many notifications at most; more than fit scroll (spec B-10e).

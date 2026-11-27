@@ -49,6 +49,10 @@
 	<string>Wingmate shows your upcoming events in the notch.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Wingmate looks up the caller's phone number to send them a text.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Wingmate's Cleaner lists files over 500 MB on your Desktop so you can move them to the Trash.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Wingmate's Cleaner lists files over 500 MB in your Documents so you can move them to the Trash.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
 	<string>Wingmate puts a file you just downloaded into the Tray when the notch opens.</string>
 	<key>NSHumanReadableCopyright</key>

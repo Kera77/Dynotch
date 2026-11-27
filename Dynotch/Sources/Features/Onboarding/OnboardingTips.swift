@@ -67,7 +67,8 @@ enum OnboardingTips {
         "notes": "Your Apple Notes: pick a folder and a note on the left, or write a draft and save it to Notes. "
             + "Edits save by themselves; ⌘B, ⌘I and the Aa menu format text, ⇧⌘L makes a checklist.",
         "reminders": "Click New task at the end of a list and type: “tomorrow 9” sets the date. Click the "
-            + "circle to complete a task, the i for its details; each column's header picks what it shows.",
+            + "circle to complete a task, the i for its details; each column's header picks what it shows. "
+            + "An overdue task stays in a thin row under the closed notch until you complete it, dismiss it or click Later.",
         "claudeChat": "Ask Claude or ChatGPT; the header picks the provider, the model and a template. Add the "
             + "clipboard, selected text or a file above the field. ⌃⌥A opens it from anywhere, Insert pastes an answer.",
         "claudeUsage": "How much of your Claude or ChatGPT limits is used and when they reset. Show at notch keeps "
@@ -75,11 +76,13 @@ enum OnboardingTips {
             + "(Settings › General › AI usage accounts) Auto shows the one in use, or pick one. Hover the ring to see your "
             + "running Claude Code sessions; a new session drops them down for a few seconds (flick up to hide). "
             + "Both can be turned off in Settings › General › AI usage.",
-        "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished and how long. Click one to "
-            + "bring its window forward; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
+        "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished, how long and what each is doing. "
+            + "Click one to "
+            + "bring its window forward, also from the usage ring's "
+            + "drop-down; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Clean on the Disk card opens the Cleaner: leftovers of removed apps, caches, and removing an app "
-            + "with its files, all to the Trash. ‹ Stats or a pinch brings you back. "
+            + "with its files (Uninstall in its row), and files over 500 MB, all to the Trash. ‹ Stats or a pinch brings you back. "
             + "Options picks what shows beside the closed notch and which warnings you get; "
             + "a warning's drop-down lists the five apps using the most, each with its own quit.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "

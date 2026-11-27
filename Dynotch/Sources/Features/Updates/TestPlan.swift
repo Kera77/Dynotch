@@ -13,6 +13,58 @@ struct TestPlanItem: Sendable, Hashable, Identifiable {
 /// What to test in each test build (spec TL-1). The release writes the owner's test list from here.
 enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
+        "1.8.7": [
+            TestPlanItem(
+                id: "overdue-row", group: "Tasks",
+                text: "An overdue task: one thin red row under the notch (oldest task, +N); hovering it opens the tasks list.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "overdue-later", group: "Tasks",
+                text: "There an overdue task has a clock (Later: back in an hour), an X (gone until its date changes) and the circle.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "task-colour", group: "Tasks",
+                text: "The task counter turns orange an hour before a timed task is due, red while one is overdue.",
+                log: "reminders"
+            ),
+            TestPlanItem(
+                id: "session-click", group: "AI sessions",
+                text: "Hover the usage ring: click a session row, its app comes forward with the project's window.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "session-detail", group: "AI sessions",
+                text: "Session rows show the app's icon and a second line: the step while working, the answer's first line when finished.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
+                id: "month-tile", group: "Home",
+                text: "The 1x2 Month tile is as big as the Ask tile and does not overlap its neighbours, also with the notch made small.",
+                log: "home"
+            ),
+            TestPlanItem(
+                id: "cleaner-row-uninstall", group: "Cleaner",
+                text: "Apps › Uninstall in a row asks in the row, then moves the app with its files to the Trash without opening it.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-quit", group: "Cleaner",
+                text: "A running app has a blue Quit in its row and details; it quits without asking, then Uninstall shows.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-detail-column", group: "Cleaner",
+                text: "Click an app: its details slide in from the right (Quit/Uninstall, size, files); X or a swipe closes them.",
+                log: "cleaner"
+            ),
+            TestPlanItem(
+                id: "cleaner-bar-large", group: "Cleaner",
+                text: "Disk bar, last used dates with Size/Last used sort, Large files tab (files over 500 MB), bigger text.",
+                log: "cleaner"
+            )
+        ],
         "1.8.6": [
             TestPlanItem(
                 id: "task-month-scroll", group: "Tasks",

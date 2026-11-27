@@ -13,6 +13,7 @@ struct CleanerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             header
+            CleanerDiskBar(service: service)
             Group {
                 if service.isScanning && !service.hasScanned {
                     scanning
@@ -21,6 +22,7 @@ struct CleanerView: View {
                     case .leftovers: CleanerLeftoversList(service: service)
                     case .caches: CleanerCachesList(service: service)
                     case .apps: CleanerAppsList(service: service)
+                    case .large: CleanerLargeList(service: service)
                     }
                 }
             }
@@ -35,17 +37,22 @@ struct CleanerView: View {
         }
         .onDisappear { service.isViewed = false }
         .onChange(of: service.tab) { confirming = false }
+        .onChange(of: service.asksToUninstall) { _, asks in
+            guard asks else { return }
+            confirming = true
+            service.asksToUninstall = false
+        }
     }
 
     private var header: some View {
         HStack(spacing: 8) {
             Button(action: back) {
                 HStack(spacing: 3) {
-                    Image(systemName: "chevron.left").font(.notch(size: 11, weight: .semibold))
-                    Text("Stats").font(.notch(size: 12, weight: .medium))
+                    Image(systemName: "chevron.left").font(.notch(size: 12, weight: .semibold))
+                    Text("Stats").font(.notch(size: 13, weight: .medium))
                 }
                 .padding(.horizontal, 8)
-                .frame(height: 22)
+                .frame(height: 24)
                 .background(Capsule().fill(Theme.fill))
                 .contentShape(Capsule())
             }
@@ -53,15 +60,8 @@ struct CleanerView: View {
             .foregroundStyle(Color.white.level(0.8))
             .help("Back to the Stats")
             Text("Cleaner")
-                .font(.notch(size: 13, weight: .semibold))
+                .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
-            if service.totalSpace > 0 {
-                Text("\(CleanerService.format(service.freeSpace)) free of \(CleanerService.format(service.totalSpace))")
-                    .font(.notch(size: 11))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.white.level(0.5))
-                    .lineLimit(1)
-            }
             Spacer(minLength: 4)
             CapsulePicker(items: CleanerService.Tab.allCases, selection: $service.tab, title: \.title)
             if service.isScanning {
@@ -69,7 +69,7 @@ struct CleanerView: View {
             } else {
                 Button("Scan") { service.scan() }
                     .buttonStyle(.notch)
-                    .font(.notch(size: 11, weight: .semibold))
+                    .font(.notch(size: 12, weight: .semibold))
                     .foregroundStyle(Color.white.level(0.75))
                     .frame(width: 40)
             }
@@ -80,7 +80,7 @@ struct CleanerView: View {
     private var busy: some View {
         VStack(spacing: 8) {
             ProgressView().controlSize(.small)
-            Text("Cleaning…").font(.notch(size: 12, weight: .medium)).foregroundStyle(Color.white.level(0.75))
+            Text("Cleaning…").font(.notch(size: 13, weight: .medium)).foregroundStyle(Color.white.level(0.75))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous).fill(Color.black.opacity(0.6)))
@@ -92,7 +92,7 @@ struct CleanerView: View {
     private var scanning: some View {
         VStack(spacing: 8) {
             ProgressView().controlSize(.small)
-            Text("Scanning…").font(.notch(size: 12)).foregroundStyle(Color.white.level(0.6))
+            Text("Scanning…").font(.notch(size: 13)).foregroundStyle(Color.white.level(0.6))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -103,32 +103,33 @@ struct CleanerView: View {
         HStack(spacing: 8) {
             if confirming {
                 Text("Move \(pending.count) \(pending.count == 1 ? "item" : "items") (\(CleanerService.format(size))) to the Trash?")
-                    .font(.notch(size: 12, weight: .semibold))
+                    .font(.notch(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer(minLength: 4)
                 Button("Cancel") { confirming = false }
                     .buttonStyle(.notch)
-                    .font(.notch(size: 11))
+                    .font(.notch(size: 12))
                     .foregroundStyle(Color.white.level(0.7))
                 pill("Move to Trash", color: Theme.red) {
                     confirming = false
                     withAnimation(Motion.quick) { service.trashPending() }
                 }
+                .disabled(service.tab == .apps && service.app.map(service.isRunning) == true)
             } else {
                 status
                 Spacer(minLength: 4)
-                if !pending.isEmpty {
+                // On the Apps tab Uninstall is in the row or the details (spec TT-17, TT-19).
+                if !pending.isEmpty, service.tab != .apps {
                     Text("\(pending.count) selected · \(CleanerService.format(size))")
-                        .font(.notch(size: 11))
+                        .font(.notch(size: 12))
                         .monospacedDigit()
                         .foregroundStyle(Color.white.level(0.6))
-                    pill(service.tab == .apps ? "Uninstall" : "Clean", color: Theme.blue) { confirming = true }
-                        .disabled(service.tab == .apps && service.app.map(service.isRunning) == true)
+                    pill("Clean", color: Theme.blue) { confirming = true }
                 }
             }
         }
-        .frame(height: 24)
+        .frame(height: 26)
     }
 
     @ViewBuilder private var status: some View {
@@ -139,7 +140,7 @@ struct CleanerView: View {
             } icon: {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.green)
             }
-            .font(.notch(size: 11, weight: .medium))
+            .font(.notch(size: 12, weight: .medium))
             .foregroundStyle(Color.white.level(0.75))
             .lineLimit(1)
         }
@@ -148,10 +149,10 @@ struct CleanerView: View {
     private func pill(_ title: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
             .buttonStyle(.notch)
-            .font(.notch(size: 11, weight: .semibold))
+            .font(.notch(size: 12, weight: .semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
-            .frame(height: 22)
+            .frame(height: 24)
             .background(Capsule().fill(color))
     }
 }

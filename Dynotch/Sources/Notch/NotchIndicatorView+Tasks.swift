@@ -15,7 +15,7 @@ struct TasksCounter: View {
                 .font(.notch(size: 11, weight: .semibold, design: .rounded))
                 .monospacedDigit()
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(Self.color(for: count.tone))
         .frame(width: width, height: IndicatorLayout.capsuleHeight)
         .contentShape(Rectangle())
         .onTapGesture(perform: open)
@@ -23,13 +23,25 @@ struct TasksCounter: View {
         .accessibilityLabel(count.text)
         .accessibilityAddTraits(.isButton)
     }
+
+    /// Red with an overdue task, orange within the hour before one is due (spec R-27).
+    static func color(for tone: TaskTone) -> Color {
+        switch tone {
+        case .normal: .white
+        case .soon: .orange
+        case .overdue: Theme.red
+        }
+    }
 }
 
 extension NotchIndicatorView {
-    /// The counted tasks under their header (spec R-12, R-17).
+    /// The counted tasks under their header (spec R-12, R-17); without hover the overdue ones in
+    /// thin rows (spec R-26).
     @ViewBuilder
     func tasksLabel(_ count: TaskCount, item: IndicatorItem) -> some View {
-        if let tasks = taskIndicator {
+        if !showsTaskList, !count.overdue.isEmpty {
+            OverdueTaskRows(tasks: count.overdue)
+        } else if let tasks = taskIndicator {
             TasksDropDown(tasks: tasks, count: count) {
                 HStack(spacing: 8) {
                     OpenModuleButton(help: "Open Tasks", action: openTasks)
@@ -58,6 +70,7 @@ struct TasksDropDown<Dismiss: View>: View {
                 VStack(spacing: 0) {
                     ForEach(items) { task in
                         TaskDropDownRow(task: task) { tasks.complete(task) }
+                            .overdueActions(tasks.isOverdueNotice(task) ? tasks : nil, task: task)
                     }
                 }
             }
@@ -117,6 +130,92 @@ struct OpenModuleButton: View {
         .onHover { isHovered = $0 }
         .help(help)
         .accessibilityLabel(help)
+    }
+}
+
+/// The overdue tasks under the closed notch in one thin row: the oldest one, and "+N" for the
+/// rest (spec R-26, R-28). Hovering it drops the tasks' list down in its place.
+struct OverdueTaskRows: View {
+    let tasks: [ReminderItem]
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "circle")
+                .font(.notch(size: 13))
+                .foregroundStyle(Theme.red)
+            Text(tasks.first?.title ?? "")
+                .font(.notch(size: 12, weight: .medium))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Spacer(minLength: 6)
+            if let task = tasks.first, let due = ReminderLogic.dueText(for: task, now: Date()) {
+                Text("Overdue · \(due)")
+                    .font(.notch(size: 11))
+                    .foregroundStyle(Theme.red)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            if tasks.count > 1 {
+                Text("+\(tasks.count - 1)")
+                    .font(.notch(size: 11, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .frame(height: 16)
+                    .background(Capsule().fill(Theme.red.opacity(0.35)))
+                    .fixedSize()
+            }
+        }
+        .padding(.horizontal, 14)
+        .frame(height: IndicatorLayout.overdueRowHeight)
+        .padding(.bottom, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(tasks.count) overdue task\(tasks.count == 1 ? "" : "s")")
+    }
+}
+
+private extension View {
+    /// Later and X on an overdue task's row in the drop-down (spec R-26).
+    @ViewBuilder
+    func overdueActions(_ tasks: TaskIndicator?, task: ReminderItem) -> some View {
+        if let tasks {
+            HStack(spacing: 0) {
+                self
+                OverdueTaskButtons(task: task, tasks: tasks)
+                    .padding(.trailing, 12)
+            }
+        } else {
+            self
+        }
+    }
+}
+
+/// Later (back in an hour) and X (gone until its due date changes) on an overdue task (spec R-26).
+private struct OverdueTaskButtons: View {
+    let task: ReminderItem
+    let tasks: TaskIndicator
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button { withAnimation(Motion.quick) { tasks.remindLater(task) } } label: {
+                Image(systemName: "clock")
+                    .font(.notch(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.level(0.6))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.notch)
+            .help("Remind me in an hour")
+            .accessibilityLabel("Later")
+            Button { withAnimation(Motion.quick) { tasks.dismissOverdue(task) } } label: {
+                Image(systemName: "xmark")
+                    .font(.notch(size: 10, weight: .semibold))
+                    .foregroundStyle(Color.white.level(0.55))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.notch)
+            .help("Don't show this overdue task under the notch")
+            .accessibilityLabel("Dismiss")
+        }
     }
 }
 

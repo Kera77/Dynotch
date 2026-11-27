@@ -5,6 +5,8 @@ struct CleanerResult: Sendable {
     var leftovers: [CleanerGroup] = []
     var caches: [CleanerItem] = []
     var apps: [CleanerApp] = []
+    /// Files over 500 MB in the owner's folders, looked for only on the Large files tab (spec TT-21).
+    var largeFiles: [CleanerItem] = []
     /// A folder could not be read: Full Disk Access would show more (spec TT-6).
     var needsFullDiskAccess = false
 }
@@ -100,13 +102,40 @@ extension CleanerScan {
         return urls.map { CleanerItem(url: $0, size: size(of: $0)) }.sorted { $0.size > $1.size }
     }
 
+    // MARK: - Large files (spec TT-21)
+
+    static let largeFileMinimum: Int64 = 500_000_000
+    static var largeFolders: [URL] {
+        ["Downloads", "Desktop", "Documents", "Movies", "Library/Containers"].map { home.appending(path: $0) }
+    }
+
+    /// Files over 500 MB, largest first, at most 200; inside app bundles and hidden files are skipped.
+    static func largeFiles() -> [CleanerItem] {
+        let keys: [URLResourceKey] = [.isRegularFileKey, .totalFileAllocatedSizeKey, .contentModificationDateKey]
+        var found: [CleanerItem] = []
+        for folder in largeFolders {
+            guard let walk = FileManager.default.enumerator(
+                at: folder, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles, .skipsPackageDescendants],
+                errorHandler: { _, _ in true }
+            ) else { continue }
+            for case let file as URL in walk {
+                guard let values = try? file.resourceValues(forKeys: Set(keys)), values.isRegularFile == true else { continue }
+                let size = Int64(values.totalFileAllocatedSize ?? 0)
+                guard size >= largeFileMinimum else { continue }
+                found.append(CleanerItem(url: file, size: size, modified: values.contentModificationDate))
+            }
+        }
+        return Array(found.sorted { $0.size > $1.size }.prefix(200))
+    }
+
     /// Whether `url` lies where the cleaner may remove things: the home Library or an app
-    /// folder, never the system (spec TT-5).
-    static func mayRemove(_ url: URL) -> Bool {
+    /// folder, never the system (spec TT-5); a large file also in the owner's folders (spec TT-21).
+    static func mayRemove(_ url: URL, largeFile: Bool = false) -> Bool {
         let path = url.standardizedFileURL.path
         guard !path.hasPrefix("/System/"), !path.contains("/com.apple.") else { return false }
         let libraryPath = library.path + "/"
         let allowed = [libraryPath, home.appending(path: "Applications").path + "/", "/Applications/"] + toolCaches.map(\.path)
+            + (largeFile ? largeFolders.map { $0.path + "/" } : [])
         return allowed.contains { path.hasPrefix($0) } && path != library.path
     }
 }

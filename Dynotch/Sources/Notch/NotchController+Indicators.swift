@@ -171,9 +171,13 @@ extension NotchController {
         // The usage dropped down for a new session is under the pointer like a hovered one (spec CS-7).
         let popup = notices.sessions.popupShown && notices.notice == nil
             ? items.firstIndex { if case .usage = $0 { true } else { false } } : nil
-        guard let index = model.hoveredIndicator.flatMap({ items.indices.contains($0) ? $0 : nil }) ?? announced ?? popup
-        else { return nil }
-        let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[index].labelHeight)
+        // Overdue tasks' thin rows: moving onto them drops the tasks' list down (spec R-26).
+        let overdue = notices.notice == nil && !settings.noticesBeside
+            ? items.firstIndex { if case .tasks(let count) = $0 { !count.overdue.isEmpty } else { false } } : nil
+        let hovered = model.hoveredIndicator.flatMap { items.indices.contains($0) ? $0 : nil }
+        guard let index = hovered ?? announced ?? popup ?? overdue else { return nil }
+        let height = hovered == nil ? items[index].restingLabelHeight : items[index].labelHeight
+        let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point) ? index : nil
     }

@@ -7,6 +7,8 @@ struct CleanerItem: Sendable, Hashable, Identifiable {
     let size: Int64
     /// Belongs to a running app: listed, never selected by default (spec TT-3).
     var inUse = false
+    /// A large file's last change (spec TT-21).
+    var modified: Date?
 
     var id: URL { url }
 }
@@ -26,6 +28,8 @@ struct CleanerApp: Sendable, Hashable, Identifiable {
     let name: String
     let bundleID: String
     let size: Int64
+    /// When it was last opened, from Spotlight (spec TT-20).
+    var lastUsed: Date?
 
     var id: URL { url }
 }
@@ -118,9 +122,18 @@ enum CleanerScan {
             .filter { !$0.path.hasPrefix("/System/") }
             .compactMap { url -> CleanerApp? in
                 guard let id = Bundle(url: url)?.bundleIdentifier, !isProtected(id) else { return nil }
-                return CleanerApp(url: url, name: url.deletingPathExtension().lastPathComponent, bundleID: id, size: size(of: url))
+                return CleanerApp(
+                    url: url, name: url.deletingPathExtension().lastPathComponent, bundleID: id, size: size(of: url),
+                    lastUsed: lastUsed(of: url)
+                )
             }
             .sorted { $0.size > $1.size }
+    }
+
+    /// When the app was last opened, from Spotlight's `kMDItemLastUsedDate` (spec TT-20).
+    static func lastUsed(of url: URL) -> Date? {
+        guard let item = MDItemCreateWithURL(nil, url as CFURL) else { return nil }
+        return MDItemCopyAttribute(item, kMDItemLastUsedDate) as? Date
     }
 
     // MARK: - Sizes

@@ -11,18 +11,37 @@ final class CleanerService {
     enum NotchGlance: Equatable { case cleaning, done }
 
     enum Tab: String, CaseIterable, Hashable {
-        case leftovers, caches, apps
+        case leftovers, caches, apps, large
 
         var title: String {
             switch self {
             case .leftovers: "Leftovers"
             case .caches: "Caches"
             case .apps: "Apps"
+            case .large: "Large files"
             }
         }
     }
 
-    var tab: Tab = .leftovers
+    /// The Apps list's order (spec TT-20).
+    enum AppSort: String, CaseIterable, Hashable {
+        case size, lastUsed
+
+        var title: String { self == .size ? "Size" : "Last used" }
+    }
+
+    var tab: Tab = .leftovers {
+        didSet { if tab == .large { scanLargeIfNeeded() } }
+    }
+    var appSort: AppSort = .size
+    /// The app whose row asks "Uninstall … and its files?" (spec TT-17).
+    var askingUninstall: CleanerApp?
+    /// Looking for large files (spec TT-21).
+    private(set) var isScanningLarge = false
+    private(set) var hasScannedLarge = false
+    /// Changes when an app launches or quits, so Quit and Uninstall swap (spec TT-17).
+    private var runningChanges = 0
+    @ObservationIgnored private var workspaceObservers: [NSObjectProtocol] = []
     private(set) var result = CleanerResult()
     private(set) var hasScanned = false
     private(set) var isScanning = false
@@ -53,6 +72,7 @@ final class CleanerService {
         case .leftovers: result.leftovers.flatMap(\.items).filter { selected.contains($0.url) }
         case .caches: result.caches.filter { selected.contains($0.url) }
         case .apps: appFiles.filter { selected.contains($0.url) }
+        case .large: result.largeFiles.filter { selected.contains($0.url) }
         }
     }
 
@@ -64,8 +84,10 @@ final class CleanerService {
 
     var shownApps: [CleanerApp] {
         let query = appSearch.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return result.apps }
-        return result.apps.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        let apps = query.isEmpty ? result.apps : result.apps.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        guard appSort == .lastUsed else { return apps }
+        // The longest unused first; never opened before them all.
+        return apps.sorted { ($0.lastUsed ?? .distantPast) < ($1.lastUsed ?? .distantPast) }
     }
 
     func scanIfNeeded() {
@@ -78,14 +100,19 @@ final class CleanerService {
         freed = nil
         refreshSpace()
         let running = Set(NSWorkspace.shared.runningApplications.compactMap { $0.bundleIdentifier?.lowercased() })
+        watchRunningApps()
         Task {
-            let result = await Task.detached(priority: .utility) { CleanerScan.scan(running: running) }.value
+            var result = await Task.detached(priority: .utility) { CleanerScan.scan(running: running) }.value
+            result.largeFiles = self.result.largeFiles
             self.result = result
             self.selected = Set(result.leftovers.flatMap(\.items).map(\.url))
                 .union(result.caches.filter { !$0.inUse && $0.size >= CleanerScan.selectedCache }.map(\.url))
             self.hasScanned = true
             self.isScanning = false
-            if self.isCleaning { self.finishCleaning() }
+            if self.isCleaning {
+                if self.hasScannedLarge { self.hasScannedLarge = false; self.scanLargeIfNeeded() }
+                self.finishCleaning()
+            }
             CleanerLog.write("scan: \(result.leftovers.count) leftover apps, \(result.caches.count) caches, "
                 + "\(result.apps.count) apps, fda=\(result.needsFullDiskAccess)")
         }
@@ -111,12 +138,54 @@ final class CleanerService {
         }
     }
 
-    func isRunning(_ app: CleanerApp) -> Bool {
-        !NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleID).isEmpty
+    /// Uninstall in the details: the question in the footer with the ticked files (spec TT-19).
+    var asksToUninstall = false
+
+    /// Uninstall confirmed in an app's row: the app and all its files to the Trash, without
+    /// opening it (spec TT-17).
+    func uninstallFromRow(_ app: CleanerApp) {
+        askingUninstall = nil
+        guard !isRunning(app), !isCleaning else { return }
+        if self.app == app { pick(nil) }
+        Task {
+            let files = await Task.detached(priority: .userInitiated) { CleanerScan.files(of: app) }.value
+            trash([CleanerItem(url: app.url, size: app.size)] + files, tab: .apps)
+        }
     }
 
+    func isRunning(_ app: CleanerApp) -> Bool {
+        _ = runningChanges
+        return !NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleID).isEmpty
+    }
+
+    /// Quit, blue, without a question (spec TT-17).
     func quit(_ app: CleanerApp) {
         NSRunningApplication.runningApplications(withBundleIdentifier: app.bundleID).forEach { $0.terminate() }
+    }
+
+    private func watchRunningApps() {
+        guard workspaceObservers.isEmpty else { return }
+        let center = NSWorkspace.shared.notificationCenter
+        workspaceObservers = [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification]
+            .map { name in
+                center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.runningChanges += 1 }
+                }
+            }
+    }
+
+    // MARK: - Large files (spec TT-21)
+
+    func scanLargeIfNeeded() {
+        guard !hasScannedLarge, !isScanningLarge else { return }
+        isScanningLarge = true
+        Task {
+            let files = await Task.detached(priority: .utility) { CleanerScan.largeFiles() }.value
+            result.largeFiles = files
+            isScanningLarge = false
+            hasScannedLarge = true
+            CleanerLog.write("large files: \(files.count)")
+        }
     }
 
     // MARK: - Moving to the Trash (spec TT-5)
@@ -129,10 +198,12 @@ final class CleanerService {
 
     /// Off the main thread, the Cleaner covered until the list is scanned again (spec TT-12).
     func trashPending() {
+        trash(pending, tab: tab)
+    }
+
+    private func trash(_ all: [CleanerItem], tab: Tab) {
         guard !isCleaning else { return }
-        let all = pending
-        let items = all.filter { CleanerScan.mayRemove($0.url) }
-        let tab = tab
+        let items = all.filter { CleanerScan.mayRemove($0.url, largeFile: tab == .large) }
         isCleaning = true
         glanceTimer?.cancel()
         notchGlance = .cleaning
@@ -143,7 +214,7 @@ final class CleanerService {
             selected.subtract(items.map(\.url))
             freed = freedNow
             failed = failedNow
-            if tab == .apps { app = nil; appFiles = [] }
+            if tab == .apps, let app, items.contains(where: { $0.url == app.url }) { self.app = nil; appFiles = [] }
             scanAfterClean()
         }
     }

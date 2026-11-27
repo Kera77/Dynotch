@@ -15,7 +15,8 @@ enum OnboardingModuleTexts {
         .notifications: "Your messages and alerts in one place, grouped by app, also from Beeper, Google Chat, Teams and Mail. "
             + "New ones drop down under the notch, and you can reply or dismiss them right there.",
         .reminders: "Your Apple Reminders as a quick to-do list. "
-            + "Add one with New task at the end of a list; times like “tomorrow 9” set the due date.",
+            + "Add one with New task at the end of a list; times like “tomorrow 9” set the due date. "
+            + "Overdue tasks wait under the closed notch, and the counter turns orange an hour before one is due.",
         .notes: "Apple Notes in the notch, with formatting and to-do lists. "
             + "Jot something down without switching apps; ⇧⌘L turns lines into a checklist.",
         .calculator: "A calculator that is always one hover away. "

@@ -1,6 +1,17 @@
 import SwiftUI
 
 extension NotchView {
+    /// The earlier notice's row under the shown one (spec E-30).
+    var secondNoticeHeight: CGFloat {
+        shownNotice != nil && notices.second != nil && !settings.noticesBeside ? NotificationService.secondRowHeight : 0
+    }
+
+    /// Overdue tasks stay in thin rows under the counter, unless a notice stands there (spec R-26).
+    var overdueTasksIndex: Int? {
+        guard notices.notice == nil, !settings.noticesBeside else { return nil }
+        return indicatorItems.firstIndex { if case .tasks(let count) = $0 { !count.overdue.isEmpty } else { false } }
+    }
+
     /// The pointer is on the recording's dot (spec SH-5b).
     var isRecordingHovered: Bool {
         guard let index = model.hoveredIndicator, indicatorItems.indices.contains(index) else { return false }
@@ -52,6 +63,14 @@ extension NotchView {
         row.showsMusicPlayer = model.hoveredIndicator != nil
         row.stats = stats
         row.usagePopup = notices.sessions.popupShown
+        row.showsTaskList = model.hoveredIndicator != nil
+        row.openSession = { session in
+            withAnimation(Self.quickAnimation) {
+                model.hoveredIndicator = nil
+                if notices.sessions.popupShown { notices.sessions.closePopup() }
+            }
+            openClaudeSession(session)
+        }
         return row
     }
 

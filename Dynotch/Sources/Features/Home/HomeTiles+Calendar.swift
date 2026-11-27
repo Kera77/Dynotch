@@ -222,6 +222,14 @@ struct HomeMonthGrid: View {
     let compact: Bool
 
     var body: some View {
+        if compact {
+            HomeMonthStrip(calendar: calendar, pager: pager)
+        } else {
+            full
+        }
+    }
+
+    @ViewBuilder private var full: some View {
         let month = pager.month()
         let days = Self.cells(of: month)
         let today = Calendar.current.startOfDay(for: Date())

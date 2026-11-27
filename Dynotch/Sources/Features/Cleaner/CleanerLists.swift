@@ -47,66 +47,6 @@ struct CleanerCachesList: View {
     }
 }
 
-/// The installed apps; one picked shows its files to remove with it (spec TT-4).
-struct CleanerAppsList: View {
-    @Bindable var service: CleanerService
-
-    var body: some View {
-        if let app = service.app {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Button { service.pick(nil) } label: { Image(systemName: "chevron.left") }
-                        .buttonStyle(.notch)
-                        .foregroundStyle(Color.white.level(0.7))
-                    AppIcon(url: app.url, size: 24)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(app.name).font(.notch(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                        Text(CleanerService.format(app.size)).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.5))
-                    }
-                    Spacer()
-                    if service.isRunning(app) {
-                        Text("Running").font(.notch(size: 11)).foregroundStyle(Color.white.level(0.55))
-                        Button("Quit") { service.quit(app) }
-                            .buttonStyle(.notch)
-                            .font(.notch(size: 11, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                }
-                CleanerScroll(service: service, isEmpty: service.appFiles.isEmpty, empty: "No other files found") {
-                    ForEach(service.appFiles) { item in
-                        CleanerRow(service: service, urls: [item.url], title: item.url.lastPathComponent,
-                                   detail: CleanerCachesList.place(of: item.url), size: item.size)
-                    }
-                }
-            }
-        } else {
-            VStack(spacing: 6) {
-                TextField("Search apps", text: $service.appSearch)
-                    .textFieldStyle(.plain)
-                    .font(.notch(size: 12))
-                    .padding(.horizontal, 8)
-                    .frame(height: 24)
-                    .background(RoundedRectangle(cornerRadius: Theme.Radius.small).fill(Theme.fill))
-                CleanerScroll(service: service, isEmpty: service.shownApps.isEmpty, empty: "No apps found") {
-                    ForEach(service.shownApps) { app in
-                        HStack(spacing: 8) {
-                            AppIcon(url: app.url, size: 18)
-                            Text(app.name).font(.notch(size: 12, weight: .medium)).foregroundStyle(.white).lineLimit(1)
-                            Spacer()
-                            Text(CleanerService.format(app.size))
-                                .font(.notch(size: 11)).monospacedDigit().foregroundStyle(Color.white.level(0.55))
-                        }
-                        .padding(.horizontal, 6)
-                        .frame(height: 26)
-                        .contentShape(Rectangle())
-                        .onTapGesture { service.pick(app) }
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// A list that grows with the module, with the Full Disk Access hint at its end (spec TT-6).
 struct CleanerScroll<Content: View>: View {
     let service: CleanerService
@@ -119,7 +59,7 @@ struct CleanerScroll<Content: View>: View {
             LazyVStack(alignment: .leading, spacing: 2) {
                 if isEmpty {
                     Text(service.hasScanned ? empty : "Click Scan to look through your Mac")
-                        .font(.notch(size: 12))
+                        .font(.notch(size: 13))
                         .foregroundStyle(Color.white.level(0.5))
                         .frame(maxWidth: .infinity)
                         .padding(.top, 24)
@@ -132,7 +72,7 @@ struct CleanerScroll<Content: View>: View {
                         if let url = URL(string: link) { NSWorkspace.shared.open(url) }
                     } label: {
                         Label("Some folders need Full Disk Access", systemImage: "lock.shield")
-                            .font(.notch(size: 11))
+                            .font(.notch(size: 12))
                             .foregroundStyle(Color.white.level(0.55))
                     }
                     .buttonStyle(.notch)
@@ -162,15 +102,15 @@ struct CleanerRow: View {
             Button { service.toggle(urls) } label: {
                 // Round, not square (spec TT-11).
                 Image(systemName: ticked ? "checkmark.circle.fill" : some ? "minus.circle.fill" : "circle")
-                    .font(.notch(size: 13))
+                    .font(.notch(size: 14))
                     .foregroundStyle(ticked || some ? Theme.blue : Color.white.level(0.45))
             }
             .buttonStyle(.notch)
-            if let symbol { Image(systemName: symbol).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.55)) }
-            Text(title).font(.notch(size: 12, weight: .medium)).foregroundStyle(.white).lineLimit(1).truncationMode(.middle)
-            Text(detail).font(.notch(size: 11)).foregroundStyle(Color.white.level(0.45)).lineLimit(1).layoutPriority(-1)
+            if let symbol { Image(systemName: symbol).font(.notch(size: 12)).foregroundStyle(Color.white.level(0.55)) }
+            Text(title).font(.notch(size: 13, weight: .medium)).foregroundStyle(.white).lineLimit(1).truncationMode(.middle)
+            Text(detail).font(.notch(size: 12)).foregroundStyle(Color.white.level(0.45)).lineLimit(1).layoutPriority(-1)
             Spacer(minLength: 4)
-            Text(CleanerService.format(size)).font(.notch(size: 11)).monospacedDigit().foregroundStyle(Color.white.level(0.6))
+            Text(CleanerService.format(size)).font(.notch(size: 12)).monospacedDigit().foregroundStyle(Color.white.level(0.6))
             if let disclosed {
                 Image(systemName: disclosed ? "chevron.down" : "chevron.right")
                     .font(.notch(size: 9, weight: .semibold))
@@ -179,14 +119,47 @@ struct CleanerRow: View {
             }
         }
         .padding(.horizontal, 6)
-        .frame(height: 24)
+        .frame(height: 28)
         .contentShape(Rectangle())
         .onTapGesture { if disclosed != nil { disclose() } else { service.toggle(urls) } }
     }
 }
 
+/// Files over 500 MB in the owner's folders, none ticked by default (spec TT-21).
+struct CleanerLargeList: View {
+    @Bindable var service: CleanerService
+
+    var body: some View {
+        if service.isScanningLarge {
+            VStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Looking for large files…").font(.notch(size: 13)).foregroundStyle(Color.white.level(0.6))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            CleanerScroll(service: service, isEmpty: service.result.largeFiles.isEmpty, empty: "No files over 500 MB") {
+                ForEach(service.result.largeFiles) { item in
+                    CleanerRow(
+                        service: service, urls: [item.url], title: item.url.lastPathComponent,
+                        detail: Self.detail(item), size: item.size
+                    )
+                    .contextMenu {
+                        Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([item.url]) }
+                    }
+                }
+            }
+        }
+    }
+
+    static func detail(_ item: CleanerItem) -> String {
+        let place = CleanerCachesList.place(of: item.url)
+        guard let modified = item.modified else { return place }
+        return place + " · " + modified.formatted(.relative(presentation: .named))
+    }
+}
+
 /// An app's own icon from its bundle.
-private struct AppIcon: View {
+struct AppIcon: View {
     let url: URL
     let size: CGFloat
 

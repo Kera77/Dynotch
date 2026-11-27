@@ -44,3 +44,41 @@ struct CleanerTests {
         #expect(geometry.devicePeekSize(for: event).width == notch)
     }
 }
+
+/// The disk bar, the apps' last use, large files and the sessions' step (spec TT-18, TT-20, TT-21, CS-11).
+@MainActor
+struct CleanerExtrasTests {
+    @Test func diskBarAddsUpToTheDisk() {
+        let found = CleanerDiskBar.Found(apps: 30, caches: 10, leftovers: 5)
+        let parts = CleanerDiskBar.parts(total: 200, free: 100, found: found)
+        #expect(parts.map(\.title) == ["Apps", "Caches", "Leftovers", "Other", "Free"])
+        #expect(parts.reduce(0) { $0 + $1.size } == 200)
+        #expect(CleanerDiskBar.parts(total: 200, free: 100, found: nil).map(\.size) == [100, 100])
+    }
+
+    @Test func lastUsedWords() {
+        let now = Date()
+        #expect(CleanerAppRow.lastUsed(nil, now: now) == "Never opened")
+        #expect(CleanerAppRow.lastUsed(now.addingTimeInterval(-3600), now: now) == "Opened today")
+        #expect(CleanerAppRow.lastUsed(now.addingTimeInterval(-125 * 86_400), now: now) == "Not opened for 4 months")
+    }
+
+    @Test func largeFilesOnlyFromTheirTab() {
+        let file = CleanerScan.home.appending(path: "Downloads/big.dmg")
+        #expect(!CleanerScan.mayRemove(file))
+        #expect(CleanerScan.mayRemove(file, largeFile: true))
+        #expect(!CleanerScan.mayRemove(URL(filePath: "/System/big.dmg"), largeFile: true))
+    }
+
+    @Test func sessionStepAndAnswerFromTheTranscript() {
+        let lines = [
+            ###"{"type":"assistant","message":{"content":[{"type":"text","text":"## Done: added the rows\nMore"}]}}"###,
+            #"{"type":"user","message":{"content":"next"}}"#,
+            #"{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Edit","input":{"file_path":"/a/b/NotchView.swift"}}]}}"#
+        ]
+        let reading = ClaudeSessionActivity.parse(lines.joined(separator: "\n"))
+        #expect(reading.activity == "Editing NotchView.swift")
+        #expect(reading.answer == "Done: added the rows")
+        #expect(ClaudeSessionActivity.describe(tool: "Bash", input: ["description": "Build the app"]) == "Running: Build the app")
+    }
+}

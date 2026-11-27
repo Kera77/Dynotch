@@ -10,12 +10,21 @@ struct TaskCount: Equatable, Sendable {
     var listRows: Int?
     /// The tasks are in several lists: the header chooses between them (spec R-17).
     var isSplit = false
+    /// Red with an overdue task, orange with one due within the hour (spec R-27).
+    var tone: TaskTone = .normal
+    /// The overdue tasks written in thin rows under the counter (spec R-26).
+    var overdue: [ReminderItem] = []
 
     var rows: Int { listRows ?? count }
 
     var text: String {
         isToday ? "\(count) task\(count == 1 ? "" : "s") due today" : "\(count) open task\(count == 1 ? "" : "s")"
     }
+}
+
+/// The counter's colour (spec R-27).
+enum TaskTone: Equatable, Sendable {
+    case normal, soon, overdue
 }
 
 /// How long the × hides the counter (spec R-11).
@@ -83,6 +92,51 @@ enum TaskIndicatorLogic {
         return dated.min { $0.1 < $1.1 }?.0 ?? groups.first
     }
 
+    /// An hour before a timed due date the counter turns orange (spec R-27).
+    static let soonLead: TimeInterval = 3600
+    /// Later on an overdue task brings it back after an hour (spec R-26).
+    static let laterDelay: TimeInterval = 3600
+
+    /// Red with an overdue task, orange with one due within the hour, else white (spec R-27).
+    static func tone(_ items: [ReminderItem], now: Date, calendar: Calendar = .current) -> TaskTone {
+        if items.contains(where: { $0.isOverdue(at: now, calendar: calendar) }) { return .overdue }
+        let soon = items.contains { item in
+            guard item.dueHasTime, let due = item.due else { return false }
+            return due > now && due.timeIntervalSince(now) <= soonLead
+        }
+        return soon ? .soon : .normal
+    }
+
+    /// The overdue tasks that stay under the notch: not put away with their X (until their due
+    /// date changes) nor with Later for the hour (spec R-26). Oldest first.
+    static func overdueNotices(
+        _ items: [ReminderItem], now: Date, dismissed: [String: Double], later: [String: Date],
+        calendar: Calendar = .current
+    ) -> [ReminderItem] {
+        items.filter { item in
+            guard item.isOverdue(at: now, calendar: calendar), let due = item.due else { return false }
+            if dismissed[item.id] == due.timeIntervalSince1970 { return false }
+            return later[item.id].map { $0 <= now } ?? true
+        }
+        .sorted { ($0.due ?? now) < ($1.due ?? now) }
+    }
+
+    /// The next moment the colour or the overdue rows change by time alone.
+    static func nextChange(
+        _ items: [ReminderItem], now: Date, later: [String: Date], hiddenUntil: Date?, calendar: Calendar = .current
+    ) -> Date? {
+        var moments = Array(later.values) + [hiddenUntil].compactMap { $0 }
+        for item in items {
+            guard let due = item.due else { continue }
+            if item.dueHasTime {
+                moments += [due, due.addingTimeInterval(-soonLead)]
+            } else if let next = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: due)) {
+                moments.append(next)
+            }
+        }
+        return moments.filter { $0 > now }.min()
+    }
+
     /// The hidden counter comes back when its time is up or a task arrived meanwhile.
     static func showsAgain(hiddenUntil: Date, hiddenIDs: Set<String>, openIDs: [String], now: Date) -> Bool {
         hiddenUntil <= now || openIDs.contains { !hiddenIDs.contains($0) }
@@ -117,12 +171,19 @@ final class TaskIndicator {
         static let snooze = "taskIndicatorSnooze"
         static let hiddenUntil = "taskIndicatorHiddenUntil"
         static let hiddenIDs = "taskIndicatorHiddenIDs"
+        static let dismissed = "taskIndicatorDismissedOverdue"
+        static let later = "taskIndicatorLater"
     }
 
     private let store: RemindersStore
     private let defaults: UserDefaults
     @ObservationIgnored private var hiddenUntil: Date?
     @ObservationIgnored private var hiddenIDs: Set<String>
+    /// Overdue tasks put away with their X, by the due date they had then (spec R-26).
+    @ObservationIgnored private var dismissed: [String: Double]
+    /// Overdue tasks put away with Later, until when (spec R-26).
+    @ObservationIgnored private var later: [String: Date]
+    @ObservationIgnored private var wakeAt: Date?
     @ObservationIgnored private var changes: ChangeObservation?
     @ObservationIgnored private var wake: Task<Void, Never>?
 
@@ -133,6 +194,8 @@ final class TaskIndicator {
         snooze = (defaults.object(forKey: Key.snooze) as? Int).flatMap(TaskSnooze.init(rawValue:)) ?? .hour
         hiddenUntil = defaults.object(forKey: Key.hiddenUntil) as? Date
         hiddenIDs = Set(defaults.stringArray(forKey: Key.hiddenIDs) ?? [])
+        dismissed = defaults.dictionary(forKey: Key.dismissed) as? [String: Double] ?? [:]
+        later = defaults.dictionary(forKey: Key.later) as? [String: Date] ?? [:]
         // Looks once the reminders have changed.
         changes = observeChanges { [store] in
             _ = store.access
@@ -143,7 +206,6 @@ final class TaskIndicator {
             self?.update()
         }
         update()
-        scheduleWake()
     }
 
     private var openItems: [ReminderItem] {
@@ -186,7 +248,27 @@ final class TaskIndicator {
         hiddenIDs = Set(openItems.map(\.id))
         save()
         update(now: now)
-        scheduleWake()
+    }
+
+    /// Later on an overdue task: back under the notch in an hour (spec R-26).
+    func remindLater(_ item: ReminderItem, now: Date = Date()) {
+        later[item.id] = now.addingTimeInterval(TaskIndicatorLogic.laterDelay)
+        save()
+        update(now: now)
+    }
+
+    /// The X on an overdue task: it stays away until its due date changes (spec R-26).
+    func dismissOverdue(_ item: ReminderItem, now: Date = Date()) {
+        guard let due = item.due else { return }
+        dismissed[item.id] = due.timeIntervalSince1970
+        if dismissed.count > 200, let oldest = dismissed.min(by: { $0.value < $1.value }) { dismissed[oldest.key] = nil }
+        save()
+        update(now: now)
+    }
+
+    /// The task is shown in a thin row under the notch: its X and Later apply (spec R-26).
+    func isOverdueNotice(_ item: ReminderItem) -> Bool {
+        shown?.overdue.contains { $0.id == item.id } == true
     }
 
     func update(now: Date = Date()) {
@@ -197,8 +279,18 @@ final class TaskIndicator {
             hiddenIDs = []
             save()
         }
-        var next = isEnabled && hiddenUntil == nil ? TaskIndicatorLogic.count(items, now: now) : nil
+        let passed = later.filter { $0.value <= now }.map(\.key)
+        if !passed.isEmpty {
+            passed.forEach { later[$0] = nil }
+            save()
+        }
+        let overdue = isEnabled
+            ? TaskIndicatorLogic.overdueNotices(items, now: now, dismissed: dismissed, later: later) : []
+        // The counter's × does not hide the overdue rows (spec R-26).
+        var next = isEnabled && (hiddenUntil == nil || !overdue.isEmpty) ? TaskIndicatorLogic.count(items, now: now) : nil
         if next != nil {
+            next?.tone = TaskIndicatorLogic.tone(items, now: now)
+            next?.overdue = overdue
             let all = groups
             if all.count > 1 {
                 next?.isSplit = true
@@ -206,21 +298,28 @@ final class TaskIndicator {
             }
         }
         if next != shown { shown = next }
+        scheduleWake(at: TaskIndicatorLogic.nextChange(items, now: now, later: later, hiddenUntil: hiddenUntil))
     }
 
     private func save() {
         defaults.set(hiddenUntil, forKey: Key.hiddenUntil)
         defaults.set(Array(hiddenIDs), forKey: Key.hiddenIDs)
+        defaults.set(dismissed, forKey: Key.dismissed)
+        defaults.set(later, forKey: Key.later)
     }
 
-    /// Shows the counter again when the snooze ends, even if nothing else changes.
-    private func scheduleWake() {
+    /// Looks again when the snooze ends, a due date passes or comes within the hour, or a Later
+    /// is up, even if nothing else changes (spec R-11, R-26, R-27).
+    private func scheduleWake(at moment: Date?) {
+        guard moment != wakeAt else { return }
+        wakeAt = moment
         wake?.cancel()
-        guard let until = hiddenUntil else { return }
+        guard let moment else { return }
         wake = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(max(until.timeIntervalSinceNow, 0) + 1))
-            guard !Task.isCancelled else { return }
-            self?.update()
+            try? await Task.sleep(for: .seconds(max(moment.timeIntervalSinceNow, 0) + 1))
+            guard !Task.isCancelled, let self else { return }
+            self.wakeAt = nil
+            self.update()
         }
     }
 }
