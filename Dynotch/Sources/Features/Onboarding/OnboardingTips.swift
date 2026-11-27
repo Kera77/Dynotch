@@ -80,7 +80,8 @@ enum OnboardingTips {
         "claudeSessions": "Your Claude Code sessions, newest on top: Working, Asks, Finished, how long and what each is doing. "
             + "Click one to "
             + "bring its window forward, also from the usage ring's "
-            + "drop-down; right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
+            + "drop-down (rest on one for its task, step and answer); "
+            + "right-click to remove it. Needs Settings › General › Tell me when Claude Code asks.",
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Clean on the Disk card opens the Cleaner: leftovers of removed apps, caches, and removing an app "
             + "with its files (Open or Quit and the bin in its row: click once to grow, again to do it), "

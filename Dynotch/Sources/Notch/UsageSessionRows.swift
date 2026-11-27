@@ -19,6 +19,8 @@ struct UsageSessionRows: View {
     let now: Date
     /// A click brings the session's app forward with the project's window (spec CS-10).
     var open: (ClaudeSession) -> Void = { _ in }
+    /// Resting on a row opens its details; leaving folds them (spec CS-13).
+    var expand: (String?) -> Void = { _ in }
 
     @State private var hovered: String?
 
@@ -47,8 +49,12 @@ struct UsageSessionRows: View {
                                 .foregroundStyle(Color.white.level(0.5))
                         }
                         .frame(height: 18)
-                        // The step, the answer or the task (spec CS-11).
-                        if let detail = session.detail {
+                        // The step, the answer or the task (spec CS-11); hovered, all of them (spec CS-13).
+                        if session.isExpanded {
+                            ForEach(session.expandedLines, id: \.title) { line in
+                                expandedLine(line)
+                            }
+                        } else if let detail = session.detail {
                             Text(detail)
                                 .font(.notch(size: 11))
                                 .foregroundStyle(Color.white.level(0.55))
@@ -73,6 +79,8 @@ struct UsageSessionRows: View {
                 .help(session.app == nil ? "" : "Show this session")
                 .accessibilityAddTraits(.isButton)
             }
+            .task(id: hovered) { await settleExpansion() }
+            .onDisappear { if sessions.contains(where: \.isExpanded) { expand(nil) } }
             if sessions.count > IndicatorLayout.sessionRows {
                 Text("+\(sessions.count - IndicatorLayout.sessionRows) more")
                     .font(.notch(size: 11))
@@ -83,7 +91,56 @@ struct UsageSessionRows: View {
     }
 }
 
+extension UsageSessionRows {
+    /// A short rest opens the hovered row; moving off folds it after a moment (spec CS-13).
+    func settleExpansion() async {
+        let expanded = sessions.first(where: \.isExpanded)?.id
+        guard hovered != expanded else { return }
+        try? await Task.sleep(for: .milliseconds(hovered == nil ? 250 : 400))
+        guard !Task.isCancelled else { return }
+        expand(hovered)
+    }
+
+    func expandedLine(_ line: ClaudeSession.DetailLine) -> some View {
+        HStack(alignment: .top, spacing: 4) {
+            Text(line.title)
+                .font(.notch(size: 11, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.45))
+                .frame(width: 44, alignment: .leading)
+            Text(line.text)
+                .font(.notch(size: 11))
+                .foregroundStyle(Color.white.level(0.7))
+                .lineLimit(2)
+                .truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(height: IndicatorLayout.sessionLineHeight, alignment: .top)
+    }
+}
+
+extension ClaudeSession {
+    /// One labelled line of a hovered session (spec CS-13).
+    struct DetailLine: Equatable {
+        let title: String
+        let text: String
+    }
+
+    /// The task, the step running now, the last answer and the app (spec CS-13).
+    var expandedLines: [DetailLine] {
+        let parts: [(String, String?)] = [
+            ("Task", prompt), ("Now", state == .working || state == .background ? activity : nil), ("Answer", answer)
+        ]
+        let lines = parts.compactMap { title, text in
+            text.flatMap { $0.isEmpty ? nil : DetailLine(title: title, text: $0) }
+        }
+        return lines.isEmpty ? [DetailLine(title: "State", text: state.title)] : lines
+    }
+}
+
 extension IndicatorLayout {
+    /// A hovered session's labelled line: up to two lines of text (spec CS-13).
+    static let sessionLineHeight: CGFloat = 29
+
     /// The running sessions under the usage limits (spec CS-6): at most this many rows.
     static let sessionRows = 4
     static let sessionRowHeight: CGFloat = 20
@@ -91,7 +148,8 @@ extension IndicatorLayout {
     static let sessionDetailRowHeight: CGFloat = 36
 
     static func sessionRowHeight(_ session: ClaudeSession) -> CGFloat {
-        session.detail == nil ? sessionRowHeight : sessionDetailRowHeight
+        if session.isExpanded { return 21 + CGFloat(session.expandedLines.count) * sessionLineHeight }
+        return session.detail == nil ? sessionRowHeight : sessionDetailRowHeight
     }
 
     /// The limits, then the sessions (spec CL-6, CS-6).
@@ -128,7 +186,7 @@ extension NotchIndicatorView {
                     .frame(height: 16)
                 }
                 if !sessions.isEmpty {
-                    UsageSessionRows(sessions: sessions, now: now, open: openSession)
+                    UsageSessionRows(sessions: sessions, now: now, open: openSession, expand: expandSession)
                         .padding(.top, limits.isEmpty ? 0 : 4)
                 }
             }

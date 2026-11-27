@@ -15,6 +15,11 @@ enum TestPlan {
     static let plans: [String: [TestPlanItem]] = [
         "1.8.8": [
             TestPlanItem(
+                id: "session-hover", group: "AI sessions",
+                text: "Hover the usage ring, rest on a session: it opens with Task, Now and Answer; moving off folds it back.",
+                log: "claude-hook"
+            ),
+            TestPlanItem(
                 id: "overdue-swipe", group: "Tasks",
                 text: "Swipe the overdue row under the closed notch up with two fingers: it goes away and comes back after 30 minutes.",
                 log: "reminders"

@@ -43,6 +43,8 @@ enum WhatsNew {
         WhatsNewRelease(version: "1.8.8", items: [
             WhatsNewItem(symbol: "hand.point.up", title: "Swipe an overdue task away",
                          text: "Swipe the overdue row under the notch up: it hides for 30 minutes, then comes back."),
+            WhatsNewItem(symbol: "terminal", title: "More of a session",
+                         text: "Rest on a session in the usage ring's list: it opens with its task, current step and answer."),
             WhatsNewItem(symbol: "circle.circle", title: "Round app buttons",
                          text: "Open or Quit and the bin sit as two circles; click one to grow it, again to do it."),
             WhatsNewItem(symbol: "chart.bar.xaxis", title: "Disk bar, largest first",

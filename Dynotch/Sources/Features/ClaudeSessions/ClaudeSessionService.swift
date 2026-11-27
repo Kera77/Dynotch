@@ -62,6 +62,8 @@ struct ClaudeSession: Equatable, Identifiable, Sendable {
     var activity: String?
     /// The first line of the last answer (spec CS-11).
     var answer: String?
+    /// Hovered in the ring's drop-down: the task, the step and the answer in full (spec CS-13).
+    var isExpanded = false
 
     /// The dimmer line under it: the step while working, the answer once finished, else the task (spec CS-11).
     var detail: String? {
@@ -244,7 +246,15 @@ final class ClaudeSessionService {
     /// last ten minutes (spec CS-6).
     func running(now: Date = Date()) -> [ClaudeSession] {
         sessions.filter { $0.state != .finished || now.timeIntervalSince($0.since) < Self.finishedListTime }
+            .map { session in
+                var session = session
+                session.isExpanded = session.id == expandedID
+                return session
+            }
     }
+
+    /// The session row hovered long enough to show more (spec CS-13).
+    var expandedID: String?
 
     /// The pointer is on the pop-up: it stays.
     func touchPopup(at date: Date = Date()) {

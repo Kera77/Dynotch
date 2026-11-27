@@ -64,6 +64,8 @@ struct NotchIndicatorView: View {
     var showsTaskList = true
     /// A click on a session's row brings its app forward (spec CS-10).
     var openSession: (ClaudeSession) -> Void = { _ in }
+    /// Hovering a session row shows more of it (spec CS-13).
+    var expandSession: (String?) -> Void = { _ in }
 
     static let lineWidth: CGFloat = 2
 

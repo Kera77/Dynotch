@@ -9,6 +9,8 @@
   then it comes back while the task is still overdue (R-29).
 - Cleaner: the disk bar splits the old "Other" into System, App data and Files, with a hover help
   on every part (TT-24).
+- Hovering a Claude Code session in the usage ring's drop-down opens it: the task, the step
+  running now and the answer, each labelled (CS-13).
 
 ### Changed
 - Cleaner: the disk bar and its labels always run from the largest part to the smallest; labels
@@ -19,7 +21,7 @@
   the same circles; the bin asks in the footer, then quits the app and removes it (TT-26).
 - The clean beside the closed notch is a ring like the others: a blue arc with sparkles, then a
   green filled ring with a tick (TT-27).
-- Onboarding: the Stats and tasks tips mention the round buttons and the swipe up.
+- Onboarding: the Stats, tasks and sessions tips mention the round buttons, the swipe up and the session hover.
 
 ## [1.8.7] - 2026-11-27
 
