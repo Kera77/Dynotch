@@ -40,6 +40,10 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.10.5", items: [
+            WhatsNewItem(symbol: "moon.fill", title: "A calmer Focus list",
+                         text: "The Focus list highlights at once with a faint grey, and the arrows stay arrows.")
+        ]),
         WhatsNewRelease(version: "1.10.4", items: [
             WhatsNewItem(symbol: "moon.fill", title: "Focus that switches",
                          text: "Pick a Focus and its lengths open right under it; close the list and it stays on until you turn it off."),

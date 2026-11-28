@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [1.10.5] - 2026-11-28
+
+Test build.
+
+### Fixed
+- Focus list (FC-9): a highlighted Focus row showed a filled rectangle where its chevron should be;
+  the chevron and the tick are now tinted through their own symbol palette.
+- Focus list (FC-9): the highlight follows the pointer at once (it follows the menu's own highlight
+  instead of a slow tracking area).
+
+### Changed
+- Focus list (FC-9): every row (Focuses, lengths, Turn off, Focus Settings…) highlights with a faint
+  grey instead of the strong blue.
+
 ## [1.10.4] - 2026-11-28
 
 Test build.

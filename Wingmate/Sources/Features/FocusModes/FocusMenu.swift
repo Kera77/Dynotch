@@ -39,13 +39,13 @@ struct FocusMenu: View {
 @MainActor
 final class FocusMenuBuilder: NSObject {
     private let service: FocusModeService
-    private var actions: [() -> Void] = []
     private weak var menu: NSMenu?
     /// The Focus whose lengths are dropped down, and their rows.
     private var expanded: FocusMode?
     private var lengthItems: [NSMenuItem] = []
     private var rows: [String: FocusRowView] = [:]
     private var chose = false
+    private var width: CGFloat = 220
 
     init(service: FocusModeService) {
         self.service = service
@@ -60,12 +60,15 @@ final class FocusMenuBuilder: NSObject {
         if service.modes.isEmpty {
             disabled("No Focus found (needs Accessibility)", in: menu)
         }
-        let width = FocusRowView.width(for: service.modes.map(\.name))
+        let now = Date()
+        let lengthTitles = FocusLength.allCases.map { $0.title(now: now) } + ["Until tomorrow morning", "Turn Off"]
+        let commandTitles = ["Focus Settings…"] + (active.map { ["Turn off \($0.mode.name) (until 23:59)"] } ?? [])
+        width = FocusRowView.width(for: service.modes.map(\.name) + lengthTitles + commandTitles)
         for mode in service.modes {
             let item = NSMenuItem()
             // Drawn by Wingmate, so every Focus shows its own icon (spec FC-6).
             let row = FocusRowView(
-                title: mode.name, icon: Self.icon(for: mode), isOn: active?.mode.id == mode.id, width: width
+                title: mode.name, kind: .focus(icon: Self.icon(for: mode), isOn: active?.mode.id == mode.id), width: width
             ) { [weak self, weak item] in
                 guard let self, let item else { return }
                 self.toggleLengths(of: mode, under: item)
@@ -109,8 +112,7 @@ final class FocusMenuBuilder: NSObject {
         }
         var index = menu.index(of: item) + 1
         for (title, action) in titles {
-            let length = makeItem(title, action: action)
-            length.indentationLevel = 2
+            let length = makeItem(title, kind: .length, action: action)
             menu.insertItem(length, at: index)
             lengthItems.append(length)
             index += 1
@@ -157,20 +159,17 @@ final class FocusMenuBuilder: NSObject {
     }
 
     private func item(_ title: String, in menu: NSMenu, action: @escaping () -> Void) {
-        menu.addItem(makeItem(title, action: action))
+        menu.addItem(makeItem(title, kind: .command, action: action))
     }
 
-    private func makeItem(_ title: String, action: @escaping () -> Void) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: #selector(choose(_:)), keyEquivalent: "")
-        item.target = self
-        item.tag = actions.count
-        actions.append(action)
+    /// A row drawn by Wingmate, so it highlights like the Focus rows (spec FC-9); choosing it
+    /// closes the list.
+    private func makeItem(_ title: String, kind: FocusRowView.Kind, action: @escaping () -> Void) -> NSMenuItem {
+        let item = NSMenuItem()
+        item.view = FocusRowView(title: title, kind: kind, width: width) { [weak self] in
+            self?.chose = true
+            action()
+        }
         return item
-    }
-
-    @objc private func choose(_ sender: NSMenuItem) {
-        guard actions.indices.contains(sender.tag) else { return }
-        chose = true
-        actions[sender.tag]()
     }
 }

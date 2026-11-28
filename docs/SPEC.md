@@ -1,6 +1,6 @@
 # Wingmate – specifikáció
 
-> Állapot: **v1.10.4 elfogadva** · Utolsó módosítás: 2026-11-28
+> Állapot: **v1.10.5 elfogadva** · Utolsó módosítás: 2026-11-28 (FC-9)
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1666,6 +1666,7 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | FC-6 | (v1.10.4, FC-1 javítása) **Ikon a listában:** a Focus lista minden sora a Fókusz saját színes ikonjával jelenik meg (a lista sorait a Wingmate rajzolja, így minden Fókusznak látszik az ikonja), az aktívnál pipa. |
 | FC-7 | (v1.10.4, FC-3 javítása) **A kapcsolás tényleg megtörténik:** a Wingmate a Vezérlőközpont megnyitása előtt visszaadja a billentyűzetet az előtte levő appnak, és amíg a kapcsolás tart, nem vált appot (egérkövető fókusz, F-17). Eddig ez a váltás csukta be a (láthatatlan) Vezérlőközpontot, és a Fókusz nem kapcsolt („Control Center switch failed”). |
 | FC-8 | (v1.10.4, TS-1 módosítása) **A Focus gomb is áthelyezhető:** a jobb oldali gombok között a Focus gomb ugyanúgy húzható (⌘-húzás a notchban, húzás a *Buttons beside the notch* listában), mint a többi; nem ragad a Settings mellé. Görgetéskor csak a Settings marad a sor végén. |
+| FC-9 | (v1.10.5, FC-6 javítása) **A Focus lista kiemelése:** a lista minden sorát (Fókuszok, hosszak, Turn off, Focus Settings…) a Wingmate rajzolja, rámutatva **azonnal** (a menü saját kiemelését követve, késleltetés nélkül) **halvány szürke** háttérrel emeli ki (nem az erős kék rendszerkiemeléssel), a szöveg színe nem változik. A Fókusz sor nyila (chevron) és pipája kiemelve is a saját alakjában látszik (eddig egy teli téglalap állt a helyén). |
 | TS-1 | **Görgethető jobb oldal:** ha a felső sor jobb oldali gombjai (iPad, Spencer, Cleaner, egérkövetés, billentyűzetzár, rögzítés, Quick toggles…) nem férnek el a notch mellett, a sor két ujjas vízszintes swipe-pal **görgethető**, a bal szélén áttűnéssel. A **Focus** és a **Settings** gomb a jobb szélen rögzítve mindig látszik. Ha minden elfér, nincs görgetés. |
 | ES-1 | **Trackpad edge sliders:** *Settings › General* alatt új kapcsoló (alapból ki): a beépített és a Magic Trackpad szélén **egy ujjal** húzva: **bal szél** – hangerő (lentről felfelé hangosabb), **jobb szél** – kijelző fényereje (lentről felfelé világosabb), **felső szél** – billentyűzet-világítás (balról jobbra erősebb). A zónák külön kapcsolhatók; a sarkok egyikhez sem tartoznak. |
 | ES-2 | Az érintésnek a zónában (a trackpad szélső ~8%-a) kell kezdődnie; a csúszka ~3%-nyi út után indul, ha a mozgás a zóna irányában legalább kétszer akkora, mint merőlegesen. Második ujjra azonnal leáll. Amíg aktív, a kurzor a helyén marad. Relatív: az elmozdulás számít, nem a hely. |
@@ -1719,6 +1720,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.10.5** | Teszt build: a Focus lista azonnal, halvány szürkével emel ki, a nyíl kiemelve sem lesz négyzet (FC-9) |
 | **v1.10.4** | Teszt build: a Fókusz tényleg kapcsol, hosszak a listában, ikonok a listában, áthelyezhető Focus gomb; rámutatva maradó felugrók; „Claude finished” lehúzva a feladattal (FC-5…FC-8, E-36, CN-10) |
 | **v1.10.3** | Teszt build: a Fókusz váltásakor a Vezérlőközpont nem látszik, a notch Fókusz-ikonja hoverre swipe-módban is lenyílik és kattintásra kikapcsol, minden Fókusznak van ikonja (FC-1, FC-3, FC-4) |
 | **v1.10.2** | Teszt build: Fókusz a Vezérlőközponton át (Shortcuts nélkül, a Mac Fókuszai ikonnal, a macOS hosszaival), felugró értesítések és képernyőkép swipe-ra (FC-1…FC-3, DS-4) |
