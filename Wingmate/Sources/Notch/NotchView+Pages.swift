@@ -95,7 +95,8 @@ extension NotchView {
             // The Cleaner in place of the Stats (spec TT-8).
             CleanerView(
                 service: .shared, isActive: model.isExpanded && !model.isPreview && model.currentFeature == .stats,
-                back: { [model] in withAnimation(Motion.spring) { model.closeCleaner() } }
+                // ‹ Stats only when it was opened from the Stats (spec TT-33).
+                back: model.cleanerFromStats ? { [model] in withAnimation(Motion.spring) { model.closeCleaner() } } : nil
             )
         case .stats:
             StatsFeatureView(
@@ -268,7 +269,7 @@ extension NotchView {
 extension NotchView {
     /// The Clean buttons of the Stats' Disk card and the disk tiles (spec TT-8, TT-10).
     var cleanerOpener: @MainActor @Sendable (HomeTile?) -> Void {
-        { [model] tile in withAnimation(Motion.spring) { model.openCleaner(from: tile) } }
+        { [model] tile in withAnimation(Motion.spring) { model.openCleaner(from: tile, fromStats: true) } }
     }
 
     /// The services the Home's tiles read (spec HT-7).

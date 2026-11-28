@@ -85,7 +85,7 @@ enum OnboardingTips {
         "stats": "CPU, memory, network, disk and battery, with the busiest processes; click × twice to quit one. "
             + "Clean on the Disk card opens the Cleaner: leftovers of removed apps, caches, and removing an app "
             + "with its files (Open or Quit and the bin in its row: click once to grow, again to do it), "
-            + "and files over 500 MB, all to the Trash. ‹ Stats or a pinch brings you back. "
+            + "and files over 500 MB, all to the Trash. ‹ Stats (opened from the Disk card) or a pinch brings you back. "
             + "Options picks what shows beside the closed notch and which warnings you get; "
             + "a warning's drop-down lists the five apps using the most, each with its own quit.",
         "battery": "Your Mac and connected devices with their charge; click one for its week and the time left. "

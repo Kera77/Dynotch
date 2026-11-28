@@ -23,22 +23,30 @@ extension NotchController {
         return zone.contains(NSEvent.mouseLocation)
     }
 
-    /// A swipe down over the notification opens its card, over the screenshot the editor.
+    /// A swipe down over the notification opens its card, over the screenshot the editor (when
+    /// they wait for a swipe, spec DS-4); a swipe up puts the small pop-up away (spec DS-6).
     /// - Returns: true when the event was used.
     func handlePeekSwipe(_ event: NSEvent) -> Bool {
-        guard peeksWaitForSwipe, !model.isExpanded, !callIsShown else { return false }
+        guard !settings.noticesBeside, !model.isExpanded, !callIsShown else { return false }
         let overShot = isOverScreenshotPeek
         guard overShot || isOverNotificationPeek else { return false }
-        let direction = revealDirection(of: event)
-        guard direction == .open else { return direction != nil ? false : true }
-        Haptics.perform(.open, settings: settings)
-        if overShot, let shot = screenshots.peek {
-            openScreenshotEditor(shot.url, fromPeek: true)
-        } else {
-            hideStrip()
-            setHoveredIndicator(nil)
-            setHoveredBadge(nil)
-            expand()
+        guard let direction = revealDirection(of: event) else { return peeksWaitForSwipe }
+        switch direction {
+        case .close:
+            foldPeekAway {
+                if overShot { screenshots.clearPeek() } else { notifications.clearPeek() }
+            }
+        case .open:
+            guard peeksWaitForSwipe else { return false }
+            Haptics.perform(.open, settings: settings)
+            if overShot, let shot = screenshots.peek {
+                openScreenshotEditor(shot.url, fromPeek: true)
+            } else {
+                hideStrip()
+                setHoveredIndicator(nil)
+                setHoveredBadge(nil)
+                expand()
+            }
         }
         return true
     }

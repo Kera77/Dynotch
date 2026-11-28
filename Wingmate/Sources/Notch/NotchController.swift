@@ -64,11 +64,8 @@ final class NotchController {
     /// One swipe over the panel switches one module, after 45 pt (spec S-1, M-14).
     var swipe = SwipeDetector(threshold: 45)
     var dayStepper = DayStepper()
-    /// Over the icons ~80 pt of finger movement a module, one by one; momentum only on the day strip (spec M-12, M-17, M-21, K-17).
-    var switcherStepper = DayStepper(stepWidth: 80, momentumScale: 0.5)
-    var switcherQueue = StepQueue(maxPending: 5), dayQueue = StepQueue(maxPending: 7), stepTimer: Timer?, switcherFlick = FlickTracker()
-    /// The swipe over the feature icons reached an end: the rest of it is ignored (spec M-13).
-    var switcherReachedEnd = false
+    /// The days step one by one, faster while more are waiting (spec K-17).
+    var dayQueue = StepQueue(maxPending: 7), stepTimer: Timer?
     /// A swipe over the tasks counter's list picker (spec R-19).
     var taskListSwipe = SwipeDetector()
     /// The current trackpad gesture already switched features: it must not step days too.

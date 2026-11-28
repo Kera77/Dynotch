@@ -71,6 +71,7 @@ extension NotchView {
         row.usagePopup = notices.sessions.popupShown
         row.showsTaskList = model.shownIndicator != nil
         row.expandSession = { id in withAnimation(Self.quickAnimation) { notices.sessions.expandedID = id } }
+        row.releaseSessions = { notices.sessions.releaseHeldHeight() }
         row.openSession = { session in
             withAnimation(Self.quickAnimation) {
                 model.hoveredIndicator = nil

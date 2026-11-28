@@ -10,6 +10,8 @@ final class NotchViewModel {
     var tileOpening: TileOpening?
     /// The Cleaner shows in place of the Stats (spec TT-8).
     var showsCleaner = false
+    /// The Cleaner was opened from the Stats' Disk card: only then has it a ‹ Stats button (spec TT-33).
+    var cleanerFromStats = false
     /// Opened from the closed notch's edge (a drop-down, a badge, a peek): a pinch closes it (spec N-27).
     var openedFromEdge = false
     /// True while the panel shows the full calendar and uses the large size.
@@ -53,8 +55,8 @@ final class NotchViewModel {
     var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
     var hoveredBadge: String?
-    /// The drop-down opened with a swipe down (spec DS-1).
-    let reveal = DropdownReveal()
+    /// The swipe over a notification under the notch (spec DS-4).
+    @ObservationIgnored let reveal = DropdownReveal()
     /// Right after a Space switch everything beside the closed notch is drawn in, then unfolds
     /// again (spec N-10).
     private(set) var isGathered = false
@@ -106,9 +108,6 @@ final class NotchViewModel {
     func setBadgesUnfolded(_ unfolded: Bool) {
         if unfolded != badgesUnfolded { badgesUnfolded = unfolded }
     }
-
-    /// The first feature icon shown in the top row; the others are swiped into view (spec M-9).
-    private(set) var switcherFirst = 0
 
     /// The page a merged module opens on: the tab last picked by hand, else the host's own
     /// (System, Chat), kept across restarts (spec MG-10).
@@ -340,7 +339,7 @@ final class NotchViewModel {
         updateLarge()
     }
 
-    /// Moves `steps` modules at once, stopping at either end (spec S-1, M-12); the icon stays in view.
+    /// Moves `steps` modules at once, stopping at either end (spec S-1); the icon scrolls into view.
     func step(by steps: Int, passing isPassing: Bool = false) {
         let features = settings.listedFeatures
         guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
@@ -352,25 +351,12 @@ final class NotchViewModel {
         currentFeature = lastTab(of: features[target])
         settings.lastFeature = currentFeature
         updateLarge()
-        revealCurrentFeature()
-    }
-
-    /// The current feature's icon is in view.
-    func revealCurrentFeature() {
-        let features = settings.listedFeatures
-        guard let index = features.firstIndex(of: settings.hostFeature(of: currentFeature)) else { return }
-        let visible = switcherVisibleCount
-        var first = FeatureSwitcher.clampedFirst(switcherFirst, count: features.count, visible: visible)
-        if index < first { first = index }
-        if index >= first + visible { first = index - visible + 1 }
-        if first != switcherFirst { switcherFirst = first }
     }
 
     private func updateLarge() {
         let large = isExpanded && !isShowingNotifications && !isShowingSettings && !isShowingToggles
             && ([.notes, .reminders].contains(currentFeature) || (currentFeature == .calendar && settings.calendarLarge))
         if large != isLarge { isLarge = large }
-        revealCurrentFeature()
     }
 
     private func bounce(_ direction: NavigationDirection) {

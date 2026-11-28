@@ -39,45 +39,7 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// What each version brought, newest first (spec WN-4). Every user-visible feature or change
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
-    static let releases: [WhatsNewRelease] = [
-        WhatsNewRelease(version: "1.10.6", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "A smoother Focus list",
-                         text: "Rows light up as soon as you point at them, and a Focus's lengths slide down and back up.")
-        ]),
-        WhatsNewRelease(version: "1.10.5", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "A calmer Focus list",
-                         text: "The Focus list highlights at once with a faint grey, and the arrows stay arrows.")
-        ]),
-        WhatsNewRelease(version: "1.10.4", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "Focus that switches",
-                         text: "Pick a Focus and its lengths open right under it; close the list and it stays on until you turn it off."),
-            WhatsNewItem(symbol: "arrow.left.arrow.right", title: "Move the Focus button",
-                         text: "The Focus button moves like the other buttons beside the notch (⌘-drag or in the settings)."),
-            WhatsNewItem(symbol: "cursorarrow.rays", title: "Pop-ups wait for you",
-                         text: "A notification stays while the pointer is on it and goes 3 seconds after you move away."),
-            WhatsNewItem(symbol: "text.below.photo", title: "What Claude finished",
-                         text: "Swipe down on Claude finished to see the task it did and the start of its answer.")
-        ]),
-        WhatsNewRelease(version: "1.10.3", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "Focus, quietly",
-                         text: "Control Center no longer flashes open; click the Focus icon beside the notch to turn it off.")
-        ]),
-        WhatsNewRelease(version: "1.10.2", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "Focus without Shortcuts",
-                         text: "Your Mac's own Focuses with their icons; pick one, then how long, and Control Center does the rest."),
-            WhatsNewItem(symbol: "hand.draw", title: "Notifications on a swipe",
-                         text: "With swipe drop-downs on, new notifications and screenshots open with a swipe down, not on hover.")
-        ]),
-        WhatsNewRelease(version: "1.10.1", items: [
-            WhatsNewItem(symbol: "moon.fill", title: "Focus in the top row",
-                         text: "Pick a Focus for an hour, two or until morning; its icon waits beside the notch with Turn off."),
-            WhatsNewItem(symbol: "hand.draw", title: "Drop-downs on a swipe",
-                         text: "Optional: tasks and badges open with a swipe down instead of on hover (Settings › General)."),
-            WhatsNewItem(symbol: "rectangle.and.hand.point.up.left", title: "Trackpad edge sliders",
-                         text: "Slide along the edges for volume, brightness and keyboard light, in macOS or 1% steps."),
-            WhatsNewItem(symbol: "arrow.left.and.right", title: "More buttons fit",
-                         text: "When the buttons right of the notch don't fit, swipe them; Focus and Settings stay put.")
-        ]),
+    static let releases: [WhatsNewRelease] = testBuilds110 + [
         WhatsNewRelease(version: "1.10.0", sections: publicSections1100),
         WhatsNewRelease(version: "1.9.5", items: [
             WhatsNewItem(symbol: "hand.raised", title: "Permissions in one go",

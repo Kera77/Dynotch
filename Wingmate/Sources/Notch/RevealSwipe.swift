@@ -1,6 +1,5 @@
 import CoreGraphics
 import Foundation
-import Observation
 
 /// A swipe down (two fingers on a trackpad, a flick on a Magic Mouse, a wheel turn) or up over
 /// the closed notch's row, once per gesture (spec DS-2). Pure, so it can be tested.
@@ -41,29 +40,8 @@ struct RevealSwipe {
     }
 }
 
-/// Whether the hovered item's drop-down was opened with a swipe, and the swipe being gathered
-/// (spec DS-1, DS-2).
+/// The swipe being gathered over a notification under the notch (spec DS-4).
 @MainActor
-@Observable
 final class DropdownReveal {
-    var isRevealed = false
-    @ObservationIgnored var swipe = RevealSwipe()
-}
-
-extension IndicatorItem {
-    /// The Focus's drop-down (with Turn off) opens on hover even when drop-downs wait for a swipe (spec FC-4).
-    var dropsDownOnHover: Bool {
-        if case .focus = self { return true }
-        return false
-    }
-
-    /// Hovering opens a module rather than a drop-down: the Cleaner, the stats without a warning
-    /// (spec SY-7, TT-13); with swipe drop-downs a swipe opens it (spec DS-2).
-    func opensModuleOnHover(statsWarnings: Bool) -> Bool {
-        switch self {
-        case .cleaner: true
-        case .stats: !statsWarnings
-        default: false
-        }
-    }
+    var swipe = RevealSwipe()
 }

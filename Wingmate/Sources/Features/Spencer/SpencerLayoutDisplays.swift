@@ -26,10 +26,11 @@ struct SpencerLayoutDisplays: Equatable, Sendable {
         return SpencerLayoutDisplays(displays: displays)
     }
 
-    /// A layout can be restored when all its displays are connected; an unknown one always can.
+    /// A layout can be restored when one of its displays is connected (Spencer puts the windows
+    /// of a missing display on the others); an unknown one always can (spec SL-12).
     func isAvailable(_ layout: String, connected: Set<String>) -> Bool {
-        guard let needed = displays[layout] else { return true }
-        return needed.isSubset(of: connected)
+        guard let needed = displays[layout], !needed.isEmpty else { return true }
+        return !needed.isDisjoint(with: connected)
     }
 
     /// The layout made for exactly the connected displays, in the menu's order.

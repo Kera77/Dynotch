@@ -21,6 +21,8 @@ struct UsageSessionRows: View {
     var open: (ClaudeSession) -> Void = { _ in }
     /// Resting on a row opens its details; leaving folds them (spec CS-13).
     var expand: (String?) -> Void = { _ in }
+    /// The drop-down went: it may shrink again (spec CS-14).
+    var release: () -> Void = {}
 
     @State private var hovered: String?
 
@@ -80,7 +82,7 @@ struct UsageSessionRows: View {
                 .accessibilityAddTraits(.isButton)
             }
             .task(id: hovered) { await settleExpansion() }
-            .onDisappear { if sessions.contains(where: \.isExpanded) { expand(nil) } }
+            .onDisappear { release() }
             if sessions.count > IndicatorLayout.sessionRows {
                 Text("+\(sessions.count - IndicatorLayout.sessionRows) more")
                     .font(.notch(size: 11))
@@ -148,8 +150,9 @@ extension IndicatorLayout {
     static let sessionDetailRowHeight: CGFloat = 36
 
     static func sessionRowHeight(_ session: ClaudeSession) -> CGFloat {
-        if session.isExpanded { return 21 + CGFloat(session.expandedLines.count) * sessionLineHeight }
-        return session.detail == nil ? sessionRowHeight : sessionDetailRowHeight
+        let held = session.heldSpace
+        if session.isExpanded { return 21 + CGFloat(session.expandedLines.count) * sessionLineHeight + held }
+        return (session.detail == nil ? sessionRowHeight : sessionDetailRowHeight) + held
     }
 
     /// The limits, then the sessions (spec CL-6, CS-6).
@@ -186,7 +189,7 @@ extension NotchIndicatorView {
                     .frame(height: 16)
                 }
                 if !sessions.isEmpty {
-                    UsageSessionRows(sessions: sessions, now: now, open: openSession, expand: expandSession)
+                    UsageSessionRows(sessions: sessions, now: now, open: openSession, expand: expandSession, release: releaseSessions)
                         .padding(.top, limits.isEmpty ? 0 : 4)
                 }
             }

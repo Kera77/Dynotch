@@ -19,7 +19,9 @@ final class FocusRowView: NSView {
 
     static let height: CGFloat = 24
     private static let font = NSFont.menuFont(ofSize: 0)
-    private static let focusTextX: CGFloat = 46
+    private static let focusTextX: CGFloat = 52
+    /// The round icon badge of a Focus row (spec FC-12).
+    static let badgeSide: CGFloat = 20
     private static let lengthTextX: CGFloat = 62
     private static let commandTextX: CGFloat = 18
 
@@ -163,10 +165,10 @@ final class FocusRowView: NSView {
     }
 
     private func drawIcon(_ icon: NSImage) {
-        let side: CGFloat = 16
+        let side = Self.badgeSide
         let scale = min(side / max(icon.size.width, 1), side / max(icon.size.height, 1), 1)
         let size = NSSize(width: icon.size.width * scale, height: icon.size.height * scale)
-        icon.draw(in: NSRect(x: 34 - size.width / 2, y: (bounds.height - size.height) / 2, width: size.width, height: size.height))
+        icon.draw(in: NSRect(x: 37 - size.width / 2, y: (bounds.height - size.height) / 2, width: size.width, height: size.height))
     }
 
     /// The symbol tinted through its own palette, so only its shape is coloured (a fill over the

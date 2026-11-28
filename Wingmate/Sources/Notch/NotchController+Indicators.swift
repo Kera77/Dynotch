@@ -109,9 +109,6 @@ extension NotchController {
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             guard settlesOn("i\(slot)") else { return }
-            // Waiting for a swipe, the module is not opened by hover either (spec DS-2).
-            let waits = !model.revealsDropdowns && items[slot].opensModuleOnHover(statsWarnings: !stats.indicator.warnings.isEmpty)
-            if waits { return setHoveredIndicator(slot) }
             if case .cleaner = items[slot] { return openCleanerFromIndicator() }
             // The cover and the stats open their module (spec MU-2, SY-7).
             // With a warning the stats drop it down with an X instead (spec SY-10).
@@ -120,9 +117,6 @@ extension NotchController {
                 return
             }
             setHoveredIndicator(slot)
-            if items[slot].dropsDownOnHover, !model.revealsDropdowns {
-                withAnimation(Self.animation) { model.dropdownRevealed = true }
-            }
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }
@@ -250,7 +244,7 @@ extension NotchController {
     /// A two-finger swipe up over the announced meeting's name, or over a sticky notice, closes
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
-        if handleRevealSwipe(event) || handleWingsPeekScroll(event) || handlePeekSwipe(event) { return true }
+        if handleWingsPeekScroll(event) || handlePeekSwipe(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),

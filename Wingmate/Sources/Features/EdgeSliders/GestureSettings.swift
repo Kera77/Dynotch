@@ -42,7 +42,7 @@ final class GestureSettings {
 
     @ObservationIgnored private let defaults: UserDefaults
 
-    /// The drop-downs beside the closed notch open only with a swipe down (spec DS-1).
+    /// The small notifications under the notch open only with a swipe down (spec DS-4, DS-5).
     var dropdownsOnSwipe: Bool {
         didSet { defaults.set(dropdownsOnSwipe, forKey: Key.dropdownsOnSwipe) }
     }

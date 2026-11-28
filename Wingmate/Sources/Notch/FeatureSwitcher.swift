@@ -7,9 +7,6 @@ import SwiftUI
 struct FeatureSwitcher: View {
     let features: [FeatureID]
     let selected: FeatureID?
-    /// Index of the first feature shown; only `visibleCount` fit beside the notch (spec M-9).
-    var first = 0
-    var visibleCount = Int.max
     let select: (FeatureID) -> Void
     let move: (FeatureID, Int) -> Void
 
@@ -21,24 +18,9 @@ struct FeatureSwitcher: View {
     @State private var dragged: FeatureID?
     @State private var dragOffset: CGFloat = 0
 
-    /// How many icons fit in `width`, the room left of the notch.
-    static func visibleCount(for width: CGFloat) -> Int {
-        max(1, Int((width - 6 + spacing) / step))
-    }
-
-    /// The first index shown: `first`, kept so that the window stays full.
-    static func clampedFirst(_ first: Int, count: Int, visible: Int) -> Int {
-        min(max(first, 0), max(count - visible, 0))
-    }
-
-    private var window: Range<Int> {
-        let start = Self.clampedFirst(first, count: features.count, visible: visibleCount)
-        return start..<min(start + visibleCount, features.count)
-    }
-
     /// The features shown, with their index in `features`.
     private var shown: [(index: Int, feature: FeatureID)] {
-        window.map { ($0, features[$0]) }
+        features.enumerated().map { ($0.offset, $0.element) }
     }
 
     static func targetIndex(from: Int, offset: CGFloat, count: Int) -> Int {
@@ -52,27 +34,53 @@ struct FeatureSwitcher: View {
         return 0
     }
 
-    /// Dragging works within the icons shown; positions are counted from the first shown.
+    /// Where the dragged icon would land.
     private var target: Int? {
         guard let dragged, let from = shown.firstIndex(where: { $0.feature == dragged }) else { return nil }
         return Self.targetIndex(from: from, offset: dragOffset, count: shown.count)
     }
 
     var body: some View {
+        // Too many icons beside the notch: the row scrolls with a two-finger swipe, like the
+        // buttons on the right; the swipe never switches modules (spec M-24).
+        ViewThatFits(in: .horizontal) {
+            row
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    row
+                }
+                .onAppear { reveal(selected, with: proxy, animated: false) }
+                .onChange(of: selected) { _, feature in reveal(feature, with: proxy, animated: true) }
+                .mask(
+                    LinearGradient(stops: [.init(color: .black, location: 0.88), .init(color: .clear, location: 1)],
+                                   startPoint: .leading, endPoint: .trailing)
+                )
+            }
+        }
+        .padding(3)
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
+    }
+
+    private var row: some View {
         HStack(spacing: Self.spacing) {
             ForEach(shown, id: \.feature) { index, feature in
                 icon(feature)
-                    .offset(x: offset(of: index - window.lowerBound, feature: feature))
+                    .offset(x: offset(of: index, feature: feature))
                     .zIndex(feature == dragged ? 1 : 0)
                     .onTapGesture { select(feature) }
                     .gesture(reorderGesture(for: feature))
                     // No tooltip with the name on hover (spec M-22).
                     .accessibilityLabel(feature.title)
+                    .id(feature)
             }
         }
         .coordinateSpace(name: Self.coordinateSpace)
-        .padding(3)
-        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
+    }
+
+    /// The current module's icon is scrolled into view (spec M-9).
+    private func reveal(_ feature: FeatureID?, with proxy: ScrollViewProxy, animated: Bool) {
+        guard let feature, dragged == nil else { return }
+        withAnimation(animated && !AppleStyle.reducesMotion ? Motion.quick : nil) { proxy.scrollTo(feature) }
     }
 
     private func offset(of index: Int, feature: FeatureID) -> CGFloat {
@@ -113,13 +121,12 @@ struct FeatureSwitcher: View {
             .onEnded { _ in
                 guard dragged == feature, let from = shown.firstIndex(where: { $0.feature == feature }) else { return }
                 let target = Self.targetIndex(from: from, offset: dragOffset, count: shown.count)
-                let start = window.lowerBound
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
                     dragged = nil
                     dragOffset = 0
-                    if target != from { move(feature, start + target) }
+                    if target != from { move(feature, target) }
                 }
             }
     }

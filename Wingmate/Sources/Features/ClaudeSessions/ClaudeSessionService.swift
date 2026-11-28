@@ -64,6 +64,9 @@ struct ClaudeSession: Equatable, Identifiable, Sendable {
     var answer: String?
     /// Hovered in the ring's drop-down: the task, the step and the answer in full (spec CS-13).
     var isExpanded = false
+    /// Room kept under the last row, so the drop-down does not shrink away from the pointer
+    /// when another row opens in place of a longer one (spec CS-14).
+    var heldSpace: CGFloat = 0
 
     /// The dimmer line under it: the step while working, the answer once finished, else the task (spec CS-11).
     var detail: String? {
@@ -245,16 +248,40 @@ final class ClaudeSessionService {
     /// What the ring's hover lists: every session not finished, and the ones finished in the
     /// last ten minutes (spec CS-6).
     func running(now: Date = Date()) -> [ClaudeSession] {
+        var rows = listed(now: now, expanded: expandedID)
+        let shown = min(rows.count, IndicatorLayout.sessionRows)
+        let missing = heldRowsHeight - IndicatorLayout.sessionRowsHeight(rows)
+        if shown > 0, missing > 0.5 { rows[shown - 1].heldSpace = missing }
+        return rows
+    }
+
+    private func listed(now: Date, expanded: String?) -> [ClaudeSession] {
         sessions.filter { $0.state != .finished || now.timeIntervalSince($0.since) < Self.finishedListTime }
             .map { session in
                 var session = session
-                session.isExpanded = session.id == expandedID
+                session.isExpanded = session.id == expanded
                 return session
             }
     }
 
-    /// The session row hovered long enough to show more (spec CS-13).
-    var expandedID: String?
+    /// The session row hovered long enough to show more (spec CS-13). While the drop-down is open
+    /// it keeps the height it had, so the pointer stays on it when a shorter row opens (spec CS-14).
+    var expandedID: String? {
+        didSet {
+            guard oldValue != expandedID, oldValue != nil else { return }
+            let before = IndicatorLayout.sessionRowsHeight(listed(now: Date(), expanded: oldValue))
+            heldRowsHeight = max(heldRowsHeight, before)
+        }
+    }
+
+    /// The tallest the session rows were while the drop-down stayed open (spec CS-14).
+    private(set) var heldRowsHeight: CGFloat = 0
+
+    /// The drop-down closed: the next one fits its rows again.
+    func releaseHeldHeight() {
+        expandedID = nil
+        heldRowsHeight = 0
+    }
 
     /// The pointer is on the pop-up: it stays.
     func touchPopup(at date: Date = Date()) {

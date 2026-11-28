@@ -1,13 +1,6 @@
 import Foundation
 
 extension NotchViewModel {
-    /// How many feature icons fit left of the notch in the open panel.
-    var switcherVisibleCount: Int {
-        // The row's left side, less its margins (14 at the edge, 8 before the notch).
-        let room = (openSize.width - geometry.notchSize.width) / 2 - 22
-        return FeatureSwitcher.visibleCount(for: room)
-    }
-
     func step(_ direction: NavigationDirection) {
         step(by: direction == .next ? 1 : -1)
     }

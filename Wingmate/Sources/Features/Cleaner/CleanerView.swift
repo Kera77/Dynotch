@@ -5,8 +5,8 @@ import SwiftUI
 struct CleanerView: View {
     @Bindable var service: CleanerService
     let isActive: Bool
-    /// ‹ Stats (spec TT-8).
-    let back: () -> Void
+    /// ‹ Stats (spec TT-8); nil when the Cleaner was not opened from the Stats (spec TT-33).
+    let back: (() -> Void)?
 
     @State private var confirming = false
 
@@ -46,21 +46,25 @@ struct CleanerView: View {
         }
     }
 
+    private func backButton(_ back: @escaping () -> Void) -> some View {
+        Button(action: back) {
+            HStack(spacing: 3) {
+                Image(systemName: "chevron.left").font(.notch(size: 12, weight: .semibold))
+                Text("Stats").font(.notch(size: 13, weight: .medium))
+            }
+            .padding(.horizontal, 8)
+            .frame(height: 24)
+            .background(Capsule().fill(Theme.fill))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.notch)
+        .foregroundStyle(Color.white.level(0.8))
+        .help("Back to the Stats")
+    }
+
     private var header: some View {
         HStack(spacing: 8) {
-            Button(action: back) {
-                HStack(spacing: 3) {
-                    Image(systemName: "chevron.left").font(.notch(size: 12, weight: .semibold))
-                    Text("Stats").font(.notch(size: 13, weight: .medium))
-                }
-                .padding(.horizontal, 8)
-                .frame(height: 24)
-                .background(Capsule().fill(Theme.fill))
-                .contentShape(Capsule())
-            }
-            .buttonStyle(.notch)
-            .foregroundStyle(Color.white.level(0.8))
-            .help("Back to the Stats")
+            if let back { backButton(back) }
             Text("Cleaner")
                 .font(.notch(size: 14, weight: .semibold))
                 .foregroundStyle(.white)

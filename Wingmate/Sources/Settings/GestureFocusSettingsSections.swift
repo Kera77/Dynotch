@@ -1,16 +1,16 @@
 import SwiftUI
 
-/// Settings › General: swipe drop-downs and the trackpad's edge sliders (spec DS-1, DS-4, ES-1…ES-3).
+/// Settings › General: notifications on a swipe and the trackpad's edge sliders (spec DS-1, DS-4, ES-1…ES-3).
 struct GestureFocusSettingsSections: View {
     @Bindable var gestures = GestureSettings.shared
 
     var body: some View {
         Section {
-            Toggle("Open drop-downs with a swipe down", isOn: $gestures.dropdownsOnSwipe)
+            Toggle("Open notifications with a swipe down", isOn: $gestures.dropdownsOnSwipe)
         } footer: {
-            footer("The tasks, badges, AI ring and the other items beside the closed notch stay closed on hover; "
-                + "swipe down with two fingers (or flick down on a Magic Mouse) over one to open it, up to close it. "
-                + "A new notification or screenshot under the notch opens with a swipe down too, not on hover.")
+            footer("A new notification, Beeper message or screenshot under the notch stays small on hover; "
+                + "swipe down with two fingers (or flick down on a Magic Mouse) over it to open it. "
+                + "The tasks, badges, AI ring and the other items beside the notch still open on hover.")
         }
         Section {
             Toggle("Trackpad edge sliders", isOn: $gestures.edgeSliders)

@@ -88,7 +88,10 @@ struct SpencerLayoutDisplayTests {
         #expect(found.matching(["37D8832A"], order: order) == "MacBook")
         #expect(found.matching(["37D8832A", "CCC"], order: order) == nil)
         #expect(found.isAvailable("MacBook", connected: ["37D8832A", "B545"]))
-        #expect(!found.isAvailable("2 Monitors", connected: ["37D8832A", "AAA"]))
+        // One of its displays is enough (spec SL-12): the built-in alone keeps Mac+iPad.
+        #expect(found.isAvailable("Mac+iPad", connected: ["37D8832A"]))
+        #expect(found.isAvailable("2 Monitors", connected: ["37D8832A", "AAA"]))
+        #expect(!found.isAvailable("2 Monitors", connected: ["37D8832A"]))
         #expect(found.isAvailable("Unknown", connected: []))
     }
 

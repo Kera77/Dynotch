@@ -28,7 +28,6 @@ struct FocusMenu: View {
         .buttonStyle(.notch)
         .disabled(service.isSwitching)
         .background(MenuAnchorView(anchor: anchor))
-        .help(active.map { "Focus: \($0.mode.name)" } ?? "Focus")
         .accessibilityLabel(active.map { "Focus: \($0.mode.name)" } ?? "Focus")
     }
 }
@@ -67,9 +66,10 @@ final class FocusMenuBuilder: NSObject, NSMenuDelegate {
         width = FocusRowView.width(for: service.modes.map(\.name) + lengthTitles + commandTitles)
         for mode in service.modes {
             let item = NSMenuItem()
+            let isOn = active?.mode.id == mode.id
             // Drawn by Wingmate, so every Focus shows its own icon (spec FC-6).
             let row = FocusRowView(
-                title: mode.name, kind: .focus(icon: Self.icon(for: mode), isOn: active?.mode.id == mode.id), width: width
+                title: mode.name, kind: .focus(icon: Self.icon(for: mode, isOn: isOn), isOn: isOn), width: width
             ) { [weak self, weak item] in
                 guard let self, let item else { return }
                 self.toggleLengths(of: mode, under: item)
@@ -85,7 +85,10 @@ final class FocusMenuBuilder: NSObject, NSMenuDelegate {
         }
         menu.addItem(.separator())
         item("Focus Settings…", in: menu) { Self.openFocusSettings() }
+        // The highlight also follows a quick pointer the rows' tracking misses (spec FC-11).
+        let follower = HoverFollower(window: { [weak self] in self?.rows.values.first?.window })
         menu.popUp(positioning: nil, at: MenuAnchor.point(below: view, menuWidth: menu.size.width), in: nil)
+        follower.stop()
         // The chosen row's action is sent as the list closes; only then is it clear that none was.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
             guard !chose, let mode = expanded, service.active?.mode.id != mode.id else { return }
@@ -131,19 +134,24 @@ final class FocusMenuBuilder: NSObject, NSMenuDelegate {
         FocusRowView.hover(item?.view as? FocusRowView)
     }
 
-    /// The Focus's own symbol in its colour, as in Control Center; drawn tinted, so the menu
-    /// cannot turn it into a template (spec FC-6).
-    static func icon(for mode: FocusMode) -> NSImage? {
-        let configuration = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-        guard let base = (NSImage(systemSymbolName: mode.symbol, accessibilityDescription: nil)
+    /// The Focus's own symbol in a round badge, as in Control Center: the Focus that is on in its
+    /// colour with a white symbol, the others grey (spec FC-6, FC-12). Drawn by hand, so the menu
+    /// cannot turn it into a template.
+    static func icon(for mode: FocusMode, isOn: Bool) -> NSImage? {
+        let glyphColor: NSColor = isOn ? .white : .secondaryLabelColor
+        let configuration = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+            .applying(NSImage.SymbolConfiguration(paletteColors: [glyphColor]))
+        guard let glyph = (NSImage(systemSymbolName: mode.symbol, accessibilityDescription: nil)
             ?? NSImage(systemSymbolName: "moon.fill", accessibilityDescription: nil))?
             .withSymbolConfiguration(configuration)
         else { return nil }
         let color = NSColor(mode.color)
-        return NSImage(size: base.size, flipped: false) { rect in
-            base.draw(in: rect)
-            color.set()
-            rect.fill(using: .sourceAtop)
+        let side = FocusRowView.badgeSide
+        return NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
+            (isOn ? color : NSColor.labelColor.withAlphaComponent(0.12)).setFill()
+            NSBezierPath(ovalIn: rect).fill()
+            let size = glyph.size
+            glyph.draw(in: NSRect(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2, width: size.width, height: size.height))
             return true
         }
     }
@@ -187,5 +195,33 @@ final class FocusMenuBuilder: NSObject, NSMenuDelegate {
             self?.chose = true
             action()
         }
+    }
+}
+
+/// While the Focus list is open, puts the highlight on the row under the pointer each frame, so a
+/// quick move never leaves a row unhighlighted or two behind (spec FC-11). Runs in the menu's
+/// tracking mode; a still pointer changes nothing, so the arrow keys keep their highlight.
+@MainActor
+private final class HoverFollower {
+    private var timer: Timer?
+    private var last: NSPoint?
+
+    init(window: @escaping @MainActor () -> NSWindow?) {
+        let timer = Timer(timeInterval: 1.0 / 120, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let pointer = NSEvent.mouseLocation
+                guard pointer != self.last else { return }
+                self.last = pointer
+                FocusRowView.syncHover(in: window())
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
+    func stop() {
+        timer?.invalidate()
+        timer = nil
     }
 }

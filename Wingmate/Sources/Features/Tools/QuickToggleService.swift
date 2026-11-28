@@ -105,12 +105,27 @@ final class QuickToggleService {
         }
         notes[.emptyTrash] = nil
         Task {
-            _ = await AppleScriptRunner.run(
-                "tell application \"Finder\" to empty trash", log: "tools", what: "empty trash"
-            ) { _ in true }
+            _ = await AppleScriptRunner.run(Self.emptyTrashScript, log: "tools", what: "empty trash") { _ in true }
         }
         return true
     }
+
+    /// Finder's own "Are you sure?" would cancel the scripted emptying (error -128): the two clicks
+    /// already asked, so its warning is off while it empties and put back afterwards (spec QT-12).
+    nonisolated static let emptyTrashScript = """
+        tell application "Finder"
+            set warned to warns before emptying of trash
+            try
+                set warns before emptying of trash to false
+                empty trash
+                repeat 60 times
+                    if (count of items of trash) is 0 then exit repeat
+                    delay 0.5
+                end repeat
+            end try
+            set warns before emptying of trash to warned
+        end tell
+        """
 
     static let clickAgain = "Click again to empty"
 

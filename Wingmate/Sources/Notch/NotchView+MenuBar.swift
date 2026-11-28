@@ -11,9 +11,7 @@ extension NotchView {
         HStack(spacing: 0) {
             FeatureSwitcher(
                 features: settings.listedFeatures,
-                selected: model.isShowingSettings || model.isShowingToggles ? nil : settings.hostFeature(of: model.currentFeature),
-                first: model.switcherFirst,
-                visibleCount: model.switcherVisibleCount
+                selected: model.isShowingSettings || model.isShowingToggles ? nil : settings.hostFeature(of: model.currentFeature)
             ) { feature in
                 withAnimation(NotchController.animation) { model.select(feature) }
             } move: { feature, index in
@@ -133,36 +131,32 @@ struct TrailingControls: View {
         case .cleaner:
             // The Cleaner on the Stats (spec TT-9).
             pageButton(control, isShowing: isShowingCleaner, action: toggleCleaner)
-                .help("Cleaner (⌘-drag to reorder)")
         case .followMouse:
             // Focus follows mouse on and off (spec F-9): blue while on.
             iconButton(control.symbol, isOn: followsMouse, action: toggleFollowsMouse)
-                .help(followsMouse ? "Focus follows the mouse: click to turn off" : "Focus follows the mouse is off: click to turn on")
         case .keyboardLock:
             // Blocks the keyboard for cleaning (spec KL-1): grey when off, blue when on.
             iconButton(control.symbol, isOn: isKeyboardLocked, action: toggleKeyboardLock)
-                .help(isKeyboardLocked ? "Keyboard is locked: click to unlock" : "Lock the keyboard (for cleaning)")
         case .pin:
             PinButton(isPinned: isPinned, action: togglePin)
         case .toggles:
             // Only the quick toggles in the notch (spec QT-6).
             pageButton(control, isShowing: isShowingToggles, action: toggleToggles)
-                .help("Quick toggles (⌘-drag to reorder)")
         case .focus:
             // Every Focus, then its length (spec FC-1, FC-2).
             FocusMenu(service: .shared)
         case .settings:
             pageButton(control, isShowing: isShowingSettings, action: toggleSettings)
-                .help("Settings (⌘-drag to reorder)")
         }
     }
 
-    /// A button that shows a page in place of the module, highlighted while it shows.
+    /// A button that shows a page in place of the module, highlighted while it shows. The Cleaner's
+    /// drive rests as grey as the iPad, Spencer and lock buttons (spec TT-32).
     private func pageButton(_ control: TopRowControl, isShowing: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             TopRowIcon(control: control, size: 12, weight: .semibold)
                 .frame(width: TrailingControlsMetrics.buttonWidth, height: 22)
-                .foregroundStyle(isShowing ? Color.white : Color.white.level(0.7))
+                .foregroundStyle(isShowing ? Color.white : Color.white.level(control == .cleaner ? 0.45 : 0.7))
                 .background(Capsule(style: .continuous).fill(isShowing ? Color.white.level(0.22) : .clear))
                 .contentShape(Rectangle())
         }

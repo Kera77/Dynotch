@@ -68,6 +68,7 @@ struct NotchIndicatorView: View {
     var openSession: (ClaudeSession) -> Void = { _ in }
     /// Hovering a session row shows more of it (spec CS-13).
     var expandSession: (String?) -> Void = { _ in }
+    var releaseSessions: () -> Void = {}
 
     static let lineWidth: CGFloat = 2
 

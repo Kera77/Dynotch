@@ -28,7 +28,6 @@ struct SpencerMenu: View {
         }
         .buttonStyle(.notch)
         .background(MenuAnchorView(anchor: anchor))
-        .help("Spencer window layouts")
         .accessibilityLabel("Spencer window layouts")
     }
 
@@ -41,8 +40,8 @@ struct SpencerMenu: View {
     }
 }
 
-/// Active workspace (Spencer's own items and icons), layouts (greyed when their displays are
-/// missing), this display setup, Switch automatically, Open Spencer (spec SL-2, SL-7, SL-11).
+/// Active workspace (Spencer's own items and icons), layouts (greyed when none of their
+/// displays is here, SL-12), this display setup, Switch automatically, Open Spencer (spec SL-2, SL-7, SL-11).
 @MainActor
 private final class SpencerMenuBuilder: NSObject {
     private let service: SpencerService

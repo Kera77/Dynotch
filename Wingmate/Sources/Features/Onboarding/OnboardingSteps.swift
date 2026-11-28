@@ -103,7 +103,8 @@ struct OnboardingStepContent: View {
                 text: "Two fingers on the trackpad move to the next or previous module; over a row of tabs, to the next tab."
             )
             OnboardingRow(
-                symbol: "square.grid.2x2", title: "Click an icon", text: "The top row of the open notch has an icon for every module."
+                symbol: "square.grid.2x2", title: "Click an icon",
+                text: "The top row of the open notch has an icon for every module; swipe over them to scroll the row."
             )
             OnboardingRow(symbol: "command", title: "Use the keyboard", text: "⌘1–9 picks a module, ← and → step through them.")
             OnboardingRow(

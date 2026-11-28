@@ -4,8 +4,9 @@ import SwiftUI
 extension NotchViewModel {
     /// Opens the Stats with the Cleaner on it: from the Disk card, a disk tile (the Stats grow
     /// from it, spec TT-10), the top-row button or the closed notch's tick (spec TT-9, TT-13).
-    func openCleaner(from tile: HomeTile? = nil) {
+    func openCleaner(from tile: HomeTile? = nil, fromStats: Bool = false) {
         guard isExpanded else { return }
+        cleanerFromStats = fromStats && tile == nil && currentFeature == .stats && !isShowingSettings && !isShowingToggles
         if let tile, currentFeature == .home, tileOpening == nil {
             openTile(tile, part: .stats, anchor: .center)
         } else if currentFeature != .stats {

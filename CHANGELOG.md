@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+## [1.10.7] - 2026-11-28
+
+Test build.
+
+### Changed
+- Swipe drop-downs (DS-5): the setting is now *Open notifications with a swipe down* and only the
+  small notifications under the notch wait for a swipe; the tasks, badges, AI ring and the other
+  items beside the notch open on hover again.
+- Module icons in the top row (M-24): when they do not fit, a two-finger swipe scrolls the row like
+  the buttons on the right; the swipe no longer switches modules. The current module's icon scrolls
+  into view by itself. Onboarding's "Click an icon" step says so.
+- Focus list (FC-12): every Focus's icon sits in a round badge; the Focus that is on has it in its
+  colour with a white symbol, the others grey, as in Control Center.
+- Buttons right of the notch (TS-2): no tooltip naming the function on hover.
+- Cleaner (TT-32, TT-33): its top-row button rests as grey as the others; *‹ Stats* only shows when
+  the Cleaner was opened from the Stats' Disk card. The Stats tip says so.
+
+### Added
+- Small notifications (DS-6): a two-finger swipe up (flick up on a Magic Mouse) over a new
+  notification, Beeper message or screenshot under the notch puts it away.
+
+### Fixed
+- Quick toggles (QT-12): Empty Trash did not empty (Finder's own confirmation cancelled it, -128);
+  Finder's warning is off while it empties and restored afterwards.
+- Spencer (SL-12): layouts are greyed only when none of their displays is connected, so the current
+  one and the ones you can restore are no longer greyed out.
+- AI usage drop-down (CS-14): moving from an opened session row to a shorter one no longer shrinks
+  the drop-down away from the pointer and closes it; it keeps its height until it closes.
+- Focus list (FC-11): the highlight also follows a quick pointer, checked every frame.
+
 ## [1.10.6] - 2026-11-28
 
 Test build.

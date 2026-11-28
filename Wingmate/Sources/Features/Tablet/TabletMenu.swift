@@ -22,7 +22,6 @@ struct TabletMenu: View {
         }
         .buttonStyle(.notch)
         .background(MenuAnchorView(anchor: anchor))
-        .help("iPad as a display")
         .accessibilityLabel("iPad as a display")
         .onAppear { service.refresh() }
     }
