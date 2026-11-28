@@ -176,7 +176,6 @@ private struct ReminderListTileContent: View {
                             .foregroundStyle(store.list(for: item)?.color.color ?? Theme.blue)
                     }
                     .buttonStyle(.plain)
-                    .help("Complete")
                     .accessibilityLabel("Complete \(item.title)")
                 }
                 .foregroundStyle((item.due ?? .distantFuture) < Date() ? Theme.red : .white)
@@ -289,7 +288,6 @@ struct TextTileContent: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Copy")
             }
             Spacer(minLength: 0)
         }

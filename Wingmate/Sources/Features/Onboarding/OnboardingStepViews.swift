@@ -33,7 +33,7 @@ struct OnboardingModulesStep: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(feature.title).font(.callout.weight(.semibold))
                 Text(OnboardingModuleTexts.text(for: feature))
-                    .font(.caption)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

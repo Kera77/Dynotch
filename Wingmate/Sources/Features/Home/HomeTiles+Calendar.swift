@@ -329,7 +329,6 @@ private struct TodayTileContent: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("Open \(feature.title)")
     }
 
     private var nextEvent: String {

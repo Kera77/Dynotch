@@ -74,7 +74,7 @@ extension NotchView {
     /// top black like the notch (spec D-25). Beside the notch, the HUD and a call stay black.
     var showsPeekDesign: Bool {
         // Black notifications: the old look, whatever the design (spec D-28).
-        guard !model.isExpanded, !model.isScreenShared, !settings.noticesBeside, !NotificationLook.shared.black,
+        guard !model.isExpanded, !settings.noticesBeside, !NotificationLook.shared.black,
               hud.display == nil, calls.call == nil
         else { return false }
         return notifications.peek != nil || devices.current != nil

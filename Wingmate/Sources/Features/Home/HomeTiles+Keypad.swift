@@ -38,7 +38,6 @@ struct CalculatorKeypadTile: View {
                 // After =, a click copies the result (spec HT-42).
                 Button { Self.copy(result) } label: { resultText(result, final: true) }
                     .buttonStyle(.plain)
-                    .help("Copy the result")
             } else {
                 resultText(Self.preview(of: expression) ?? (expression.isEmpty ? "0" : " "), final: false)
             }
@@ -183,7 +182,6 @@ struct DaysTileContent: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.white)
-                .help("Join \(event.title)")
             }
         }
         .frame(height: 18)

@@ -66,7 +66,8 @@ struct OnboardingStepContent: View {
 
     var body: some View {
         switch step {
-        case .welcome: welcomeHints
+        // The gestures come on their own pages (spec OB-38).
+        case .welcome: EmptyView()
         case .openClose: openCloseHints
         case .moving: movingHints
         case .modules: OnboardingModulesStep(settings: controller.settings)
@@ -115,18 +116,6 @@ struct OnboardingStepContent: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 30)
     }
-
-    private var welcomeHints: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            OnboardingRow(
-                symbol: "cursorarrow.motionlines", title: "Hover to open", text: "No clicking: the notch opens under the pointer."
-            )
-            OnboardingRow(symbol: "hand.draw", title: "Swipe to switch", text: "Two fingers sideways move between modules.")
-            OnboardingRow(symbol: "square.grid.2x2", title: "Pick your modules", text: "Calendar, notifications, clipboard, AI and more.")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 30)
-    }
 }
 
 /// An icon, a bold title and one line, as used across the tour.
@@ -145,7 +134,7 @@ struct OnboardingRow<Trailing: View>: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title).font(.callout.weight(.semibold))
-                Text(text).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(text).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             trailing

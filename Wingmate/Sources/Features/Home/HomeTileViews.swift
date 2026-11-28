@@ -34,7 +34,6 @@ struct HomeTileCard<Content: View>: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(tile.title)
         .accessibilityAction { open(tile, .center) }
-        .help(tile.feature == .home ? tile.title : "Open \(tile.feature.title)")
     }
 
     /// The highlight, and the tile a pinch out would open (spec N-28).
@@ -111,7 +110,6 @@ struct TileButton: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .help(help)
         .accessibilityLabel(help)
     }
 }

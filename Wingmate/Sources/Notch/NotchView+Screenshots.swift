@@ -4,7 +4,7 @@ import SwiftUI
 /// held, then the shot that was just made.
 extension NotchView {
     var showsScreenshotPeek: Bool {
-        screenshots.choosing != nil || (screenshots.peek != nil && !model.isScreenShared)
+        screenshots.choosing != nil || screenshots.peek != nil
     }
 
     var screenshotPeekSize: CGSize {

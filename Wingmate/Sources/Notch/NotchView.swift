@@ -160,7 +160,7 @@ struct NotchView: View {
                     CallView(service: calls, call: call, notchHeight: geometry.notchSize.height)
                         .frame(width: collapsedSize.width, height: collapsedSize.height, alignment: .top)
                         .transition(.opacity)
-                } else if !model.isExpanded, !model.isScreenShared, let notification = notifications.peek {
+                } else if !model.isExpanded, let notification = notifications.peek {
                     // The closed notch's row stays; the notification drops down under it (spec E-24).
                     ZStack(alignment: .top) {
                         peekView(notification, width: naturalCollapsedSize.width)
@@ -172,7 +172,7 @@ struct NotchView: View {
                     }
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
                     .transition(settings.noticesBeside ? .wingsSpreadIn : .opacity)
-                } else if !model.isExpanded, !model.isScreenShared, let event = devices.current {
+                } else if !model.isExpanded, let event = devices.current {
                     devicePeek(event)
                 } else if !model.isExpanded, showsScreenshotPeek {
                     screenshotPeek
@@ -181,7 +181,7 @@ struct NotchView: View {
                 } else if let notice = wingsNoticePeek {
                     // The notice or the announced meeting stands beside the notch, over the row (spec PV-37, PV-67).
                     wingsPeekView(notice).transition(.wingsSpreadIn)
-                } else if !model.isExpanded, !model.isScreenShared, !indicatorLayout.isEmpty || shownNotice != nil {
+                } else if !model.isExpanded, !indicatorLayout.isEmpty || shownNotice != nil {
                     indicatorRow(hoveredIndex: labelIndex, notice: shownNotice)
                     // Laid out at full size and kept in place while the black area unfolds over it.
                     .frame(width: naturalCollapsedSize.width, height: naturalCollapsedSize.height, alignment: .top)
@@ -344,7 +344,6 @@ extension NotchView {
             return CGSize(width: geometry.notchSize.width + 2 * HUDView.sideWidth(for: display), height: geometry.notchSize.height)
         }
         if calls.call != nil { return geometry.callSize(composing: calls.isComposing) }
-        if model.isScreenShared { return geometry.notchSize }
         // Beside the notch in Wings mode (spec PV-37, PV-38).
         if wingsPeek != nil { return geometry.wingsSize(model.peekSides) }
         if notifications.peek != nil {

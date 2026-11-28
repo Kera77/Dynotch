@@ -87,7 +87,18 @@ final class NotchManager {
             window.orderOut(nil)
             window.orderFrontRegardless()
         }
-        DiagnosticsLog.append("spaces", "hidden from the share: \(changed.count) window(s)")
+        DiagnosticsLog.append("spaces", "hidden from the share: \(changed.count) window(s), still shared: \(sharedWindowCount())")
+    }
+
+    /// How many of Wingmate's on-screen windows the window server still lets a share see: 0 means
+    /// the viewers see none of the notch while the owner does (spec N-31).
+    private static func sharedWindowCount() -> Int {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        return list.filter { info in
+            (info[kCGWindowOwnerPID as String] as? Int32) == pid
+                && (info[kCGWindowSharingState as String] as? Int ?? 0) != CGWindowSharingType.none.rawValue
+        }.count
     }
 
     /// A shortcut opens the feature on the display the pointer is on (spec SC-1).

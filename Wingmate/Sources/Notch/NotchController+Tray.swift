@@ -256,17 +256,12 @@ extension NotchController {
 // MARK: - Screen sharing (spec N-21)
 
 extension NotchController {
-    /// While the screen is shared nothing pops up beside or under the notch; a notification
-    /// already shown goes.
+    /// While a meeting shares the screen the notch keeps showing everything to the owner: its
+    /// windows are left out of the shared picture (spec N-21c, N-31). Only the tour and What's new
+    /// wait for the share to end (spec OB-12, WN-2).
     func setScreenShared(_ shared: Bool) {
         guard model.isScreenShared != shared else { return }
-        notifications.isScreenShared = shared
-        if shared {
-            notifications.clearPeek()
-            setHoveredIndicator(nil)
-            setHoveredBadge(nil)
-        }
-        withAnimation(Self.animation) { model.isScreenShared = shared }
+        model.isScreenShared = shared
     }
 }
 

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.10.9] - 2026-11-28
+
+Test build.
+
+### Changed
+- Screen sharing (N-31): while a meeting (browser, Zoom, Teams) shares the screen, the notch keeps
+  showing badges, the task counter, overdue tasks, indicators and notifications to you; all of
+  Wingmate's windows stay left out of the shared picture (N-21c). `spaces.log` notes how many
+  Wingmate windows the share can still see (0 is right). The tour and What's new still wait.
+- Home tiles (HT-57): no tooltip on hover over the tiles and their buttons.
+- Onboarding (OB-38): the Welcome step no longer lists the three gestures (later steps show them);
+  the grey descriptions under the row titles are as large as the titles.
+
 ## [1.10.8] - 2026-11-28
 
 Test build.

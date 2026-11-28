@@ -249,7 +249,6 @@ private struct TogglesTileContent: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.white)
-                    .help(toggle.title)
                     .accessibilityLabel(toggle.title)
                 }
             }

@@ -16,7 +16,7 @@ enum WingsPeek {
 extension NotchView {
     /// The small notice shown beside the closed notch, in the order the closed notch shows them.
     var wingsPeek: WingsPeek? {
-        guard settings.noticesBeside, !model.isExpanded, !model.isScreenShared, hud.display == nil, calls.call == nil
+        guard settings.noticesBeside, !model.isExpanded, hud.display == nil, calls.call == nil
         else { return nil }
         if let peek = notifications.peek { return .notification(peek) }
         if let event = devices.current { return .device(event) }

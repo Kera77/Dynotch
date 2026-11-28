@@ -3,6 +3,14 @@ import Foundation
 extension WhatsNew {
     /// The test builds after 1.10.0, newest first; merged into one entry at the next public release (spec WN-4).
     static let testBuilds110: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.10.9", items: [
+            WhatsNewItem(symbol: "rectangle.on.rectangle.slash", title: "Private while sharing",
+                         text: "In a meeting share you still see badges, tasks and notifications; the viewers see none of it."),
+            WhatsNewItem(symbol: "square.grid.2x2", title: "Calmer Home tiles",
+                         text: "No tooltip pops up when the pointer rests on a tile or its buttons."),
+            WhatsNewItem(symbol: "sparkles", title: "Easier-to-read tour",
+                         text: "The welcome page is simpler and the grey descriptions in the tour are larger.")
+        ]),
         WhatsNewRelease(version: "1.10.8", items: [
             WhatsNewItem(symbol: "rectangle.3.group", title: "Spencer layouts for these displays",
                          text: "Only the layouts made for the displays connected now can be chosen; the others are greyed out.")

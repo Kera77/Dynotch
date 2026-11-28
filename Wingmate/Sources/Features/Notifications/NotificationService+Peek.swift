@@ -13,8 +13,9 @@ extension NotificationService {
     nonisolated static let secondRowHeight: CGFloat = 28
 
     func showPeek(_ notification: AppNotification) {
-        // During a Focus, or while the screen is shared, it is listed without popping up (spec E-20d, N-21).
-        guard popsUp(notification), !isScreenShared else { return }
+        // During a Focus it is listed without popping up (spec E-20d). While the screen is shared it
+        // still pops up: Wingmate's windows are left out of the share (spec N-31).
+        guard popsUp(notification) else { return }
         // The pointer rests on the one beside the notch: the newer one waits (spec PV-39).
         if !peekHolders.isEmpty, peek != nil {
             heldPeek = notification

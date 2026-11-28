@@ -33,7 +33,6 @@ final class NotificationService {
     /// Installed apps found in the database, for the settings list.
     private(set) var apps: [NotificationApp] = []
     /// The screen is shared or recorded: nothing pops up (spec N-21).
-    @ObservationIgnored var isScreenShared = false
 
     /// Read through `catalog`, so views follow its updates.
     @ObservationIgnored let appCatalog = NotificationAppCatalog()
