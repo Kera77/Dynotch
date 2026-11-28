@@ -12,6 +12,8 @@ enum RenameMigration {
     static let oldChatFolder = "DynotchChat"
     static let oldKeychainService = "Dynotch Claude account"
     static let oldScheme = "dynotch://"
+    /// Set when old data came over: the one-time "Dynotch is now Wingmate" window (spec RN-11).
+    static let welcomeKey = "renameWelcomePending"
 
     /// Runs before anything else reads settings or files; never in the test host.
     static func runIfNeeded(defaults: UserDefaults = .standard) {
@@ -28,6 +30,7 @@ enum RenameMigration {
         let hooks = replaceHooks()
         if old["launchAtLoginBeforeRename"] as? Bool == true { try? SMAppService.mainApp.register() }
         removeOldApp(home: home)
+        defaults.set(true, forKey: welcomeKey)
         DiagnosticsLog.append("rename", "settings=\(copied) folders=\(movedFiles) keychain=\(keys) hooks=\(hooks)")
     }
 

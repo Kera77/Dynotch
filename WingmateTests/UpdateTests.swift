@@ -90,6 +90,22 @@ struct UpdateTests {
         #expect(UpdateLogic.appBundle(in: ["Other.app"]) == nil)
     }
 
+    /// The rename bridge takes the Wingmate zip of its own release, a test build too; the bridge's
+    /// own Dynotch zip beside it is never picked (spec RN-9, RN-10).
+    @Test func theBridgeFindsTheWingmateOfItsOwnRelease() throws {
+        let json = Data("""
+        {"tag_name":"v1.9.5","draft":false,"prerelease":true,"assets":[
+          {"name":"Dynotch-1.9.5.zip","browser_download_url":"https://x/Dynotch-1.9.5.zip"},
+          {"name":"Wingmate-1.9.5.zip","browser_download_url":"https://x/Wingmate-1.9.5.zip"},
+          {"name":"SHA256SUMS.txt","browser_download_url":"https://x/SHA256SUMS.txt"}]}
+        """.utf8)
+        let release = try #require(UpdateLogic.release(fromTagJSON: json))
+        #expect(release.version == "1.9.5")
+        #expect(release.archiveName == "Wingmate-1.9.5.zip")
+        #expect(UpdateLogic.release(forVersion: "1.9.5")?.absoluteString.hasSuffix("/Kera77/Wingmate/releases/tags/v1.9.5") == true)
+        #expect(UpdateLogic.appBundle(in: ["Dynotch.app"]) == nil)
+    }
+
     @Test func theRenamedAppMustHaveTheSameCertificate() {
         let designated = #"identifier "com.example.old" and certificate leaf = H"9767""#
         #expect(UpdateLogic.requirement(designated, own: "com.example.old", swappedTo: "com.peterkereki.Wingmate")

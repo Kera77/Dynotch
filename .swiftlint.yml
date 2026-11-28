@@ -1,6 +1,7 @@
 included:
   - Wingmate
   - WingmateTests
+  - RenameBridge
 excluded:
   - build
   - DerivedData

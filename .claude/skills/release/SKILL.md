@@ -55,6 +55,6 @@ The steps below are the same for both.
 
 Homebrew cask: `Packaging/Homebrew/Casks/wingmate.rb`, copied to the tap repo
 `Kera77/homebrew-wingmate` (Homebrew 7 needs `brew trust kera77/wingmate`).
-Until the first public release after the rename (1.10.0) the tap still serves the old name: at
-that release rename the tap repo to `Kera77/homebrew-wingmate`, put `wingmate.rb` in its `Casks/`
-and remove the old cask file there (spec RN-1).
+At the first public release after the rename (1.10.0), once its GitHub release is out, run
+`./scripts/tap-rename.sh` (spec RN-12): it creates the new tap, points the old one there and
+removes the old cask. Never rename the old tap repo: Homebrew refuses the redirect.

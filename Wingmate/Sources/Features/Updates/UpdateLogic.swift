@@ -63,6 +63,18 @@ enum UpdateLogic {
         return release(from: object, allowingPrerelease: false)
     }
 
+    /// The release published for one version, test builds too: the rename bridge installs the
+    /// Wingmate of its own release (spec RN-10).
+    static func release(forVersion version: String) -> URL? {
+        URL(string: "https://api.github.com/repos/Kera77/Wingmate/releases/tags/v\(version)")
+    }
+
+    /// GitHub's answer for one release (`release(forVersion:)`), prerelease or not (spec RN-10).
+    static func release(fromTagJSON data: Data) -> ReleaseInfo? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return release(from: object, allowingPrerelease: true)
+    }
+
     /// The newest release in GitHub's release list, prereleases included (spec U-7).
     static func newestRelease(fromListJSON data: Data) -> ReleaseInfo? {
         guard let list = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return nil }

@@ -15,7 +15,7 @@ packages:
 
 settings:
   base:
-    MARKETING_VERSION: "1.9.4"
+    MARKETING_VERSION: "1.9.5"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
@@ -98,6 +98,40 @@ targets:
             echo "warning: SwiftLint not installed (brew install swiftlint)"
           fi
 
+  # The rename bridge (spec RN-9, RN-10): the old name, so updaters up to 1.9.1 accept it; it only
+  # installs the Wingmate of the same release.
+  RenameBridge:
+    type: application
+    platform: macOS
+    sources:
+      - path: RenameBridge
+      - path: Wingmate/Resources/AppIcon.icon
+      - path: Wingmate/Sources/Features/Updates/UpdateLogic.swift
+      - path: Wingmate/Sources/Features/Updates/UpdateInstaller.swift
+      - path: Wingmate/Sources/App/AppInfo.swift
+      - path: Wingmate/Sources/App/DiagnosticsLog.swift
+      - path: Wingmate/Sources/App/ProcessRunner.swift
+    info:
+      path: RenameBridge/Info.plist
+      properties:
+        CFBundleDisplayName: Dynotch
+        CFBundleName: Dynotch
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: "Copyright © 2026 Wingmate"
+    settings:
+      base:
+        PRODUCT_NAME: Dynotch
+        PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: com.peterkereki.Dynotch.debug
+
   WingmateTests:
     type: bundle.unit-test
     platform: macOS
@@ -117,6 +151,7 @@ schemes:
     build:
       targets:
         Wingmate: all
+        RenameBridge: all
         WingmateTests: [test]
     test:
       config: Debug

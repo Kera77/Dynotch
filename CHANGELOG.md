@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.9.5] - 2026-11-28
+
+### Added
+- Rename bridge for the public version: every release also carries `Dynotch-X.Y.Z.zip`, a small
+  app under the old name that updaters up to 1.9.1 accept. It installs the Wingmate of the same
+  release, keeps *Launch at login*, clears the old "Dynotch" rows in System Settings › Privacy and
+  quits (RN-8…RN-10).
+- One-time "Dynotch is now Wingmate" window after the takeover: what happened, the permissions to
+  grant again with their buttons, and what macOS may still ask (RN-11). Onboarding and tips are
+  unchanged, as no module, gesture or setting moved.
+- Homebrew: `scripts/tap-rename.sh` sets up the new tap `Kera77/homebrew-wingmate` at the first
+  public Wingmate release and points the old tap's `dynotch` cask there (`tap_migrations.json`,
+  `cask_renames.json`), so `brew upgrade` moves existing installs. The old tap repo keeps its name,
+  as Homebrew refuses a renamed tap's redirect (RN-12).
+
 ## [1.9.4] - 2026-11-28
 
 ### Fixed

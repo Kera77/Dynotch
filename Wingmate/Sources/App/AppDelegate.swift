@@ -364,5 +364,6 @@ extension AppDelegate {
         // After an update: what arrived since the last version, from a notice under the notch (spec WN-6).
         let notifications = services.notifications
         WhatsNewAnnouncer.showIfNeeded(settings: settings, notices: services.notices) { notifications.preferences.isOn(.updates) }
+        RenameWelcome.showIfNeeded(notifications: notifications, settings: settings)
     }
 }

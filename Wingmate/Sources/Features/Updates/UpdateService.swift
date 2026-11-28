@@ -1,6 +1,5 @@
 import AppKit
 import Observation
-import ServiceManagement
 
 /// Keeps Wingmate up to date from its GitHub releases (spec U-1…U-4).
 @MainActor
@@ -13,10 +12,6 @@ final class UpdateService {
         case available(String)
         case installing(String)
         case failed(String)
-    }
-
-    struct Failure: Error {
-        let message: String
     }
 
     private(set) var state: State = .idle
@@ -57,13 +52,6 @@ final class UpdateService {
         return UpdateLogic.isNewer(current, than: previous) ? previous : nil
     }
 
-    private static func fetch(_ url: URL) async throws -> Data {
-        var request = URLRequest(url: url)
-        request.setValue("Wingmate", forHTTPHeaderField: "User-Agent")
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        return try await URLSession.shared.data(for: request).0
-    }
-
     func start() {
         guard timer == nil else { return }
         self.timer = RepeatingTimer.start(every: Self.interval) { [weak self] in self?.check() }
@@ -82,11 +70,11 @@ final class UpdateService {
         let install = installIfFound ?? installsAutomatically
         Task { [weak self] in
             do {
-                let data = try await Self.fetch(url)
+                let data = try await UpdateInstaller.fetch(url)
                 guard let self else { return }
                 self.lastChecked = Date()
                 let candidate = beta ? UpdateLogic.newestRelease(fromListJSON: data) : UpdateLogic.release(fromJSON: data)
-                guard let release = candidate else { throw Failure(message: "No release found.") }
+                guard let release = candidate else { throw UpdateInstaller.Failure(message: "No release found.") }
                 guard UpdateLogic.isNewer(release.version, than: AppInfo.version) else {
                     self.state = .upToDate
                     return
@@ -95,7 +83,7 @@ final class UpdateService {
                 self.state = .available(release.version)
                 if install { self.install() }
             } catch {
-                self?.state = .failed((error as? Failure)?.message ?? error.localizedDescription)
+                self?.state = .failed((error as? UpdateInstaller.Failure)?.message ?? error.localizedDescription)
             }
         }
     }
@@ -116,66 +104,17 @@ final class UpdateService {
         state = .installing(release.version)
         Task { [weak self] in
             do {
-                let prepared = try await Self.prepare(release)
+                let prepared = try await UpdateInstaller.prepare(release)
                 DiagnosticsLog.append("updates", "installing \(release.version)")
                 let destination = target.deletingLastPathComponent().appendingPathComponent(prepared.app.lastPathComponent)
-                if destination != target { Self.prepareForRename() }
-                try Self.launchInstaller(newApp: prepared.app, target: destination, running: target, folder: prepared.folder)
+                if destination != target { UpdateInstaller.prepareForRename() }
+                try UpdateInstaller.launchInstaller(newApp: prepared.app, target: destination, running: target, folder: prepared.folder)
                 NSApp.terminate(nil)
             } catch {
-                let message = (error as? Failure)?.message ?? error.localizedDescription
+                let message = (error as? UpdateInstaller.Failure)?.message ?? error.localizedDescription
                 DiagnosticsLog.append("updates", "update to \(release.version) failed: \(message)")
                 self?.state = .failed(message)
             }
         }
-    }
-
-    /// Downloads and unpacks the release and makes sure it is the real thing: the listed
-    /// checksum, the expected version, and the same signature as this app (spec U-2).
-    private static func prepare(_ release: ReleaseInfo) async throws -> (app: URL, folder: URL) {
-        let (archive, _) = try await URLSession.shared.data(from: release.archive)
-        guard let checksums = release.checksums else { throw Failure(message: "The release has no checksums.") }
-        let (sums, _) = try await URLSession.shared.data(from: checksums)
-        let expected = UpdateLogic.expectedHash(forFile: release.archiveName, inChecksums: String(bytes: sums, encoding: .utf8) ?? "")
-        guard let expected, expected == UpdateLogic.sha256(of: archive) else {
-            throw Failure(message: "The download does not match its checksum.")
-        }
-        return try await Task.detached {
-            let folder = FileManager.default.temporaryDirectory.appendingPathComponent("wingmate-update-\(UUID().uuidString)")
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let zip = folder.appendingPathComponent(release.archiveName)
-            try archive.write(to: zip)
-            let unpack = ProcessRunner.run("/usr/bin/ditto", ["-x", "-k", zip.path, folder.path], timeout: 120)
-            let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
-            let app = folder.appendingPathComponent(UpdateLogic.appBundle(in: names) ?? "Wingmate.app")
-            let version = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-            guard unpack?.succeeded == true, version == release.version else {
-                throw Failure(message: "The download is not Wingmate \(release.version).")
-            }
-            guard UpdateLogic.isSignedLikeRunningApp(appAt: app) else {
-                throw Failure(message: "The download is not signed like this copy of Wingmate.")
-            }
-            return (app, folder)
-        }.value
-    }
-
-    /// Before the app is replaced by its renamed self: remembers *Launch at login* for the new app
-    /// and takes this one out of the login items, as its bundle goes away (spec U-12).
-    private static func prepareForRename() {
-        let enabled = SMAppService.mainApp.status == .enabled
-        UserDefaults.standard.set(enabled, forKey: "launchAtLoginBeforeRename")
-        if enabled { try? SMAppService.mainApp.unregister() }
-        DiagnosticsLog.append("updates", "renamed app, launch at login was \(enabled ? "on" : "off")")
-    }
-
-    private static func launchInstaller(newApp: URL, target: URL, running: URL, folder: URL) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
-        // Detached, so it outlives this app.
-        process.arguments = [
-            "-c", "( \(UpdateLogic.installScript)\n) >/dev/null 2>&1 &", "wingmate-update",
-            String(ProcessInfo.processInfo.processIdentifier), newApp.path, target.path, folder.path, running.path
-        ]
-        try process.run()
     }
 }
