@@ -7,7 +7,19 @@ brew install --cask wingmate
 ```
 
 The cask always installs the latest [Wingmate release](https://github.com/Kera77/Wingmate/releases).
-Wingmate updates itself afterwards (Settings › About). The app used to be called Dynotch:
-`cask_renames.json` moves an installed `dynotch` cask to `wingmate` on the next `brew upgrade`.
+Wingmate updates itself afterwards (Settings › About).
+
+## Installed as `dynotch` before?
+
+The app used to be called Dynotch. Its own update already replaced `Dynotch.app` with
+`Wingmate.app`, so `brew upgrade` stops with "App source '/Applications/Dynotch.app' is not there".
+Move Homebrew's record over once:
+
+```bash
+brew update
+brew trust kera77/wingmate
+rm -rf "$(brew --prefix)/Caskroom/dynotch"            # only Homebrew's record; the app stays
+brew install --cask --adopt kera77/wingmate/wingmate  # takes over the Wingmate.app already there
+```
 
 The cask is kept in the main repository under `Packaging/Homebrew` and copied here.

@@ -21,6 +21,17 @@ brew install --cask wingmate
 A cask mindig a legfrissebb kiadást telepíti, és leveszi róla a karantén jelzést (az app önaláírt).
 Frissíteni nem kell kézzel: a Wingmate maga frissül (lásd lent).
 
+Korábban `dynotch` néven telepítetted? Az app saját frissítése a `Dynotch.app`-ot már
+`Wingmate.app`-ra cserélte, ezért a `brew upgrade` hibát ad. A Homebrew nyilvántartását egyszer
+így vidd át (az app a helyén marad):
+
+```bash
+brew update
+brew trust kera77/wingmate
+rm -rf "$(brew --prefix)/Caskroom/dynotch"
+brew install --cask --adopt kera77/wingmate/wingmate
+```
+
 ### Script
 
 A legfrissebb kiadás telepítése `/Applications`-be:
