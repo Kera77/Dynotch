@@ -29,6 +29,9 @@ struct StickyNotice: Equatable, Sendable {
     var countdown: DateInterval?
     /// Claude Code waits for an answer from the notch's buttons (spec CQ-5).
     var reply: ClaudeReplyRequest?
+    /// What Claude Code finished: the last prompt and the answer's first line (spec CN-10).
+    var task: String?
+    var answer: String?
 
     /// A download in `~/Downloads` finished (spec PV-57).
     static func downloaded(_ file: URL) -> StickyNotice {

@@ -275,6 +275,7 @@ extension NotchController {
     /// The pointer on a notice beside the notch: a notification stays while it is there, and its
     /// line starts again (spec PV-38, PV-39).
     func updateWingsPeekHover(at point: CGPoint) {
+        updatePeekHover(at: point)
         let shows = notifications.peek != nil || devices.current != nil || notices.notice != nil
             || calendar.announcement != nil || isAnnouncingTrack
         let inside = settings.noticesBeside && shows && !model.isExpanded && wingsPeekZone.contains(point)

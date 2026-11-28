@@ -54,7 +54,7 @@ final class FocusFollowsMouse {
     private func focusWindowUnderPointer(afterLettingGo: Bool = false) {
         // Never while dragging or selecting, and never take the keyboard from a Wingmate panel
         // someone is typing in (spec F-4).
-        guard NSEvent.pressedMouseButtons == 0 else { return }
+        guard NSEvent.pressedMouseButtons == 0, !ControlCenterFocus.isWorking else { return }
         guard let point = CGEvent(source: nil)?.location,
               let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]]
@@ -109,6 +109,8 @@ final class FocusFollowsMouse {
     /// in the System module, and typing went nowhere (spec F-18). Not while a Wingmate menu is open.
     /// - Returns: true when it let go; the switch follows a moment later.
     private func letGoIfWingmateHoldsKeys(windows: [ScreenWindow]) -> Bool {
+        // Switching a Focus through Control Center: no app switch now (spec FC-7).
+        guard !ControlCenterFocus.isWorking else { return false }
         let panels = NSApp.windows.compactMap { $0 as? NotchPanel }
         let mouse = NSEvent.mouseLocation
         // A closed panel may still report itself key without getting any keys (spec F-11).

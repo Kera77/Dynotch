@@ -100,6 +100,8 @@ extension NotchController {
     /// and the panel lets go for real (spec F-15c).
     func giveKeyboardBack(evenIfNotKey: Bool = false) {
         guard panel.isKeyWindow || evenIfNotKey else { return }
+        // Switching a Focus through Control Center: an app switch would close it (spec FC-7).
+        guard !ControlCenterFocus.isWorking else { return }
         panel.makeFirstResponder(nil)
         guard let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != getpid() else {
             NSApp.deactivate()

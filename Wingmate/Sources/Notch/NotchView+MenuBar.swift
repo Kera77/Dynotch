@@ -91,7 +91,7 @@ struct TrailingControls: View {
         let scrolling = shown.filter { !$0.isPinnedRight }
         let pinned = shown.filter(\.isPinnedRight)
         HStack(spacing: TrailingControlsMetrics.spacing) {
-            // Too many buttons beside the notch: the others scroll, Focus and Settings stay (spec TS-1).
+            // Too many buttons beside the notch: the others scroll, Settings stays (spec TS-1, FC-8).
             ViewThatFits(in: .horizontal) {
                 row(scrolling, in: shown)
                 ScrollView(.horizontal, showsIndicators: false) {

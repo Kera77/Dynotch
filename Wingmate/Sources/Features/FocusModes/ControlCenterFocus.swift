@@ -13,7 +13,9 @@ enum ControlCenterFocus {
         var header: String?
     }
 
-    private static var busy = false
+    /// A switch is under way: nothing may change the app in front meanwhile, or Control Center
+    /// closes in the middle of it (spec FC-7).
+    private(set) static var isWorking = false
 
     /// The Focuses as Control Center lists them, in its order.
     static func readNames(known: Set<String>) async -> [String]? {
@@ -51,13 +53,19 @@ enum ControlCenterFocus {
     // MARK: - The panel
 
     private static func session<T>(_ body: (Panel) async -> T?) async -> T? {
-        guard !busy else { return nil }
+        guard !isWorking else { return nil }
         guard AXIsProcessTrusted() else {
             DiagnosticsLog.append("focus", "no Accessibility: cannot switch")
             return nil
         }
-        busy = true
-        defer { busy = false }
+        isWorking = true
+        defer { isWorking = false }
+        // The keyboard goes back to the app in front first: an app switch while Control Center
+        // is open closes it, and the switch failed (spec FC-7).
+        if NSApp.isActive {
+            NSApp.deactivate()
+            try? await Task.sleep(for: .milliseconds(250))
+        }
         guard let panel = await Panel.open() else {
             DiagnosticsLog.append("focus", "Control Center did not open")
             return nil

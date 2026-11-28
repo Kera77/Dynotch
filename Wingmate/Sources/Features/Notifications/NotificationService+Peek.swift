@@ -68,7 +68,8 @@ extension NotificationService {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(250))
                 guard !Task.isCancelled, let self else { return }
-                guard self.peekHolders.isEmpty else { continue }
+                // Under the pointer it stays, and goes 3 s after the pointer left (spec E-36).
+                guard self.peekHolders.isEmpty, PeekHover.shared.mayGo(.notification) else { continue }
                 let now = Date()
                 if let deadline = self.secondDeadline, deadline <= now { self.dropSecondPeek() }
                 guard let deadline = self.peekDeadline, deadline <= now else { continue }

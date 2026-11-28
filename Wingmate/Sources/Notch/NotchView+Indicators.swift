@@ -6,6 +6,11 @@ extension NotchView {
         shownNotice != nil && notices.second != nil && !settings.noticesBeside ? NotificationService.secondRowHeight : 0
     }
 
+    /// The swiped-down "Claude finished" with its task (spec CN-10).
+    var noticeTaskHeight: CGFloat {
+        shownNotice != nil && !settings.noticesBeside ? notices.taskRowsHeight : 0
+    }
+
     /// Overdue tasks stay in thin rows under the counter, unless a notice stands there (spec R-26).
     var overdueTasksIndex: Int? {
         guard notices.notice == nil, !settings.noticesBeside else { return nil }
@@ -54,6 +59,7 @@ extension NotchView {
         row.showsBadgeList = showsBadgeList && model.shownBadge != nil
         row.stopRecording = { screenshots.stopRecording() }
         row.recordingHovered = isRecordingHovered
+        row.showsNoticeTask = notices.taskRowsHeight > 0 && !settings.noticesBeside
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
         row.dismissSecondNotice = { withAnimation(Self.quickAnimation) { notices.dismissSecond() } }
         row.openNotice = { openNotice() }

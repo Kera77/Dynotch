@@ -347,3 +347,34 @@ struct NoticeChoiceButton: View {
         .accessibilityLabel(title)
     }
 }
+
+/// Under the swiped-down "Claude finished": what it was asked and what it answered (spec CN-10).
+struct NoticeTaskRows: View {
+    let task: String
+    let answer: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            row("Task", task, lines: 2)
+            if let answer { row("Answer", answer, lines: 1) }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func row(_ label: String, _ text: String, lines: Int) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(label)
+                .font(.notch(size: 10, weight: .semibold))
+                .foregroundStyle(Color.white.level(0.45))
+                .frame(width: 44, alignment: .leading)
+            Text(text)
+                .font(.notch(size: 11))
+                .foregroundStyle(Color.white.level(0.85))
+                .lineLimit(lines)
+                .truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}

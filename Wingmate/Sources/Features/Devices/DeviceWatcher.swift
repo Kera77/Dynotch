@@ -273,7 +273,8 @@ final class DeviceWatcher: NSObject {
         hideTask?.cancel()
         let duration = settings.notificationDuration
         hideTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
+            // Under the pointer it stays (spec E-36).
+            await PeekHover.shared.wait(.device, seconds: duration)
             guard !Task.isCancelled else { return }
             self?.current = nil
         }

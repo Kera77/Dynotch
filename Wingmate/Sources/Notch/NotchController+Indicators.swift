@@ -270,11 +270,7 @@ extension NotchController {
         }
         guard let announced else {
             // No announcement: the notice is what is written under the notch.
-            guard notices.notice != nil, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
-            if isSwipeUp(event), notices.notice?.whatsNew == nil { // What's new stays (spec WN-7).
-                foldPeekAway { notices.dismiss() }
-            }
-            return true
+            return handleNoticeScroll(event, layout: layout)
         }
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: items[announced].labelHeight)
             .insetBy(dx: -4, dy: -NotchGeometry.topEdgeTolerance)

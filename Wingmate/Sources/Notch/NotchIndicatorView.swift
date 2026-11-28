@@ -17,6 +17,8 @@ struct NotchIndicatorView: View {
     var notice: StickyNotice?
     /// The earlier notice, in a compact row under it (spec E-30).
     var secondNotice: StickyNotice?
+    /// The notice's task and answer under it (spec CN-10).
+    var showsNoticeTask = false
     var openBadge: (BadgeItem) -> Void = { _ in }
     var moveBadge: (String, Int) -> Void = { _, _ in }
     var showBadgeNotifications: (BadgeItem) -> Void = { _ in }
@@ -106,6 +108,11 @@ struct NotchIndicatorView: View {
                     )
                 } else if let notice {
                     noticeLabel(notice)
+                    if showsNoticeTask, let task = notice.task {
+                        NoticeTaskRows(task: task, answer: notice.answer)
+                            .frame(height: notice.answer == nil ? 40 : 60, alignment: .top)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     if let secondNotice {
                         PeekSecondRowView(
                             row: .notice(secondNotice), app: nil, content: nil,

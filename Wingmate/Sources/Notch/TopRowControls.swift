@@ -45,8 +45,8 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
 
     var canHide: Bool { self != .settings }
 
-    /// Stay at the right end of the row while the others scroll (spec TS-1).
-    var isPinnedRight: Bool { self == .focus || self == .settings }
+    /// Stays at the right end of the row while the others scroll (spec TS-1); Focus moves like the rest (spec FC-8).
+    var isPinnedRight: Bool { self == .settings }
 
     /// Off until switched on in the settings (spec TT-9).
     static let hiddenByDefault: Set<TopRowControl> = [.cleaner]

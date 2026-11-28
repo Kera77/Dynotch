@@ -35,8 +35,9 @@ extension OnboardingStep {
         case .permissions:
             "Wingmate only asks for what your modules need. Nothing here is required."
         case .ready:
-            "Settings live behind the gear icon at the right of the notch's top row; the moon beside it turns a "
-                + "Focus on for an hour, until evening or until you turn it off (a click on its icon beside the notch turns it off), "
+            "Settings live behind the gear icon at the right of the notch's top row; the moon in that row (⌘-drag to move it) turns a "
+                + "Focus on: its lengths open under it, and closing the list keeps it on until you turn it off "
+                + "(a click on its icon beside the notch turns it off), "
                 + "and the switch holds quick toggles like Keep Awake. "
                 + "With Spencer installed, its button there switches your window "
                 + "layouts, restores or updates the workspace, and switches by itself when your displays change."

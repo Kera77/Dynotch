@@ -76,6 +76,7 @@ extension NotchController {
         let geometry = model.geometry
         // With the earlier notice's row under it (spec E-30).
         let label = IndicatorLayout.labelHeight + (notices.second == nil ? 0 : NotificationService.secondRowHeight)
+            + notices.taskRowsHeight
         let rect = layout.isEmpty
             ? geometry.rect(for: CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + label))
             : layout.rect(notchRect: geometry.notchRect, labelHeight: label)

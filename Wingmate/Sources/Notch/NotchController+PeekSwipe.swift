@@ -29,13 +29,7 @@ extension NotchController {
         guard peeksWaitForSwipe, !model.isExpanded, !callIsShown else { return false }
         let overShot = isOverScreenshotPeek
         guard overShot || isOverNotificationPeek else { return false }
-        let began: Bool? = event.phase.isEmpty && event.momentumPhase.isEmpty ? nil : event.phase.contains(.began)
-        // Positive = fingers moved down, regardless of "natural scrolling".
-        let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
-        let direction = model.reveal.swipe.handle(
-            fingerDown: fingerDown, across: event.scrollingDeltaX, began: began,
-            isMomentum: !event.momentumPhase.isEmpty, time: event.timestamp
-        )
+        let direction = revealDirection(of: event)
         guard direction == .open else { return direction != nil ? false : true }
         Haptics.perform(.open, settings: settings)
         if overShot, let shot = screenshots.peek {
@@ -45,6 +39,47 @@ extension NotchController {
             setHoveredIndicator(nil)
             setHoveredBadge(nil)
             expand()
+        }
+        return true
+    }
+}
+
+extension NotchController {
+    /// Feeds the scroll event to the swipe being gathered; a direction once a swipe completes.
+    func revealDirection(of event: NSEvent) -> RevealSwipe.Direction? {
+        let began: Bool? = event.phase.isEmpty && event.momentumPhase.isEmpty ? nil : event.phase.contains(.began)
+        // Positive = fingers moved down, regardless of "natural scrolling".
+        let fingerDown = event.isDirectionInvertedFromDevice ? event.scrollingDeltaY : -event.scrollingDeltaY
+        return model.reveal.swipe.handle(
+            fingerDown: fingerDown, across: event.scrollingDeltaX, began: began,
+            isMomentum: !event.momentumPhase.isEmpty, time: event.timestamp
+        )
+    }
+
+    /// The notice is what is written under the notch: a swipe up puts it away (spec CN-1).
+    func handleNoticeScroll(_ event: NSEvent, layout: IndicatorLayout) -> Bool {
+        guard let notice = notices.notice, noticeArea(for: layout).contains(NSEvent.mouseLocation) else { return false }
+        // "Claude finished" opens downwards to tell its task (spec CN-10).
+        if notice.task != nil, !settings.noticesBeside { return handleNoticeTaskSwipe(event) }
+        if isSwipeUp(event), notice.whatsNew == nil { // What's new stays (spec WN-7).
+            foldPeekAway { notices.dismiss() }
+        }
+        return true
+    }
+
+    /// Over "Claude finished": a swipe down shows its task, a swipe up folds it first, then
+    /// puts the notice away (spec CN-10, CN-1).
+    func handleNoticeTaskSwipe(_ event: NSEvent) -> Bool {
+        guard let direction = revealDirection(of: event) else { return true }
+        switch direction {
+        case .open:
+            guard !notices.revealsTask else { return true }
+            Haptics.perform(.open, settings: settings)
+            withAnimation(Self.animation) { notices.revealsTask = true }
+        case .close where notices.revealsTask:
+            withAnimation(Self.animation) { notices.revealsTask = false }
+        case .close:
+            foldPeekAway { notices.dismiss() }
         }
         return true
     }

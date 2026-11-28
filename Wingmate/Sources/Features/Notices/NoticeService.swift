@@ -19,10 +19,19 @@ final class NoticeService {
     @ObservationIgnored private var expiry: Task<Void, Never>?
     /// How long a finished download stays (spec PV-57).
     static let downloadStays: TimeInterval = 3
+    /// "Claude finished" swiped down: its task and answer show under it (spec CN-10).
+    var revealsTask = false
+
+    /// The rows the swiped-down "Claude finished" adds under itself (spec CN-10).
+    var taskRowsHeight: CGFloat {
+        guard revealsTask, let notice, notice.task != nil else { return 0 }
+        return notice.answer == nil ? 40 : 60
+    }
 
     func show(_ notice: StickyNotice) {
         // Nothing pops up during the tour (spec OB-11).
         guard !OnboardingController.isRunning else { return }
+        revealsTask = false
         let stack = Self.stacked(top: self.notice, second: second, new: notice)
         self.notice = stack.top
         second = stack.second
@@ -30,7 +39,8 @@ final class NoticeService {
         expiry?.cancel()
         guard let stays = notice.stays else { return }
         expiry = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(stays))
+            // Under the pointer it stays (spec E-36).
+            await PeekHover.shared.wait(.notice, seconds: stays)
             guard !Task.isCancelled, let self else { return }
             self.remove(notice)
         }
@@ -53,6 +63,7 @@ final class NoticeService {
     /// Takes one notice away, wherever it stands; the one under it moves up.
     func remove(_ shown: StickyNotice) {
         if notice == shown {
+            revealsTask = false
             notice = second
             second = nil
         } else if second == shown {
@@ -80,7 +91,7 @@ final class NoticeService {
         RecentNotice.shared.note(.tray, file: file, id: "download:" + file.path)
         downloadExpiry?.cancel()
         downloadExpiry = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(Self.downloadStays))
+            await PeekHover.shared.wait(.notice, seconds: Self.downloadStays)
             guard !Task.isCancelled, let self else { return }
             self.remove(shown)
         }
@@ -137,7 +148,10 @@ final class NoticeService {
             if pending.isEmpty {
                 // The session may have worked in another folder than the one it was started in.
                 let project = summary.project ?? notice.detail
-                self?.show(StickyNotice(title: notice.title, detail: project, date: notice.date, appIdentifier: notice.appIdentifier))
+                self?.show(StickyNotice(
+                    title: notice.title, detail: project, date: notice.date, appIdentifier: notice.appIdentifier,
+                    task: summary.task, answer: summary.answer
+                ))
             } else {
                 DiagnosticsLog.append("claude-hook", "stopped with \(pending.count) background task(s) running: no notice")
             }
@@ -264,6 +278,21 @@ enum ClaudeTranscript {
         let pending: Set<String>
         /// The project most of the recent work was done in.
         let project: String?
+        /// The last prompt and the first line of the answer (spec CN-10).
+        var task: String?
+        var answer: String?
+    }
+
+    /// The last prompt typed (tags, commands and tool results left out), on one line, and the
+    /// first line of the answer (spec CN-10).
+    static func finishedWork(in text: String) -> (task: String?, answer: String?) {
+        let prompt = text.split(separator: "\n").reversed().lazy
+            .compactMap { ClaudeCodeHistory.message(fromLine: String($0)) }
+            .first { $0.role == .user }
+        let task = prompt.map { message in
+            String(message.text.split(whereSeparator: \.isWhitespace).joined(separator: " ").prefix(220))
+        }
+        return (task, ClaudeSessionActivity.parse(text).answer)
     }
 
     static func summary(ofFileAt path: String) -> Summary {
@@ -276,7 +305,8 @@ enum ClaudeTranscript {
         let project = project(amongPaths: workedPaths(in: String(text.suffix(400_000)))) { path in
             FileManager.default.fileExists(atPath: path + "/.git")
         }
-        return Summary(pending: pendingTasks(in: text), project: project)
+        let work = finishedWork(in: String(text.suffix(400_000)))
+        return Summary(pending: pendingTasks(in: text), project: project, task: work.task, answer: work.answer)
     }
 
     /// The folders the session touched: files it edited or read, and folders it changed into.

@@ -356,7 +356,7 @@ extension NotchView {
         if let event = devices.current { return geometry.devicePeekSize(for: event) }
         if showsScreenshotPeek { return screenshotPeekSize }
         let labelHeight = labelIndex.map(labelHeight(of:)) ?? hoveredBadgeHeight
-            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight + secondNoticeHeight)
+            ?? (shownNotice == nil ? nil : IndicatorLayout.labelHeight + secondNoticeHeight + noticeTaskHeight)
         if indicatorLayout.isEmpty, let labelHeight {
             // Only the notice: centred under the bare notch.
             return CGSize(width: IndicatorLayout.labelWidth, height: geometry.notchSize.height + labelHeight)

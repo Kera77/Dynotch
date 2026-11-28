@@ -14,7 +14,8 @@ struct FocusMenu: View {
             Task {
                 // The first time (and after the Focuses change) the list comes from Control Center.
                 await service.loadMacListIfNeeded()
-                FocusMenuBuilder(service: service).popUp(below: anchor.view)
+                let builder = FocusMenuBuilder(service: service)
+                builder.popUp(below: anchor.view)
             }
         } label: {
             Image(systemName: active?.mode.symbol ?? "moon.fill")
@@ -32,11 +33,19 @@ struct FocusMenu: View {
     }
 }
 
-/// The Focus list, then the chosen Focus's lengths (spec FC-1, FC-2).
+/// The Focus list; clicking a Focus drops its lengths down under it in the same list, as in
+/// macOS's Control Center (spec FC-1, FC-5). Closed without a length, the opened Focus turns on
+/// until it is turned off (spec FC-5).
 @MainActor
 final class FocusMenuBuilder: NSObject {
     private let service: FocusModeService
     private var actions: [() -> Void] = []
+    private weak var menu: NSMenu?
+    /// The Focus whose lengths are dropped down, and their rows.
+    private var expanded: FocusMode?
+    private var lengthItems: [NSMenuItem] = []
+    private var rows: [String: FocusRowView] = [:]
+    private var chose = false
 
     init(service: FocusModeService) {
         self.service = service
@@ -45,49 +54,84 @@ final class FocusMenuBuilder: NSObject {
     func popUp(below view: NSView?) {
         let menu = NSMenu()
         menu.autoenablesItems = false
+        self.menu = menu
         let active = service.active
         menu.addItem(.sectionHeader(title: active == nil ? "Focus" : "Focus · On"))
         if service.modes.isEmpty {
             disabled("No Focus found (needs Accessibility)", in: menu)
         }
+        let width = FocusRowView.width(for: service.modes.map(\.name))
         for mode in service.modes {
-            item(mode.name, image: Self.icon(for: mode), isOn: active?.mode.id == mode.id, in: menu) { [weak self] in
-                guard let self else { return }
-                // The lengths drop down right after the click (spec FC-2).
-                DispatchQueue.main.async { FocusMenuBuilder(service: self.service).popUpLengths(for: mode, below: view) }
+            let item = NSMenuItem()
+            // Drawn by Wingmate, so every Focus shows its own icon (spec FC-6).
+            let row = FocusRowView(
+                title: mode.name, icon: Self.icon(for: mode), isOn: active?.mode.id == mode.id, width: width
+            ) { [weak self, weak item] in
+                guard let self, let item else { return }
+                self.toggleLengths(of: mode, under: item)
             }
+            rows[mode.id] = row
+            item.view = row
+            menu.addItem(item)
         }
         if let active {
             menu.addItem(.separator())
             let left = FocusModeService.remainingText(until: active.until).map { " (\($0))" } ?? ""
-            item("Turn off \(active.mode.name)\(left)", image: nil, isOn: false, in: menu) { [service] in service.turnOff() }
+            item("Turn off \(active.mode.name)\(left)", in: menu) { [service] in service.turnOff() }
         }
         menu.addItem(.separator())
-        item("Focus Settings…", image: nil, isOn: false, in: menu) { Self.openFocusSettings() }
-        show(menu, below: view)
+        item("Focus Settings…", in: menu) { Self.openFocusSettings() }
+        menu.popUp(positioning: nil, at: MenuAnchor.point(below: view, menuWidth: menu.size.width), in: nil)
+        // The chosen row's action is sent as the list closes; only then is it clear that none was.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+            guard !chose, let mode = expanded, service.active?.mode.id != mode.id else { return }
+            DiagnosticsLog.append("focus", "list closed without a length: until turned off")
+            service.turnOn(mode, for: .untilOff)
+        }
     }
 
-    func popUpLengths(for mode: FocusMode, below view: NSView?) {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        menu.addItem(.sectionHeader(title: mode.name))
+    /// Drops the Focus's lengths down under its row; the same row again folds them (spec FC-5).
+    private func toggleLengths(of mode: FocusMode, under item: NSMenuItem) {
+        guard let menu else { return }
+        for length in lengthItems { menu.removeItem(length) }
+        lengthItems = []
+        let reopen = expanded?.id != mode.id
+        if let expanded { rows[expanded.id]?.isExpanded = false }
+        expanded = reopen ? mode : nil
+        guard reopen else { return }
+        rows[mode.id]?.isExpanded = true
         let now = Date()
-        for length in FocusLength.offered(duringEvent: Self.isDuringEvent(now: now)) {
-            item(length.title(now: now), image: nil, isOn: false, in: menu) { [service] in
-                service.turnOn(mode, for: length)
-            }
+        var titles = FocusLength.offered(duringEvent: Self.isDuringEvent(now: now)).map { length in
+            (length.title(now: now), { [service] in service.turnOn(mode, for: length) })
         }
         if service.active?.mode.id == mode.id {
-            menu.addItem(.separator())
-            item("Turn Off", image: nil, isOn: false, in: menu) { [service] in service.turnOff() }
+            titles.append(("Turn Off", { [service] in service.turnOff() }))
         }
-        show(menu, below: view)
+        var index = menu.index(of: item) + 1
+        for (title, action) in titles {
+            let length = makeItem(title, action: action)
+            length.indentationLevel = 2
+            menu.insertItem(length, at: index)
+            lengthItems.append(length)
+            index += 1
+        }
     }
 
-    /// The Focus's own symbol in its colour, as in Control Center.
-    private static func icon(for mode: FocusMode) -> NSImage? {
-        let configuration = NSImage.SymbolConfiguration(paletteColors: [NSColor(mode.color)])
-        return NSImage(systemSymbolName: mode.symbol, accessibilityDescription: nil)?.withSymbolConfiguration(configuration)
+    /// The Focus's own symbol in its colour, as in Control Center; drawn tinted, so the menu
+    /// cannot turn it into a template (spec FC-6).
+    static func icon(for mode: FocusMode) -> NSImage? {
+        let configuration = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+        guard let base = (NSImage(systemSymbolName: mode.symbol, accessibilityDescription: nil)
+            ?? NSImage(systemSymbolName: "moon.fill", accessibilityDescription: nil))?
+            .withSymbolConfiguration(configuration)
+        else { return nil }
+        let color = NSColor(mode.color)
+        return NSImage(size: base.size, flipped: false) { rect in
+            base.draw(in: rect)
+            color.set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
     }
 
     /// A timed calendar event is on now: Control Center then offers "Until the end of this event".
@@ -106,29 +150,27 @@ final class FocusMenuBuilder: NSObject {
         }
     }
 
-    private func show(_ menu: NSMenu, below view: NSView?) {
-        menu.popUp(positioning: nil, at: MenuAnchor.point(below: view, menuWidth: menu.size.width), in: nil)
-        withExtendedLifetime(self) {}
-    }
-
     private func disabled(_ title: String, in menu: NSMenu) {
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
         item.isEnabled = false
         menu.addItem(item)
     }
 
-    private func item(_ title: String, image: NSImage?, isOn: Bool, in menu: NSMenu, action: @escaping () -> Void) {
+    private func item(_ title: String, in menu: NSMenu, action: @escaping () -> Void) {
+        menu.addItem(makeItem(title, action: action))
+    }
+
+    private func makeItem(_ title: String, action: @escaping () -> Void) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: #selector(choose(_:)), keyEquivalent: "")
         item.target = self
         item.tag = actions.count
-        item.state = isOn ? .on : .off
-        item.image = image
         actions.append(action)
-        menu.addItem(item)
+        return item
     }
 
     @objc private func choose(_ sender: NSMenuItem) {
         guard actions.indices.contains(sender.tag) else { return }
+        chose = true
         actions[sender.tag]()
     }
 }

@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [1.10.4] - 2026-11-28
+
+Test build.
+
+### Fixed
+- Focus (FC-7): picking a Focus really switches it again. Wingmate handed the keyboard back to the
+  app in front while Control Center was open, and that app switch closed Control Center halfway
+  ("Control Center switch failed" in `focus.log`). The keyboard now goes back first, and no app
+  switch happens (focus follows the mouse included) while the switch runs.
+- Focus list icons (FC-6): the Focus rows are drawn by Wingmate, so every Focus shows its coloured
+  icon (the menu dropped the images before).
+
+### Changed
+- Focus lengths (FC-5): clicking a Focus drops its lengths down under it in the same list, as in
+  Control Center, instead of a new menu. Closing the list without a length turns the opened Focus on
+  until it is turned off.
+- Focus button (FC-8): it moves like the other buttons beside the notch (⌘-drag, or the list in the
+  settings); only Settings stays at the end of a scrolling row. Tour text updated.
+- Timed pop-ups (E-36): notifications, device and screenshot pop-ups and timed notices stay while the
+  pointer is on them, and go at the earliest 3 s after it left.
+
+### Added
+- "Claude finished" (CN-10): a two-finger swipe down shows the task (the session's last prompt) and
+  the first line of the answer under it; a swipe up folds it, another one puts the notice away.
+
 ## [1.10.3] - 2026-11-28
 
 Test build.

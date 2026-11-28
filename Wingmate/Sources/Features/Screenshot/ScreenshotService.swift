@@ -202,7 +202,8 @@ final class ScreenshotService {
         peekTask?.cancel()
         peek = shot
         peekTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.peekDuration)
+            // Under the pointer it stays (spec E-36).
+            await PeekHover.shared.wait(.screenshot, seconds: Double(Self.peekDuration.components.seconds))
             guard !Task.isCancelled else { return }
             self?.peek = nil
         }
