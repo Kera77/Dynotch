@@ -1,8 +1,11 @@
 import AppKit
+import QuartzCore
 
-/// A row of the Focus list (spec FC-5, FC-6, FC-9): a Focus (tick, its coloured icon, its name
-/// and a chevron), one of its lengths, or a plain command. Every row is drawn by Wingmate, so the
-/// whole list highlights alike: a faint grey, following the menu's own highlight at once.
+/// A row of the Focus list (spec FC-5, FC-6, FC-9, FC-10): a Focus (tick, its coloured icon, its
+/// name and a chevron), one of its lengths, or a plain command. Every row is drawn by Wingmate, so
+/// the whole list highlights alike: a faint grey that follows the pointer through the row's own
+/// tracking area. The highlight is a layer switched on and flushed at once, so it never waits for
+/// the menu's late highlight or a redraw (spec FC-10).
 @MainActor
 final class FocusRowView: NSView {
     enum Kind {
@@ -20,10 +23,16 @@ final class FocusRowView: NSView {
     private static let lengthTextX: CGFloat = 62
     private static let commandTextX: CGFloat = 18
 
+    /// The one highlighted row of the open list.
+    private(set) static weak var hovered: FocusRowView?
+
     private let title: String
     private let kind: Kind
     private let action: () -> Void
-    var isExpanded = false { didSet { needsDisplay = true } }
+    private let highlight = Highlight()
+    private lazy var canvas = Canvas(row: self)
+    var isExpanded = false { didSet { canvas.needsDisplay = true } }
+    var isHovered: Bool { Self.hovered === self }
 
     /// Wide enough for the longest title, the icon and the chevron.
     static func width(for titles: [String]) -> CGFloat {
@@ -37,6 +46,16 @@ final class FocusRowView: NSView {
         self.action = action
         super.init(frame: NSRect(x: 0, y: 0, width: width, height: Self.height))
         autoresizingMask = [.width]
+        wantsLayer = true
+        highlight.frame = bounds.insetBy(dx: 5, dy: 0)
+        highlight.autoresizingMask = [.width, .height]
+        highlight.wantsLayer = true
+        highlight.layer?.cornerRadius = 5
+        highlight.isHidden = true
+        addSubview(highlight)
+        canvas.frame = bounds
+        canvas.autoresizingMask = [.width, .height]
+        addSubview(canvas)
         setAccessibilityRole(.menuItem)
         if case .focus(_, true) = kind {
             setAccessibilityLabel("\(title), on")
@@ -48,9 +67,56 @@ final class FocusRowView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
 
+    /// Highlights this row (or none) and puts it on screen straight away (spec FC-10).
+    static func hover(_ row: FocusRowView?) {
+        guard hovered !== row else { return }
+        let previous = hovered
+        hovered = row
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        previous?.showHighlight(false)
+        row?.showHighlight(true)
+        CATransaction.commit()
+        CATransaction.flush()
+    }
+
+    /// The row under the pointer, after rows moved under a still pointer (lengths dropping down).
+    static func syncHover(in window: NSWindow?) {
+        guard let window, let content = window.contentView else { return }
+        var view = content.hitTest(window.convertPoint(fromScreen: NSEvent.mouseLocation))
+        while let current = view, !(current is FocusRowView) { view = current.superview }
+        hover(view as? FocusRowView)
+    }
+
+    private func showHighlight(_ isOn: Bool) {
+        highlight.layer?.backgroundColor = NSColor.labelColor.withAlphaComponent(0.1).cgColor
+        highlight.isHidden = !isOn
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect, .enabledDuringMouseDrag],
+            owner: self
+        ))
+    }
+
+    override func mouseEntered(with event: NSEvent) { Self.hover(self) }
+    override func mouseMoved(with event: NSEvent) { Self.hover(self) }
+    override func mouseExited(with event: NSEvent) {
+        if isHovered { Self.hover(nil) }
+    }
+
     private var closesMenu: Bool {
         if case .focus = kind { return false }
         return true
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window == nil, isHovered { Self.hovered = nil }
     }
 
     override func mouseUp(with event: NSEvent) {
@@ -71,12 +137,8 @@ final class FocusRowView: NSView {
         DispatchQueue.main.async { action() }
     }
 
-    override func draw(_ dirtyRect: NSRect) {
-        // The menu sets the highlight as the pointer moves and redraws the row straight away.
-        if enclosingMenuItem?.isHighlighted == true {
-            NSColor.labelColor.withAlphaComponent(0.1).setFill()
-            NSBezierPath(roundedRect: bounds.insetBy(dx: 5, dy: 0), xRadius: 5, yRadius: 5).fill()
-        }
+    /// The row's tick, icon, title and chevron, drawn above the highlight layer.
+    fileprivate func drawContent() {
         let textX: CGFloat
         switch kind {
         case let .focus(icon, isOn):
@@ -119,4 +181,27 @@ final class FocusRowView: NSView {
             width: symbol.size.width, height: symbol.size.height
         ))
     }
+}
+
+/// Draws the row's content above its highlight (spec FC-10).
+@MainActor
+private final class Canvas: NSView {
+    private unowned let row: FocusRowView
+
+    init(row: FocusRowView) {
+        self.row = row
+        super.init(frame: .zero)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { nil }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    override func draw(_ dirtyRect: NSRect) { row.drawContent() }
+}
+
+/// The row's faint grey highlight; clicks go through it to the row.
+@MainActor
+private final class Highlight: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }

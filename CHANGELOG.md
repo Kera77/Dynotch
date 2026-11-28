@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.10.6] - 2026-11-28
+
+Test build.
+
+### Fixed
+- Focus list (FC-10): the row under the pointer highlights the moment the pointer reaches it. Each
+  row follows the pointer itself and switches a highlight layer on screen at once, instead of waiting
+  for the menu's late highlight and a redraw; only one row is highlighted at a time.
+
+### Changed
+- Focus list (FC-10): a Focus's lengths drop down under it with an animation and fold back up the
+  same way when the Focus is clicked again (no animation with Reduce motion).
+
 ## [1.10.5] - 2026-11-28
 
 Test build.
