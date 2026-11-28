@@ -23,6 +23,8 @@ struct DisplaySetup: Equatable, Sendable {
     let count: Int
     /// The displays' UUIDs, upper case, to match Spencer's layouts (spec SL-8).
     var uuids: Set<String> = []
+    /// The built-in display's UUID: a layout saved with the lid closed fits with it open too (spec SL-13).
+    var builtin: Set<String> = []
 
     static func make(_ displays: [DisplayInfo]) -> DisplaySetup {
         let ordered = displays.sorted { (rank(of: $0), $0.name) < (rank(of: $1), $1.name) }
@@ -30,7 +32,8 @@ struct DisplaySetup: Equatable, Sendable {
             key: displays.map(part(of:)).sorted().joined(separator: "+"),
             title: ordered.map { $0.isBuiltin ? "Built-in" : $0.name }.joined(separator: " + "),
             count: displays.count,
-            uuids: Set(displays.map { $0.uuid.uppercased() }.filter { !$0.isEmpty })
+            uuids: Set(displays.map { $0.uuid.uppercased() }.filter { !$0.isEmpty }),
+            builtin: Set(displays.filter(\.isBuiltin).map { $0.uuid.uppercased() }.filter { !$0.isEmpty })
         )
     }
 

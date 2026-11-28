@@ -40,8 +40,8 @@ struct SpencerMenu: View {
     }
 }
 
-/// Active workspace (Spencer's own items and icons), layouts (greyed when none of their
-/// displays is here, SL-12), this display setup, Switch automatically, Open Spencer (spec SL-2, SL-7, SL-11).
+/// Active workspace (Spencer's own items and icons), layouts (only those made for the displays
+/// here can be chosen, SL-13), this display setup, Switch automatically, Open Spencer (spec SL-2, SL-7, SL-11).
 @MainActor
 private final class SpencerMenuBuilder: NSObject {
     private let service: SpencerService
@@ -58,9 +58,10 @@ private final class SpencerMenuBuilder: NSObject {
         menu.addItem(.separator())
         menu.addItem(.sectionHeader(title: "Layouts"))
         if service.layouts.isEmpty { disabled("No layouts in Spencer yet", in: menu) }
+        let available = service.availableLayouts
         for layout in service.layouts {
             let item = item(layout, isOn: layout == service.assigned, in: menu) { [service] in service.choose(layout) }
-            item.isEnabled = service.isAvailable(layout)
+            item.isEnabled = available.contains(layout)
         }
         if let setup = service.setup {
             menu.addItem(.separator())

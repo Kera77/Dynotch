@@ -1,6 +1,6 @@
 # Wingmate – specifikáció
 
-> Állapot: **v1.10.7 elfogadva** · Utolsó módosítás: 2026-11-28 (DS-5, DS-6, M-24, QT-12, SL-12, CS-14, TT-32, TT-33, FC-11, FC-12, TS-2)
+> Állapot: **v1.10.8 elfogadva** · Utolsó módosítás: 2026-11-28 (SL-13)
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1559,6 +1559,7 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | SL-10 | **Napló:** `spencer.log` a kijelzőváltásnál azt is írja, honnan jön az elrendezés (`assigned` / `matched` / `none`). |
 | SL-11 | **Aktív munkaterület a menü tetején, mint a Spencerben (SL-7 módosítása):** a menü *Active workspace* szakasszal kezdődik, a Spencer ikonjaival: **Restore Workspace** (`arrow.counterclockwise`, `--restore-active`), **Update Workspace** (`arrow.triangle.2.circlepath`) almenüvel: *All Spaces* (`--update-active`) és *Current Space Only* (`--update-active-desktop`). Alatta a *Layouts*; az *Update current layout* sor és a *Forget this display setup* elmarad. |
 | SL-12 | (v1.10.7, SL-7 módosítása) **Nem szürkül a választható elrendezés:** a *Layouts* alatt egy elrendezés akkor választható, ha **legalább egy** kijelzője csatlakozik (a Spencer a hiányzó kijelző ablakait a többire teszi); csak az szürke, amelyiknek egyik kijelzője sincs itt. Az aktuális (pipás) elrendezés sosem szürke. |
+| SL-13 | (v1.10.8, SL-12 módosítása) **Csak az illő elrendezés választható:** a *Layouts* alatt csak az az elrendezés választható, amelynek az előfeltétele teljesül, a többi szürke: amelyik **pontosan a most csatlakoztatott kijelzőkre** készült (a beépített kijelző lehet plusz, ha az elrendezés lecsukott fedéllel készült, pl. *2 Monitors*), vagy amelyiket ehhez az összeállításhoz megjegyezte a Wingmate (SL-2). Egy másik összeállításhoz megjegyzett elrendezés máshol nem választható, akkor sem, ha a Spencer más kijelzőkkel mentette (pl. az iPaddal együtt mentett *MacBook* iPad mellett szürke). Ha így egy sem marad, az SL-12 szabálya él (legalább egy kijelzője itt van), hogy a menü ne legyen csupa szürke. Az automatikus váltás (SL-9) is csak illő elrendezést választ. Minden jövőbeli Spencer-elrendezésre automatikusan igaz. |
 
 ## 4ő+++++++++++++++. Claude Code munkamenetek, válasz a notchból, tesztlista
 
@@ -1732,6 +1733,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.10.8** | Teszt build: csak a csatlakoztatott kijelzőkhöz illő Spencer-elrendezések választhatók, a jövőbeliek is (SL-13) |
 | **v1.10.7** | Teszt build: a jelzők újra hoverre nyílnak, a kis értesítések felpöccintve eltűnnek, görgethető modul-ikonsor, működő Empty Trash, nem szürkülő Spencer elrendezések, usage lenyíló nem csúszik ki az egér alól, szürke Cleaner gomb, ‹ Stats csak a Statsból, színes aktív Fókusz-ikon, gyorsabb Focus-kiemelés, nincs súgócímke a jobb oldali gombokon (DS-5, DS-6, M-24, QT-12, SL-12, CS-14, TT-32, TT-33, FC-11, FC-12, TS-2) |
 | **v1.10.6** | Teszt build: a Focus lista sorai azonnal emelnek ki, a hosszak animálva nyílnak le és csukódnak fel (FC-10) |
 | **v1.10.5** | Teszt build: a Focus lista azonnal, halvány szürkével emel ki, a nyíl kiemelve sem lesz négyzet (FC-9) |

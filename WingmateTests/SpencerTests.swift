@@ -84,15 +84,43 @@ struct SpencerLayoutDisplayTests {
         let found = SpencerLayoutDisplays.parse(output)
         #expect(found.displays["Mac+iPad"] == ["37D8832A", "B545"])
         let order = ["2 Monitors", "Mac+iPad", "MacBook"]
-        #expect(found.matching(["37D8832A", "B545"], order: order) == "Mac+iPad")
-        #expect(found.matching(["37D8832A"], order: order) == "MacBook")
-        #expect(found.matching(["37D8832A", "CCC"], order: order) == nil)
+        let mac = DisplaySetup(key: "builtin", title: "", count: 1, uuids: ["37D8832A"], builtin: ["37D8832A"])
+        let ipad = DisplaySetup(key: "builtin+ipad", title: "", count: 2, uuids: ["37D8832A", "B545"], builtin: ["37D8832A"])
+        #expect(found.matching(ipad, assignments: [:], order: order) == "Mac+iPad")
+        #expect(found.matching(mac, assignments: [:], order: order) == "MacBook")
+        let other = DisplaySetup(key: "x", title: "", count: 2, uuids: ["37D8832A", "CCC"], builtin: ["37D8832A"])
+        #expect(found.matching(other, assignments: [:], order: order) == nil)
         #expect(found.isAvailable("MacBook", connected: ["37D8832A", "B545"]))
         // One of its displays is enough (spec SL-12): the built-in alone keeps Mac+iPad.
         #expect(found.isAvailable("Mac+iPad", connected: ["37D8832A"]))
         #expect(found.isAvailable("2 Monitors", connected: ["37D8832A", "AAA"]))
         #expect(!found.isAvailable("2 Monitors", connected: ["37D8832A"]))
         #expect(found.isAvailable("Unknown", connected: []))
+    }
+
+    /// Only the layouts made for the displays here (spec SL-13), with the real Spencer data where
+    /// MacBook was saved with the iPad connected.
+    @Test func onlyTheLayoutsMadeForTheseDisplaysCanBeChosen() {
+        let found = SpencerLayoutDisplays(displays: [
+            "Mac+Monitor+iPad": ["MON", "IPAD", "MAC"], "2 Monitors": ["A", "B"],
+            "Mac+iPad": ["MAC", "IPAD"], "MacBook": ["MAC", "IPAD"]
+        ])
+        let order = ["Mac+Monitor+iPad", "2 Monitors", "Mac+iPad", "MacBook"]
+        let remembered = ["builtin": "MacBook", "builtin+ipad": "Mac+iPad"]
+        func setup(_ key: String, _ uuids: Set<String>) -> DisplaySetup {
+            DisplaySetup(key: key, title: "", count: uuids.count, uuids: uuids, builtin: uuids.contains("MAC") ? ["MAC"] : [])
+        }
+        #expect(found.available(order, in: setup("builtin", ["MAC"]), assignments: remembered) == ["MacBook"])
+        #expect(found.available(order, in: setup("builtin+ipad", ["MAC", "IPAD"]), assignments: remembered) == ["Mac+iPad"])
+        #expect(found.matching(setup("builtin+ipad", ["MAC", "IPAD"]), assignments: remembered, order: order) == "Mac+iPad")
+        #expect(found.available(order, in: setup("all", ["MAC", "IPAD", "MON"]), assignments: remembered) == ["Mac+Monitor+iPad"])
+        // Two monitors, lid closed or open: the built-in may be extra.
+        #expect(found.available(order, in: setup("two", ["A", "B"]), assignments: remembered) == ["2 Monitors"])
+        #expect(found.available(order, in: setup("two+mac", ["A", "B", "MAC"]), assignments: remembered) == ["2 Monitors"])
+        // Nothing fits: the ones with a display here, so the menu is never all grey (SL-12).
+        #expect(found.available(order, in: setup("new", ["A", "Z"]), assignments: remembered) == ["2 Monitors"])
+        // Spencer's database unreadable: every layout (SL-8).
+        #expect(SpencerLayoutDisplays().available(order, in: setup("builtin", ["MAC"]), assignments: [:]) == Set(order))
     }
 
     @Test func aDisplaySetupKeepsTheUUIDs() {

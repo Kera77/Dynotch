@@ -57,9 +57,9 @@ final class SpencerService {
     /// The layout remembered for the displays connected now.
     var assigned: String? { setup.flatMap { assignments[$0.key] } }
 
-    /// Greyed in the menu when its displays are not all connected (spec SL-7).
-    func isAvailable(_ layout: String) -> Bool {
-        layoutDisplays.isAvailable(layout, connected: setup?.uuids ?? [])
+    /// The layouts the menu offers for the displays connected now; the others are greyed (spec SL-13).
+    var availableLayouts: Set<String> {
+        layoutDisplays.available(layouts, in: setup, assignments: assignments)
     }
 
     /// Notes the displays at launch, without switching (spec SL-3), and watches them from then on.
@@ -111,7 +111,7 @@ final class SpencerService {
     private func decide(for now: DisplaySetup) {
         guard setup?.key == now.key else { return }
         let assigned = assignments[now.key]
-        let matched = assigned == nil ? layoutDisplays.matching(now.uuids, order: layouts) : nil
+        let matched = assigned == nil ? layoutDisplays.matching(now, assignments: assignments, order: layouts) : nil
         let source = assigned != nil ? "assigned" : matched != nil ? "matched" : "none"
         DiagnosticsLog.append("spencer", "display setup changed: \(now.count) display(s), layout=\(source)")
         guard autoSwitch, isInstalled, let layout = assigned ?? matched else { return }

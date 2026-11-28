@@ -3,6 +3,10 @@ import Foundation
 extension WhatsNew {
     /// The test builds after 1.10.0, newest first; merged into one entry at the next public release (spec WN-4).
     static let testBuilds110: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.10.8", items: [
+            WhatsNewItem(symbol: "rectangle.3.group", title: "Spencer layouts for these displays",
+                         text: "Only the layouts made for the displays connected now can be chosen; the others are greyed out.")
+        ]),
         WhatsNewRelease(version: "1.10.7", items: [
             WhatsNewItem(symbol: "hand.point.up.left", title: "Hover beside the notch again",
                          text: "Tasks, badges and the AI ring open on hover; only new notifications wait for a swipe down."),

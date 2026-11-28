@@ -1,7 +1,7 @@
 import Foundation
 
 /// Which displays each Spencer layout was made for, read from Spencer's own database without
-/// changing it (spec SL-8): greys the layouts whose displays are not all here (SL-7) and picks the
+/// changing it (spec SL-8): offers only the layouts made for the displays here (SL-13) and picks the
 /// one made for exactly these displays (SL-9).
 struct SpencerLayoutDisplays: Equatable, Sendable {
     /// Layout name → the display UUIDs (upper case) it was made for.
@@ -33,11 +33,38 @@ struct SpencerLayoutDisplays: Equatable, Sendable {
         return !needed.isDisjoint(with: connected)
     }
 
-    /// The layout made for exactly the connected displays, in the menu's order.
-    func matching(_ connected: Set<String>, order: [String]) -> String? {
-        guard !connected.isEmpty else { return nil }
+    /// Made for exactly these displays; the built-in one may be extra, for a layout saved with the
+    /// lid closed (spec SL-13).
+    func fits(_ layout: String, connected: Set<String>, builtin: Set<String>) -> Bool {
+        guard let needed = displays[layout], !needed.isEmpty else { return displays.isEmpty }
+        return needed.isSubset(of: connected) && connected.subtracting(needed).isSubset(of: builtin)
+    }
+
+    /// The layouts to offer for the displays connected now (spec SL-13): the one remembered for this
+    /// setup, and the ones that fit its displays unless they are remembered for another setup (that
+    /// is where they belong, whatever Spencer saved with them). When none is left, every layout with
+    /// one of its displays here (SL-12), so the menu is never all grey.
+    func available(_ layouts: [String], in setup: DisplaySetup?, assignments: [String: String]) -> Set<String> {
+        guard let setup else { return Set(layouts) }
+        let mine = assignments[setup.key]
+        let elsewhere = Set(assignments.filter { $0.key != setup.key }.values).subtracting([mine].compactMap { $0 })
+        let strict = layouts.filter { layout in
+            layout == mine || (!elsewhere.contains(layout) && fits(layout, connected: setup.uuids, builtin: setup.builtin))
+        }
+        guard strict.isEmpty else { return Set(strict) }
+        return Set(layouts.filter { isAvailable($0, connected: setup.uuids) })
+    }
+
+    /// The layout made for these displays and not remembered for another setup, in the menu's order
+    /// (spec SL-9, SL-13).
+    func matching(_ setup: DisplaySetup, assignments: [String: String], order: [String]) -> String? {
+        guard !setup.uuids.isEmpty else { return nil }
         let names = order.isEmpty ? displays.keys.sorted() : order
-        return names.first { displays[$0] == connected }
+        let elsewhere = Set(assignments.filter { $0.key != setup.key }.values)
+        return names.first { name in
+            displays[name] != nil && !elsewhere.contains(name)
+                && fits(name, connected: setup.uuids, builtin: setup.builtin)
+        }
     }
 
     /// Reads the database read-only; nil when it cannot be read.

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [1.10.8] - 2026-11-28
+
+Test build.
+
+### Changed
+- Spencer (SL-13): only the layouts made for the displays connected now can be chosen, the others
+  are greyed: the one made for exactly these displays (the built-in may be extra for a layout saved
+  with the lid closed) or the one remembered for this display setup. A layout remembered for another
+  setup stays greyed elsewhere, so *MacBook* (saved by Spencer with the iPad) is greyed beside the
+  iPad. When nothing fits, the SL-12 rule applies. Automatic switching picks only a fitting layout.
+  What's new entry added.
+
 ## [1.10.7] - 2026-11-28
 
 Test build.
