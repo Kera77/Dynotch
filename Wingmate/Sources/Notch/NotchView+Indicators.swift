@@ -51,7 +51,7 @@ extension NotchView {
             openBadgeApp: { badges.open($0.app) },
             hideBadge: { badge, choice in withAnimation(Self.quickAnimation) { badges.hide(badge.app.bundleID, choice) } }
         )
-        row.showsBadgeList = showsBadgeList
+        row.showsBadgeList = showsBadgeList && model.shownBadge != nil
         row.stopRecording = { screenshots.stopRecording() }
         row.recordingHovered = isRecordingHovered
         row.dismissNotice = { withAnimation(Self.quickAnimation) { notices.dismiss() } }
@@ -60,10 +60,10 @@ extension NotchView {
         row.answerNotice = { choice in withAnimation(Self.quickAnimation) { notices.answer(choice) } }
         row.openTools = openTools
         row.music = music
-        row.showsMusicPlayer = model.hoveredIndicator != nil
+        row.showsMusicPlayer = model.shownIndicator != nil
         row.stats = stats
         row.usagePopup = notices.sessions.popupShown
-        row.showsTaskList = model.hoveredIndicator != nil
+        row.showsTaskList = model.shownIndicator != nil
         row.expandSession = { id in withAnimation(Self.quickAnimation) { notices.sessions.expandedID = id } }
         row.openSession = { session in
             withAnimation(Self.quickAnimation) {
@@ -88,7 +88,7 @@ extension NotchView {
             case .battery(let device, _): battery.dismissWarning(for: device)
             case .tasks: tasks.hide()
             case .stats: stats.dismissWarnings()
-            case .music, .recording, .tools, .teams, .cleaner: break
+            case .music, .recording, .tools, .teams, .cleaner, .focus: break
             }
         }
     }
@@ -102,7 +102,7 @@ extension NotchView {
 
     /// A hovered badge's list under the row (spec B-10).
     var hoveredBadgeHeight: CGFloat? {
-        guard notifications.peek == nil, let id = model.hoveredBadge,
+        guard notifications.peek == nil, let id = model.shownBadge,
               let badge = badgeFit.shown.first(where: { $0.id == id })
         else { return nil }
         return IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: badge, beeper: beeper))
@@ -117,10 +117,11 @@ extension NotchView {
             sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chatIndicator.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown,
             music: musicIndicator.glance, stats: statsIndicator.slotValues, recording: screenshots.recordingSince,
-            tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator, cleaner: CleanerService.shared.notchGlance
+            tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator, cleaner: CleanerService.shared.notchGlance,
+            focus: FocusModeService.shared.active
         )
         return IndicatorItem.unfoldingUsage(
-            items, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
+            items, hovered: model.shownIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
         )
     }
 

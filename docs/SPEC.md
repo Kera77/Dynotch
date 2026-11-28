@@ -1,6 +1,6 @@
 # Wingmate – specifikáció
 
-> Állapot: **v1.10 elfogadva** · Utolsó módosítás: 2026-11-28
+> Állapot: **v1.10.1 elfogadva** · Utolsó módosítás: 2026-11-28
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1648,6 +1648,24 @@ A Spencer for Mac (ablak- és Space-elrendezés-kezelő) saját parancssori eszk
 | RN-11 | (v1.9.5) **Egyszeri „Dynotch is now Wingmate” ablak:** ha az átvétel (RN-2) régi adatot hozott át, az indulás után pár másodperccel egyszer megnyílik egy ablak: egy mondat a névváltásról, a macOS-engedélyek listája állapottal és *Grant…* gombbal (ugyanaz, mint *Settings › Permissions*, C-8; a használt modulhoz kellők jelölve), és tudnivalók (kulcskarika: *Always Allow*; Notes, Spotify, Mail, Messages: a macOS újra rákérdez, *OK*). *Done* vagy bezárás után nem jön újra (`renameWelcomePending`). |
 | RN-12 | (v1.9.5) **Homebrew:** az új tap a `Kera77/homebrew-wingmate` (`wingmate` cask, `Wingmate.dmg`). A régi `homebrew-dynotch` repó **nem nevezhető át**, mert a Homebrew elutasítja az átnevezett tap átirányítását (minden `brew update` hibát adna). Az első Wingmate-es **publikus** kiadás (1.10.0) után a `scripts/tap-rename.sh` létrehozza az új tapot (cask, `cask_renames.json`: `dynotch` → `wingmate`), a régibe `tap_migrations.json`-t tesz (`dynotch` → `kera77/wingmate`) és törli a régi caskot, így a `brew upgrade` átviszi a meglévő telepítéseket. (v1.10.0) Ez a gyakorlatban nem elég: az app saját frissítője (RN-9) a `Dynotch.app`-ot már lecserélte, ezért a `brew upgrade` a hiányzó `Dynotch.app` miatt megáll. A README-k leírják az egyszeri átvitelt (`Caskroom/dynotch` törlése, `brew install --cask --adopt kera77/wingmate/wingmate`). A `tap-rename.sh` a `full_name` alapján ellenőrzi, hogy az új repó valódi, nem a régi tap GitHub-átirányítása. Addig a `dynotch` cask marad, mert a legutóbbi publikus kiadásban (1.9.0) csak `Dynotch.dmg` van. |
 
+## 4ő-S. Lenyílók swipe-ra, Fókusz választó, görgethető jobb oldal, trackpad csúszkák (v1.10.1)
+
+| ID | Követelmény |
+|---|---|
+| DS-1 | **Lenyílók swipe-ra:** *Settings › General* alatt új kapcsoló: **Open drop-downs with a swipe down** (alapból ki). Bekapcsolva a csukott notch melletti jelzők és jelvények (feladatszámláló, Beeper/Google Chat és app-jelvények listája, usage karika, meeting, zene, statisztika, eszközök…) **hoverre nem nyílnak le**: az elem rámutatva kattintható marad (bal/jobb klikk, ⌘-húzás mint eddig), de a lenyíló csak **két ujjas lefelé swipe**-ra (trackpad) vagy **lefelé pöccintésre** (Magic Mouse) nyílik ki. A felugró értesítések (E-3) és a bejelentések (K-8f, CS-7) ugyanúgy maguktól jönnek, mint eddig. |
+| DS-2 | A swipe a rámutatott elem fölött számít: ~20 pt lefelé, a függőleges mozgás legalább kétszerese a vízszintesnek; a „natural scrolling” iránytól független; a lendület (momentum) nem nyit újra. A modult nyitó jelzők (zene borító, statisztika, Cleaner, MU-2, SY-7) swipe-ra nyitják a modult. |
+| DS-3 | A lenyílt lista addig marad, amíg az egér rajta vagy az elemen van (mint hovernél); két ujjas felfelé swipe vagy az egér elvitele becsukja. Másik elemre mutatva az újra csak swipe-ra nyílik. |
+| FC-1 | **Fókusz gomb a felső sorban:** a jobb oldali gombok között (M-11) új **Focus** gomb (`moon.fill`, aktív Fókusznál annak ikonja és színe), alapból a Settings gomb mellett. Kattintásra lenyílik a rendszerben beállított összes Fókusz (Do Not Disturb, Sleep, Work, Personal, egyéni) a saját ikonjával; aktív Fókusznál alul **Turn off**. |
+| FC-2 | Egy Fókuszra kattintva **azonnal lenyílik az időtartam-választó** (mint a macOS Vezérlőközpontjában): **For 1 hour**, **For 2 hours**, **Until tomorrow morning** (másnap 7:00, mint az Apple-nél; éjfél és 7:00 között aznap 7:00). Választásra a Fókusz bekapcsol. |
+| FC-3 | A bekapcsolás és kikapcsolás **Shortcuts-parancsokkal** megy (a macOS nem engedi külső appnak a Fókusz váltását, E-20d): *Settings › General › Focus* alatt Fókuszonként egy **On** parancs és egy közös **Off** parancs választható (mint a DND gyorskapcsolónál, QT-2). Parancs nélküli Fókusz sora a lenyílóban halvány, rákattintva a beállítások nyílnak. Az időtartam végén a Wingmate futtatja az Off parancsot (elalvás után ébredéskor pótolja). |
+| FC-4 | **Ikon a notchon:** amíg Fókusz aktív, a csukott notch jobb oldalán (a jelzők sorának végén) a Fókusz ikonja áll. Rámutatva (vagy DS-1 módban swipe-ra) lenyílik: név, hátralévő idő („42 min left”, „until 7:00”), **Turn off** gomb. A Vezérlőközpontból vagy iPhone-ról indított Fókuszt is mutatja (Assertions.json, 2 mp-en belül). |
+| TS-1 | **Görgethető jobb oldal:** ha a felső sor jobb oldali gombjai (iPad, Spencer, Cleaner, egérkövetés, billentyűzetzár, rögzítés, Quick toggles…) nem férnek el a notch mellett, a sor két ujjas vízszintes swipe-pal **görgethető**, a bal szélén áttűnéssel. A **Focus** és a **Settings** gomb a jobb szélen rögzítve mindig látszik. Ha minden elfér, nincs görgetés. |
+| ES-1 | **Trackpad edge sliders:** *Settings › General* alatt új kapcsoló (alapból ki): a beépített és a Magic Trackpad szélén **egy ujjal** húzva: **bal szél** – hangerő (lentről felfelé hangosabb), **jobb szél** – kijelző fényereje (lentről felfelé világosabb), **felső szél** – billentyűzet-világítás (balról jobbra erősebb). A zónák külön kapcsolhatók; a sarkok egyikhez sem tartoznak. |
+| ES-2 | Az érintésnek a zónában (a trackpad szélső ~8%-a) kell kezdődnie; a csúszka ~3%-nyi út után indul, ha a mozgás a zóna irányában legalább kétszer akkora, mint merőlegesen. Második ujjra azonnal leáll. Amíg aktív, a kurzor a helyén marad. Relatív: az elmozdulás számít, nem a hely. |
+| ES-3 | **Lépésköz (választható):** **macOS steps** – 16 lépcső, lépcsőnként érezhető haptikus koppintás; **1% steps** – egyesével, pontos beállításhoz, haptika nélkül. |
+| ES-4 | **HUD:** a csúszka a notch melletti HUD-ot mutatja (H-1): bal oldalt az ikon (hangszóró, `sun.max.fill`, a billentyűzet-világításnál az Apple ikonja, `light.max`), jobb oldalt a százalék és a kerek szintjelző, minden lépésnél azonnal frissülve. |
+| ES-5 | Ha a privát keretrendszer (MultitouchSupport, CoreBrightness) hiányzik, vagy a gépnek nincs billentyűzet-világítása, az adott zóna nem működik, a beállítás jelzi; a többi funkció érintetlen. |
+
 ## 5. Nyitott kérdések
 
 Jelenleg nincs.
@@ -1694,6 +1712,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.10.1** | Teszt build: Fókusz választó a felső sorban időtartammal és ikonnal a notch mellett, lenyílók swipe-ra, görgethető jobb oldali gombsor, trackpad edge sliders (DS-1…DS-3, FC-1…FC-4, TS-1, ES-1…ES-5) |
 | **v1.10.0** | Publikus kiadás: az 1.9.1…1.9.5 tesztverziók összes újdonsága: a Dynotch új neve Wingmate, egyszeri átvétel a régi név alól, áthidaló app a régi frissítőkhöz, egyszeri engedélyablak, új Homebrew tap (RN-1…RN-12, U-11, U-12), a váltó a fókuszban lévő app alatti ablakokat listázza (AS-22), logok név nélkül (C-7b). |
 | **v1.9.5** | Teszt build: áthidaló app a publikus (≤ 1.9.1) verziókhoz, egyszeri „Dynotch is now Wingmate” ablak az engedélyekkel, Homebrew-átállás (RN-8…RN-12) |
 | **v1.9.4** | Teszt build: az átvétel a már létező új mappákba is átmozgatja a régi adatokat (vágólap, tálca, chatek, logok), és ezért egyszer újra lefut (RN-2, RN-4) |

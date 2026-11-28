@@ -181,7 +181,7 @@ struct NotchIndicatorView: View {
         case .recording(let since):
             // Left of the notch, as wide as its time (spec SH-5c).
             RecordingSlot(since: since, now: now, isHovered: recordingHovered, stop: stopRecording)
-        case .tasks, .stats, .tools, .teams, .cleaner:
+        case .tasks, .stats, .tools, .teams, .cleaner, .focus:
             // Only on the right (spec R-10, SY-7, TM-3, MT-6, TT-13).
             EmptyView()
         }
@@ -220,7 +220,7 @@ struct NotchIndicatorView: View {
             TasksCounter(count: count, width: item.slotWidth, open: openTasks)
         case .stats:
             if let stats { StatsSlot(service: stats, indicator: stats.indicator) }
-        case .tools, .teams, .cleaner:
+        case .tools, .teams, .cleaner, .focus:
             controlsCapsule(item, now: now)
         case .music, .recording:
             // Left of the notch (spec MU-2, SH-5c).
@@ -273,7 +273,7 @@ extension NotchIndicatorView {
         case .recording, .cleaner:
             // Nothing drops down: the dot itself becomes Stop, the Cleaner's tick opens it (spec SH-5b, TT-13).
             EmptyView()
-        case .tools, .teams:
+        case .tools, .teams, .focus:
             controlsLabel(item, now: now)
         case .stats:
             statsLabel(item)

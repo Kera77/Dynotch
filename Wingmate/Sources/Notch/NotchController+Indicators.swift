@@ -27,10 +27,10 @@ extension NotchController {
             sessions: ClaudeSessionSettings.shared.listsSessions ? notices.sessions.running() : [], working: chat.isWorking,
             lowBatteries: battery.warnings, tasks: tasks.shown, music: music.indicator.glance, stats: stats.indicator.slotValues,
             recording: screenshots.recordingSince, tools: ToolsService.shared.glance, teams: TeamsService.shared.indicator,
-            cleaner: CleanerService.shared.notchGlance
+            cleaner: CleanerService.shared.notchGlance, focus: FocusModeService.shared.active
         )
         let items = IndicatorItem.unfoldingUsage(
-            found, hovered: model.hoveredIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
+            found, hovered: model.shownIndicator, wings: settings.noticesBeside, toolsBeside: settings.toolsControlsBeside
         )
         let fit = BadgeFit.make(badges: badges.visible, items: items, room: model.badgeRoom, unfolded: model.badgesUnfolded)
         return CollapsedRow(layout: IndicatorLayout(items: items, badges: fit.shown, overflow: fit.hidden > 0), fit: fit, items: items)
@@ -109,6 +109,9 @@ extension NotchController {
         }
         if let slot = layout.slot(at: point, notchRect: geometry.notchRect) {
             guard settlesOn("i\(slot)") else { return }
+            // Waiting for a swipe, the module is not opened by hover either (spec DS-2).
+            let waits = !model.revealsDropdowns && items[slot].opensModuleOnHover(statsWarnings: !stats.indicator.warnings.isEmpty)
+            if waits { return setHoveredIndicator(slot) }
             if case .cleaner = items[slot] { return openCleanerFromIndicator() }
             // The cover and the stats open their module (spec MU-2, SY-7).
             // With a warning the stats drop it down with an X instead (spec SY-10).
@@ -141,7 +144,7 @@ extension NotchController {
         return true
     }
 
-    private func openFromIndicator(_ feature: FeatureID) {
+    func openFromIndicator(_ feature: FeatureID) {
         guard settings.isEnabled(feature) else { return }
         noteEdgeOrigin()
         setHoveredIndicator(nil)
@@ -152,7 +155,7 @@ extension NotchController {
 
     /// Moving down onto the hovered badge's list keeps it open (spec B-10).
     private func isOnBadgeList(at point: CGPoint, layout: IndicatorLayout, shown: [BadgeItem]) -> Bool {
-        guard let current = shown.first(where: { $0.id == model.hoveredBadge }) else { return false }
+        guard let current = shown.first(where: { $0.id == model.shownBadge }) else { return false }
         let height = IndicatorLayout.badgeDropdownHeight(rows: notifications.badgeListRows(for: current, beeper: beeper))
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
@@ -176,7 +179,7 @@ extension NotchController {
             ? items.firstIndex { if case .tasks(let count) = $0 { !count.overdue.isEmpty } else { false } } : nil
         let hovered = model.hoveredIndicator.flatMap { items.indices.contains($0) ? $0 : nil }
         guard let index = hovered ?? announced ?? popup ?? overdue else { return nil }
-        let height = hovered == nil ? items[index].restingLabelHeight : items[index].labelHeight
+        let height = hovered == nil || model.shownIndicator == nil ? items[index].restingLabelHeight : items[index].labelHeight
         let area = layout.rect(notchRect: model.geometry.notchRect, labelHeight: height)
             .insetBy(dx: 0, dy: -NotchGeometry.topEdgeTolerance)
         return area.contains(point) ? index : nil
@@ -186,7 +189,7 @@ extension NotchController {
     /// pointer is polled, since the panel then hides the mouse-moved events from the monitor.
     func setHoveredIndicator(_ index: Int?) {
         guard model.hoveredIndicator != index else { return }
-        withAnimation(Self.animation) { model.hoveredIndicator = index }
+        withAnimation(Self.animation) { model.setHovered(indicator: index) }
         updateCollapsedInteraction()
     }
 
@@ -199,7 +202,7 @@ extension NotchController {
     /// The app badge under the pointer can be clicked and dragged (spec B-6, B-7).
     func setHoveredBadge(_ id: String?) {
         guard model.hoveredBadge != id else { return }
-        withAnimation(NotchView.quickAnimation) { model.hoveredBadge = id }
+        withAnimation(NotchView.quickAnimation) { model.setHovered(badge: id) }
         if let id { badges.acknowledge(id) }
         updateCollapsedInteraction()
     }
@@ -244,7 +247,7 @@ extension NotchController {
     /// A two-finger swipe up over the announced meeting's name, or over a sticky notice, closes
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
-        if handleWingsPeekScroll(event) { return true }
+        if handleRevealSwipe(event) || handleWingsPeekScroll(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),

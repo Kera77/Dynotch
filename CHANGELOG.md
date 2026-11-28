@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-11-28
+
+Test build.
+
+### Added
+- Focus picker in the top row, next to Settings: every macOS Focus; clicking one drops down
+  *For 1 hour*, *For 2 hours*, *Until tomorrow morning* (7:00). The active Focus's icon stands
+  beside the closed notch; hovering it shows the time left and *Turn off*. Switching runs the
+  Shortcuts chosen in *Settings › General › Focus*, since macOS lets no app switch a Focus; the
+  end is Wingmate's own timer (FC-1…FC-4).
+- *Open drop-downs with a swipe down* (Settings › General, off by default): the tasks, badges, AI
+  ring and other items beside the closed notch no longer open on hover, only with a two-finger
+  swipe down (a flick on a Magic Mouse); a swipe up closes them (DS-1…DS-3).
+- Trackpad edge sliders (Settings › General › Trackpad, off by default): left edge volume, right
+  edge display brightness, top edge keyboard backlight, shown in the HUD with Apple's keyboard
+  light icon. *macOS steps* (16, a haptic tap each) or *1% steps* (precise, no haptics) (ES-1…ES-5).
+
+### Changed
+- The buttons right of the notch scroll sideways when they don't fit; Focus and Settings stay at
+  the right end (TS-1).
+- Onboarding: the last tour step mentions the Focus button.
+
 ## [1.10.0] - 2026-11-28
 
 Public release: everything from the 1.9.1…1.9.5 test builds. Dynotch is now called **Wingmate**.

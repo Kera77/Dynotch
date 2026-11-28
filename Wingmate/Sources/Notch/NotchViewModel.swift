@@ -47,14 +47,14 @@ final class NotchViewModel {
     /// A click into a reply or text field keeps the panel open when the pointer leaves, until
     /// the next click outside it (spec E-21); the lock (isPinned) stays until it is released.
     @ObservationIgnored var holdsForTyping = false
-    /// Held open until a click outside: by the settings or by typing.
-    var isHeldByClick: Bool { holdsForSettings || holdsForTyping }
     /// A tray file's Quick Look is open: the notch stays whatever the pointer does (spec FT-8b).
     @ObservationIgnored var holdsForPreview = false
     /// Countdown beside the closed notch under the pointer (spec K-8d).
     var hoveredIndicator: Int?
     /// App badge beside the closed notch under the pointer (spec B-6).
     var hoveredBadge: String?
+    /// The drop-down opened with a swipe down (spec DS-1).
+    let reveal = DropdownReveal()
     /// Right after a Space switch everything beside the closed notch is drawn in, then unfolds
     /// again (spec N-10).
     private(set) var isGathered = false

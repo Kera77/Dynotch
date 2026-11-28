@@ -70,6 +70,8 @@ struct HUDView: View {
         switch display.kind {
         case .volume: display.muted ? "speaker.slash.fill" : "speaker.wave.2.fill"
         case .brightness: "sun.max.fill"
+        // Apple's keyboard brightness symbol (spec ES-4).
+        case .keyboard: "light.max"
         case .announcement(let symbol, _): symbol
         }
     }

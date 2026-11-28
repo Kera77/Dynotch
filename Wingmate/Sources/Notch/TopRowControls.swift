@@ -10,6 +10,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
     case keyboardLock
     case pin
     case toggles
+    case focus
     case settings
 
     var id: String { rawValue }
@@ -23,6 +24,7 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         case .keyboardLock: "Keyboard lock"
         case .pin: "Pin the notch open"
         case .toggles: "Quick toggles"
+        case .focus: "Focus"
         case .settings: "Settings"
         }
     }
@@ -36,11 +38,15 @@ enum TopRowControl: String, CaseIterable, Identifiable, Sendable {
         case .keyboardLock: "keyboard.fill"
         case .pin: "lock.fill"
         case .toggles: "switch.2"
+        case .focus: "moon.fill"
         case .settings: "gearshape.fill"
         }
     }
 
     var canHide: Bool { self != .settings }
+
+    /// Stay at the right end of the row while the others scroll (spec TS-1).
+    var isPinnedRight: Bool { self == .focus || self == .settings }
 
     /// Off until switched on in the settings (spec TT-9).
     static let hiddenByDefault: Set<TopRowControl> = [.cleaner]

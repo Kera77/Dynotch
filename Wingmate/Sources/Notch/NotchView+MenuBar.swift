@@ -88,17 +88,38 @@ struct TrailingControls: View {
 
     var body: some View {
         let shown = layout.visible
+        let scrolling = shown.filter { !$0.isPinnedRight }
+        let pinned = shown.filter(\.isPinnedRight)
         HStack(spacing: TrailingControlsMetrics.spacing) {
-            ForEach(Array(shown.enumerated()), id: \.element) { index, control in
+            // Too many buttons beside the notch: the others scroll, Focus and Settings stay (spec TS-1).
+            ViewThatFits(in: .horizontal) {
+                row(scrolling, in: shown)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    row(scrolling, in: shown)
+                }
+                .defaultScrollAnchor(.trailing)
+                .mask(
+                    LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.12)],
+                                   startPoint: .leading, endPoint: .trailing)
+                )
+            }
+            row(pinned, in: shown)
+        }
+        .coordinateSpace(name: Self.space)
+        .padding(3)
+        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
+    }
+
+    private func row(_ controls: [TopRowControl], in shown: [TopRowControl]) -> some View {
+        HStack(spacing: TrailingControlsMetrics.spacing) {
+            ForEach(controls, id: \.self) { control in
+                let index = shown.firstIndex(of: control) ?? 0
                 button(control)
                     .offset(x: offset(of: index, control: control, in: shown))
                     .zIndex(control == dragged ? 1 : 0)
                     .simultaneousGesture(reorder(control, in: shown))
             }
         }
-        .coordinateSpace(name: Self.space)
-        .padding(3)
-        .background(Capsule(style: .continuous).fill(Color.white.level(0.1)))
     }
 
     @ViewBuilder private func button(_ control: TopRowControl) -> some View {
@@ -127,6 +148,9 @@ struct TrailingControls: View {
             // Only the quick toggles in the notch (spec QT-6).
             pageButton(control, isShowing: isShowingToggles, action: toggleToggles)
                 .help("Quick toggles (⌘-drag to reorder)")
+        case .focus:
+            // Every Focus, then its length (spec FC-1, FC-2).
+            FocusMenu(service: .shared) { if !isShowingSettings { toggleSettings() } }
         case .settings:
             pageButton(control, isShowing: isShowingSettings, action: toggleSettings)
                 .help("Settings (⌘-drag to reorder)")

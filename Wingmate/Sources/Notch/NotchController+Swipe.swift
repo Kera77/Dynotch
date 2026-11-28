@@ -10,8 +10,10 @@ extension NotchController {
         if !model.isShowingNotifications, switcherZone.contains(NSEvent.mouseLocation) {
             return scrollSwitcher(event)
         }
-        // The settings scroll on their own; no feature switching there.
-        guard !model.isShowingSettings, !model.isShowingNotifications else { return false }
+        // The settings scroll on their own; no feature switching there. Over the buttons right of
+        // the notch their row scrolls, no module switch (spec TS-1).
+        guard !model.isShowingSettings, !model.isShowingNotifications, !trailingZone.contains(NSEvent.mouseLocation)
+        else { return false }
 
         let phase = Self.phase(of: event)
         // Normalize so positive = fingers moved right, regardless of "natural scrolling".
@@ -87,6 +89,17 @@ extension NotchController {
         let side = (panel.width - geometry.notchSize.width) / 2
         return CGRect(
             x: panel.minX, y: panel.maxY - geometry.menuBarHeight,
+            width: side, height: geometry.menuBarHeight + NotchGeometry.topEdgeTolerance
+        )
+    }
+
+    /// The buttons right of the notch in the open panel (spec TS-1).
+    var trailingZone: CGRect {
+        let geometry = model.geometry
+        let panel = geometry.rect(for: model.openSize)
+        let side = (panel.width - geometry.notchSize.width) / 2
+        return CGRect(
+            x: panel.maxX - side, y: panel.maxY - geometry.menuBarHeight,
             width: side, height: geometry.menuBarHeight + NotchGeometry.topEdgeTolerance
         )
     }

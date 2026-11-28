@@ -29,6 +29,8 @@ enum IndicatorItem: Identifiable, Equatable {
     case teams(TeamsMeeting, since: Date)
     /// The Cleaner moving files to the Trash, then its tick (spec TT-13).
     case cleaner(CleanerService.NotchGlance)
+    /// The active macOS Focus, at the far right (spec FC-4).
+    case focus(FocusModeService.Active)
 
     var id: String {
         switch self {
@@ -43,13 +45,14 @@ enum IndicatorItem: Identifiable, Equatable {
         case .tools: "tools"
         case .teams: "teams"
         case .cleaner: "cleaner"
+        case .focus: "focus"
         }
     }
 
     var isClaude: Bool {
         switch self {
         case .usage, .working: true
-        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools, .teams, .cleaner: false
+        case .meeting, .battery, .tasks, .music, .stats, .recording, .tools, .teams, .cleaner, .focus: false
         }
     }
 
@@ -86,6 +89,7 @@ enum IndicatorItem: Identifiable, Equatable {
             IndicatorLayout.toolsWidth(glance) + (glance.unfolded ? IndicatorLayout.toolsUnfoldWidth(glance) : 0)
         case .teams(_, let since): IndicatorLayout.teamsWidth(since: since)
         case .cleaner: IndicatorLayout.ringSlotWidth
+        case .focus: IndicatorLayout.focusSlotWidth
         }
     }
 
@@ -96,7 +100,7 @@ enum IndicatorItem: Identifiable, Equatable {
         case .meeting(_, true), .battery(_, true): 0
         // The Tools' controls drop down, or widen beside the notch (spec TM-19).
         case .tools(let glance): glance.unfolded ? 0 : IndicatorLayout.labelHeight
-        case .meeting, .working, .battery, .teams: IndicatorLayout.labelHeight
+        case .meeting, .working, .battery, .teams, .focus: IndicatorLayout.labelHeight
         // Shown only with a warning: the warning and the five busiest apps (spec SY-10, SY-14).
         case .stats: IndicatorLayout.labelHeight + IndicatorLayout.warningProcessRows * StatsProcessRow.height + 4
         // Nothing drops down; the dot itself becomes Stop (spec SH-5b). Hovering the Cleaner's tick opens it (spec TT-13).
@@ -125,7 +129,7 @@ enum IndicatorItem: Identifiable, Equatable {
         working: Bool = false, lowBatteries: [BatteryDevice] = [], tasks: TaskCount? = nil,
         music: MusicIndicator.Glance? = nil, stats: Int? = nil, recording: Date? = nil,
         tools: ToolsGlance? = nil, teams: (TeamsMeeting, Date)? = nil, cleaner: CleanerService.NotchGlance? = nil,
-        now: Date = Date()
+        focus: FocusModeService.Active? = nil, now: Date = Date()
     ) -> [IndicatorItem] {
         // A countdown ending within a minute comes right after the meetings, else at the end (spec TM-4).
         let soon = tools?.clock?.endsSoon(at: now) == true
@@ -136,6 +140,7 @@ enum IndicatorItem: Identifiable, Equatable {
             + (usage.map { [.usage($0, sessions: sessions)] } ?? [])
             + (working ? [.working] : []) + lowBatteries.map { .battery($0) } + (stats.map { [.stats($0)] } ?? [])
             + (tasks.map { [.tasks($0)] } ?? []) + (soon ? [] : toolsItem) + (cleaner.map { [.cleaner($0)] } ?? [])
+            + (focus.map { [.focus($0)] } ?? [])
     }
 
     /// The slot of each icon left of the notch, from the notch outwards: the meeting icon stands

@@ -10,6 +10,8 @@ final class HUDService {
     enum Kind: Equatable, Sendable {
         case volume
         case brightness
+        /// The keyboard's backlight, from the trackpad's top edge (spec ES-4).
+        case keyboard
         /// A short system announcement: an icon and a few words (spec HA-1).
         case announcement(symbol: String, text: String)
     }
@@ -50,6 +52,9 @@ final class HUDService {
         settingsObserver = observeChanges { [settings] in _ = settings.hudEnabled } onChange: { [weak self] in self?.applyEnabled() }
         applyEnabled()
         listenToVolume()
+        // The other sources of the HUD and the top row's Focus (spec ES-4, FC-1).
+        EdgeSliderService.shared.start(hud: self)
+        FocusModeService.shared.start()
     }
 
     // MARK: - Key tap
@@ -174,6 +179,12 @@ final class HUDService {
             return
         }
         show(.announcement(symbol: symbol, text: text), level: 0, muted: false)
+    }
+
+    /// A level set by the trackpad's edge sliders (spec ES-4); its own volume change is shown once.
+    func showLevel(_ kind: Kind, level: Double) {
+        if kind == .volume { ownChangeUntil = Date().addingTimeInterval(1) }
+        show(kind, level: level, muted: false)
     }
 
     // MARK: - Display

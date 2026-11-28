@@ -155,6 +155,7 @@ private struct GeneralSettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            GestureFocusSettingsSections()
             Section {
                 Toggle("Incoming calls in the notch", isOn: $settings.callsEnabled)
                 Toggle("Keep the Phone app in the Dock during calls", isOn: $settings.keepsPhoneInDock)

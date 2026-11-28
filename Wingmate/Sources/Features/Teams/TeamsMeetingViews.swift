@@ -18,6 +18,7 @@ extension NotchIndicatorView {
         case .tools(let glance): toolsCapsule(glance, now: now)
         case .teams(let meeting, let since): TeamsMeetingSlot(meeting: meeting, since: since, now: now)
         case .cleaner(let glance): CleanerGlanceView(glance: glance)
+        case .focus(let active): FocusSlot(active: active)
         default: EmptyView()
         }
     }
@@ -28,6 +29,7 @@ extension NotchIndicatorView {
         switch item {
         case .tools(let glance): toolsLabel(glance, now: now)
         case .teams(let meeting, _): TeamsMeetingLabel(meeting: meeting, teams: .shared)
+        case .focus(let active): FocusLabel(active: active, now: now)
         default: EmptyView()
         }
     }

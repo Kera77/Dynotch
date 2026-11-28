@@ -139,7 +139,7 @@ struct NotchView: View {
     }
 
     private var hoveredIndicator: Int? {
-        model.hoveredIndicator.flatMap { indicatorItems.indices.contains($0) ? $0 : nil }
+        model.shownIndicator.flatMap { indicatorItems.indices.contains($0) ? $0 : nil }
     }
 
     var size: CGSize { model.isExpanded ? model.openSize : collapsedSize }

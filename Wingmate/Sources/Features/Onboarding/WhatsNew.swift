@@ -40,6 +40,16 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.10.1", items: [
+            WhatsNewItem(symbol: "moon.fill", title: "Focus in the top row",
+                         text: "Pick a Focus for an hour, two or until morning; its icon waits beside the notch with Turn off."),
+            WhatsNewItem(symbol: "hand.draw", title: "Drop-downs on a swipe",
+                         text: "Optional: tasks and badges open with a swipe down instead of on hover (Settings › General)."),
+            WhatsNewItem(symbol: "rectangle.and.hand.point.up.left", title: "Trackpad edge sliders",
+                         text: "Slide along the edges for volume, brightness and keyboard light, in macOS or 1% steps."),
+            WhatsNewItem(symbol: "arrow.left.and.right", title: "More buttons fit",
+                         text: "When the buttons right of the notch don't fit, swipe them; Focus and Settings stay put.")
+        ]),
         WhatsNewRelease(version: "1.10.0", sections: publicSections1100),
         WhatsNewRelease(version: "1.9.5", items: [
             WhatsNewItem(symbol: "hand.raised", title: "Permissions in one go",

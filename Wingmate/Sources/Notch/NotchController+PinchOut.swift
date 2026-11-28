@@ -133,7 +133,7 @@ extension NotchController {
         case .tools: .tools
         case .teams: .notifications
         case .stats, .cleaner: .stats
-        case .recording: nil
+        case .recording, .focus: nil
         }
     }
 }
