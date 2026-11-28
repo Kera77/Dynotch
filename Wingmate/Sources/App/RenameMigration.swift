@@ -5,7 +5,8 @@ import ServiceManagement
 /// One-time takeover of what the app kept under its old name, Dynotch (spec RN-2…RN-7). This is
 /// the only place that still knows the old name.
 enum RenameMigration {
-    static let doneKey = "renameMigration.done"
+    /// v2: 1.9.3 skipped folders whose new name already existed (spec RN-4), so it runs once more.
+    static let doneKey = "renameMigration.v2"
     static let oldIdentifier = "com.peterkereki.Dynotch"
     static let oldFolder = "Dynotch"
     static let oldChatFolder = "DynotchChat"
@@ -106,9 +107,24 @@ enum RenameMigration {
         }.count
     }
 
-    private static func move(_ source: URL, to target: URL) -> Bool {
+    /// Moves `source` to `target`. A target that already exists (the test host or a first run
+    /// wrote there) is merged into, the old item winning where both have one; the old folder is
+    /// removed only once it is empty.
+    static func move(_ source: URL, to target: URL) -> Bool {
         let files = FileManager.default
-        guard files.fileExists(atPath: source.path), !files.fileExists(atPath: target.path) else { return false }
+        guard files.fileExists(atPath: source.path) else { return false }
+        var isFolder: ObjCBool = false
+        let targetExists = files.fileExists(atPath: target.path, isDirectory: &isFolder)
+        var sourceIsFolder: ObjCBool = false
+        files.fileExists(atPath: source.path, isDirectory: &sourceIsFolder)
+        if targetExists, isFolder.boolValue, sourceIsFolder.boolValue {
+            for item in (try? files.contentsOfDirectory(atPath: source.path)) ?? [] {
+                _ = move(source.appending(path: item), to: target.appending(path: item))
+            }
+            if ((try? files.contentsOfDirectory(atPath: source.path)) ?? ["?"]).isEmpty { try? files.removeItem(at: source) }
+            return true
+        }
+        if targetExists { try? files.removeItem(at: target) }
         try? files.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
         return (try? files.moveItem(at: source, to: target)) != nil
     }

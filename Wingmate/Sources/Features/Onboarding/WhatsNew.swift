@@ -40,6 +40,10 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.9.4", items: [
+            WhatsNewItem(symbol: "tray.and.arrow.down", title: "Everything came along",
+                         text: "Clipboard history, tray, chats and logs from before the rename are back.")
+        ]),
         WhatsNewRelease(version: "1.9.3", items: [
             WhatsNewItem(symbol: "sparkles", title: "Dynotch is now Wingmate",
                          text: "Same app, new name. Settings, accounts and hooks came along; macOS asks for permissions once more.")

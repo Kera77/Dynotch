@@ -37,4 +37,22 @@ struct RenameMigrationTests {
         #expect(kept["Notification"] == nil)
         #expect(kept["Other"] as? String == "x")
     }
+
+    @Test func foldersMergeIntoAnExistingTarget() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "RenameMigrationTests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let old = root.appending(path: "old")
+        let new = root.appending(path: "new")
+        try FileManager.default.createDirectory(at: old.appending(path: "Clipboard"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: new, withIntermediateDirectories: true)
+        try Data("old".utf8).write(to: old.appending(path: "battery-history.json"))
+        try Data("token".utf8).write(to: old.appending(path: "Clipboard/1.json"))
+        try Data("test".utf8).write(to: new.appending(path: "battery-history.json"))
+        try Data("kept".utf8).write(to: new.appending(path: "only-new.log"))
+        #expect(RenameMigration.move(old, to: new))
+        #expect(!FileManager.default.fileExists(atPath: old.path))
+        #expect(try String(contentsOf: new.appending(path: "battery-history.json"), encoding: .utf8) == "old")
+        #expect(try String(contentsOf: new.appending(path: "Clipboard/1.json"), encoding: .utf8) == "token")
+        #expect(try String(contentsOf: new.appending(path: "only-new.log"), encoding: .utf8) == "kept")
+    }
 }

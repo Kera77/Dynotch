@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.9.4] - 2026-11-28
+
+### Fixed
+- Rename takeover: folders whose new name already existed (the test host writes there) were
+  skipped, so clipboard history, tray, chats, Beeper token and logs stayed behind. Now they are
+  merged in, the old item winning where both have one, and the takeover runs once more (RN-2, RN-4).
+
 ## [1.9.3] - 2026-11-28
 
 ### Changed
