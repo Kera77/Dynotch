@@ -115,4 +115,20 @@ extension WhatsNew {
                          text: "The Cleaner's buttons grow a little under the pointer instead of turning grey.")
         ])
     ]
+
+    /// 1.10.0: what 1.9.1…1.9.5 brought, above all the new name.
+    static let publicSections1100: [WhatsNewSection] = [
+        WhatsNewSection(title: "Wingmate", symbol: "sparkles", items: [
+            WhatsNewItem(symbol: "sparkles", title: "Dynotch is now Wingmate",
+                         text: "Same app, new name. Settings, accounts, chats and hooks came along."),
+            WhatsNewItem(symbol: "hand.raised", title: "Permissions in one go",
+                         text: "macOS asks for permissions once more; one window lists them, each with its button.")
+        ]),
+        WhatsNewSection(title: "Switcher and privacy", symbol: "rectangle.on.rectangle", items: [
+            WhatsNewItem(symbol: "rectangle.on.rectangle", title: "Under the focused app",
+                         text: "With Only covered windows, the switcher lists the windows under the app you work in."),
+            WhatsNewItem(symbol: "lock.shield", title: "Logs without names",
+                         text: "The logs leave out your user name and account names.")
+        ])
+    ]
 }

@@ -1,6 +1,6 @@
 # Wingmate – specifikáció
 
-> Állapot: **v1.9 elfogadva** · Utolsó módosítás: 2026-11-28
+> Állapot: **v1.10 elfogadva** · Utolsó módosítás: 2026-11-28
 > Személyes használatra készülő macOS app, amely a MacBook notch-ot interaktív felületté alakítja.
 
 ## 0. Általános döntések
@@ -1694,6 +1694,7 @@ Jelenleg nincs.
 | **v0.18** | Hangerő/fényerő HUD a notch mellett, a macOS-kijelző helyett; AI session gomb; beírható előjelzés; beillesztés |
 | **v0.19** | Jegyzet-formázás és billentyűparancsok; számos, éles kör; villogásmentes HUD-ikon; bejelentés bezárásának javítása |
 | **v0.72.0** | Felvétel-jelző: a pötty hoverre stop gombbá tágul, nincs lelógó sáv (SH-5b); Google Chat: a betöltött üzenetek a lista kártyáján is látszanak, a visszajelölés kimarad (GW-17c) |
+| **v1.10.0** | Publikus kiadás: az 1.9.1…1.9.5 tesztverziók összes újdonsága: a Dynotch új neve Wingmate, egyszeri átvétel a régi név alól, áthidaló app a régi frissítőkhöz, egyszeri engedélyablak, új Homebrew tap (RN-1…RN-12, U-11, U-12), a váltó a fókuszban lévő app alatti ablakokat listázza (AS-22), logok név nélkül (C-7b). |
 | **v1.9.5** | Teszt build: áthidaló app a publikus (≤ 1.9.1) verziókhoz, egyszeri „Dynotch is now Wingmate” ablak az engedélyekkel, Homebrew-átállás (RN-8…RN-12) |
 | **v1.9.4** | Teszt build: az átvétel a már létező új mappákba is átmozgatja a régi adatokat (vágólap, tálca, chatek, logok), és ezért egyszer újra lefut (RN-2, RN-4) |
 | **v1.9.3** | Teszt build: az app neve mindenhol Wingmate; egyszeri átvétel a régi név alól: beállítások, mappák, kulcskarika, hookok, login item (RN-1…RN-8) |

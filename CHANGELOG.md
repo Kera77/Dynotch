@@ -2,29 +2,9 @@
 
 ## [Unreleased]
 
-## [1.9.5] - 2026-11-28
+## [1.10.0] - 2026-11-28
 
-### Added
-- Rename bridge for the public version: every release also carries `Dynotch-X.Y.Z.zip`, a small
-  app under the old name that updaters up to 1.9.1 accept. It installs the Wingmate of the same
-  release, keeps *Launch at login*, clears the old "Dynotch" rows in System Settings › Privacy and
-  quits (RN-8…RN-10).
-- One-time "Dynotch is now Wingmate" window after the takeover: what happened, the permissions to
-  grant again with their buttons, and what macOS may still ask (RN-11). Onboarding and tips are
-  unchanged, as no module, gesture or setting moved.
-- Homebrew: `scripts/tap-rename.sh` sets up the new tap `Kera77/homebrew-wingmate` at the first
-  public Wingmate release and points the old tap's `dynotch` cask there (`tap_migrations.json`,
-  `cask_renames.json`), so `brew upgrade` moves existing installs. The old tap repo keeps its name,
-  as Homebrew refuses a renamed tap's redirect (RN-12).
-
-## [1.9.4] - 2026-11-28
-
-### Fixed
-- Rename takeover: folders whose new name already existed (the test host writes there) were
-  skipped, so clipboard history, tray, chats, Beeper token and logs stayed behind. Now they are
-  merged in, the old item winning where both have one, and the takeover runs once more (RN-2, RN-4).
-
-## [1.9.3] - 2026-11-28
+Public release: everything from the 1.9.1…1.9.5 test builds. Dynotch is now called **Wingmate**.
 
 ### Changed
 - The app is called **Wingmate** everywhere (formerly Dynotch): app and bundle
@@ -32,25 +12,25 @@
   items, hooks, release files, GitHub repository, Homebrew cask, docs and the whole history (RN-1).
   Onboarding and tips already used the app name only through the shared texts, so they changed
   with it.
-
-### Added
-- One-time takeover at the first launch: settings, folders (Application Support, logs, web
-  sign-ins and cookies, the Claude chat history), the added Claude accounts in the keychain,
-  the Claude Code and Codex hooks and *Launch at login* come over from the old name; the old
-  app goes to the Bin. macOS permissions have to be granted again (RN-2…RN-8).
-
-## [1.9.2] - 2026-11-28
-
-### Changed
 - Updates: a release may carry the app under its new name (`Wingmate-X.Y.Z.zip` with
   `Wingmate.app`). It is accepted when it has the same certificate, goes beside the old bundle in
   the Applications folder, and the old bundle is removed only once the new one is in place; if
   anything fails, the old app starts again. *Launch at login* is remembered for the new app
   (U-11, U-12).
 
-## [1.9.1] - 2026-11-27
-
 ### Added
+- One-time takeover at the first launch: settings, folders (Application Support, logs, web
+  sign-ins and cookies, the Claude chat history), the added Claude accounts in the keychain,
+  the Claude Code and Codex hooks and *Launch at login* come over from the old name; folders whose
+  new name already exists are merged in, the old item winning where both have one; the old app
+  goes to the Bin. macOS permissions have to be granted again (RN-2…RN-8).
+- Rename bridge: every release also carries `Dynotch-X.Y.Z.zip`, a small app under the old name
+  that updaters up to 1.9.1 accept. It installs the Wingmate of the same release, keeps *Launch at
+  login*, clears the old "Dynotch" rows in System Settings › Privacy and quits (RN-8…RN-10).
+- One-time "Dynotch is now Wingmate" window after the takeover: what happened, the permissions to
+  grant again with their buttons, and what macOS may still ask (RN-11).
+- Homebrew: the new tap `Kera77/homebrew-wingmate`; the old tap's `dynotch` cask points there
+  (`tap_migrations.json`, `cask_renames.json`), so `brew upgrade` moves existing installs (RN-12).
 - Switcher: with *Only covered windows* on, a new *Covered by* choice: *Focused app* (default) lists
   only the windows under the app you work in, *Any window* keeps the old behaviour (AS-22).
 
