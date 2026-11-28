@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.10.3] - 2026-11-28
+
+Test build.
+
+### Fixed
+- Focus (FC-3): Control Center no longer flashes open when a Focus is picked, turned on or off, or
+  when the list is read: Wingmate moves its window off the screen the moment it opens, and closes it
+  with its menu bar item if Escape does not.
+- Focus icon beside the notch (FC-4): with *Open drop-downs with a swipe down* on, hovering it still
+  drops down the name, time left and *Turn off*; a click on the icon turns the Focus off. Tour text
+  updated.
+- Focus icons (FC-1): a symbol named by the Focus files that other apps cannot draw is replaced by
+  one matching the Focus, so every Focus has an icon in the list, on the button and beside the notch.
+  The file's symbol names go to `focus.log`.
+
 ## [1.10.2] - 2026-11-28
 
 ### Changed

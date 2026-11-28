@@ -51,6 +51,12 @@ final class DropdownReveal {
 }
 
 extension IndicatorItem {
+    /// The Focus's drop-down (with Turn off) opens on hover even when drop-downs wait for a swipe (spec FC-4).
+    var dropsDownOnHover: Bool {
+        if case .focus = self { return true }
+        return false
+    }
+
     /// Hovering opens a module rather than a drop-down: the Cleaner, the stats without a warning
     /// (spec SY-7, TT-13); with swipe drop-downs a swipe opens it (spec DS-2).
     func opensModuleOnHover(statsWarnings: Bool) -> Bool {

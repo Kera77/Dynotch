@@ -120,6 +120,9 @@ extension NotchController {
                 return
             }
             setHoveredIndicator(slot)
+            if items[slot].dropsDownOnHover, !model.revealsDropdowns {
+                withAnimation(Self.animation) { model.dropdownRevealed = true }
+            }
         } else {
             setHoveredIndicator(labelIndex(at: point, items: items, layout: layout))
         }

@@ -4,7 +4,7 @@ import ApplicationServices
 /// Switches a Focus the way the owner does it: through Control Center's Focus module, by
 /// Accessibility (spec FC-3). macOS has no API for other apps, but its own panel takes AX presses:
 /// open Control Center, expand Focus, press the Focus, press the length, close with Escape.
-/// Control Center shows for about a second while it happens.
+/// Its window is moved off the screen as soon as it opens, so it never shows.
 @MainActor
 enum ControlCenterFocus {
     /// What Control Center showed: its Focus list and the header ("On Until 13:52").
@@ -74,12 +74,25 @@ enum ControlCenterFocus {
         let element: AXUIElement
         let window: AXUIElement
         private let openedByUs: Bool
+        private let item: AXUIElement?
 
-        private init(app: NSRunningApplication, element: AXUIElement, window: AXUIElement, openedByUs: Bool) {
+        private init(app: NSRunningApplication, element: AXUIElement, window: AXUIElement, openedByUs: Bool, item: AXUIElement?) {
             self.app = app
             self.element = element
             self.window = window
             self.openedByUs = openedByUs
+            self.item = item
+        }
+
+        /// Far off every screen. Control Center puts its window back in place when it opens next.
+        private static let offScreen = CGPoint(x: 30000, y: 30000)
+
+        private static func hide(_ window: AXUIElement) {
+            var point = offScreen
+            guard let value = AXValueCreate(.cgPoint, &point) else { return }
+            if AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, value) != .success {
+                DiagnosticsLog.append("focus", "could not move Control Center off the screen")
+            }
         }
 
         static func open() async -> Panel? {
@@ -89,13 +102,17 @@ enum ControlCenterFocus {
             let element = AXUIElementCreateApplication(app.processIdentifier)
             var window = firstWindow(of: element)
             let openedByUs = window == nil
+            var item: AXUIElement?
             if window == nil {
-                guard let item = menuBarItem() else { return nil }
+                item = menuBarItem()
+                guard let item else { return nil }
                 AXUIElementPerformAction(item, kAXPressAction as CFString)
-                window = await poll(for: .seconds(2)) { firstWindow(of: element) }
+                // Moved off the screen the moment it exists: Control Center never shows (spec FC-3).
+                window = await pollFast(for: .seconds(2)) { firstWindow(of: element) }
+                if let window { hide(window) }
             }
             guard let window else { return nil }
-            let panel = Panel(app: app, element: element, window: window, openedByUs: openedByUs)
+            let panel = Panel(app: app, element: element, window: window, openedByUs: openedByUs, item: item)
             // Expand the Focus module, unless it is open already.
             if panel.find({ AXRead.string($0, kAXIdentifierAttribute) == "focus-modes-header" }) == nil {
                 let module = await poll(for: .seconds(1)) {
@@ -130,12 +147,19 @@ enum ControlCenterFocus {
             (AXRead.value(element, kAXWindowsAttribute) as? [AXUIElement])?.first
         }
 
+        /// Escape, and if Control Center stays (it is off the screen, so nobody would see it),
+        /// its menu bar item again, which closes it.
         func close() async {
             guard openedByUs else { return }
             for down in [true, false] {
                 CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: down)?.postToPid(app.processIdentifier)
             }
-            _ = await Self.poll(for: .seconds(1)) { Self.firstWindow(of: element) == nil ? true : nil }
+            if await Self.poll(for: .seconds(1), { Self.firstWindow(of: element) == nil ? true : nil }) == true { return }
+            guard let item else { return }
+            AXUIElementPerformAction(item, kAXPressAction as CFString)
+            if await Self.poll(for: .seconds(1), { Self.firstWindow(of: element) == nil ? true : nil }) == nil {
+                DiagnosticsLog.append("focus", "Control Center stayed open")
+            }
         }
 
         // MARK: Reading
@@ -211,6 +235,16 @@ enum ControlCenterFocus {
                 if let found = search(child, depth: depth - 1, where: matches) { return found }
             }
             return nil
+        }
+
+        /// Every few milliseconds: the window is moved away before it is drawn.
+        private static func pollFast<T>(for limit: Duration, _ check: () -> T?) async -> T? {
+            let deadline = ContinuousClock.now + limit
+            while ContinuousClock.now < deadline {
+                if let value = check() { return value }
+                try? await Task.sleep(for: .milliseconds(2))
+            }
+            return check()
         }
 
         private static func poll<T>(for limit: Duration, _ check: () -> T?) async -> T? {

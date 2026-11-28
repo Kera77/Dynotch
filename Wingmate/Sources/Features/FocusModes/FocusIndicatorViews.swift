@@ -5,16 +5,22 @@ extension IndicatorLayout {
     static let focusSlotWidth: CGFloat = 26
 }
 
-/// The active Focus's icon beside the closed notch (spec FC-4).
+/// The active Focus's icon beside the closed notch; a click turns the Focus off (spec FC-4).
 struct FocusSlot: View {
     let active: FocusModeService.Active
 
     var body: some View {
-        Image(systemName: active.mode.symbol)
-            .font(.notch(size: 12, weight: .semibold))
-            .foregroundStyle(active.mode.color)
-            .frame(width: IndicatorLayout.focusSlotWidth, height: IndicatorLayout.capsuleHeight)
-            .accessibilityLabel("Focus: \(active.mode.name)")
+        Button { FocusModeService.shared.turnOff() } label: {
+            Image(systemName: active.mode.symbol)
+                .font(.notch(size: 12, weight: .semibold))
+                .foregroundStyle(active.mode.color)
+                .frame(width: IndicatorLayout.focusSlotWidth, height: IndicatorLayout.capsuleHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .opacity(FocusModeService.shared.isSwitching ? 0.5 : 1)
+        .help("Turn \(active.mode.name) off")
+        .accessibilityLabel("Focus: \(active.mode.name). Click to turn it off")
     }
 }
 

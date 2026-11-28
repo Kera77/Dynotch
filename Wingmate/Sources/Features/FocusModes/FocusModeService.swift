@@ -23,13 +23,14 @@ struct FocusMode: Identifiable, Equatable, Sendable {
     ]
 
     /// Names for the built-in Focuses whose configuration has none.
-    static func fallbackName(for id: String) -> String {
+    nonisolated static func fallbackName(for id: String) -> String {
         let lower = id.lowercased()
         if lower.hasSuffix(".default") { return "Do Not Disturb" }
         if lower.contains("sleep") { return "Sleep" }
         if lower.contains("driving") { return "Driving" }
         if lower.contains("work") { return "Work" }
         if lower.contains("personal") { return "Personal" }
+        if lower.contains("reduce-interruptions") { return "Reduce Interruptions" }
         if lower.contains("fitness") { return "Fitness" }
         if lower.contains("gaming") { return "Gaming" }
         if lower.contains("mindfulness") { return "Mindfulness" }
@@ -37,8 +38,18 @@ struct FocusMode: Identifiable, Equatable, Sendable {
         return "Focus"
     }
 
-    static func fallbackSymbol(for id: String) -> String {
+    /// The Focus file's symbol when macOS draws it for apps; otherwise one by the id or name
+    /// (some Focus files name Apple's own glyphs, which draw nothing in other apps; spec FC-1).
+    nonisolated static func usableSymbol(_ name: String?, id: String, modeName: String) -> String {
+        if let name, !name.isEmpty, NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil { return name }
+        let byID = fallbackSymbol(for: id)
+        return byID != "moon.fill" ? byID : fallbackSymbol(for: modeName)
+    }
+
+    nonisolated static func fallbackSymbol(for id: String) -> String {
         let lower = id.lowercased()
+        if lower.contains("emoji") { return "face.smiling.inverse" }
+        if lower.contains("reduce") { return "sparkles" }
         if lower.contains("sleep") { return "bed.double.fill" }
         if lower.contains("driving") { return "car.fill" }
         if lower.contains("work") { return "briefcase.fill" }
@@ -180,6 +191,10 @@ final class FocusModeService {
     }
 
     func apply(_ snapshot: FocusFiles.Snapshot, now: Date = Date()) {
+        if snapshot.modes != fileModes, !snapshot.modes.isEmpty {
+            // Which symbols the Focus files name, to see why an icon is missing (no Focus names).
+            DiagnosticsLog.append("focus", "symbols: " + snapshot.symbolNames.joined(separator: ", "))
+        }
         fileModes = snapshot.modes
         activeID = snapshot.activeID
         rebuildModes()
@@ -323,53 +338,5 @@ final class FocusModeService {
         source.setCancelHandler { close(descriptor) }
         source.resume()
         watcher = source
-    }
-}
-
-/// Reading the Focus files (needs Full Disk Access, like the notifications; spec E-20d).
-enum FocusFiles {
-    struct Snapshot: Equatable, Sendable {
-        var modes: [FocusMode]
-        var activeID: String?
-    }
-
-    nonisolated static var folder: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/DoNotDisturb/DB")
-    }
-
-    nonisolated static func read() -> Snapshot {
-        let modes = (try? Data(contentsOf: folder.appendingPathComponent("ModeConfigurations.json")))
-            .flatMap { try? JSONSerialization.jsonObject(with: $0) }
-            .map(modes(in:)) ?? []
-        let active = (try? Data(contentsOf: folder.appendingPathComponent("Assertions.json")))
-            .flatMap { try? JSONSerialization.jsonObject(with: $0) }
-            .flatMap(activeID(in:))
-        return Snapshot(modes: modes, activeID: active)
-    }
-
-    /// Every configured Focus, Do Not Disturb first, then by name.
-    nonisolated static func modes(in root: Any) -> [FocusMode] {
-        guard let configurations = MacFocus.find("modeConfigurations", in: root) as? [String: Any] else { return [] }
-        let found = configurations.compactMap { key, value -> FocusMode? in
-            guard let configuration = value as? [String: Any] else { return nil }
-            let mode = configuration["mode"] as? [String: Any] ?? [:]
-            let id = mode["modeIdentifier"] as? String ?? key
-            let name = (mode["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? FocusMode.fallbackName(for: id)
-            let symbol = (mode["symbolImageName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? FocusMode.fallbackSymbol(for: id)
-            return FocusMode(id: id, name: name, symbol: symbol, tint: mode["tintColorName"] as? String)
-        }
-        return found.sorted { lhs, rhs in
-            let lhsDefault = lhs.id.hasSuffix(".default"), rhsDefault = rhs.id.hasSuffix(".default")
-            if lhsDefault != rhsDefault { return lhsDefault }
-            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-        }
-    }
-
-    /// The active Focus's id; nil when none is on.
-    nonisolated static func activeID(in root: Any) -> String? {
-        guard let records = MacFocus.find("storeAssertionRecords", in: root) as? [[String: Any]], let first = records.first else {
-            return nil
-        }
-        return MacFocus.find("assertionDetailsModeIdentifier", in: first) as? String ?? "com.apple.donotdisturb.mode.default"
     }
 }

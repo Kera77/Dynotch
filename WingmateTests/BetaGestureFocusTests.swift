@@ -70,6 +70,22 @@ struct BetaGestureFocusTests {
         #expect(FocusFiles.activeID(in: ["data": [["storeAssertionRecords": []]]]) == nil)
     }
 
+    @Test func aFocusSymbolOtherAppsCannotDrawIsReplaced() {
+        #expect(FocusMode.usableSymbol("briefcase.fill", id: "com.apple.focus.work", modeName: "Work") == "briefcase.fill")
+        #expect(FocusMode.usableSymbol("no.such.glyph", id: "com.apple.focus.work", modeName: "Work") == "briefcase.fill")
+        #expect(FocusMode.usableSymbol(nil, id: "com.apple.focus.reduce-interruptions", modeName: "Reduce Interruptions") == "sparkles")
+        let emoji = "com.apple.donotdisturb.mode.emoji.face.grinning"
+        #expect(FocusMode.usableSymbol("", id: emoji, modeName: "Mine") == "face.smiling.inverse")
+        #expect(FocusMode.usableSymbol(nil, id: "custom.1", modeName: "Sleep time") == "bed.double.fill")
+        #expect(FocusMode.usableSymbol(nil, id: "custom.2", modeName: "Other") == "moon.fill")
+    }
+
+    @MainActor @Test func theFocusDropsDownOnHoverEvenWhenDropDownsWaitForASwipe() {
+        let work = FocusMode(id: "work", name: "Work", symbol: "briefcase.fill", tint: nil)
+        #expect(IndicatorItem.focus(FocusModeService.Active(mode: work, until: nil)).dropsDownOnHover)
+        #expect(!IndicatorItem.working.dropsDownOnHover)
+    }
+
     @MainActor @Test func anExpiredLengthIsForgotten() throws {
         let defaults = try #require(UserDefaults(suiteName: "BetaGestureFocusTests-\(UUID().uuidString)"))
         let service = FocusModeService(defaults: defaults)
