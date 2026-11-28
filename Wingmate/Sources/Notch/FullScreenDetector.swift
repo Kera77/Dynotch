@@ -99,6 +99,8 @@ extension NotchController {
         // A small notice under the notch: the Wings wait for the pointer to rest a moment (spec PV-71).
         if holdsWingsForDropDown() { return false }
         guard notifications.peek != nil else { return true }
+        // With swipe drop-downs the notification under the notch waits for a swipe down (spec DS-4).
+        if peeksWaitForSwipe { return false }
         // A notification in the wings opens only with a swipe down (spec PV-13).
         if settings.noticesBeside { return false }
         let notch = model.geometry.notchRect

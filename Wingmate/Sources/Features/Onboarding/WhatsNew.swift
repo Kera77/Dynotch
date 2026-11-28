@@ -40,6 +40,12 @@ struct WhatsNewRelease: Sendable, Hashable {
 /// gets a short line here in the same change; the CHANGELOG is the long version.
 enum WhatsNew {
     static let releases: [WhatsNewRelease] = [
+        WhatsNewRelease(version: "1.10.2", items: [
+            WhatsNewItem(symbol: "moon.fill", title: "Focus without Shortcuts",
+                         text: "Your Mac's own Focuses with their icons; pick one, then how long, and Control Center does the rest."),
+            WhatsNewItem(symbol: "hand.draw", title: "Notifications on a swipe",
+                         text: "With swipe drop-downs on, new notifications and screenshots open with a swipe down, not on hover.")
+        ]),
         WhatsNewRelease(version: "1.10.1", items: [
             WhatsNewItem(symbol: "moon.fill", title: "Focus in the top row",
                          text: "Pick a Focus for an hour, two or until morning; its icon waits beside the notch with Turn off."),

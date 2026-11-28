@@ -51,38 +51,48 @@ struct FocusMode: Identifiable, Equatable, Sendable {
     }
 }
 
-/// How long a Focus chosen in the notch stays on (spec FC-2).
+/// How long a Focus chosen in the notch stays on: the lengths of macOS's Control Center (spec FC-2).
 enum FocusLength: String, CaseIterable, Identifiable, Sendable {
-    case hour, twoHours, tomorrowMorning
+    case hour, evening, event, untilOff
 
     var id: String { rawValue }
 
-    var title: String {
+    /// The evening ends here, as Control Center's "Until this evening"; after it, "tomorrow morning".
+    static let eveningHour = 19
+
+    func title(now: Date = Date(), calendar: Calendar = .current) -> String {
         switch self {
         case .hour: "For 1 hour"
-        case .twoHours: "For 2 hours"
-        case .tomorrowMorning: "Until tomorrow morning"
+        case .evening: calendar.component(.hour, from: now) < Self.eveningHour ? "Until this evening" : "Until tomorrow morning"
+        case .event: "Until the end of this event"
+        case .untilOff: "Until I turn it off"
         }
     }
 
-    /// The morning hour, as in macOS's own "Until tomorrow morning".
-    static let morningHour = 7
-
-    /// When the Focus ends. Between midnight and 7:00 "tomorrow morning" is this morning.
-    func end(from now: Date, calendar: Calendar = .current) -> Date {
+    /// Control Center's row for this length; `untilOff` has none (the Focus alone is pressed).
+    func matches(_ label: String) -> Bool {
         switch self {
-        case .hour: return now.addingTimeInterval(3600)
-        case .twoHours: return now.addingTimeInterval(7200)
-        case .tomorrowMorning:
-            let today = calendar.date(bySettingHour: Self.morningHour, minute: 0, second: 0, of: now) ?? now
-            return today > now ? today : calendar.date(byAdding: .day, value: 1, to: today) ?? today
+        case .hour: label == "For 1 hour"
+        case .evening: label.hasPrefix("Until this evening") || label.hasPrefix("Until tomorrow morning")
+        case .event: label.hasPrefix("Until the end of")
+        case .untilOff: false
         }
+    }
+
+    /// The lengths offered now: the event's only during a calendar event.
+    static func offered(duringEvent: Bool) -> [FocusLength] {
+        duringEvent ? [.hour, .evening, .event, .untilOff] : [.hour, .evening, .untilOff]
+    }
+
+    /// A length row of Control Center, not a Focus.
+    nonisolated static func isLengthLabel(_ label: String) -> Bool {
+        label.hasPrefix("For ") || label.hasPrefix("Until ")
     }
 }
 
-/// The Focus picker's state: the Focuses, the active one and its end, and the Shortcuts that
-/// switch them (spec FC-1…FC-4). macOS lets no outside app switch a Focus, so turning on and
-/// off goes through the owner's Shortcuts; the end is Wingmate's own timer.
+/// The Focus picker's state: the Focuses as macOS lists them, the active one and its end
+/// (spec FC-1…FC-4). Switching goes through Control Center (`ControlCenterFocus`); macOS ends a
+/// length by itself.
 @MainActor
 @Observable
 final class FocusModeService {
@@ -95,26 +105,20 @@ final class FocusModeService {
     }
 
     private enum Key {
-        static let onShortcuts = "focusOnShortcuts"
-        static let offShortcut = "focusOffShortcut"
         static let until = "focusUntil"
         static let untilMode = "focusUntilMode"
-        static let shown = "focusButtonShown"
+        static let macNames = "focusMacNames"
+        static let macNamesSource = "focusMacNamesSource"
     }
 
+    /// The Focuses in the picker: Control Center's list and order (spec FC-1).
     private(set) var modes: [FocusMode] = []
     private(set) var active: Active?
+    /// A switch through Control Center is under way.
+    private(set) var isSwitching = false
 
-    /// The Shortcut that turns each Focus on, by its id.
-    var onShortcuts: [String: String] {
-        didSet { defaults.set(onShortcuts, forKey: Key.onShortcuts) }
-    }
-
-    /// The Shortcut that turns the Focus off.
-    var offShortcut: String {
-        didSet { defaults.set(offShortcut, forKey: Key.offShortcut) }
-    }
-
+    @ObservationIgnored private var fileModes: [FocusMode] = []
+    @ObservationIgnored private var activeID: String?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var watcher: DispatchSourceFileSystemObject?
     @ObservationIgnored private var timer: Timer?
@@ -123,8 +127,6 @@ final class FocusModeService {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        onShortcuts = defaults.dictionary(forKey: Key.onShortcuts) as? [String: String] ?? [:]
-        offShortcut = defaults.string(forKey: Key.offShortcut) ?? ""
     }
 
     func start() {
@@ -132,7 +134,7 @@ final class FocusModeService {
         started = true
         refresh()
         watchFolder()
-        // The end of a length, and a fallback when the folder's events are missed.
+        // The time left, and a fallback when the folder's events are missed.
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }
@@ -156,7 +158,20 @@ final class FocusModeService {
         defaults.set(end?.until, forKey: Key.until)
     }
 
-    /// Reads the Focus files off the main thread, then ends an expired length (spec FC-3).
+    /// Control Center's Focus names, as last read, and the Focus files' ids they were read for.
+    private var macNames: [String] {
+        get { defaults.stringArray(forKey: Key.macNames) ?? [] }
+        set { defaults.set(newValue, forKey: Key.macNames) }
+    }
+
+    private var fileSignature: String { fileModes.map(\.id).sorted().joined(separator: ",") }
+
+    /// Control Center's list is read again when the Focuses change in System Settings.
+    var needsMacList: Bool {
+        macNames.isEmpty || defaults.string(forKey: Key.macNamesSource) != fileSignature
+    }
+
+    /// Reads the Focus files off the main thread.
     func refresh() {
         Task {
             let snapshot = await Task.detached { FocusFiles.read() }.value
@@ -165,24 +180,38 @@ final class FocusModeService {
     }
 
     func apply(_ snapshot: FocusFiles.Snapshot, now: Date = Date()) {
-        if snapshot.modes != modes { modes = snapshot.modes }
+        fileModes = snapshot.modes
+        activeID = snapshot.activeID
+        rebuildModes()
         var end = storedEnd
-        if let stored = end, stored.mode != snapshot.activeID {
-            // Turned off or switched elsewhere: the length no longer applies.
-            if snapshot.activeID != nil || now >= stored.until { storeEnd(nil) }
+        if let stored = end, stored.mode != snapshot.activeID || now >= stored.until {
+            // Turned off, switched elsewhere or over: the length no longer applies.
+            storeEnd(nil)
             end = nil
         }
-        if let stored = end, now >= stored.until {
-            DiagnosticsLog.append("focus", "length ended, turning off")
-            storeEnd(nil)
-            ShortcutsApp.run(offShortcut)
-            setActive(nil)
-            return
-        }
         let next = snapshot.activeID.map { id in
-            Active(mode: snapshot.modes.first { $0.id == id } ?? Self.mode(for: id), until: end?.until)
+            Active(mode: mode(for: id), until: end?.until)
         }
         setActive(next)
+    }
+
+    private func rebuildModes() {
+        let names = macNames
+        let next: [FocusMode]
+        if names.isEmpty {
+            next = fileModes
+        } else {
+            next = names.map { name in
+                fileModes.first { $0.name == name }
+                    ?? FocusMode(id: name, name: name, symbol: FocusMode.fallbackSymbol(for: name), tint: nil)
+            }
+        }
+        if next != modes { modes = next }
+    }
+
+    private func mode(for id: String) -> FocusMode {
+        fileModes.first { $0.id == id } ?? modes.first { $0.id == id }
+            ?? FocusMode(id: id, name: FocusMode.fallbackName(for: id), symbol: FocusMode.fallbackSymbol(for: id), tint: nil)
     }
 
     private func setActive(_ next: Active?) {
@@ -190,36 +219,76 @@ final class FocusModeService {
         withAnimation(Motion.quick) { active = next }
     }
 
-    private static func mode(for id: String) -> FocusMode {
-        FocusMode(id: id, name: FocusMode.fallbackName(for: id), symbol: FocusMode.fallbackSymbol(for: id), tint: nil)
-    }
-
     // MARK: - Switching
 
-    func canTurnOn(_ mode: FocusMode) -> Bool { !(onShortcuts[mode.id] ?? "").isEmpty }
-    var canTurnOff: Bool { !offShortcut.isEmpty }
-
-    /// Turns the Focus on until the length's end (spec FC-2).
-    func turnOn(_ mode: FocusMode, for length: FocusLength, now: Date = Date()) {
-        guard let shortcut = onShortcuts[mode.id], !shortcut.isEmpty else { return }
-        ShortcutsApp.run(shortcut)
-        noteLength(of: mode, until: length.end(from: now))
-        DiagnosticsLog.append("focus", "on with a length (\(length.rawValue))")
-        // The files change a moment later.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.refresh() }
+    /// Reads Control Center's Focus list when it is missing or out of date (spec FC-1).
+    func loadMacListIfNeeded() async {
+        guard needsMacList else { return }
+        isSwitching = true
+        defer { isSwitching = false }
+        guard let names = await ControlCenterFocus.readNames(known: Set(fileModes.map(\.name))), !names.isEmpty else { return }
+        noteMacNames(names)
     }
 
-    /// The Focus is on until then; Wingmate turns it off at that time (spec FC-3).
-    func noteLength(of mode: FocusMode, until: Date) {
-        storeEnd((mode.id, until))
-        setActive(Active(mode: mode, until: until))
+    private func noteMacNames(_ names: [String]) {
+        guard !names.isEmpty else { return }
+        macNames = names
+        defaults.set(fileSignature, forKey: Key.macNamesSource)
+        rebuildModes()
+    }
+
+    /// Turns the Focus on for the length, through Control Center (spec FC-2, FC-3).
+    func turnOn(_ mode: FocusMode, for length: FocusLength, now: Date = Date()) {
+        guard !isSwitching else { return }
+        isSwitching = true
+        DiagnosticsLog.append("focus", "on (\(length.rawValue))")
+        let known = Set(fileModes.map(\.name))
+        let accepts: ((String) -> Bool)? = length == .untilOff ? nil : { length.matches($0) }
+        Task { @MainActor in
+            let reading = await ControlCenterFocus.turnOn(mode.name, known: known, length: accepts)
+            isSwitching = false
+            guard let reading else { return }
+            noteMacNames(reading.names)
+            if let until = reading.header.flatMap({ Self.endTime(in: $0, now: now) }) {
+                storeEnd((mode.id, until))
+                setActive(Active(mode: mode, until: until))
+            } else {
+                storeEnd(nil)
+                setActive(Active(mode: mode, until: nil))
+            }
+            // The files change a moment later.
+            try? await Task.sleep(for: .seconds(1))
+            refresh()
+        }
     }
 
     func turnOff() {
-        storeEnd(nil)
-        ShortcutsApp.run(offShortcut)
-        setActive(nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.refresh() }
+        guard !isSwitching, let active else { return }
+        isSwitching = true
+        DiagnosticsLog.append("focus", "off")
+        Task {
+            let done = await ControlCenterFocus.turnOff(active.mode.name)
+            isSwitching = false
+            if done {
+                storeEnd(nil)
+                setActive(nil)
+            }
+            try? await Task.sleep(for: .seconds(1))
+            refresh()
+        }
+    }
+
+    /// The end in Control Center's header ("On Until 13:52", "On Until 7:00 PM"): the next such time.
+    nonisolated static func endTime(in header: String, now: Date = Date(), calendar: Calendar = .current) -> Date? {
+        guard let range = header.range(of: #"\d{1,2}[:.]\d{2}(\s?[AaPp][Mm])?"#, options: .regularExpression) else { return nil }
+        let text = header[range].replacingOccurrences(of: ".", with: ":").uppercased()
+        let digits = text.filter { $0.isNumber || $0 == ":" }.split(separator: ":").compactMap { Int($0) }
+        guard digits.count == 2, digits[1] < 60 else { return nil }
+        var hour = digits[0]
+        if text.hasSuffix("PM"), hour < 12 { hour += 12 }
+        if text.hasSuffix("AM"), hour == 12 { hour = 0 }
+        guard hour < 24, let today = calendar.date(bySettingHour: hour, minute: digits[1], second: 0, of: now) else { return nil }
+        return today > now ? today : calendar.date(byAdding: .day, value: 1, to: today)
     }
 
     /// "42 min left", "until 7:00", or nil without a length (spec FC-4).

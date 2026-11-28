@@ -247,7 +247,7 @@ extension NotchController {
     /// A two-finger swipe up over the announced meeting's name, or over a sticky notice, closes
     /// it (spec K-8f, CN-1).
     func handleCollapsedScroll(_ event: NSEvent) -> Bool {
-        if handleRevealSwipe(event) || handleWingsPeekScroll(event) { return true }
+        if handleRevealSwipe(event) || handleWingsPeekScroll(event) || handlePeekSwipe(event) { return true }
         guard notifications.peek == nil, !callIsShown, !model.isExpanded else { return false }
         let items = IndicatorItem.items(
             meetings: calendar.indicatorEvents, usage: claudeUsage.notchLimits(sessionsPopup: notices.sessions.popupShown),

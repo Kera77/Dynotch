@@ -9,6 +9,8 @@ extension NotchController {
         guard !model.isExpanded, let shot = screenshots.peek, !shot.isVideo,
               model.geometry.keepOpenZone(for: model.geometry.peekSize).contains(point)
         else { return false }
+        // With swipe drop-downs it waits for a swipe down (spec DS-4).
+        if peeksWaitForSwipe { return true }
         openScreenshotEditor(shot.url, fromPeek: true)
         return true
     }

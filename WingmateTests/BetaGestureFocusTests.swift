@@ -23,17 +23,27 @@ struct BetaGestureFocusTests {
         #expect(wheel.handle(fingerDown: 25, across: 0, began: nil, isMomentum: false, time: 6) == .open)
     }
 
-    @Test func focusLengthsEnd() throws {
+    @Test func focusLengthsMatchControlCenter() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try #require(TimeZone(identifier: "Europe/Budapest"))
-        let evening = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 28, hour: 21)))
-        #expect(FocusLength.hour.end(from: evening, calendar: calendar) == evening.addingTimeInterval(3600))
-        #expect(FocusLength.twoHours.end(from: evening, calendar: calendar) == evening.addingTimeInterval(7200))
-        let morning = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 29, hour: 7)))
-        #expect(FocusLength.tomorrowMorning.end(from: evening, calendar: calendar) == morning)
-        // After midnight "tomorrow morning" is this morning at 7.
-        let night = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 29, hour: 2)))
-        #expect(FocusLength.tomorrowMorning.end(from: night, calendar: calendar) == morning)
+        let noon = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 28, hour: 12)))
+        let night = try #require(calendar.date(from: DateComponents(year: 2026, month: 11, day: 28, hour: 21)))
+        #expect(FocusLength.evening.title(now: noon, calendar: calendar) == "Until this evening")
+        #expect(FocusLength.evening.title(now: night, calendar: calendar) == "Until tomorrow morning")
+        #expect(FocusLength.hour.matches("For 1 hour"))
+        #expect(FocusLength.evening.matches("Until tomorrow morning"))
+        #expect(FocusLength.event.matches("Until the end of this event"))
+        #expect(!FocusLength.untilOff.matches("For 1 hour"))
+        #expect(FocusLength.offered(duringEvent: false) == [.hour, .evening, .untilOff])
+        // The lengths under the active Focus are no Focuses; a Focus named so is kept.
+        let rows = ["Do Not Disturb", "Work", "For 1 hour", "Until this evening", "Sleep", "Until Friday"]
+        #expect(ControlCenterFocus.names(in: rows, known: ["Until Friday"]) == ["Do Not Disturb", "Work", "Sleep", "Until Friday"])
+        // Control Center's header gives the end: the next such time.
+        let end = try #require(FocusModeService.endTime(in: "On Until 13:52", now: noon, calendar: calendar))
+        #expect(calendar.dateComponents([.day, .hour, .minute], from: end) == DateComponents(day: 28, hour: 13, minute: 52))
+        let morning = try #require(FocusModeService.endTime(in: "On Until 7:00 AM", now: night, calendar: calendar))
+        #expect(calendar.dateComponents([.day, .hour], from: morning) == DateComponents(day: 29, hour: 7))
+        #expect(FocusModeService.endTime(in: "On", now: noon, calendar: calendar) == nil)
     }
 
     @Test func focusTimeLeft() {
@@ -60,13 +70,15 @@ struct BetaGestureFocusTests {
         #expect(FocusFiles.activeID(in: ["data": [["storeAssertionRecords": []]]]) == nil)
     }
 
-    @MainActor @Test func anExpiredLengthTurnsTheFocusOff() throws {
+    @MainActor @Test func anExpiredLengthIsForgotten() throws {
         let defaults = try #require(UserDefaults(suiteName: "BetaGestureFocusTests-\(UUID().uuidString)"))
         let service = FocusModeService(defaults: defaults)
         let work = FocusMode(id: "work", name: "Work", symbol: "briefcase.fill", tint: nil)
-        let now = Date()
-        service.noteLength(of: work, until: now.addingTimeInterval(-1))
-        service.apply(FocusFiles.Snapshot(modes: [work], activeID: "work"), now: now)
+        defaults.set("work", forKey: "focusUntilMode")
+        defaults.set(Date().addingTimeInterval(-1), forKey: "focusUntil")
+        service.apply(FocusFiles.Snapshot(modes: [work], activeID: "work"))
+        #expect(service.active == FocusModeService.Active(mode: work, until: nil))
+        service.apply(FocusFiles.Snapshot(modes: [work], activeID: nil))
         #expect(service.active == nil)
     }
 

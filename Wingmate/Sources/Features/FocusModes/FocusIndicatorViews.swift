@@ -42,9 +42,9 @@ struct FocusLabel: View {
             Button("Turn off") { FocusModeService.shared.turnOff() }
                 .buttonStyle(.notch)
                 .font(.notch(size: 11, weight: .semibold))
-                .foregroundStyle(FocusModeService.shared.canTurnOff ? Color.white : Color.white.level(0.4))
-                .disabled(!FocusModeService.shared.canTurnOff)
-                .help(FocusModeService.shared.canTurnOff ? "Turn the Focus off" : "Choose a Focus off Shortcut in Settings › General")
+                .foregroundStyle(.white)
+                .disabled(FocusModeService.shared.isSwitching)
+                .help("Turn the Focus off")
         }
         .padding(.horizontal, 12)
         .frame(height: IndicatorLayout.labelHeight - 4)

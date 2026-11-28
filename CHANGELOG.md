@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-11-28
+
+### Changed
+- Focus picker (FC-1…FC-3): switches through macOS's Control Center instead of Shortcuts, so no setup
+  is needed and the "set a Shortcut" rows are gone. The list is exactly Control Center's Focuses, in
+  its order, with their coloured icons; a click drops down Control Center's lengths (For 1 hour,
+  Until this evening / tomorrow morning, Until the end of this event, Until I turn it off). macOS
+  ends the length itself; the time left comes from Control Center. The Focus Shortcuts settings are
+  removed; the tour text is updated.
+- Swipe drop-downs (DS-4): with the setting on, the small notifications under the notch (new
+  notification, Beeper message, the screenshot pop-up) no longer open on hover; a swipe down opens the
+  card or the screenshot editor. Also in Wings mode. Badges and indicators are unchanged.
+
 ## [1.10.1] - 2026-11-28
 
 Test build.

@@ -150,7 +150,7 @@ struct TrailingControls: View {
                 .help("Quick toggles (⌘-drag to reorder)")
         case .focus:
             // Every Focus, then its length (spec FC-1, FC-2).
-            FocusMenu(service: .shared) { if !isShowingSettings { toggleSettings() } }
+            FocusMenu(service: .shared)
         case .settings:
             pageButton(control, isShowing: isShowingSettings, action: toggleSettings)
                 .help("Settings (⌘-drag to reorder)")
