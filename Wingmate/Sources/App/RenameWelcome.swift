@@ -18,22 +18,22 @@ enum RenameWelcome {
 
     private static func show(notifications: NotificationService, settings: AppSettings) {
         guard window == nil else { return }
-        let view = RenameWelcomeView(notifications: notifications, settings: settings) { window?.close() }
-        let window = NSWindow(
+        let view = RenameWelcomeView(notifications: notifications, settings: settings) { RenameWelcome.window?.close() }
+        let panel = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 480, height: 640), styleMask: [.titled, .closable, .resizable],
             backing: .buffered, defer: false
         )
-        window.title = "Wingmate"
-        window.isReleasedWhenClosed = false
-        window.contentView = NSHostingView(rootView: view)
-        window.center()
+        panel.title = "Wingmate"
+        panel.isReleasedWhenClosed = false
+        panel.contentView = NSHostingView(rootView: view)
+        panel.center()
         closeObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification, object: window, queue: .main
+            forName: NSWindow.willCloseNotification, object: panel, queue: .main
         ) { _ in
             MainActor.assumeIsolated { finish() }
         }
-        self.window = window
-        window.makeKeyAndOrderFront(nil)
+        self.window = panel
+        panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         DiagnosticsLog.append("rename", "welcome shown")
     }
